@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,12 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#0000ff'
   ];
 
+  const isValidNumber = (value: any): boolean => {
+    if (value === null || value === undefined || value === '') return false;
+    const num = Number(value);
+    return !isNaN(num) && isFinite(num);
+  };
+
   const prepareChartData = () => {
     if (!xColumn || !yColumn) return [];
 
@@ -33,28 +38,64 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
     if (!xCol || !yCol) return [];
 
+    console.log('Preparing chart data for:', { xColumn, yColumn, chartType });
+
     if (chartType === 'pie') {
       // For pie charts, group by category and sum values
       const grouped = data.reduce((acc, row) => {
         const category = row[xColumn]?.toString() || 'Unknown';
-        const value = Number(row[yColumn]) || 0;
-        acc[category] = (acc[category] || 0) + value;
+        const value = Number(row[yColumn]);
+        if (isValidNumber(value)) {
+          acc[category] = (acc[category] || 0) + value;
+        }
         return acc;
       }, {} as Record<string, number>);
 
-      return Object.entries(grouped).map(([name, value]) => ({
-        name,
-        value,
-        [yColumn]: value
-      }));
+      const result = Object.entries(grouped)
+        .filter(([, value]) => isValidNumber(value))
+        .map(([name, value]) => ({
+          name,
+          value,
+          [yColumn]: value
+        }));
+
+      console.log('Pie chart data prepared:', result);
+      return result;
     }
 
-    // For other charts, use data as-is but ensure numeric values
-    return data.map(row => ({
-      ...row,
-      [xColumn]: xCol.type === 'numeric' ? Number(row[xColumn]) || 0 : row[xColumn],
-      [yColumn]: Number(row[yColumn]) || 0
-    })).filter(row => row[xColumn] !== null && row[yColumn] !== null);
+    // For other charts, filter and validate data
+    const processedData = data
+      .map(row => {
+        let xValue = row[xColumn];
+        let yValue = row[yColumn];
+
+        // Process X value based on column type
+        if (xCol.type === 'numeric') {
+          xValue = Number(xValue);
+          if (!isValidNumber(xValue)) return null;
+        } else if (xCol.type === 'date') {
+          // Keep as string for non-scatter charts, convert for scatter
+          if (chartType === 'scatter') {
+            const date = new Date(xValue);
+            if (isNaN(date.getTime())) return null;
+            xValue = date.getTime();
+          }
+        }
+
+        // Process Y value (should always be numeric)
+        yValue = Number(yValue);
+        if (!isValidNumber(yValue)) return null;
+
+        return {
+          ...row,
+          [xColumn]: xValue,
+          [yColumn]: yValue
+        };
+      })
+      .filter(row => row !== null);
+
+    console.log('Chart data prepared:', processedData);
+    return processedData;
   };
 
   const chartData = prepareChartData();
@@ -154,14 +195,20 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 dataKey={xColumn} 
                 type="number"
                 domain={['dataMin', 'dataMax']}
+                tick={{ fontSize: 12 }}
               />
               <YAxis 
                 dataKey={yColumn} 
                 type="number"
                 domain={['dataMin', 'dataMax']}
+                tick={{ fontSize: 12 }}
               />
               <Tooltip />
-              <Scatter dataKey={yColumn} fill="#8884d8" />
+              <Scatter 
+                dataKey={yColumn} 
+                fill="#8884d8"
+                name={`${yColumn} vs ${xColumn}`}
+              />
             </ScatterChart>
           </ResponsiveContainer>
         );
