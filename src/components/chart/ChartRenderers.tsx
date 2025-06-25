@@ -1,5 +1,4 @@
-
-import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ComposedChart } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
@@ -36,92 +35,184 @@ const customPieLabel = ({ name, value, percent }: any) =>
 
 const customTickFormatter = (value: any) => formatNumber(Number(value));
 
-export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: ChartProps) => (
-  <ResponsiveContainer width="100%" height={400}>
-    <BarChart
-      width={800}
-      height={400}
-      data={data}
-      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis 
-        dataKey={xColumn} 
-        tick={{ fontSize: 12 }}
-        angle={-45}
-        textAnchor="end"
-        height={60}
-      />
-      <YAxis tickFormatter={customTickFormatter} />
-      <Tooltip formatter={customTooltipFormatter} />
-      <Legend />
-      <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
-      {series.map((seriesConfig) => {
-        if (seriesConfig.type === 'line') {
-          return (
-            <Line 
-              key={seriesConfig.id}
-              type="monotone" 
-              dataKey={seriesConfig.column} 
-              stroke={seriesConfig.color} 
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              name={seriesConfig.column}
-            />
-          );
-        }
-        return (
+export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: ChartProps) => {
+  // Check if we have mixed chart types (bar + line)
+  const hasMixedTypes = series.some(s => s.type === 'line');
+  
+  if (hasMixedTypes) {
+    // Use ComposedChart for mixed types
+    return (
+      <ResponsiveContainer width="100%" height={400}>
+        <ComposedChart
+          width={800}
+          height={400}
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey={xColumn} 
+            tick={{ fontSize: 12 }}
+            angle={-45}
+            textAnchor="end"
+            height={60}
+          />
+          <YAxis tickFormatter={customTickFormatter} />
+          <Tooltip formatter={customTooltipFormatter} />
+          <Legend />
+          <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
+          {series.map((seriesConfig) => {
+            if (seriesConfig.type === 'line') {
+              return (
+                <Line 
+                  key={seriesConfig.id}
+                  type="monotone" 
+                  dataKey={seriesConfig.column} 
+                  stroke={seriesConfig.color} 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  name={seriesConfig.column}
+                />
+              );
+            }
+            return (
+              <Bar 
+                key={seriesConfig.id}
+                dataKey={seriesConfig.column} 
+                fill={seriesConfig.color}
+                name={seriesConfig.column}
+              />
+            );
+          })}
+        </ComposedChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Use regular BarChart for bar-only charts
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart
+        width={800}
+        height={400}
+        data={data}
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey={xColumn} 
+          tick={{ fontSize: 12 }}
+          angle={-45}
+          textAnchor="end"
+          height={60}
+        />
+        <YAxis tickFormatter={customTickFormatter} />
+        <Tooltip formatter={customTooltipFormatter} />
+        <Legend />
+        <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
+        {series.map((seriesConfig) => (
           <Bar 
             key={seriesConfig.id}
             dataKey={seriesConfig.column} 
             fill={seriesConfig.color}
             name={seriesConfig.column}
           />
-        );
-      })}
-    </BarChart>
-  </ResponsiveContainer>
-);
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
-export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps) => (
-  <ResponsiveContainer width="100%" height={400}>
-    <LineChart
-      width={800}
-      height={400}
-      data={data}
-      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis 
-        dataKey={xColumn}
-        tick={{ fontSize: 12 }}
-        angle={-45}
-        textAnchor="end"
-        height={60}
-      />
-      <YAxis tickFormatter={customTickFormatter} />
-      <Tooltip formatter={customTooltipFormatter} />
-      <Legend />
-      <Line 
-        type="monotone" 
-        dataKey={yColumn} 
-        stroke="#8884d8" 
-        strokeWidth={2}
-        dot={{ r: 4 }}
-        name={yColumn}
-      />
-      {series.map((seriesConfig) => {
-        if (seriesConfig.type === 'bar') {
-          return (
-            <Bar 
-              key={seriesConfig.id}
-              dataKey={seriesConfig.column} 
-              fill={seriesConfig.color}
-              name={seriesConfig.column}
-            />
-          );
-        }
-        return (
+export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps) => {
+  // Check if we have mixed chart types (line + bar)
+  const hasMixedTypes = series.some(s => s.type === 'bar');
+  
+  if (hasMixedTypes) {
+    // Use ComposedChart for mixed types
+    return (
+      <ResponsiveContainer width="100%" height={400}>
+        <ComposedChart
+          width={800}
+          height={400}
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey={xColumn}
+            tick={{ fontSize: 12 }}
+            angle={-45}
+            textAnchor="end"
+            height={60}
+          />
+          <YAxis tickFormatter={customTickFormatter} />
+          <Tooltip formatter={customTooltipFormatter} />
+          <Legend />
+          <Line 
+            type="monotone" 
+            dataKey={yColumn} 
+            stroke="#8884d8" 
+            strokeWidth={2}
+            dot={{ r: 4 }}
+            name={yColumn}
+          />
+          {series.map((seriesConfig) => {
+            if (seriesConfig.type === 'bar') {
+              return (
+                <Bar 
+                  key={seriesConfig.id}
+                  dataKey={seriesConfig.column} 
+                  fill={seriesConfig.color}
+                  name={seriesConfig.column}
+                />
+              );
+            }
+            return (
+              <Line 
+                key={seriesConfig.id}
+                type="monotone" 
+                dataKey={seriesConfig.column} 
+                stroke={seriesConfig.color} 
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                name={seriesConfig.column}
+              />
+            );
+          })}
+        </ComposedChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Use regular LineChart for line-only charts
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart
+        width={800}
+        height={400}
+        data={data}
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey={xColumn}
+          tick={{ fontSize: 12 }}
+          angle={-45}
+          textAnchor="end"
+          height={60}
+        />
+        <YAxis tickFormatter={customTickFormatter} />
+        <Tooltip formatter={customTooltipFormatter} />
+        <Legend />
+        <Line 
+          type="monotone" 
+          dataKey={yColumn} 
+          stroke="#8884d8" 
+          strokeWidth={2}
+          dot={{ r: 4 }}
+          name={yColumn}
+        />
+        {series.map((seriesConfig) => (
           <Line 
             key={seriesConfig.id}
             type="monotone" 
@@ -131,11 +222,11 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
             dot={{ r: 4 }}
             name={seriesConfig.column}
           />
-        );
-      })}
-    </LineChart>
-  </ResponsiveContainer>
-);
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
 
 export const PieChartRenderer = ({ data, chartColors }: { data: DataRow[]; chartColors: string[] }) => (
   <ResponsiveContainer width="100%" height={400}>
