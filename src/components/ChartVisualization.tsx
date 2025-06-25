@@ -3,8 +3,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { ArrowUpDown, ArrowUp, ArrowDown, Plus, X } from 'lucide-react';
+import { ArrowUp, ArrowDown, Plus, X } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { formatNumber, formatTooltipValue } from '@/lib/numberUtils';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -44,6 +45,19 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   // Chart types that support multiple series
   const multiSeriesChartTypes = ['bar', 'line', 'scatter'];
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
+
+  // Custom tooltip formatter
+  const customTooltipFormatter = (value: any, name: string) => [
+    formatTooltipValue(value),
+    name
+  ];
+
+  // Custom label formatter for pie charts
+  const customPieLabel = ({ name, value, percent }: any) => 
+    `${name}: ${formatNumber(value)} (${(percent * 100).toFixed(0)}%)`;
+
+  // Custom tick formatter for axes
+  const customTickFormatter = (value: any) => formatNumber(Number(value));
 
   const addSeries = () => {
     if (numericColumns.length === 0) return;
@@ -500,7 +514,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                   fontSize="10"
                   fill="#333"
                 >
-                  {point.value.toFixed(1)}
+                  {formatNumber(point.value)}
                 </text>
               </g>
             );
@@ -532,8 +546,8 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
             textAnchor="end"
             height={60}
           />
-          <YAxis />
-          <Tooltip />
+          <YAxis tickFormatter={customTickFormatter} />
+          <Tooltip formatter={customTooltipFormatter} />
           <Legend />
           {stackValues.map((stackVal, index) => (
             <Bar 
@@ -613,8 +627,8 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 textAnchor="end"
                 height={60}
               />
-              <YAxis />
-              <Tooltip />
+              <YAxis tickFormatter={customTickFormatter} />
+              <Tooltip formatter={customTooltipFormatter} />
               <Legend />
               <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
               {series.map((seriesConfig, index) => (
@@ -642,8 +656,8 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 textAnchor="end"
                 height={60}
               />
-              <YAxis />
-              <Tooltip />
+              <YAxis tickFormatter={customTickFormatter} />
+              <Tooltip formatter={customTooltipFormatter} />
               <Legend />
               <Line 
                 type="monotone" 
@@ -678,7 +692,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={customPieLabel}
                 outerRadius={120}
                 fill="#8884d8"
                 dataKey="value"
@@ -687,7 +701,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                   <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={customTooltipFormatter} />
             </PieChart>
           </ResponsiveContainer>
         );
@@ -703,14 +717,16 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 type="number"
                 domain={['dataMin', 'dataMax']}
                 tick={{ fontSize: 12 }}
+                tickFormatter={customTickFormatter}
               />
               <YAxis 
                 dataKey={yColumn} 
                 type="number"
                 domain={['dataMin', 'dataMax']}
                 tick={{ fontSize: 12 }}
+                tickFormatter={customTickFormatter}
               />
-              <Tooltip />
+              <Tooltip formatter={customTooltipFormatter} />
               <Legend />
               <Scatter 
                 dataKey={yColumn} 
