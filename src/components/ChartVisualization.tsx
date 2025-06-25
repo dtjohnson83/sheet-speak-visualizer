@@ -11,6 +11,11 @@ interface ChartVisualizationProps {
   columns: ColumnInfo[];
 }
 
+interface SankeyData {
+  nodes: { id: string; name: string }[];
+  links: { source: string; target: string; value: number }[];
+}
+
 export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) => {
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
@@ -64,7 +69,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     });
   };
 
-  const prepareChartData = () => {
+  const prepareChartData = (): DataRow[] | SankeyData => {
     if (!xColumn || !yColumn) return [];
 
     const xCol = columns.find(col => col.name === xColumn);
@@ -78,7 +83,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     const sortedData = sortData(data);
 
     if (chartType === 'sankey') {
-      if (!sankeyTargetColumn) return [];
+      if (!sankeyTargetColumn) return { nodes: [], links: [] };
       
       // For Sankey, we need source, target, and value
       const sankeyData = sortedData.reduce((acc, row) => {
@@ -102,7 +107,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         return { source, target, value };
       });
 
-      const result = {
+      const result: SankeyData = {
         nodes: Array.from(nodes).map(id => ({ id, name: id })),
         links
       };
@@ -248,8 +253,17 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
   const chartData = prepareChartData();
 
+  // Type guard functions
+  const isSankeyData = (data: DataRow[] | SankeyData): data is SankeyData => {
+    return chartType === 'sankey' && typeof data === 'object' && 'nodes' in data && 'links' in data;
+  };
+
+  const isArrayData = (data: DataRow[] | SankeyData): data is DataRow[] => {
+    return Array.isArray(data);
+  };
+
   const renderSankey = () => {
-    if (!chartData || !chartData.nodes || !chartData.links) return null;
+    if (!isSankeyData(chartData)) return null;
 
     // Simple Sankey implementation using SVG
     const width = 800;
@@ -349,7 +363,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   };
 
   const renderHeatmap = () => {
-    if (!chartData.length) return null;
+    if (!isArrayData(chartData) || chartData.length === 0) return null;
 
     // Get unique x and y values
     const xValues = [...new Set(chartData.map(d => d.x))];
@@ -376,7 +390,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           {/* Y-axis labels */}
           {yValues.map((yVal, yIndex) => (
             <text
-              key={yVal}
+              key={String(yVal)}
               x={80}
               y={yIndex * cellHeight + cellHeight / 2 + 20}
               textAnchor="end"
@@ -384,14 +398,14 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
               fontSize="12"
               fill="#666"
             >
-              {yVal}
+              {String(yVal)}
             </text>
           ))}
           
           {/* X-axis labels */}
           {xValues.map((xVal, xIndex) => (
             <text
-              key={xVal}
+              key={String(xVal)}
               x={xIndex * cellWidth + cellWidth / 2 + 90}
               y={yValues.length * cellHeight + 40}
               textAnchor="middle"
@@ -400,7 +414,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
               fill="#666"
               transform={`rotate(-45, ${xIndex * cellWidth + cellWidth / 2 + 90}, ${yValues.length * cellHeight + 40})`}
             >
-              {xVal}
+              {String(xVal)}
             </text>
           ))}
           
@@ -439,7 +453,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   };
 
   const renderStackedBar = () => {
-    if (!stackColumn || !chartData.length) return null;
+    if (!stackColumn || !isArrayData(chartData) || chartData.length === 0) return null;
 
     // Get all unique stack values to create bars
     const stackValues = [...new Set(data.map(row => row[stackColumn]?.toString()).filter(Boolean))];
@@ -477,7 +491,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   };
 
   const renderTreemap = () => {
-    if (!chartData.length) return null;
+    if (!isArrayData(chartData) || chartData.length === 0) return null;
 
     const COLORS = chartColors;
 
@@ -501,7 +515,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   };
 
   const renderChart = () => {
-    if (!xColumn || !yColumn || chartData.length === 0) {
+    if (!xColumn || !yColumn || (isArrayData(chartData) && chartData.length === 0) || (isSankeyData(chartData) && chartData.links.length === 0)) {
       return (
         <div className="flex items-center justify-center h-64 text-gray-500">
           <p>Select columns to display chart</p>
@@ -512,7 +526,6 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     const commonProps = {
       width: 800,
       height: 400,
-      data: chartData,
       margin: { top: 20, right: 30, left: 20, bottom: 5 }
     };
 
@@ -530,9 +543,10 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         return renderSankey();
 
       case 'bar':
+        if (!isArrayData(chartData)) return null;
         return (
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart {...commonProps}>
+            <BarChart {...commonProps} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey={xColumn} 
@@ -550,9 +564,10 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         );
 
       case 'line':
+        if (!isArrayData(chartData)) return null;
         return (
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart {...commonProps}>
+            <LineChart {...commonProps} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey={xColumn}
@@ -576,6 +591,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         );
 
       case 'pie':
+        if (!isArrayData(chartData)) return null;
         return (
           <ResponsiveContainer width="100%" height={400}>
             <PieChart>
@@ -599,9 +615,10 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         );
 
       case 'scatter':
+        if (!isArrayData(chartData)) return null;
         return (
           <ResponsiveContainer width="100%" height={400}>
-            <ScatterChart {...commonProps}>
+            <ScatterChart {...commonProps} data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey={xColumn} 
@@ -628,6 +645,15 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
       default:
         return null;
     }
+  };
+
+  const getDataPointCount = () => {
+    if (isArrayData(chartData)) {
+      return chartData.length;
+    } else if (isSankeyData(chartData)) {
+      return chartData.links.length;
+    }
+    return 0;
   };
 
   return (
@@ -800,7 +826,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           </h4>
           {xColumn && yColumn && (
             <p className="text-sm text-gray-600">
-              {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`} • {Array.isArray(chartData) ? chartData.length : (chartData.links?.length || 0)} data points
+              {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`} • {getDataPointCount()} data points
               {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
               {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
             </p>
