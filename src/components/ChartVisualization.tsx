@@ -12,10 +12,11 @@ interface ChartVisualizationProps {
 }
 
 export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
+  const [sankeyTargetColumn, setSankeyTargetColumn] = useState<string>('');
   const [sortColumn, setSortColumn] = useState<string>('none');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
@@ -75,6 +76,40 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
     // Apply sorting first
     const sortedData = sortData(data);
+
+    if (chartType === 'sankey') {
+      if (!sankeyTargetColumn) return [];
+      
+      // For Sankey, we need source, target, and value
+      const sankeyData = sortedData.reduce((acc, row) => {
+        const source = row[xColumn]?.toString() || 'Unknown';
+        const target = row[sankeyTargetColumn]?.toString() || 'Unknown';
+        const value = Number(row[yColumn]);
+        
+        if (isValidNumber(value) && value > 0) {
+          const key = `${source}_${target}`;
+          acc[key] = (acc[key] || 0) + value;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Convert to nodes and links format
+      const nodes = new Set<string>();
+      const links = Object.entries(sankeyData).map(([key, value]) => {
+        const [source, target] = key.split('_');
+        nodes.add(source);
+        nodes.add(target);
+        return { source, target, value };
+      });
+
+      const result = {
+        nodes: Array.from(nodes).map(id => ({ id, name: id })),
+        links
+      };
+
+      console.log('Sankey data prepared:', result);
+      return result;
+    }
 
     if (chartType === 'treemap') {
       // For treemap, group by category and sum values
@@ -212,6 +247,106 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   };
 
   const chartData = prepareChartData();
+
+  const renderSankey = () => {
+    if (!chartData || !chartData.nodes || !chartData.links) return null;
+
+    // Simple Sankey implementation using SVG
+    const width = 800;
+    const height = 400;
+    const nodeWidth = 20;
+    const nodePadding = 10;
+
+    // Calculate node positions
+    const sourceNodes = [...new Set(chartData.links.map(l => l.source))];
+    const targetNodes = [...new Set(chartData.links.map(l => l.target))];
+    
+    const sourceX = 50;
+    const targetX = width - 100;
+    const nodeHeight = (height - (sourceNodes.length + 1) * nodePadding) / sourceNodes.length;
+
+    return (
+      <div className="overflow-auto">
+        <svg width={width} height={height}>
+          {/* Source nodes */}
+          {sourceNodes.map((node, index) => {
+            const y = index * (nodeHeight + nodePadding) + nodePadding;
+            return (
+              <g key={`source-${node}`}>
+                <rect
+                  x={sourceX}
+                  y={y}
+                  width={nodeWidth}
+                  height={nodeHeight}
+                  fill="#8884d8"
+                  stroke="#fff"
+                />
+                <text
+                  x={sourceX - 10}
+                  y={y + nodeHeight / 2}
+                  textAnchor="end"
+                  dominantBaseline="middle"
+                  fontSize="12"
+                  fill="#666"
+                >
+                  {node}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Target nodes */}
+          {targetNodes.map((node, index) => {
+            const y = index * (nodeHeight + nodePadding) + nodePadding;
+            return (
+              <g key={`target-${node}`}>
+                <rect
+                  x={targetX}
+                  y={y}
+                  width={nodeWidth}
+                  height={nodeHeight}
+                  fill="#82ca9d"
+                  stroke="#fff"
+                />
+                <text
+                  x={targetX + nodeWidth + 10}
+                  y={y + nodeHeight / 2}
+                  textAnchor="start"
+                  dominantBaseline="middle"
+                  fontSize="12"
+                  fill="#666"
+                >
+                  {node}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Links */}
+          {chartData.links.map((link, index) => {
+            const sourceIndex = sourceNodes.indexOf(link.source);
+            const targetIndex = targetNodes.indexOf(link.target);
+            
+            const sourceY = sourceIndex * (nodeHeight + nodePadding) + nodePadding + nodeHeight / 2;
+            const targetY = targetIndex * (nodeHeight + nodePadding) + nodePadding + nodeHeight / 2;
+            
+            const linkWidth = Math.max(2, (link.value / Math.max(...chartData.links.map(l => l.value))) * 20);
+            
+            return (
+              <path
+                key={index}
+                d={`M ${sourceX + nodeWidth} ${sourceY} C ${(sourceX + targetX) / 2} ${sourceY} ${(sourceX + targetX) / 2} ${targetY} ${targetX} ${targetY}`}
+                stroke="#ffc658"
+                strokeWidth={linkWidth}
+                fill="none"
+                opacity={0.6}
+              />
+            );
+          })}
+        </svg>
+      </div>
+    );
+  };
 
   const renderHeatmap = () => {
     if (!chartData.length) return null;
@@ -391,6 +526,9 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
       case 'treemap':
         return renderTreemap();
 
+      case 'sankey':
+        return renderSankey();
+
       case 'bar':
         return (
           <ResponsiveContainer width="100%" height={400}>
@@ -512,12 +650,15 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 <SelectItem value="scatter">Scatter Plot</SelectItem>
                 <SelectItem value="heatmap">Heatmap</SelectItem>
                 <SelectItem value="treemap">Tree Map</SelectItem>
+                <SelectItem value="sankey">Sankey Diagram</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">X-Axis</label>
+            <label className="block text-sm font-medium mb-2">
+              {chartType === 'sankey' ? 'Source' : 'X-Axis'}
+            </label>
             <Select value={xColumn} onValueChange={setXColumn}>
               <SelectTrigger>
                 <SelectValue placeholder="Select column" />
@@ -533,7 +674,9 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Y-Axis</label>
+            <label className="block text-sm font-medium mb-2">
+              {chartType === 'sankey' ? 'Value' : 'Y-Axis'}
+            </label>
             <Select value={yColumn} onValueChange={setYColumn}>
               <SelectTrigger>
                 <SelectValue placeholder="Select column" />
@@ -552,6 +695,24 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
             <div>
               <label className="block text-sm font-medium mb-2">Stack By</label>
               <Select value={stackColumn} onValueChange={setStackColumn}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoricalColumns.map((col) => (
+                    <SelectItem key={col.name} value={col.name}>
+                      {col.name} ({col.type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {chartType === 'sankey' && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Target</label>
+              <Select value={sankeyTargetColumn} onValueChange={setSankeyTargetColumn}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
@@ -618,6 +779,9 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
               if (chartType === 'stacked-bar' && !stackColumn && categoricalColumns.length > 1) {
                 setStackColumn(categoricalColumns[1].name);
               }
+              if (chartType === 'sankey' && !sankeyTargetColumn && categoricalColumns.length > 1) {
+                setSankeyTargetColumn(categoricalColumns[1].name);
+              }
               if (sortColumn === 'none' && numericColumns.length > 0) {
                 setSortColumn(numericColumns[0].name);
               }
@@ -636,7 +800,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           </h4>
           {xColumn && yColumn && (
             <p className="text-sm text-gray-600">
-              {xColumn} vs {yColumn} • {chartData.length} data points
+              {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`} • {Array.isArray(chartData) ? chartData.length : (chartData.links?.length || 0)} data points
               {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
               {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
             </p>
