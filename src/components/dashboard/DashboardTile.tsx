@@ -27,7 +27,7 @@ export interface DashboardTileData {
   sankeyTargetColumn?: string;
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
-  series: Array<{ id: string; column: string; color: string }>;
+  series: Array<{ id: string; column: string; color: string; type: 'bar' | 'line' }>;
   position: { x: number; y: number };
   size: { width: number; height: number };
 }
