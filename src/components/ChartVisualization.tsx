@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface ChartVisualizationProps {
@@ -15,6 +16,8 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
+  const [sortColumn, setSortColumn] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
   const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
@@ -31,6 +34,35 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     return !isNaN(num) && isFinite(num);
   };
 
+  const sortData = (dataToSort: DataRow[]) => {
+    if (!sortColumn) return dataToSort;
+    
+    return [...dataToSort].sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+      
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
+      if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
+      
+      // Handle numeric values
+      const aNum = Number(aValue);
+      const bNum = Number(bValue);
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      
+      // Handle string values
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+      
+      if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
   const prepareChartData = () => {
     if (!xColumn || !yColumn) return [];
 
@@ -41,9 +73,12 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
     console.log('Preparing chart data for:', { xColumn, yColumn, chartType });
 
+    // Apply sorting first
+    const sortedData = sortData(data);
+
     if (chartType === 'heatmap') {
       // For heatmap, we need both x and y as categorical and a numeric value
-      const heatmapData = data.reduce((acc, row) => {
+      const heatmapData = sortedData.reduce((acc, row) => {
         const xValue = row[xColumn]?.toString() || 'Unknown';
         const yValue = row[yColumn]?.toString() || 'Unknown';
         const key = `${xValue}_${yValue}`;
@@ -75,7 +110,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
       if (!stackColumn) return [];
       
       // Group data by x-axis value and stack by stack column
-      const grouped = data.reduce((acc, row) => {
+      const grouped = sortedData.reduce((acc, row) => {
         const xValue = row[xColumn]?.toString() || 'Unknown';
         const stackValue = row[stackColumn]?.toString() || 'Unknown';
         const yValue = Number(row[yColumn]);
@@ -97,7 +132,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
     if (chartType === 'pie') {
       // For pie charts, group by category and sum values
-      const grouped = data.reduce((acc, row) => {
+      const grouped = sortedData.reduce((acc, row) => {
         const category = row[xColumn]?.toString() || 'Unknown';
         const value = Number(row[yColumn]);
         if (isValidNumber(value)) {
@@ -119,7 +154,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     }
 
     // For other charts, filter and validate data
-    const processedData = data
+    const processedData = sortedData
       .map(row => {
         let xValue = row[xColumn];
         let yValue = row[yColumn];
@@ -412,7 +447,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
       <div>
         <h3 className="text-xl font-semibold mb-4">Data Visualization</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium mb-2">Chart Type</label>
             <Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
@@ -480,25 +515,66 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
             </div>
           )}
 
-          <div className="flex items-end">
-            <Button 
-              onClick={() => {
-                if (!xColumn && categoricalColumns.length > 0) {
-                  setXColumn(categoricalColumns[0].name);
-                }
-                if (!yColumn && numericColumns.length > 0) {
-                  setYColumn(numericColumns[0].name);
-                }
-                if (chartType === 'stacked-bar' && !stackColumn && categoricalColumns.length > 1) {
-                  setStackColumn(categoricalColumns[1].name);
-                }
-              }}
-              disabled={!columns.length}
-              className="w-full"
+          <div>
+            <label className="block text-sm font-medium mb-2">Sort By</label>
+            <Select value={sortColumn} onValueChange={setSortColumn}>
+              <SelectTrigger>
+                <SelectValue placeholder="None" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {columns.map((col) => (
+                  <SelectItem key={col.name} value={col.name}>
+                    {col.name} ({col.type})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="block text-sm font-medium mb-2">Sort Direction</label>
+            <Button
+              variant="outline"
+              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              disabled={!sortColumn}
+              className="flex items-center justify-center space-x-2"
             >
-              Auto-select
+              {sortDirection === 'asc' ? (
+                <>
+                  <ArrowUp className="h-4 w-4" />
+                  <span>Asc</span>
+                </>
+              ) : (
+                <>
+                  <ArrowDown className="h-4 w-4" />
+                  <span>Desc</span>
+                </>
+              )}
             </Button>
           </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button 
+            onClick={() => {
+              if (!xColumn && categoricalColumns.length > 0) {
+                setXColumn(categoricalColumns[0].name);
+              }
+              if (!yColumn && numericColumns.length > 0) {
+                setYColumn(numericColumns[0].name);
+              }
+              if (chartType === 'stacked-bar' && !stackColumn && categoricalColumns.length > 1) {
+                setStackColumn(categoricalColumns[1].name);
+              }
+              if (!sortColumn && numericColumns.length > 0) {
+                setSortColumn(numericColumns[0].name);
+              }
+            }}
+            disabled={!columns.length}
+          >
+            Auto-select
+          </Button>
         </div>
       </div>
 
@@ -511,6 +587,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
             <p className="text-sm text-gray-600">
               {xColumn} vs {yColumn} • {chartData.length} data points
               {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
+              {sortColumn && ` • Sorted by ${sortColumn} (${sortDirection})`}
             </p>
           )}
         </div>
