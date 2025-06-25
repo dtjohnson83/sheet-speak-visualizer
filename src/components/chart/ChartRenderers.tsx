@@ -57,15 +57,17 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
             textAnchor="end"
             height={60}
           />
-          <YAxis tickFormatter={customTickFormatter} />
+          <YAxis yAxisId="left" tickFormatter={customTickFormatter} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
           <Tooltip formatter={customTooltipFormatter} />
           <Legend />
-          <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
+          <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn} />
           {series.map((seriesConfig) => {
             if (seriesConfig.type === 'line') {
               return (
                 <Line 
                   key={seriesConfig.id}
+                  yAxisId="right"
                   type="monotone" 
                   dataKey={seriesConfig.column} 
                   stroke={seriesConfig.color} 
@@ -78,6 +80,7 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
             return (
               <Bar 
                 key={seriesConfig.id}
+                yAxisId="left"
                 dataKey={seriesConfig.column} 
                 fill={seriesConfig.color}
                 name={seriesConfig.column}
@@ -106,13 +109,15 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
           textAnchor="end"
           height={60}
         />
-        <YAxis tickFormatter={customTickFormatter} />
+        <YAxis yAxisId="left" tickFormatter={customTickFormatter} />
+        <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
         <Tooltip formatter={customTooltipFormatter} />
         <Legend />
-        <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
+        <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn} />
         {series.map((seriesConfig) => (
           <Bar 
             key={seriesConfig.id}
+            yAxisId={series.length > 0 ? "right" : "left"}
             dataKey={seriesConfig.column} 
             fill={seriesConfig.color}
             name={seriesConfig.column}
@@ -145,10 +150,12 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
             textAnchor="end"
             height={60}
           />
-          <YAxis tickFormatter={customTickFormatter} />
+          <YAxis yAxisId="left" tickFormatter={customTickFormatter} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
           <Tooltip formatter={customTooltipFormatter} />
           <Legend />
           <Line 
+            yAxisId="left"
             type="monotone" 
             dataKey={yColumn} 
             stroke="#8884d8" 
@@ -161,6 +168,7 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
               return (
                 <Bar 
                   key={seriesConfig.id}
+                  yAxisId="right"
                   dataKey={seriesConfig.column} 
                   fill={seriesConfig.color}
                   name={seriesConfig.column}
@@ -170,6 +178,7 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
             return (
               <Line 
                 key={seriesConfig.id}
+                yAxisId="right"
                 type="monotone" 
                 dataKey={seriesConfig.column} 
                 stroke={seriesConfig.color} 
@@ -201,10 +210,12 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
           textAnchor="end"
           height={60}
         />
-        <YAxis tickFormatter={customTickFormatter} />
+        <YAxis yAxisId="left" tickFormatter={customTickFormatter} />
+        <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
         <Tooltip formatter={customTooltipFormatter} />
         <Legend />
         <Line 
+          yAxisId="left"
           type="monotone" 
           dataKey={yColumn} 
           stroke="#8884d8" 
@@ -215,6 +226,7 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
         {series.map((seriesConfig) => (
           <Line 
             key={seriesConfig.id}
+            yAxisId={series.length > 0 ? "right" : "left"}
             type="monotone" 
             dataKey={seriesConfig.column} 
             stroke={seriesConfig.color} 
