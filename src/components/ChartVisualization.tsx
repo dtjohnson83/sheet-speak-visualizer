@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
-  const [sortColumn, setSortColumn] = useState<string>('');
+  const [sortColumn, setSortColumn] = useState<string>('none');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
@@ -35,7 +36,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   };
 
   const sortData = (dataToSort: DataRow[]) => {
-    if (!sortColumn) return dataToSort;
+    if (!sortColumn || sortColumn === 'none') return dataToSort;
     
     return [...dataToSort].sort((a, b) => {
       const aValue = a[sortColumn];
@@ -522,7 +523,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 <SelectValue placeholder="None" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {columns.map((col) => (
                   <SelectItem key={col.name} value={col.name}>
                     {col.name} ({col.type})
@@ -537,7 +538,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
             <Button
               variant="outline"
               onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-              disabled={!sortColumn}
+              disabled={!sortColumn || sortColumn === 'none'}
               className="flex items-center justify-center space-x-2"
             >
               {sortDirection === 'asc' ? (
@@ -567,7 +568,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
               if (chartType === 'stacked-bar' && !stackColumn && categoricalColumns.length > 1) {
                 setStackColumn(categoricalColumns[1].name);
               }
-              if (!sortColumn && numericColumns.length > 0) {
+              if (sortColumn === 'none' && numericColumns.length > 0) {
                 setSortColumn(numericColumns[0].name);
               }
             }}
@@ -587,7 +588,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
             <p className="text-sm text-gray-600">
               {xColumn} vs {yColumn} • {chartData.length} data points
               {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
-              {sortColumn && ` • Sorted by ${sortColumn} (${sortDirection})`}
+              {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
             </p>
           )}
         </div>
