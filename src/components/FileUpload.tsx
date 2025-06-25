@@ -23,24 +23,68 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     
     if (nonEmptyValues.length === 0) return 'text';
     
-    // Check for numeric values
-    const numericValues = nonEmptyValues.filter(v => !isNaN(Number(v)) && Number(v) !== 0);
+    // Enhanced date detection patterns
+    const datePatterns = [
+      /^\d{4}-\d{1,2}-\d{1,2}$/,                    // YYYY-MM-DD
+      /^\d{1,2}\/\d{1,2}\/\d{4}$/,                  // MM/DD/YYYY or DD/MM/YYYY
+      /^\d{1,2}-\d{1,2}-\d{4}$/,                    // MM-DD-YYYY or DD-MM-YYYY
+      /^\d{4}\/\d{1,2}\/\d{1,2}$/,                  // YYYY/MM/DD
+      /^\d{1,2}\/\d{1,2}\/\d{2}$/,                  // MM/DD/YY or DD/MM/YY
+      /^\d{1,2}-\d{1,2}-\d{2}$/,                    // MM-DD-YY or DD-MM-YY
+      /^\w{3}\s+\d{1,2},?\s+\d{4}$/,                // Mon DD, YYYY or Mon DD YYYY
+      /^\d{1,2}\s+\w{3}\s+\d{4}$/,                  // DD Mon YYYY
+      /^\w{3}\s+\d{1,2}$/,                          // Mon DD
+      /^\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}/,    // ISO datetime
+      /^\d{1,2}:\d{1,2}:\d{1,2}$/,                  // HH:MM:SS
+      /^\d{1,2}:\d{1,2}$/,                          // HH:MM
+    ];
+    
+    // Check for date values with improved logic
+    const dateValues = nonEmptyValues.filter(v => {
+      const str = String(v).trim();
+      
+      // Check against date patterns
+      const matchesPattern = datePatterns.some(pattern => pattern.test(str));
+      if (!matchesPattern) return false;
+      
+      // Try to parse as date
+      const date = new Date(str);
+      if (isNaN(date.getTime())) return false;
+      
+      // Additional validation: reasonable date range (1900 - 2100)
+      const year = date.getFullYear();
+      if (year < 1900 || year > 2100) return false;
+      
+      // Check if it's not just a number being interpreted as a date
+      // (e.g., "2023" shouldn't be considered a date if it's likely a year column)
+      if (/^\d{4}$/.test(str) && year >= 1900 && year <= new Date().getFullYear() + 10) {
+        // Could be a year, need more context - check if other values in column are similar
+        const yearLikeValues = nonEmptyValues.filter(val => /^\d{4}$/.test(String(val).trim()));
+        if (yearLikeValues.length > nonEmptyValues.length * 0.8) {
+          return false; // Likely a year column, not dates
+        }
+      }
+      
+      return true;
+    });
+    
+    // If more than 60% of values are valid dates, consider it a date column
+    if (dateValues.length > nonEmptyValues.length * 0.6) {
+      return 'date';
+    }
+    
+    // Check for numeric values (after date check to avoid conflicts)
+    const numericValues = nonEmptyValues.filter(v => {
+      const num = Number(v);
+      return !isNaN(num) && isFinite(num) && String(v).trim() !== '';
+    });
     if (numericValues.length > nonEmptyValues.length * 0.7) {
       return 'numeric';
     }
     
-    // Check for dates
-    const dateValues = nonEmptyValues.filter(v => {
-      const date = new Date(v);
-      return !isNaN(date.getTime()) && v.toString().match(/\d{4}|\d{1,2}\/\d{1,2}|\d{1,2}-\d{1,2}/);
-    });
-    if (dateValues.length > nonEmptyValues.length * 0.5) {
-      return 'date';
-    }
-    
     // Check for categorical (limited unique values)
-    const uniqueValues = new Set(nonEmptyValues);
-    if (uniqueValues.size < nonEmptyValues.length * 0.5 && uniqueValues.size > 1) {
+    const uniqueValues = new Set(nonEmptyValues.map(v => String(v).toLowerCase().trim()));
+    if (uniqueValues.size < nonEmptyValues.length * 0.5 && uniqueValues.size > 1 && uniqueValues.size <= 50) {
       return 'categorical';
     }
     
