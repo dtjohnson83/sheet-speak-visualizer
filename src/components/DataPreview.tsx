@@ -36,6 +36,40 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
 
+  const isValidDate = (value: any): boolean => {
+    if (value === null || value === undefined || value === '') return false;
+    
+    const dateValue = new Date(value);
+    if (isNaN(dateValue.getTime())) return false;
+    
+    // Check if the string looks like a date (has date-like patterns)
+    const str = String(value);
+    const datePatterns = [
+      /^\d{4}-\d{1,2}-\d{1,2}/, // YYYY-MM-DD
+      /^\d{1,2}\/\d{1,2}\/\d{4}/, // MM/DD/YYYY or DD/MM/YYYY
+      /^\d{1,2}-\d{1,2}-\d{4}/, // MM-DD-YYYY or DD-MM-YYYY
+      /^\d{4}\/\d{1,2}\/\d{1,2}/, // YYYY/MM/DD
+      /^\w{3}\s+\d{1,2},?\s+\d{4}/, // Mon DD, YYYY
+      /^\d{1,2}\s+\w{3}\s+\d{4}/, // DD Mon YYYY
+    ];
+    
+    return datePatterns.some(pattern => pattern.test(str));
+  };
+
+  const formatDateValue = (value: any): string => {
+    if (value === null || value === undefined || value === '') return '';
+    
+    try {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return String(value);
+      
+      // Format as YYYY-MM-DD for consistency
+      return date.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format
+    } catch {
+      return String(value);
+    }
+  };
+
   const calculateColumnStats = (columnName: string, columnType: string): ColumnStats => {
     const values = data.map(row => row[columnName]);
     const nonNullValues = values.filter(v => v !== null && v !== undefined && v !== '');
@@ -55,7 +89,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
       anomalies: []
     };
 
-    // Calculate numeric stats for numeric columns
+    // Calculate stats based on column type
     if (columnType === 'numeric') {
       const numericValues = nonNullValues
         .map(v => Number(v))
@@ -69,6 +103,17 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
           : sorted[Math.floor(sorted.length / 2)];
         stats.min = Math.min(...numericValues);
         stats.max = Math.max(...numericValues);
+      }
+    } else if (columnType === 'date') {
+      // For date columns, find min/max dates
+      const dateValues = nonNullValues
+        .map(v => new Date(v))
+        .filter(d => !isNaN(d.getTime()));
+      
+      if (dateValues.length > 0) {
+        const sortedDates = [...dateValues].sort((a, b) => a.getTime() - b.getTime());
+        stats.min = formatDateValue(sortedDates[0]);
+        stats.max = formatDateValue(sortedDates[sortedDates.length - 1]);
       }
     } else {
       // For non-numeric columns, min/max are first/last when sorted
@@ -103,7 +148,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
         const str = String(v);
         if (/^\d+$/.test(str)) return 'integer';
         if (/^\d*\.\d+$/.test(str)) return 'decimal';
-        if (/^\d{4}-\d{2}-\d{2}/.test(str)) return 'date';
+        if (isValidDate(v)) return 'date';
         if (str.length > 100) return 'long_text';
         return 'text';
       });
@@ -111,6 +156,14 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
       const uniqueTypes = new Set(typePatterns);
       if (uniqueTypes.size > 2) {
         anomalies.push('Mixed data types');
+      }
+    }
+
+    // Date-specific anomalies
+    if (columnType === 'date') {
+      const invalidDates = nonNullValues.filter(v => !isValidDate(v));
+      if (invalidDates.length > nonNullValues.length * 0.1) {
+        anomalies.push('Invalid date formats');
       }
     }
 
@@ -142,6 +195,16 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
     if (aValue == null && bValue == null) return 0;
     if (aValue == null) return direction === 'asc' ? 1 : -1;
     if (bValue == null) return direction === 'asc' ? -1 : 1;
+    
+    // Handle date values
+    const column = columns.find(col => col.name === key);
+    if (column?.type === 'date') {
+      const aDate = new Date(aValue);
+      const bDate = new Date(bValue);
+      if (!isNaN(aDate.getTime()) && !isNaN(bDate.getTime())) {
+        return direction === 'asc' ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime();
+      }
+    }
     
     // Handle numeric values
     const aNum = Number(aValue);
@@ -180,11 +243,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
       case 'numeric':
         return typeof value === 'number' ? value.toLocaleString() : value;
       case 'date':
-        try {
-          return new Date(value).toLocaleDateString();
-        } catch {
-          return value;
-        }
+        return formatDateValue(value);
       default:
         return value.toString();
     }
