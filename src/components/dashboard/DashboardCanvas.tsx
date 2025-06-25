@@ -29,7 +29,7 @@ export const DashboardCanvas = ({
     const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
-    const contentHeight = pageHeight - 60; // Reserve space for header
+    const contentHeight = pageHeight - 80; // Increased space for header and titles (was 60)
     
     // Add title with better spacing
     pdf.setFontSize(24);
@@ -87,7 +87,8 @@ export const DashboardCanvas = ({
           // Center the image horizontally if it's smaller than content width
           const xOffset = margin + (contentWidth - imgWidth) / 2;
           
-          pdf.addImage(imgData, 'PNG', xOffset, 45, imgWidth, imgHeight);
+          // Start image position lower to allow more space for titles (was 45)
+          pdf.addImage(imgData, 'PNG', xOffset, 55, imgWidth, imgHeight);
           
           // Add footer with page info
           pdf.setFontSize(10);
@@ -97,7 +98,7 @@ export const DashboardCanvas = ({
           
         } else {
           // Enhanced fallback to text-based export
-          let yPosition = 55;
+          let yPosition = 65; // Increased starting position
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
           pdf.text('Dashboard Tiles Summary:', margin, yPosition);
