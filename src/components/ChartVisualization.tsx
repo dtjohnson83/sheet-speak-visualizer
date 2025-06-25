@@ -5,6 +5,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useChartState } from '@/hooks/useChartState';
 import { SeriesManager } from './chart/SeriesManager';
 import { ChartConfiguration } from './chart/ChartConfiguration';
+import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { DashboardTileData } from './dashboard/DashboardTile';
@@ -43,6 +44,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
     setSortDirection,
     series,
     setSeries,
+    aggregationMethod,
+    setAggregationMethod,
     chartColors,
     supportsMultipleSeries
   } = useChartState();
@@ -63,7 +66,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
     stackColumn,
     sankeyTargetColumn,
     supportsMultipleSeries,
-    numericColumns
+    numericColumns,
+    aggregationMethod
   );
 
   const isSankeyData = (data: DataRow[] | SankeyData): data is SankeyData => {
@@ -148,6 +152,17 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
     return 0;
   };
 
+  const getAggregationLabel = () => {
+    const aggregationLabels = {
+      sum: 'Sum',
+      average: 'Average', 
+      count: 'Count',
+      min: 'Minimum',
+      max: 'Maximum'
+    };
+    return aggregationLabels[aggregationMethod];
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -174,6 +189,15 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
           dateColumns={dateColumns}
         />
 
+        <div className="mt-4">
+          <AggregationConfiguration
+            aggregationMethod={aggregationMethod}
+            setAggregationMethod={setAggregationMethod}
+            yColumn={yColumn}
+            numericColumns={numericColumns}
+          />
+        </div>
+
         {supportsMultipleSeries && (
           <SeriesManager
             series={series}
@@ -197,7 +221,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
                 {series.length > 0 && ` + ${series.length} additional series`} • {getDataPointCount()} data points
                 {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
                 {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
-                {chartType !== 'scatter' && chartType !== 'sankey' && ' • Data aggregated by X-axis'}
+                {chartType !== 'scatter' && chartType !== 'sankey' && ` • ${getAggregationLabel()} aggregation`}
               </p>
             )}
           </div>

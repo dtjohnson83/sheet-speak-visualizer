@@ -1,6 +1,6 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { SankeyData, isValidNumber, sortData, aggregateData } from './chartDataUtils';
 
 export const prepareChartData = (
@@ -15,7 +15,8 @@ export const prepareChartData = (
   stackColumn: string,
   sankeyTargetColumn: string,
   supportsMultipleSeries: boolean,
-  numericColumns: ColumnInfo[]
+  numericColumns: ColumnInfo[],
+  aggregationMethod: AggregationMethod = 'sum'
 ): DataRow[] | SankeyData => {
   if (!xColumn || !yColumn) return [];
 
@@ -24,7 +25,7 @@ export const prepareChartData = (
 
   if (!xCol || !yCol) return [];
 
-  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series });
+  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod });
 
   const sortedData = sortData(data, sortColumn, sortDirection);
 
@@ -65,18 +66,19 @@ export const prepareChartData = (
       const category = row[xColumn]?.toString() || 'Unknown';
       const value = Number(row[yColumn]);
       if (isValidNumber(value)) {
-        acc[category] = (acc[category] || 0) + value;
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(value);
       }
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, number[]>);
 
     const result = Object.entries(grouped)
-      .filter(([, value]) => isValidNumber(value) && value > 0)
-      .map(([name, value]) => ({
+      .map(([name, values]) => ({
         name,
-        size: value,
-        value
-      }));
+        size: applyAggregation(values, aggregationMethod),
+        value: applyAggregation(values, aggregationMethod)
+      }))
+      .filter(item => item.value > 0);
 
     console.log('Treemap data prepared:', result);
     return result;
@@ -124,11 +126,24 @@ export const prepareChartData = (
         acc[xValue] = { [xColumn]: xValue };
       }
       
-      acc[xValue][stackValue] = (acc[xValue][stackValue] || 0) + yValue;
+      if (!acc[xValue][stackValue]) acc[xValue][stackValue] = [];
+      acc[xValue][stackValue].push(yValue);
+      
       return acc;
     }, {} as Record<string, any>);
 
-    const result = Object.values(grouped);
+    const result = Object.entries(grouped).map(([xValue, stackData]) => {
+      const result: any = { [xColumn]: xValue };
+      
+      Object.entries(stackData).forEach(([stackKey, values]) => {
+        if (stackKey !== xColumn && Array.isArray(values)) {
+          result[stackKey] = applyAggregation(values as number[], aggregationMethod);
+        }
+      });
+      
+      return result;
+    });
+
     console.log('Stacked bar data prepared:', result);
     return result;
   }
@@ -138,24 +153,25 @@ export const prepareChartData = (
       const category = row[xColumn]?.toString() || 'Unknown';
       const value = Number(row[yColumn]);
       if (isValidNumber(value)) {
-        acc[category] = (acc[category] || 0) + value;
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(value);
       }
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, number[]>);
 
     const result = Object.entries(grouped)
-      .filter(([, value]) => isValidNumber(value))
-      .map(([name, value]) => ({
+      .map(([name, values]) => ({
         name,
-        value,
-        [yColumn]: value
-      }));
+        value: applyAggregation(values, aggregationMethod),
+        [yColumn]: applyAggregation(values, aggregationMethod)
+      }))
+      .filter(item => item.value > 0);
 
     console.log('Pie chart data prepared:', result);
     return result;
   }
 
-  const aggregatedData = aggregateData(sortedData, xColumn, yColumn, series);
+  const aggregatedData = aggregateData(sortedData, xColumn, yColumn, series, aggregationMethod);
   
   if (chartType === 'scatter' && xCol.type === 'numeric' && yCol.type === 'numeric') {
     const processedData = sortedData
@@ -219,4 +235,24 @@ export const prepareChartData = (
 
   console.log('Chart data prepared (aggregated):', processedData);
   return processedData;
+};
+
+// Helper function for aggregation (moved from chartDataUtils to avoid circular import)
+const applyAggregation = (values: number[], method: AggregationMethod): number => {
+  if (values.length === 0) return 0;
+  
+  switch (method) {
+    case 'sum':
+      return values.reduce((sum, val) => sum + val, 0);
+    case 'average':
+      return values.reduce((sum, val) => sum + val, 0) / values.length;
+    case 'count':
+      return values.length;
+    case 'min':
+      return Math.min(...values);
+    case 'max':
+      return Math.max(...values);
+    default:
+      return values.reduce((sum, val) => sum + val, 0);
+  }
 };

@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 
 export interface SeriesConfig {
   id: string;
@@ -17,6 +18,7 @@ export const useChartState = () => {
   const [sortColumn, setSortColumn] = useState<string>('none');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [series, setSeries] = useState<SeriesConfig[]>([]);
+  const [aggregationMethod, setAggregationMethod] = useState<AggregationMethod>('sum');
 
   const chartColors = [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
@@ -50,6 +52,8 @@ export const useChartState = () => {
     setSortDirection,
     series,
     setSeries,
+    aggregationMethod,
+    setAggregationMethod,
     chartColors,
     supportsMultipleSeries
   };

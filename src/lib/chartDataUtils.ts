@@ -1,5 +1,7 @@
+
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 
 export interface SankeyData {
   nodes: { id: string; name: string }[];
@@ -51,11 +53,31 @@ export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'as
   });
 };
 
+const applyAggregation = (values: number[], method: AggregationMethod): number => {
+  if (values.length === 0) return 0;
+  
+  switch (method) {
+    case 'sum':
+      return values.reduce((sum, val) => sum + val, 0);
+    case 'average':
+      return values.reduce((sum, val) => sum + val, 0) / values.length;
+    case 'count':
+      return values.length;
+    case 'min':
+      return Math.min(...values);
+    case 'max':
+      return Math.max(...values);
+    default:
+      return values.reduce((sum, val) => sum + val, 0);
+  }
+};
+
 export const aggregateData = (
   data: DataRow[], 
   xColumn: string, 
   yColumn: string, 
-  series: SeriesConfig[]
+  series: SeriesConfig[],
+  aggregationMethod: AggregationMethod = 'sum'
 ): DataRow[] => {
   if (!xColumn || !yColumn) return data;
 
@@ -65,24 +87,25 @@ export const aggregateData = (
     if (!acc[xValue]) {
       acc[xValue] = {
         [xColumn]: xValue,
-        [yColumn]: 0,
-        count: 0
+        yValues: [],
+        count: 0,
+        seriesValues: {}
       };
       
       series.forEach(seriesConfig => {
-        acc[xValue][seriesConfig.column] = 0;
+        acc[xValue].seriesValues[seriesConfig.column] = [];
       });
     }
     
     const yValue = Number(row[yColumn]);
     if (isValidNumber(yValue)) {
-      acc[xValue][yColumn] += yValue;
+      acc[xValue].yValues.push(yValue);
     }
     
     series.forEach(seriesConfig => {
       const seriesValue = Number(row[seriesConfig.column]);
       if (isValidNumber(seriesValue)) {
-        acc[xValue][seriesConfig.column] += seriesValue;
+        acc[xValue].seriesValues[seriesConfig.column].push(seriesValue);
       }
     });
     
@@ -91,5 +114,18 @@ export const aggregateData = (
     return acc;
   }, {} as Record<string, any>);
 
-  return Object.values(grouped);
+  return Object.entries(grouped).map(([xValue, groupData]) => {
+    const result: DataRow = {
+      [xColumn]: xValue,
+      [yColumn]: applyAggregation(groupData.yValues, aggregationMethod)
+    };
+    
+    // Apply aggregation to series data
+    series.forEach(seriesConfig => {
+      const seriesValues = groupData.seriesValues[seriesConfig.column] || [];
+      result[seriesConfig.column] = applyAggregation(seriesValues, aggregationMethod);
+    });
+    
+    return result;
+  });
 };
