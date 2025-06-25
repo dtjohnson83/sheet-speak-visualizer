@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Plus, X } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface ChartVisualizationProps {
@@ -16,6 +16,12 @@ interface SankeyData {
   links: { source: string; target: string; value: number }[];
 }
 
+interface SeriesConfig {
+  id: string;
+  column: string;
+  color: string;
+}
+
 export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) => {
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
@@ -24,6 +30,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
   const [sankeyTargetColumn, setSankeyTargetColumn] = useState<string>('');
   const [sortColumn, setSortColumn] = useState<string>('none');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [series, setSeries] = useState<SeriesConfig[]>([]);
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
   const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
@@ -33,6 +40,44 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
     '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#0000ff'
   ];
+
+  // Chart types that support multiple series
+  const multiSeriesChartTypes = ['bar', 'line', 'scatter'];
+  const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
+
+  const addSeries = () => {
+    if (numericColumns.length === 0) return;
+    
+    const availableColumns = numericColumns.filter(col => 
+      col.name !== yColumn && !series.some(s => s.column === col.name)
+    );
+    
+    if (availableColumns.length === 0) return;
+    
+    const newSeries: SeriesConfig = {
+      id: Math.random().toString(36).substr(2, 9),
+      column: availableColumns[0].name,
+      color: chartColors[(series.length + 1) % chartColors.length]
+    };
+    
+    setSeries([...series, newSeries]);
+  };
+
+  const removeSeries = (id: string) => {
+    setSeries(series.filter(s => s.id !== id));
+  };
+
+  const updateSeriesColumn = (id: string, column: string) => {
+    setSeries(series.map(s => s.id === id ? { ...s, column } : s));
+  };
+
+  // Clear series when chart type changes to non-compatible type
+  const handleChartTypeChange = (newType: any) => {
+    setChartType(newType);
+    if (!multiSeriesChartTypes.includes(newType)) {
+      setSeries([]);
+    }
+  };
 
   const isValidNumber = (value: any): boolean => {
     if (value === null || value === undefined || value === '') return false;
@@ -77,7 +122,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
     if (!xCol || !yCol) return [];
 
-    console.log('Preparing chart data for:', { xColumn, yColumn, chartType });
+    console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series });
 
     // Apply sorting first
     const sortedData = sortData(data);
@@ -239,11 +284,24 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         yValue = Number(yValue);
         if (!isValidNumber(yValue)) return null;
 
-        return {
+        // Process additional series data for multi-series charts
+        const processedRow = {
           ...row,
           [xColumn]: xValue,
           [yColumn]: yValue
         };
+
+        // Add series data
+        if (supportsMultipleSeries && series.length > 0) {
+          series.forEach(seriesConfig => {
+            const seriesValue = Number(row[seriesConfig.column]);
+            if (isValidNumber(seriesValue)) {
+              processedRow[seriesConfig.column] = seriesValue;
+            }
+          });
+        }
+
+        return processedRow;
       })
       .filter(row => row !== null);
 
@@ -558,7 +616,15 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey={yColumn} fill="#8884d8" />
+              <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
+              {series.map((seriesConfig, index) => (
+                <Bar 
+                  key={seriesConfig.id}
+                  dataKey={seriesConfig.column} 
+                  fill={seriesConfig.color}
+                  name={seriesConfig.column}
+                />
+              ))}
             </BarChart>
           </ResponsiveContainer>
         );
@@ -585,7 +651,19 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 stroke="#8884d8" 
                 strokeWidth={2}
                 dot={{ r: 4 }}
+                name={yColumn}
               />
+              {series.map((seriesConfig) => (
+                <Line 
+                  key={seriesConfig.id}
+                  type="monotone" 
+                  dataKey={seriesConfig.column} 
+                  stroke={seriesConfig.color} 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  name={seriesConfig.column}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         );
@@ -633,11 +711,20 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 tick={{ fontSize: 12 }}
               />
               <Tooltip />
+              <Legend />
               <Scatter 
                 dataKey={yColumn} 
                 fill="#8884d8"
                 name={`${yColumn} vs ${xColumn}`}
               />
+              {series.map((seriesConfig) => (
+                <Scatter 
+                  key={seriesConfig.id}
+                  dataKey={seriesConfig.column} 
+                  fill={seriesConfig.color}
+                  name={`${seriesConfig.column} vs ${xColumn}`}
+                />
+              ))}
             </ScatterChart>
           </ResponsiveContainer>
         );
@@ -656,6 +743,12 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     return 0;
   };
 
+  const getAvailableSeriesColumns = () => {
+    return numericColumns.filter(col => 
+      col.name !== yColumn && !series.some(s => s.column === col.name)
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -664,7 +757,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium mb-2">Chart Type</label>
-            <Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
+            <Select value={chartType} onValueChange={handleChartTypeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -793,6 +886,62 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           </div>
         </div>
 
+        {/* Multiple Series Section */}
+        {supportsMultipleSeries && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium">Additional Series</h4>
+              <Button
+                onClick={addSeries}
+                disabled={getAvailableSeriesColumns().length === 0}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Series
+              </Button>
+            </div>
+            
+            {series.length > 0 && (
+              <div className="space-y-2">
+                {series.map((seriesConfig) => (
+                  <div key={seriesConfig.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div 
+                      className="w-4 h-4 rounded" 
+                      style={{ backgroundColor: seriesConfig.color }}
+                    />
+                    <Select 
+                      value={seriesConfig.column} 
+                      onValueChange={(value) => updateSeriesColumn(seriesConfig.id, value)}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {numericColumns
+                          .filter(col => col.name !== yColumn && (col.name === seriesConfig.column || !series.some(s => s.column === col.name)))
+                          .map((col) => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name} ({col.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => removeSeries(seriesConfig.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-end">
           <Button 
             onClick={() => {
@@ -826,7 +975,8 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           </h4>
           {xColumn && yColumn && (
             <p className="text-sm text-gray-600">
-              {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`} • {getDataPointCount()} data points
+              {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`}
+              {series.length > 0 && ` + ${series.length} additional series`} • {getDataPointCount()} data points
               {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
               {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
             </p>
