@@ -32,7 +32,8 @@ export const SeriesManager = ({
     const newSeries: SeriesConfig = {
       id: Math.random().toString(36).substr(2, 9),
       column: availableColumns[0].name,
-      color: chartColors[(series.length + 1) % chartColors.length]
+      color: chartColors[(series.length + 1) % chartColors.length],
+      type: 'bar'
     };
     
     setSeries([...series, newSeries]);
@@ -44,6 +45,10 @@ export const SeriesManager = ({
 
   const updateSeriesColumn = (id: string, column: string) => {
     setSeries(series.map(s => s.id === id ? { ...s, column } : s));
+  };
+
+  const updateSeriesType = (id: string, type: 'bar' | 'line') => {
+    setSeries(series.map(s => s.id === id ? { ...s, type } : s));
   };
 
   const getAvailableSeriesColumns = () => {
@@ -90,6 +95,18 @@ export const SeriesManager = ({
                       {col.name} ({col.type})
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select 
+                value={seriesConfig.type} 
+                onValueChange={(value: 'bar' | 'line') => updateSeriesType(seriesConfig.id, value)}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Bar</SelectItem>
+                  <SelectItem value="line">Line</SelectItem>
                 </SelectContent>
               </Select>
               <Button

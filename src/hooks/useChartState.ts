@@ -5,6 +5,7 @@ export interface SeriesConfig {
   id: string;
   column: string;
   color: string;
+  type: 'bar' | 'line';
 }
 
 export const useChartState = () => {

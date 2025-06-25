@@ -56,14 +56,29 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
       <Tooltip formatter={customTooltipFormatter} />
       <Legend />
       <Bar dataKey={yColumn} fill="#8884d8" name={yColumn} />
-      {series.map((seriesConfig) => (
-        <Bar 
-          key={seriesConfig.id}
-          dataKey={seriesConfig.column} 
-          fill={seriesConfig.color}
-          name={seriesConfig.column}
-        />
-      ))}
+      {series.map((seriesConfig) => {
+        if (seriesConfig.type === 'line') {
+          return (
+            <Line 
+              key={seriesConfig.id}
+              type="monotone" 
+              dataKey={seriesConfig.column} 
+              stroke={seriesConfig.color} 
+              strokeWidth={2}
+              dot={{ r: 4 }}
+              name={seriesConfig.column}
+            />
+          );
+        }
+        return (
+          <Bar 
+            key={seriesConfig.id}
+            dataKey={seriesConfig.column} 
+            fill={seriesConfig.color}
+            name={seriesConfig.column}
+          />
+        );
+      })}
     </BarChart>
   </ResponsiveContainer>
 );
@@ -95,17 +110,29 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
         dot={{ r: 4 }}
         name={yColumn}
       />
-      {series.map((seriesConfig) => (
-        <Line 
-          key={seriesConfig.id}
-          type="monotone" 
-          dataKey={seriesConfig.column} 
-          stroke={seriesConfig.color} 
-          strokeWidth={2}
-          dot={{ r: 4 }}
-          name={seriesConfig.column}
-        />
-      ))}
+      {series.map((seriesConfig) => {
+        if (seriesConfig.type === 'bar') {
+          return (
+            <Bar 
+              key={seriesConfig.id}
+              dataKey={seriesConfig.column} 
+              fill={seriesConfig.color}
+              name={seriesConfig.column}
+            />
+          );
+        }
+        return (
+          <Line 
+            key={seriesConfig.id}
+            type="monotone" 
+            dataKey={seriesConfig.column} 
+            stroke={seriesConfig.color} 
+            strokeWidth={2}
+            dot={{ r: 4 }}
+            name={seriesConfig.column}
+          />
+        );
+      })}
     </LineChart>
   </ResponsiveContainer>
 );
