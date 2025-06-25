@@ -1,9 +1,9 @@
 
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Move } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { useState, useRef } from 'react';
 import {
   BarChartRenderer,
   LineChartRenderer,
