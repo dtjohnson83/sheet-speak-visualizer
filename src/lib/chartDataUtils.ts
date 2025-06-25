@@ -1,4 +1,3 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 
@@ -20,22 +19,35 @@ export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'as
     const aValue = a[sortColumn];
     const bValue = b[sortColumn];
     
+    // Handle null/undefined values
     if (aValue == null && bValue == null) return 0;
     if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
     if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
     
-    const aNum = Number(aValue);
-    const bNum = Number(bValue);
-    if (!isNaN(aNum) && !isNaN(bNum)) {
+    // Check if both values are valid numbers
+    const aIsNumber = isValidNumber(aValue);
+    const bIsNumber = isValidNumber(bValue);
+    
+    if (aIsNumber && bIsNumber) {
+      // Both are numbers - do numeric comparison
+      const aNum = Number(aValue);
+      const bNum = Number(bValue);
       return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+    } else if (aIsNumber && !bIsNumber) {
+      // Only a is a number - numbers come first in ascending order
+      return sortDirection === 'asc' ? -1 : 1;
+    } else if (!aIsNumber && bIsNumber) {
+      // Only b is a number - numbers come first in ascending order
+      return sortDirection === 'asc' ? 1 : -1;
+    } else {
+      // Both are strings - do string comparison
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+      
+      if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
     }
-    
-    const aStr = String(aValue).toLowerCase();
-    const bStr = String(bValue).toLowerCase();
-    
-    if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
-    if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
   });
 };
 
