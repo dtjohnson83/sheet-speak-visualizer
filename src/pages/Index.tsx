@@ -22,7 +22,7 @@ const Index = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
   const [fileName, setFileName] = useState<string>('');
-  const { tiles, addTile, removeTile, moveTile } = useDashboard();
+  const { tiles, addTile, removeTile, updateTile } = useDashboard();
 
   const handleDataLoaded = (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string) => {
     console.log('Data loaded:', { loadedData, detectedColumns, name });
@@ -82,7 +82,7 @@ const Index = () => {
                   data={data}
                   columns={columns}
                   onRemoveTile={removeTile}
-                  onMoveTile={moveTile}
+                  onUpdateTile={updateTile}
                 />
               </TabsContent>
             </Tabs>
