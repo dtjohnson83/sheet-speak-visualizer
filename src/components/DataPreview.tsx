@@ -3,8 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle, TreePine, ChevronDown, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { detectHierarchies, buildHierarchyTree, HierarchyNode } from '@/lib/hierarchyDetection';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface DataPreviewProps {
   data: DataRow[];
@@ -31,10 +33,47 @@ interface ColumnStats {
   anomalies: string[];
 }
 
+const HierarchyTreeNode = ({ node, level = 0 }: { node: HierarchyNode; level?: number }) => {
+  const [isOpen, setIsOpen] = useState(level < 2);
+  
+  return (
+    <div className="border-l border-gray-200 ml-4">
+      <div className="flex items-center space-x-2 py-1 pl-4">
+        {node.children.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
+          </Button>
+        )}
+        <TreePine className="h-4 w-4 text-green-600" />
+        <span className="text-sm">{node.name}</span>
+        <Badge variant="outline" className="text-xs">
+          {node.count}
+        </Badge>
+      </div>
+      {isOpen && node.children.length > 0 && (
+        <div className="ml-2">
+          {node.children.map((child, index) => (
+            <HierarchyTreeNode key={index} node={child} level={level + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+  const [showHierarchies, setShowHierarchies] = useState(false);
+
+  // Detect hierarchies when data changes
+  const hierarchies = detectHierarchies(data, columns);
 
   const isValidDate = (value: any): boolean => {
     if (value === null || value === undefined || value === '') return false;
@@ -280,6 +319,16 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          {hierarchies.length > 0 && (
+            <Button
+              variant={showHierarchies ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowHierarchies(!showHierarchies)}
+            >
+              <TreePine className="h-4 w-4 mr-2" />
+              Hierarchies ({hierarchies.length})
+            </Button>
+          )}
           <Select value={rowsPerPage.toString()} onValueChange={(value) => {
             setRowsPerPage(Number(value));
             setCurrentPage(0);
@@ -297,6 +346,44 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
           <span className="text-sm text-gray-500">rows per page</span>
         </div>
       </div>
+
+      {/* Hierarchy Detection Results */}
+      {showHierarchies && hierarchies.length > 0 && (
+        <Card className="p-4">
+          <h4 className="font-semibold mb-3 flex items-center">
+            <TreePine className="h-5 w-5 mr-2 text-green-600" />
+            Detected Hierarchies
+          </h4>
+          <div className="space-y-4">
+            {hierarchies.map((hierarchy, index) => (
+              <Collapsible key={index}>
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Badge className={`${hierarchy.confidence > 0.7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {(hierarchy.confidence * 100).toFixed(0)}% confidence
+                    </Badge>
+                    <span className="font-medium">{hierarchy.parentColumn} → {hierarchy.childColumn}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {hierarchy.type}
+                    </Badge>
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2">
+                  <div className="p-3 bg-white border rounded-lg">
+                    <p className="text-sm text-gray-600 mb-3">{hierarchy.description}</p>
+                    <div className="max-h-60 overflow-y-auto">
+                      {buildHierarchyTree(data, hierarchy.parentColumn, hierarchy.childColumn !== hierarchy.parentColumn + '_levels' ? hierarchy.childColumn : undefined).map((node, nodeIndex) => (
+                        <HierarchyTreeNode key={nodeIndex} node={node} />
+                      ))}
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
