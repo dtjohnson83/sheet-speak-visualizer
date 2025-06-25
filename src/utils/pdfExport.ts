@@ -10,9 +10,9 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 15;
   const contentWidth = pageWidth - (margin * 2);
-  const contentHeight = pageHeight - 80; // Increased space for header and titles (was 60)
+  const contentHeight = pageHeight - 120; // Increased space significantly for header and titles (was 80)
   
-  // Add title with better spacing
+  // Add title with more generous spacing
   pdf.setFontSize(24);
   pdf.setFont('helvetica', 'bold');
   pdf.text('Dashboard Export', margin, 25);
@@ -26,6 +26,10 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
   pdf.setLineWidth(0.5);
   pdf.line(margin, 40, pageWidth - margin, 40);
   
+  // Add more descriptive text with additional spacing
+  pdf.setFontSize(11);
+  pdf.text(`Dashboard contains ${tiles.length} visualization${tiles.length !== 1 ? 's' : ''}`, margin, 50);
+  
   // Capture dashboard area
   const dashboardElement = document.querySelector('[data-dashboard-canvas]') as HTMLElement;
   
@@ -34,7 +38,7 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
       // Use html2canvas with enhanced settings for better quality
       const canvas = await import('html2canvas').then(module => 
         module.default(dashboardElement, {
-          scale: 1.5, // Increased scale for better quality
+          scale: 2, // Increased scale for even better quality
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff', // White background for better contrast
@@ -68,18 +72,18 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
         // Center the image horizontally if it's smaller than content width
         const xOffset = margin + (contentWidth - imgWidth) / 2;
         
-        // Start image position lower to allow more space for titles (was 45)
-        pdf.addImage(imgData, 'PNG', xOffset, 55, imgWidth, imgHeight);
+        // Start image much lower to allow generous space for titles (was 55, now 70)
+        pdf.addImage(imgData, 'PNG', xOffset, 70, imgWidth, imgHeight);
         
         // Add footer with page info
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'italic');
-        pdf.text(`Dashboard contains ${tiles.length} visualization${tiles.length !== 1 ? 's' : ''}`, 
+        pdf.text(`Exported from dashboard visualization tool`, 
                  margin, pageHeight - 10);
         
       } else {
         // Enhanced fallback to text-based export
-        let yPosition = 65; // Increased starting position
+        let yPosition = 80; // Increased starting position for fallback
         pdf.setFontSize(16);
         pdf.setFont('helvetica', 'bold');
         pdf.text('Dashboard Tiles Summary:', margin, yPosition);
@@ -125,7 +129,7 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
       console.error('Error generating PDF:', error);
       // Simple fallback
       pdf.setFontSize(14);
-      pdf.text('Error generating visual export. Please try again.', margin, 60);
+      pdf.text('Error generating visual export. Please try again.', margin, 70);
     }
   }
   
