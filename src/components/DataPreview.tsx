@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface DataPreviewProps {
@@ -13,14 +13,59 @@ interface DataPreviewProps {
   fileName: string;
 }
 
+interface SortConfig {
+  key: string;
+  direction: 'asc' | 'desc';
+}
+
 export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
 
-  const totalPages = Math.ceil(data.length / rowsPerPage);
+  const handleSort = (columnName: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    
+    if (sortConfig && sortConfig.key === columnName && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    setSortConfig({ key: columnName, direction });
+    setCurrentPage(0); // Reset to first page when sorting
+  };
+
+  const sortedData = [...data].sort((a, b) => {
+    if (!sortConfig) return 0;
+    
+    const { key, direction } = sortConfig;
+    const aValue = a[key];
+    const bValue = b[key];
+    
+    // Handle null/undefined values
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return direction === 'asc' ? 1 : -1;
+    if (bValue == null) return direction === 'asc' ? -1 : 1;
+    
+    // Handle numeric values
+    const aNum = Number(aValue);
+    const bNum = Number(bValue);
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return direction === 'asc' ? aNum - bNum : bNum - aNum;
+    }
+    
+    // Handle string values
+    const aStr = String(aValue).toLowerCase();
+    const bStr = String(bValue).toLowerCase();
+    
+    if (aStr < bStr) return direction === 'asc' ? -1 : 1;
+    if (aStr > bStr) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
   const startIndex = currentPage * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, data.length);
-  const currentData = data.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + rowsPerPage, sortedData.length);
+  const currentData = sortedData.slice(startIndex, endIndex);
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -48,6 +93,16 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
     }
   };
 
+  const getSortIcon = (columnName: string) => {
+    if (!sortConfig || sortConfig.key !== columnName) {
+      return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp className="h-4 w-4 text-blue-600" />
+      : <ArrowDown className="h-4 w-4 text-blue-600" />;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -55,6 +110,11 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
           <h3 className="text-xl font-semibold">Data Preview</h3>
           <p className="text-gray-600">
             {fileName} • {data.length} rows • {columns.length} columns
+            {sortConfig && (
+              <span className="ml-2 text-sm text-blue-600">
+                (sorted by {sortConfig.key} {sortConfig.direction === 'asc' ? '↑' : '↓'})
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -95,7 +155,13 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
                     className="border border-gray-200 px-4 py-3 text-left font-medium text-gray-700"
                   >
                     <div className="flex flex-col">
-                      <span>{column.name}</span>
+                      <button
+                        onClick={() => handleSort(column.name)}
+                        className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
+                      >
+                        <span>{column.name}</span>
+                        {getSortIcon(column.name)}
+                      </button>
                       <Badge className={`${getTypeColor(column.type)} text-xs mt-1 w-fit`}>
                         {column.type}
                       </Badge>
@@ -123,7 +189,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
 
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to {endIndex} of {data.length} entries
+            Showing {startIndex + 1} to {endIndex} of {sortedData.length} entries
           </div>
           <div className="flex items-center space-x-2">
             <Button
