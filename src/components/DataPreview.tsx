@@ -230,13 +230,47 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
     const aValue = a[key];
     const bValue = b[key];
     
+    console.log(`Sorting by ${key} (${direction}):`, { aValue, bValue });
+    
     // Handle null/undefined values
     if (aValue == null && bValue == null) return 0;
     if (aValue == null) return direction === 'asc' ? 1 : -1;
     if (bValue == null) return direction === 'asc' ? -1 : 1;
     
-    // Handle date values
+    // Find the column to determine its type
     const column = columns.find(col => col.name === key);
+    console.log(`Column type for ${key}:`, column?.type);
+    
+    // Handle numeric values - improved logic
+    if (column?.type === 'numeric') {
+      const aNum = Number(aValue);
+      const bNum = Number(bValue);
+      
+      // Check if both are valid numbers
+      const aIsValid = !isNaN(aNum) && isFinite(aNum);
+      const bIsValid = !isNaN(bNum) && isFinite(bNum);
+      
+      console.log(`Numeric comparison:`, { aNum, bNum, aIsValid, bIsValid });
+      
+      if (aIsValid && bIsValid) {
+        return direction === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      
+      // If one is not a valid number, treat as string
+      if (!aIsValid && !bIsValid) {
+        const aStr = String(aValue).toLowerCase();
+        const bStr = String(bValue).toLowerCase();
+        return direction === 'asc' 
+          ? aStr.localeCompare(bStr) 
+          : bStr.localeCompare(aStr);
+      }
+      
+      // Valid numbers come first
+      if (aIsValid && !bIsValid) return direction === 'asc' ? -1 : 1;
+      if (!aIsValid && bIsValid) return direction === 'asc' ? 1 : -1;
+    }
+    
+    // Handle date values
     if (column?.type === 'date') {
       const aDate = new Date(aValue);
       const bDate = new Date(bValue);
@@ -245,20 +279,13 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
       }
     }
     
-    // Handle numeric values
-    const aNum = Number(aValue);
-    const bNum = Number(bValue);
-    if (!isNaN(aNum) && !isNaN(bNum)) {
-      return direction === 'asc' ? aNum - bNum : bNum - aNum;
-    }
-    
-    // Handle string values
+    // Handle string values (fallback for all other cases)
     const aStr = String(aValue).toLowerCase();
     const bStr = String(bValue).toLowerCase();
     
-    if (aStr < bStr) return direction === 'asc' ? -1 : 1;
-    if (aStr > bStr) return direction === 'asc' ? 1 : -1;
-    return 0;
+    return direction === 'asc' 
+      ? aStr.localeCompare(bStr) 
+      : bStr.localeCompare(aStr);
   });
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
