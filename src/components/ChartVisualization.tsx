@@ -1,11 +1,13 @@
-
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useChartState } from '@/hooks/useChartState';
 import { SeriesManager } from './chart/SeriesManager';
 import { ChartConfiguration } from './chart/ChartConfiguration';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { SankeyData } from '@/lib/chartDataUtils';
+import { DashboardTileData } from './dashboard/DashboardTile';
 import {
   BarChartRenderer,
   LineChartRenderer,
@@ -20,9 +22,10 @@ import {
 interface ChartVisualizationProps {
   data: DataRow[];
   columns: ColumnInfo[];
+  onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void;
 }
 
-export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) => {
+export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualizationProps) => {
   const {
     chartType,
     setChartType,
@@ -69,6 +72,24 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
   const isArrayData = (data: DataRow[] | SankeyData): data is DataRow[] => {
     return Array.isArray(data);
+  };
+
+  const handleSaveTile = () => {
+    if (!xColumn || !yColumn || !onSaveTile) return;
+    
+    const title = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn} vs ${yColumn}`;
+    
+    onSaveTile({
+      title,
+      chartType,
+      xColumn,
+      yColumn,
+      stackColumn,
+      sankeyTargetColumn,
+      sortColumn,
+      sortDirection,
+      series
+    });
   };
 
   const renderChart = () => {
@@ -165,18 +186,31 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
       </div>
 
       <Card className="p-6">
-        <div className="mb-4">
-          <h4 className="text-lg font-medium">
-            {chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} Chart
-          </h4>
-          {xColumn && yColumn && (
-            <p className="text-sm text-gray-600">
-              {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`}
-              {series.length > 0 && ` + ${series.length} additional series`} • {getDataPointCount()} data points
-              {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
-              {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
-              {chartType !== 'scatter' && chartType !== 'sankey' && ' • Data aggregated by X-axis'}
-            </p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h4 className="text-lg font-medium">
+              {chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} Chart
+            </h4>
+            {xColumn && yColumn && (
+              <p className="text-sm text-gray-600">
+                {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`}
+                {series.length > 0 && ` + ${series.length} additional series`} • {getDataPointCount()} data points
+                {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
+                {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
+                {chartType !== 'scatter' && chartType !== 'sankey' && ' • Data aggregated by X-axis'}
+              </p>
+            )}
+          </div>
+          
+          {xColumn && yColumn && onSaveTile && (
+            <Button
+              onClick={handleSaveTile}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Save className="h-4 w-4" />
+              Save as Tile
+            </Button>
           )}
         </div>
         
