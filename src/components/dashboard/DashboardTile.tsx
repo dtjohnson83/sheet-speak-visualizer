@@ -37,13 +37,15 @@ interface DashboardTileProps {
   data: DataRow[];
   columns: ColumnInfo[];
   onRemove: (id: string) => void;
-  onMove?: (id: string, position: { x: number; y: number }) => void;
+  onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number } }) => void;
 }
 
-export const DashboardTile = ({ tile, data, columns, onRemove, onMove }: DashboardTileProps) => {
+export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: DashboardTileProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const tileRef = useRef<HTMLDivElement>(null);
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
@@ -53,7 +55,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onMove }: Dashboa
   ];
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!onMove) return;
+    if (!onUpdate || isResizing) return;
     
     setIsDragging(true);
     const rect = tileRef.current?.getBoundingClientRect();
@@ -66,25 +68,47 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onMove }: Dashboa
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !onMove) return;
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    if (!onUpdate) return;
     
-    const parentRect = tileRef.current?.parentElement?.getBoundingClientRect();
-    if (parentRect) {
-      const newX = Math.max(0, e.clientX - parentRect.left - dragOffset.x);
-      const newY = Math.max(0, e.clientY - parentRect.top - dragOffset.y);
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: tile.size.width,
+      height: tile.size.height
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging && !isResizing && onUpdate) {
+      const parentRect = tileRef.current?.parentElement?.getBoundingClientRect();
+      if (parentRect) {
+        const newX = Math.max(0, e.clientX - parentRect.left - dragOffset.x);
+        const newY = Math.max(0, e.clientY - parentRect.top - dragOffset.y);
+        
+        onUpdate(tile.id, { position: { x: newX, y: newY } });
+      }
+    } else if (isResizing && onUpdate) {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
       
-      onMove(tile.id, { x: newX, y: newY });
+      const newWidth = Math.max(200, resizeStart.width + deltaX);
+      const newHeight = Math.max(150, resizeStart.height + deltaY);
+      
+      onUpdate(tile.id, { size: { width: newWidth, height: newHeight } });
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setIsResizing(false);
   };
 
-  // Add event listeners when dragging starts
+  // Add event listeners when dragging or resizing starts
   React.useEffect(() => {
-    if (isDragging) {
+    if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       
@@ -93,7 +117,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onMove }: Dashboa
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragOffset, onMove, tile.id]);
+  }, [isDragging, isResizing, dragOffset, onUpdate, tile.id, resizeStart]);
 
   const chartData = prepareChartData(
     data,
@@ -152,7 +176,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onMove }: Dashboa
   return (
     <Card 
       ref={tileRef}
-      className={`p-4 relative group cursor-move ${isDragging ? 'z-50 shadow-2xl' : 'z-10'}`}
+      className={`p-4 relative group cursor-move ${isDragging || isResizing ? 'z-50 shadow-2xl' : 'z-10'} select-none`}
       style={{
         position: 'absolute',
         left: tile.position.x,
@@ -186,6 +210,14 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onMove }: Dashboa
       
       <div className="w-full h-[calc(100%-2rem)] overflow-hidden">
         {renderChart()}
+      </div>
+
+      {/* Resize handle */}
+      <div
+        className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity"
+        onMouseDown={handleResizeMouseDown}
+      >
+        <div className="absolute bottom-1 right-1 w-2 h-2 bg-gray-400 rotate-45"></div>
       </div>
     </Card>
   );

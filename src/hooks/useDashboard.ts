@@ -33,9 +33,13 @@ export const useDashboard = () => {
     setTiles(prev => prev.filter(tile => tile.id !== id));
   };
 
-  const moveTile = (id: string, position: { x: number; y: number }) => {
+  const updateTile = (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number } }) => {
     setTiles(prev => prev.map(tile => 
-      tile.id === id ? { ...tile, position } : tile
+      tile.id === id ? { 
+        ...tile, 
+        ...(updates.position && { position: updates.position }),
+        ...(updates.size && { size: updates.size })
+      } : tile
     ));
   };
 
@@ -43,6 +47,6 @@ export const useDashboard = () => {
     tiles,
     addTile,
     removeTile,
-    moveTile
+    updateTile
   };
 };

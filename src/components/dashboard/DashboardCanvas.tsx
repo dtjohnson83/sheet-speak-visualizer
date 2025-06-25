@@ -8,7 +8,7 @@ interface DashboardCanvasProps {
   data: DataRow[];
   columns: ColumnInfo[];
   onRemoveTile: (id: string) => void;
-  onMoveTile?: (id: string, position: { x: number; y: number }) => void;
+  onUpdateTile?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number } }) => void;
 }
 
 export const DashboardCanvas = ({ 
@@ -16,7 +16,7 @@ export const DashboardCanvas = ({
   data, 
   columns, 
   onRemoveTile, 
-  onMoveTile 
+  onUpdateTile 
 }: DashboardCanvasProps) => {
   return (
     <Card className="p-4 min-h-[600px] bg-gray-50 relative overflow-auto">
@@ -25,7 +25,7 @@ export const DashboardCanvas = ({
         <p className="text-sm text-gray-600">
           {tiles.length === 0 
             ? "Save visualizations as tiles to build your dashboard" 
-            : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard • Drag tiles to rearrange`
+            : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard • Drag tiles to rearrange • Drag corner to resize`
           }
         </p>
       </div>
@@ -38,7 +38,7 @@ export const DashboardCanvas = ({
             data={data}
             columns={columns}
             onRemove={onRemoveTile}
-            onMove={onMoveTile}
+            onUpdate={onUpdateTile}
           />
         ))}
         
