@@ -19,18 +19,18 @@ export const DashboardCanvas = ({
   onMoveTile 
 }: DashboardCanvasProps) => {
   return (
-    <Card className="p-4 min-h-[400px] bg-gray-50 relative overflow-hidden">
+    <Card className="p-4 min-h-[600px] bg-gray-50 relative overflow-auto">
       <div className="mb-4">
         <h3 className="text-lg font-semibold">Dashboard</h3>
         <p className="text-sm text-gray-600">
           {tiles.length === 0 
             ? "Save visualizations as tiles to build your dashboard" 
-            : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard`
+            : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard • Drag tiles to rearrange`
           }
         </p>
       </div>
       
-      <div className="relative w-full h-full">
+      <div className="relative w-full" style={{ minHeight: '500px' }}>
         {tiles.map((tile) => (
           <DashboardTile
             key={tile.id}
