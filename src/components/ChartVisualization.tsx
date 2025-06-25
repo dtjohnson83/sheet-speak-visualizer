@@ -128,6 +128,48 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     });
   };
 
+  const aggregateData = (dataToAggregate: DataRow[]): DataRow[] => {
+    if (!xColumn || !yColumn) return dataToAggregate;
+
+    // Group data by X-axis value
+    const grouped = dataToAggregate.reduce((acc, row) => {
+      const xValue = row[xColumn]?.toString() || 'Unknown';
+      
+      if (!acc[xValue]) {
+        acc[xValue] = {
+          [xColumn]: xValue,
+          [yColumn]: 0,
+          count: 0
+        };
+        
+        // Initialize series columns
+        series.forEach(seriesConfig => {
+          acc[xValue][seriesConfig.column] = 0;
+        });
+      }
+      
+      // Aggregate Y column
+      const yValue = Number(row[yColumn]);
+      if (isValidNumber(yValue)) {
+        acc[xValue][yColumn] += yValue;
+      }
+      
+      // Aggregate series columns
+      series.forEach(seriesConfig => {
+        const seriesValue = Number(row[seriesConfig.column]);
+        if (isValidNumber(seriesValue)) {
+          acc[xValue][seriesConfig.column] += seriesValue;
+        }
+      });
+      
+      acc[xValue].count += 1;
+      
+      return acc;
+    }, {} as Record<string, any>);
+
+    return Object.values(grouped);
+  };
+
   const prepareChartData = (): DataRow[] | SankeyData => {
     if (!xColumn || !yColumn) return [];
 
@@ -275,8 +317,45 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
       return result;
     }
 
-    // For other charts, filter and validate data
-    const processedData = sortedData
+    // For other charts (bar, line, scatter), aggregate data by X-axis
+    const aggregatedData = aggregateData(sortedData);
+    
+    // For scatter charts, we don't want aggregation if both X and Y are numeric
+    if (chartType === 'scatter' && xCol.type === 'numeric' && yCol.type === 'numeric') {
+      // Use original data for scatter plots with numeric X-axis
+      const processedData = sortedData
+        .map(row => {
+          let xValue = Number(row[xColumn]);
+          let yValue = Number(row[yColumn]);
+
+          if (!isValidNumber(xValue) || !isValidNumber(yValue)) return null;
+
+          const processedRow = {
+            ...row,
+            [xColumn]: xValue,
+            [yColumn]: yValue
+          };
+
+          // Add series data
+          if (supportsMultipleSeries && series.length > 0) {
+            series.forEach(seriesConfig => {
+              const seriesValue = Number(row[seriesConfig.column]);
+              if (isValidNumber(seriesValue)) {
+                processedRow[seriesConfig.column] = seriesValue;
+              }
+            });
+          }
+
+          return processedRow;
+        })
+        .filter(row => row !== null);
+
+      console.log('Scatter chart data prepared (no aggregation):', processedData);
+      return processedData;
+    }
+
+    // Process aggregated data for other chart types
+    const processedData = aggregatedData
       .map(row => {
         let xValue = row[xColumn];
         let yValue = row[yColumn];
@@ -286,7 +365,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
           xValue = Number(xValue);
           if (!isValidNumber(xValue)) return null;
         } else if (xCol.type === 'date') {
-          // Keep as string for non-scatter charts, convert for scatter
+          // Keep as string for non-scatter charts
           if (chartType === 'scatter') {
             const date = new Date(xValue);
             if (isNaN(date.getTime())) return null;
@@ -298,28 +377,17 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
         yValue = Number(yValue);
         if (!isValidNumber(yValue)) return null;
 
-        // Process additional series data for multi-series charts
         const processedRow = {
           ...row,
           [xColumn]: xValue,
           [yColumn]: yValue
         };
 
-        // Add series data
-        if (supportsMultipleSeries && series.length > 0) {
-          series.forEach(seriesConfig => {
-            const seriesValue = Number(row[seriesConfig.column]);
-            if (isValidNumber(seriesValue)) {
-              processedRow[seriesConfig.column] = seriesValue;
-            }
-          });
-        }
-
         return processedRow;
       })
       .filter(row => row !== null);
 
-    console.log('Chart data prepared:', processedData);
+    console.log('Chart data prepared (aggregated):', processedData);
     return processedData;
   };
 
@@ -995,6 +1063,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
               {series.length > 0 && ` + ${series.length} additional series`} • {getDataPointCount()} data points
               {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
               {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
+              {chartType !== 'scatter' && chartType !== 'sankey' && ' • Data aggregated by X-axis'}
             </p>
           )}
         </div>
