@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -13,7 +12,7 @@ interface ChartVisualizationProps {
 }
 
 export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
@@ -76,6 +75,29 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
     // Apply sorting first
     const sortedData = sortData(data);
+
+    if (chartType === 'treemap') {
+      // For treemap, group by category and sum values
+      const grouped = sortedData.reduce((acc, row) => {
+        const category = row[xColumn]?.toString() || 'Unknown';
+        const value = Number(row[yColumn]);
+        if (isValidNumber(value)) {
+          acc[category] = (acc[category] || 0) + value;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      const result = Object.entries(grouped)
+        .filter(([, value]) => isValidNumber(value) && value > 0)
+        .map(([name, value]) => ({
+          name,
+          size: value,
+          value
+        }));
+
+      console.log('Treemap data prepared:', result);
+      return result;
+    }
 
     if (chartType === 'heatmap') {
       // For heatmap, we need both x and y as categorical and a numeric value
@@ -319,6 +341,30 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
     );
   };
 
+  const renderTreemap = () => {
+    if (!chartData.length) return null;
+
+    const COLORS = chartColors;
+
+    return (
+      <ResponsiveContainer width="100%" height={400}>
+        <Treemap
+          width={800}
+          height={400}
+          data={chartData}
+          dataKey="size"
+          aspectRatio={4/3}
+          stroke="#fff"
+          fill="#8884d8"
+        >
+          {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Treemap>
+      </ResponsiveContainer>
+    );
+  };
+
   const renderChart = () => {
     if (!xColumn || !yColumn || chartData.length === 0) {
       return (
@@ -341,6 +387,9 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
 
       case 'stacked-bar':
         return renderStackedBar();
+
+      case 'treemap':
+        return renderTreemap();
 
       case 'bar':
         return (
@@ -462,6 +511,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 <SelectItem value="pie">Pie Chart</SelectItem>
                 <SelectItem value="scatter">Scatter Plot</SelectItem>
                 <SelectItem value="heatmap">Heatmap</SelectItem>
+                <SelectItem value="treemap">Tree Map</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -489,7 +539,7 @@ export const ChartVisualization = ({ data, columns }: ChartVisualizationProps) =
                 <SelectValue placeholder="Select column" />
               </SelectTrigger>
               <SelectContent>
-                {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : numericColumns).map((col) => (
+                {(chartType === 'heatmap' || chartType === 'treemap' ? [...categoricalColumns, ...numericColumns] : numericColumns).map((col) => (
                   <SelectItem key={col.name} value={col.name}>
                     {col.name} ({col.type})
                   </SelectItem>
