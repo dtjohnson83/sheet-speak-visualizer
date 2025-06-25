@@ -53,8 +53,8 @@ export const SeriesManager = ({
   };
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
+    <div className="mt-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-medium">Additional Series</h4>
         <Button
           onClick={addSeries}

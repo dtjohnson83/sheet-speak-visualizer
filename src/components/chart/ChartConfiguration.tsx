@@ -197,7 +197,7 @@ export const ChartConfiguration = ({
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-8">
         <Button 
           onClick={autoSelect}
           disabled={!columns.length}
