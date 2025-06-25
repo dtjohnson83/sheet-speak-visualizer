@@ -10,7 +10,7 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 15;
   const contentWidth = pageWidth - (margin * 2);
-  const contentHeight = pageHeight - 120; // Increased space significantly for header and titles (was 80)
+  const contentHeight = pageHeight - 140; // Increased space even more for header and titles (was 120)
   
   // Add title with more generous spacing
   pdf.setFontSize(24);
@@ -72,8 +72,8 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
         // Center the image horizontally if it's smaller than content width
         const xOffset = margin + (contentWidth - imgWidth) / 2;
         
-        // Start image much lower to allow generous space for titles (was 55, now 70)
-        pdf.addImage(imgData, 'PNG', xOffset, 70, imgWidth, imgHeight);
+        // Start image even lower to ensure chart titles are not cut off (was 70, now 85)
+        pdf.addImage(imgData, 'PNG', xOffset, 85, imgWidth, imgHeight);
         
         // Add footer with page info
         pdf.setFontSize(10);
@@ -83,7 +83,7 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
         
       } else {
         // Enhanced fallback to text-based export
-        let yPosition = 80; // Increased starting position for fallback
+        let yPosition = 95; // Increased starting position for fallback (was 80)
         pdf.setFontSize(16);
         pdf.setFont('helvetica', 'bold');
         pdf.text('Dashboard Tiles Summary:', margin, yPosition);
@@ -129,7 +129,7 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
       console.error('Error generating PDF:', error);
       // Simple fallback
       pdf.setFontSize(14);
-      pdf.text('Error generating visual export. Please try again.', margin, 70);
+      pdf.text('Error generating visual export. Please try again.', margin, 85);
     }
   }
   
