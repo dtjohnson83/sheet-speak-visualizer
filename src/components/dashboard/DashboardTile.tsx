@@ -28,6 +28,7 @@ export interface DashboardTileData {
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
   series: Array<{ id: string; column: string; color: string; type: 'bar' | 'line' }>;
+  showDataLabels?: boolean;
   position: { x: number; y: number };
   size: { width: number; height: number };
 }
@@ -148,7 +149,8 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
       xColumn: tile.xColumn,
       yColumn: tile.yColumn,
       series: tile.series,
-      chartColors
+      chartColors,
+      showDataLabels: tile.showDataLabels || false
     };
 
     switch (tile.chartType) {
