@@ -35,6 +35,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
     setAggregationMethod,
     showDataLabels,
     setShowDataLabels,
+    selectedPalette,
+    setSelectedPalette,
     chartColors,
     supportsMultipleSeries,
     supportsDataLabels
@@ -86,6 +88,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
           showDataLabels={showDataLabels}
           setShowDataLabels={setShowDataLabels}
           supportsDataLabels={supportsDataLabels}
+          selectedPalette={selectedPalette}
+          setSelectedPalette={setSelectedPalette}
           columns={columns}
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}

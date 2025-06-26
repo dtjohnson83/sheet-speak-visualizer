@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
+import { COLOR_PALETTES } from '@/components/chart/ColorPaletteSelector';
 
 export interface SeriesConfig {
   id: string;
@@ -20,11 +21,15 @@ export const useChartState = () => {
   const [series, setSeries] = useState<SeriesConfig[]>([]);
   const [aggregationMethod, setAggregationMethod] = useState<AggregationMethod>('sum');
   const [showDataLabels, setShowDataLabels] = useState<boolean>(false);
+  const [selectedPalette, setSelectedPalette] = useState<string>('Default');
 
-  const chartColors = [
-    '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
-    '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#0000ff'
-  ];
+  // Get colors from selected palette
+  const getChartColors = () => {
+    const palette = COLOR_PALETTES.find(p => p.name === selectedPalette);
+    return palette ? palette.colors : COLOR_PALETTES[0].colors;
+  };
+
+  const chartColors = getChartColors();
 
   const multiSeriesChartTypes = ['bar', 'line', 'scatter'];
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
@@ -65,6 +70,8 @@ export const useChartState = () => {
     setAggregationMethod,
     showDataLabels,
     setShowDataLabels,
+    selectedPalette,
+    setSelectedPalette,
     chartColors,
     supportsMultipleSeries,
     supportsDataLabels
