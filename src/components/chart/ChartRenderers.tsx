@@ -1,4 +1,4 @@
-import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ComposedChart } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ComposedChart, LabelList } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
@@ -10,6 +10,7 @@ interface ChartProps {
   yColumn: string;
   series: SeriesConfig[];
   chartColors: string[];
+  showDataLabels?: boolean;
 }
 
 interface SankeyProps {
@@ -35,7 +36,23 @@ const customPieLabel = ({ name, value, percent }: any) =>
 
 const customTickFormatter = (value: any) => formatNumber(Number(value));
 
-export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: ChartProps) => {
+const customDataLabel = (props: any) => {
+  const { x, y, width, height, value } = props;
+  return (
+    <text 
+      x={x + width / 2} 
+      y={y - 5} 
+      fill="#666" 
+      textAnchor="middle" 
+      fontSize="11"
+      fontWeight="500"
+    >
+      {formatNumber(Number(value))}
+    </text>
+  );
+};
+
+export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, showDataLabels = false }: ChartProps) => {
   // Check if we have mixed chart types (bar + line)
   const hasMixedTypes = series.some(s => s.type === 'line');
   
@@ -61,7 +78,9 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
           <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
           <Tooltip formatter={customTooltipFormatter} />
           <Legend />
-          <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn} />
+          <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn}>
+            {showDataLabels && <LabelList dataKey={yColumn} content={customDataLabel} />}
+          </Bar>
           {series.map((seriesConfig) => {
             if (seriesConfig.type === 'line') {
               return (
@@ -84,7 +103,9 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
                 dataKey={seriesConfig.column} 
                 fill={seriesConfig.color}
                 name={seriesConfig.column}
-              />
+              >
+                {showDataLabels && <LabelList dataKey={seriesConfig.column} content={customDataLabel} />}
+              </Bar>
             );
           })}
         </ComposedChart>
@@ -113,7 +134,9 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
         <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
         <Tooltip formatter={customTooltipFormatter} />
         <Legend />
-        <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn} />
+        <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn}>
+          {showDataLabels && <LabelList dataKey={yColumn} content={customDataLabel} />}
+        </Bar>
         {series.map((seriesConfig) => (
           <Bar 
             key={seriesConfig.id}
@@ -121,14 +144,16 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }
             dataKey={seriesConfig.column} 
             fill={seriesConfig.color}
             name={seriesConfig.column}
-          />
+          >
+            {showDataLabels && <LabelList dataKey={seriesConfig.column} content={customDataLabel} />}
+          </Bar>
         ))}
       </BarChart>
     </ResponsiveContainer>
   );
 };
 
-export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps) => {
+export const LineChartRenderer = ({ data, xColumn, yColumn, series, showDataLabels = false }: ChartProps) => {
   // Check if we have mixed chart types (line + bar)
   const hasMixedTypes = series.some(s => s.type === 'bar');
   
@@ -162,7 +187,9 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
             strokeWidth={2}
             dot={{ r: 4 }}
             name={yColumn}
-          />
+          >
+            {showDataLabels && <LabelList dataKey={yColumn} position="top" formatter={formatNumber} />}
+          </Line>
           {series.map((seriesConfig) => {
             if (seriesConfig.type === 'bar') {
               return (
@@ -172,7 +199,9 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
                   dataKey={seriesConfig.column} 
                   fill={seriesConfig.color}
                   name={seriesConfig.column}
-                />
+                >
+                  {showDataLabels && <LabelList dataKey={seriesConfig.column} content={customDataLabel} />}
+                </Bar>
               );
             }
             return (
@@ -185,7 +214,9 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 name={seriesConfig.column}
-              />
+              >
+                {showDataLabels && <LabelList dataKey={seriesConfig.column} position="top" formatter={formatNumber} />}
+              </Line>
             );
           })}
         </ComposedChart>
@@ -222,7 +253,9 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
           strokeWidth={2}
           dot={{ r: 4 }}
           name={yColumn}
-        />
+        >
+          {showDataLabels && <LabelList dataKey={yColumn} position="top" formatter={formatNumber} />}
+        </Line>
         {series.map((seriesConfig) => (
           <Line 
             key={seriesConfig.id}
@@ -233,7 +266,9 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps
             strokeWidth={2}
             dot={{ r: 4 }}
             name={seriesConfig.column}
-          />
+          >
+            {showDataLabels && <LabelList dataKey={seriesConfig.column} position="top" formatter={formatNumber} />}
+          </Line>
         ))}
       </LineChart>
     </ResponsiveContainer>
@@ -322,7 +357,7 @@ export const TreemapRenderer = ({ data, chartColors }: { data: DataRow[]; chartC
   </ResponsiveContainer>
 );
 
-export const StackedBarRenderer = ({ data, xColumn, originalData, stackColumn, chartColors }: StackedBarProps) => {
+export const StackedBarRenderer = ({ data, xColumn, originalData, stackColumn, chartColors, showDataLabels = false }: StackedBarProps) => {
   const stackValues = [...new Set(originalData.map(row => row[stackColumn]?.toString()).filter(Boolean))];
 
   return (
@@ -349,8 +384,10 @@ export const StackedBarRenderer = ({ data, xColumn, originalData, stackColumn, c
             key={stackVal}
             dataKey={stackVal} 
             stackId="stack"
-            fill={chartColors[index % chartColors.length]} 
-          />
+            fill={chartColors[index % chartColors.length]}
+          >
+            {showDataLabels && <LabelList dataKey={stackVal} position="center" formatter={formatNumber} fontSize="10" fill="#fff" />}
+          </Bar>
         ))}
       </BarChart>
     </ResponsiveContainer>

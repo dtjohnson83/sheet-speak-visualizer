@@ -1,6 +1,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { ColumnInfo } from '@/pages/Index';
 
@@ -19,6 +21,9 @@ interface ChartConfigurationProps {
   sortDirection: 'asc' | 'desc';
   setSortDirection: (value: 'asc' | 'desc') => void;
   setChartType: (value: any) => void;
+  showDataLabels: boolean;
+  setShowDataLabels: (value: boolean) => void;
+  supportsDataLabels: boolean;
   columns: ColumnInfo[];
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
@@ -40,6 +45,9 @@ export const ChartConfiguration = ({
   setSortColumn,
   sortDirection,
   setSortDirection,
+  showDataLabels,
+  setShowDataLabels,
+  supportsDataLabels,
   columns,
   numericColumns,
   categoricalColumns,
@@ -196,6 +204,24 @@ export const ChartConfiguration = ({
           </Button>
         </div>
       </div>
+
+      {supportsDataLabels && (
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="data-labels"
+              checked={showDataLabels}
+              onCheckedChange={setShowDataLabels}
+            />
+            <Label htmlFor="data-labels" className="text-sm font-medium">
+              Show data labels on chart
+            </Label>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Display values directly on chart elements for easier reading
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-end mb-8">
         <Button 

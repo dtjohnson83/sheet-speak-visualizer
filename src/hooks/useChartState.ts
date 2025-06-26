@@ -19,6 +19,7 @@ export const useChartState = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [series, setSeries] = useState<SeriesConfig[]>([]);
   const [aggregationMethod, setAggregationMethod] = useState<AggregationMethod>('sum');
+  const [showDataLabels, setShowDataLabels] = useState<boolean>(false);
 
   const chartColors = [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
@@ -28,10 +29,18 @@ export const useChartState = () => {
   const multiSeriesChartTypes = ['bar', 'line', 'scatter'];
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
 
+  // Charts that support data labels
+  const dataLabelSupportedCharts = ['bar', 'line', 'stacked-bar'];
+  const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
+
   const handleChartTypeChange = (newType: any) => {
     setChartType(newType);
     if (!multiSeriesChartTypes.includes(newType)) {
       setSeries([]);
+    }
+    // Reset data labels if chart type doesn't support them
+    if (!dataLabelSupportedCharts.includes(newType)) {
+      setShowDataLabels(false);
     }
   };
 
@@ -54,7 +63,10 @@ export const useChartState = () => {
     setSeries,
     aggregationMethod,
     setAggregationMethod,
+    showDataLabels,
+    setShowDataLabels,
     chartColors,
-    supportsMultipleSeries
+    supportsMultipleSeries,
+    supportsDataLabels
   };
 };

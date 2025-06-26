@@ -46,8 +46,11 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
     setSeries,
     aggregationMethod,
     setAggregationMethod,
+    showDataLabels,
+    setShowDataLabels,
     chartColors,
-    supportsMultipleSeries
+    supportsMultipleSeries,
+    supportsDataLabels
   } = useChartState();
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
@@ -92,7 +95,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
       sankeyTargetColumn,
       sortColumn,
       sortDirection,
-      series
+      series,
+      showDataLabels
     });
   };
 
@@ -110,7 +114,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
       xColumn,
       yColumn,
       series,
-      chartColors
+      chartColors,
+      showDataLabels
     };
 
     switch (chartType) {
@@ -183,6 +188,9 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
           setSortColumn={setSortColumn}
           sortDirection={sortDirection}
           setSortDirection={setSortDirection}
+          showDataLabels={showDataLabels}
+          setShowDataLabels={setShowDataLabels}
+          supportsDataLabels={supportsDataLabels}
           columns={columns}
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}
@@ -222,6 +230,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
                 {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
                 {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
                 {chartType !== 'scatter' && chartType !== 'sankey' && ` • ${getAggregationLabel()} aggregation`}
+                {showDataLabels && ` • Data labels enabled`}
               </p>
             )}
           </div>
