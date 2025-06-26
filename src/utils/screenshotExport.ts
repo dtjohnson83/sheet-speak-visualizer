@@ -8,6 +8,9 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
   
   if (dashboardElement) {
     try {
+      // Add extra padding to ensure headers aren't cut off
+      const extraPadding = 40;
+      
       // Use html2canvas to capture the dashboard
       const canvas = await import('html2canvas').then(module => 
         module.default(dashboardElement, {
@@ -15,8 +18,10 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
-          width: dashboardElement.scrollWidth,
-          height: dashboardElement.scrollHeight,
+          width: dashboardElement.scrollWidth + (extraPadding * 2),
+          height: dashboardElement.scrollHeight + (extraPadding * 2),
+          x: -extraPadding,
+          y: -extraPadding,
           scrollX: 0,
           scrollY: 0,
           logging: false,

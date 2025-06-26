@@ -30,7 +30,7 @@ export const DashboardCanvas = ({
   const filteredData = applyFilters(data, filters);
 
   return (
-    <Card className="p-4 min-h-[600px] bg-gray-50 relative overflow-auto">
+    <Card className="p-6 min-h-[600px] bg-gray-50 relative overflow-auto">
       <DashboardHeader tiles={tiles} />
       
       {data.length > 0 && (
@@ -41,7 +41,7 @@ export const DashboardCanvas = ({
         />
       )}
       
-      <div className="relative w-full" style={{ minHeight: '500px' }} data-dashboard-canvas>
+      <div className="relative w-full p-8" style={{ minHeight: '500px' }} data-dashboard-canvas>
         {tiles.map((tile) => (
           <DashboardTile
             key={tile.id}
