@@ -1,9 +1,10 @@
-
 import { useState } from 'react';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
+import { FilterCondition } from '@/components/dashboard/DashboardFilters';
 
 export const useDashboard = () => {
   const [tiles, setTiles] = useState<DashboardTileData[]>([]);
+  const [filters, setFilters] = useState<FilterCondition[]>([]);
 
   const addTile = (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => {
     const tileWidth = 400;
@@ -48,6 +49,8 @@ export const useDashboard = () => {
     tiles,
     addTile,
     removeTile,
-    updateTile
+    updateTile,
+    filters,
+    setFilters
   };
 };

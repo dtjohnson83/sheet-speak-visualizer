@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
@@ -25,7 +24,7 @@ const Index = () => {
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
   const [fileName, setFileName] = useState<string>('');
   const [worksheetName, setWorksheetName] = useState<string>('');
-  const { tiles, addTile, removeTile, updateTile } = useDashboard();
+  const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
 
   const handleDataLoaded = (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => {
     console.log('Data loaded:', { loadedData, detectedColumns, name, worksheet });
@@ -92,6 +91,8 @@ const Index = () => {
                   columns={columns}
                   onRemoveTile={removeTile}
                   onUpdateTile={updateTile}
+                  filters={filters}
+                  onFiltersChange={setFilters}
                 />
               </TabsContent>
             </Tabs>
