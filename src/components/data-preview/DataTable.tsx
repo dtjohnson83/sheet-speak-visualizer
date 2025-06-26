@@ -1,6 +1,4 @@
-
-import { DataRow, ColumnInfo } from '@/types/data';
-import { ColumnStatsHeader } from './ColumnStats';
+import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface DataTableProps {
   data: DataRow[];

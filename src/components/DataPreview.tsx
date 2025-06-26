@@ -7,9 +7,8 @@ import { DataTable } from './data-preview/DataTable';
 import { HierarchyDisplay } from './data-preview/HierarchyDisplay';
 import { ColumnBadges } from './data-preview/ColumnBadges';
 import { DataPagination } from './data-preview/DataPagination';
-import { KnowledgeGraph } from './data-preview/KnowledgeGraph';
 import { useDataFormatting } from '@/hooks/useDataFormatting';
-import { DataRow, ColumnInfo } from '@/types/data';
+import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface DataPreviewProps {
   data: DataRow[];
@@ -27,7 +26,6 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [showHierarchies, setShowHierarchies] = useState(false);
-  const [showKnowledgeGraph, setShowKnowledgeGraph] = useState(false);
 
   const { getTypeColor, formatValue, getSortIcon } = useDataFormatting();
 
@@ -70,16 +68,9 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
         hierarchiesCount={hierarchies.length}
         showHierarchies={showHierarchies}
         onToggleHierarchies={() => setShowHierarchies(!showHierarchies)}
-        showKnowledgeGraph={showKnowledgeGraph}
-        onToggleKnowledgeGraph={() => setShowKnowledgeGraph(!showKnowledgeGraph)}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleRowsPerPageChange}
       />
-
-      {/* Knowledge Graph */}
-      {showKnowledgeGraph && (
-        <KnowledgeGraph data={data} columns={columns} />
-      )}
 
       {/* Hierarchy Detection Results */}
       {showHierarchies && hierarchies.length > 0 && (

@@ -1,5 +1,5 @@
 
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpDown } from 'lucide-react';
 
 export const useDataFormatting = () => {
   const getTypeColor = (type: string): string => {
