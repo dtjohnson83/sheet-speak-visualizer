@@ -2,15 +2,15 @@
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { DashboardTileData } from './DashboardTile';
-import { exportDashboardToPDF } from '@/utils/pdfExport';
+import { exportDashboardToScreenshot } from '@/utils/screenshotExport';
 
 interface DashboardHeaderProps {
   tiles: DashboardTileData[];
 }
 
 export const DashboardHeader = ({ tiles }: DashboardHeaderProps) => {
-  const handlePDFExport = () => {
-    exportDashboardToPDF(tiles);
+  const handleScreenshotExport = () => {
+    exportDashboardToScreenshot(tiles);
   };
 
   return (
@@ -27,12 +27,12 @@ export const DashboardHeader = ({ tiles }: DashboardHeaderProps) => {
       
       {tiles.length > 0 && (
         <Button
-          onClick={handlePDFExport}
+          onClick={handleScreenshotExport}
           variant="outline"
           className="flex items-center gap-2"
         >
           <Download className="h-4 w-4" />
-          Export PDF
+          Export Screenshot
         </Button>
       )}
     </div>
