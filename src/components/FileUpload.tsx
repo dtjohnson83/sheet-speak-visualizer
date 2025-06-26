@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,14 +7,24 @@ import { Upload, FileSpreadsheet, Link } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { WorksheetSelector } from './WorksheetSelector';
 
 interface FileUploadProps {
-  onDataLoaded: (data: DataRow[], columns: ColumnInfo[], fileName: string) => void;
+  onDataLoaded: (data: DataRow[], columns: ColumnInfo[], fileName: string, worksheetName?: string) => void;
+}
+
+interface WorksheetInfo {
+  name: string;
+  rowCount: number;
+  data: any[];
 }
 
 export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
+  const [worksheets, setWorksheets] = useState<WorksheetInfo[]>([]);
+  const [currentFileName, setCurrentFileName] = useState('');
+  const [showWorksheetSelector, setShowWorksheetSelector] = useState(false);
   const { toast } = useToast();
 
   const detectColumnType = (values: any[]): 'numeric' | 'date' | 'categorical' | 'text' => {
@@ -91,13 +100,14 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     return 'text';
   };
 
-  const processData = useCallback((rawData: any[], fileName: string) => {
-    console.log('Processing data:', rawData);
+  const processWorksheetData = useCallback((worksheetData: WorksheetInfo) => {
+    console.log('Processing worksheet data:', worksheetData);
     
+    const rawData = worksheetData.data;
     if (!rawData || rawData.length === 0) {
       toast({
         title: "Error",
-        description: "No data found in the file",
+        description: "No data found in the selected worksheet",
         variant: "destructive",
       });
       return;
@@ -118,13 +128,58 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     });
 
     console.log('Detected columns:', columns);
-    onDataLoaded(rawData, columns, fileName);
+    onDataLoaded(rawData, columns, currentFileName, worksheetData.name);
     
     toast({
       title: "Success",
-      description: `Loaded ${rawData.length} rows with ${columns.length} columns`,
+      description: `Loaded ${rawData.length} rows from "${worksheetData.name}" with ${columns.length} columns`,
     });
-  }, [onDataLoaded, toast]);
+  }, [onDataLoaded, toast, currentFileName]);
+
+  const handleWorksheetSelected = useCallback((worksheet: WorksheetInfo) => {
+    setShowWorksheetSelector(false);
+    setWorksheets([]);
+    processWorksheetData(worksheet);
+  }, [processWorksheetData]);
+
+  const handleWorksheetSelectorCancel = useCallback(() => {
+    setShowWorksheetSelector(false);
+    setWorksheets([]);
+    setCurrentFileName('');
+    setIsLoading(false);
+  }, []);
+
+  const processExcelFile = useCallback((workbook: XLSX.WorkBook, fileName: string) => {
+    const sheetNames = workbook.SheetNames;
+    
+    if (sheetNames.length === 1) {
+      // Single worksheet - process directly
+      const worksheet = workbook.Sheets[sheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const worksheetInfo: WorksheetInfo = {
+        name: sheetNames[0],
+        rowCount: jsonData.length,
+        data: jsonData
+      };
+      processWorksheetData(worksheetInfo);
+    } else {
+      // Multiple worksheets - show selector
+      const worksheetInfos: WorksheetInfo[] = sheetNames.map(name => {
+        const worksheet = workbook.Sheets[name];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        return {
+          name,
+          rowCount: jsonData.length,
+          data: jsonData
+        };
+      });
+      
+      setWorksheets(worksheetInfos);
+      setCurrentFileName(fileName);
+      setShowWorksheetSelector(true);
+    }
+    setIsLoading(false);
+  }, [processWorksheetData]);
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -139,11 +194,7 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
         if (!data) return;
 
         const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-        processData(jsonData, file.name);
+        processExcelFile(workbook, file.name);
       };
       reader.readAsBinaryString(file);
     } catch (error) {
@@ -153,10 +204,9 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
         description: "Failed to read the file. Please check the file format.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
-  }, [processData, toast]);
+  }, [processExcelFile, toast]);
 
   const handleGoogleSheetLoad = useCallback(async () => {
     if (!googleSheetUrl) {
@@ -187,11 +237,7 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       
       const csvText = await response.text();
       const workbook = XLSX.read(csvText, { type: 'string' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-      processData(jsonData, 'Google Sheet');
+      processExcelFile(workbook, 'Google Sheet');
     } catch (error) {
       console.error('Error loading Google Sheet:', error);
       toast({
@@ -199,10 +245,22 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
         description: "Failed to load Google Sheet. Make sure the sheet is published to web.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
-  }, [googleSheetUrl, processData, toast]);
+  }, [googleSheetUrl, processExcelFile, toast]);
+
+  if (showWorksheetSelector) {
+    return (
+      <div className="space-y-6">
+        <WorksheetSelector
+          worksheets={worksheets}
+          fileName={currentFileName}
+          onWorksheetSelected={handleWorksheetSelected}
+          onCancel={handleWorksheetSelectorCancel}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

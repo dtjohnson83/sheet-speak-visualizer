@@ -24,14 +24,18 @@ const Index = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
   const [fileName, setFileName] = useState<string>('');
+  const [worksheetName, setWorksheetName] = useState<string>('');
   const { tiles, addTile, removeTile, updateTile } = useDashboard();
 
-  const handleDataLoaded = (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string) => {
-    console.log('Data loaded:', { loadedData, detectedColumns, name });
+  const handleDataLoaded = (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => {
+    console.log('Data loaded:', { loadedData, detectedColumns, name, worksheet });
     setData(loadedData);
     setColumns(detectedColumns);
     setFileName(name);
+    setWorksheetName(worksheet || '');
   };
+
+  const displayFileName = worksheetName ? `${fileName} - ${worksheetName}` : fileName;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -66,7 +70,7 @@ const Index = () => {
                   <DataPreview 
                     data={data} 
                     columns={columns} 
-                    fileName={fileName}
+                    fileName={displayFileName}
                   />
                 </Card>
               </TabsContent>
