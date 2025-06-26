@@ -1,4 +1,3 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
@@ -17,6 +16,8 @@ export const isValidNumber = (value: any): boolean => {
 export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'asc' | 'desc') => {
   if (!sortColumn || sortColumn === 'none') return data;
   
+  console.log('Sorting data by:', sortColumn, sortDirection, 'Sample values:', data.slice(0, 3).map(row => ({ [sortColumn]: row[sortColumn], type: typeof row[sortColumn] })));
+  
   return [...data].sort((a, b) => {
     const aValue = a[sortColumn];
     const bValue = b[sortColumn];
@@ -34,7 +35,9 @@ export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'as
       // Both are numbers - do numeric comparison
       const aNum = Number(aValue);
       const bNum = Number(bValue);
-      return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      console.log('Comparing numbers:', aNum, 'vs', bNum, 'direction:', sortDirection);
+      const result = sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      return result;
     } else if (aIsNumber && !bIsNumber) {
       // Only a is a number - numbers come first in ascending order
       return sortDirection === 'asc' ? -1 : 1;
