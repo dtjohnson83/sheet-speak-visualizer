@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
@@ -40,7 +41,7 @@ const Index = () => {
             <ThemeToggle />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Vizly
+            Charta
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Upload Excel files, visualize data, and build dashboards
