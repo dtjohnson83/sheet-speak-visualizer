@@ -28,7 +28,7 @@ interface DashboardTileProps {
   data: DataRow[];
   columns: ColumnInfo[];
   onRemove: (id: string) => void;
-  onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number } }) => void;
+  onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number }; title?: string }) => void;
 }
 
 export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: DashboardTileProps) => {
@@ -50,6 +50,12 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
     onUpdate
   });
 
+  const handleTitleChange = (newTitle: string) => {
+    if (onUpdate) {
+      onUpdate(tile.id, { title: newTitle });
+    }
+  };
+
   return (
     <Card 
       ref={tileRef}
@@ -67,6 +73,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
         title={tile.title}
         onRemove={() => onRemove(tile.id)}
         onMouseDown={handleMouseDown}
+        onTitleChange={handleTitleChange}
       />
       
       <div className="w-full h-[calc(100%-2rem)] overflow-hidden">

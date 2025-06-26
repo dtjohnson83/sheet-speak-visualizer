@@ -22,6 +22,8 @@ interface ChartContainerProps {
   supportsMultipleSeries: boolean;
   chartColors: string[];
   onSaveTile?: () => void;
+  customTitle?: string;
+  onTitleChange?: (title: string) => void;
 }
 
 export const ChartContainer = ({
@@ -39,7 +41,9 @@ export const ChartContainer = ({
   showDataLabels,
   supportsMultipleSeries,
   chartColors,
-  onSaveTile
+  onSaveTile,
+  customTitle,
+  onTitleChange
 }: ChartContainerProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
@@ -61,7 +65,7 @@ export const ChartContainer = ({
   );
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 group">
       <ChartHeader
         chartType={chartType}
         xColumn={xColumn}
@@ -75,6 +79,8 @@ export const ChartContainer = ({
         aggregationMethod={aggregationMethod}
         chartData={chartData}
         onSaveTile={onSaveTile}
+        customTitle={customTitle}
+        onTitleChange={onTitleChange}
       />
       
       <div className="w-full overflow-x-auto mt-6">

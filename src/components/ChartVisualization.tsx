@@ -6,6 +6,7 @@ import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { DashboardTileData } from './dashboard/DashboardTile';
+import { useState } from 'react';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -14,6 +15,8 @@ interface ChartVisualizationProps {
 }
 
 export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualizationProps) => {
+  const [customTitle, setCustomTitle] = useState<string>('');
+
   const {
     chartType,
     setChartType,
@@ -49,7 +52,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
   const handleSaveTile = () => {
     if (!xColumn || !yColumn || !onSaveTile) return;
     
-    const title = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn} vs ${yColumn}`;
+    const defaultTitle = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn} vs ${yColumn}`;
+    const title = customTitle || defaultTitle;
     
     onSaveTile({
       title,
@@ -132,6 +136,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
         supportsMultipleSeries={supportsMultipleSeries}
         chartColors={chartColors}
         onSaveTile={handleSaveTile}
+        customTitle={customTitle}
+        onTitleChange={setCustomTitle}
       />
     </div>
   );
