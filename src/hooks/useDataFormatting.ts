@@ -28,8 +28,8 @@ export const useDataFormatting = () => {
     }
   };
 
-  const getSortIcon = (columnName: string) => {
-    return ArrowUpDown({ className: "h-4 w-4" });
+  const getSortIcon = (columnName: string): JSX.Element => {
+    return <ArrowUpDown className="h-4 w-4" />;
   };
 
   return {

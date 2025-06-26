@@ -1,5 +1,5 @@
 
-import { DataRow, ColumnInfo } from '@/pages/Index';
+import { DataRow, ColumnInfo } from '@/types/data';
 import { ColumnStatsHeader } from './ColumnStats';
 
 interface DataTableProps {
