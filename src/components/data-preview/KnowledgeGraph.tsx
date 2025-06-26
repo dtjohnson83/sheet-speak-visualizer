@@ -23,8 +23,14 @@ interface KnowledgeGraphProps {
   columns: ColumnInfo[];
 }
 
+interface EntityNodeData {
+  label: string;
+  type: string;
+  count?: number;
+}
+
 // Custom node component for entities
-const EntityNode = ({ data }: NodeProps) => {
+const EntityNode = ({ data }: NodeProps<EntityNodeData>) => {
   return (
     <div className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-stone-400">
       <div className="font-bold text-sm">{data.label}</div>
@@ -185,7 +191,7 @@ export const KnowledgeGraph = ({ data, columns }: KnowledgeGraphProps) => {
         >
           <Controls />
           <MiniMap />
-          <Background variant="dots" gap={12} size={1} />
+          <Background gap={12} size={1} />
         </ReactFlow>
       </div>
       
