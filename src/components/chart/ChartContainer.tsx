@@ -4,6 +4,7 @@ import { ChartHeader } from './ChartHeader';
 import { ChartRenderer } from './ChartRenderer';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
+import { prepareChartData } from '@/lib/chartDataProcessor';
 
 interface ChartContainerProps {
   data: DataRow[];
@@ -43,7 +44,6 @@ export const ChartContainer = ({
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
   // Prepare chart data for header display
-  const { prepareChartData } = require('@/lib/chartDataProcessor');
   const chartData = prepareChartData(
     data,
     columns,
