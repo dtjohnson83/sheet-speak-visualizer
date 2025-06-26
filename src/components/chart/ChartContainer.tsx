@@ -2,7 +2,7 @@
 import { Card } from '@/components/ui/card';
 import { ChartHeader } from './ChartHeader';
 import { ChartRenderer } from './ChartRenderer';
-import { DataRow, ColumnInfo } from '@/types/data';
+import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 

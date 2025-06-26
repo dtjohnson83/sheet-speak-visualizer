@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Upload, FileSpreadsheet, Link } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
-import { DataRow, ColumnInfo } from '@/types/data';
+import { DataRow, ColumnInfo } from '@/pages/Index';
 import { WorksheetSelector } from './WorksheetSelector';
 
 interface FileUploadProps {

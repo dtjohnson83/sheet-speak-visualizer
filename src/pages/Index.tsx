@@ -1,122 +1,106 @@
-
 import { useState } from 'react';
-import { DataRow, ColumnInfo } from '@/types/data';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/useDashboard';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Eye, BarChart3, Layout, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-export default function Index() {
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+export interface DataRow {
+  [key: string]: any;
+}
+
+export interface ColumnInfo {
+  name: string;
+  type: 'numeric' | 'date' | 'categorical' | 'text';
+  values: any[];
+}
+
+const Index = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
   const [fileName, setFileName] = useState<string>('');
   const [worksheetName, setWorksheetName] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'preview' | 'chart' | 'dashboard'>('preview');
-
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
 
-  const handleDataLoaded = (
-    newData: DataRow[], 
-    newColumns: ColumnInfo[], 
-    newFileName: string,
-    newWorksheetName?: string
-  ) => {
-    setData(newData);
-    setColumns(newColumns);
-    setFileName(newFileName);
-    setWorksheetName(newWorksheetName || '');
-    setActiveTab('preview');
+  const handleDataLoaded = (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => {
+    console.log('Data loaded:', { loadedData, detectedColumns, name, worksheet });
+    setData(loadedData);
+    setColumns(detectedColumns);
+    setFileName(name);
+    setWorksheetName(worksheet || '');
   };
 
-  const handleDataUpdated = (newData: DataRow[], newColumns: ColumnInfo[]) => {
-    setData(newData);
-    setColumns(newColumns);
-  };
+  const displayFileName = worksheetName ? `${fileName} - ${worksheetName}` : fileName;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Interactive Data Visualizer
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8 relative">
+          <div className="absolute top-0 right-0">
+            <ThemeToggle />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            Charta
           </h1>
-          <p className="text-lg text-gray-600">
-            Upload your data and create beautiful visualizations
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Upload Excel files, visualize data, and build dashboards
           </p>
         </div>
 
-        {data.length === 0 ? (
-          <FileUpload onDataLoaded={handleDataLoaded} />
-        ) : (
-          <div className="space-y-6">
-            <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
+        <div className="space-y-6">
+          <Card className="p-6">
+            <FileUpload onDataLoaded={handleDataLoaded} />
+          </Card>
+
+          {data.length > 0 && (
+            <Tabs defaultValue="preview" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="preview" className="flex items-center">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Data Preview
-                </TabsTrigger>
-                <TabsTrigger value="chart" className="flex items-center">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Chart Builder
-                </TabsTrigger>
-                <TabsTrigger value="dashboard" className="flex items-center">
-                  <Layout className="h-4 w-4 mr-2" />
-                  Dashboard
-                </TabsTrigger>
+                <TabsTrigger value="preview">Data Preview</TabsTrigger>
+                <TabsTrigger value="charts">Visualizations</TabsTrigger>
+                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="preview">
-                <DataPreview 
-                  data={data} 
-                  columns={columns} 
-                  fileName={worksheetName ? `${fileName} - ${worksheetName}` : fileName}
-                  onDataUpdated={handleDataUpdated}
-                />
+              
+              <TabsContent value="preview" className="space-y-4">
+                <Card className="p-6">
+                  <DataPreview 
+                    data={data} 
+                    columns={columns} 
+                    fileName={displayFileName}
+                  />
+                </Card>
               </TabsContent>
-
-              <TabsContent value="chart">
-                <ChartVisualization 
-                  data={data} 
-                  columns={columns}
-                  onSaveTile={addTile}
-                />
+              
+              <TabsContent value="charts" className="space-y-4">
+                <Card className="p-6">
+                  <ChartVisualization 
+                    data={data} 
+                    columns={columns}
+                    onSaveTile={addTile}
+                  />
+                </Card>
               </TabsContent>
-
-              <TabsContent value="dashboard">
+              
+              <TabsContent value="dashboard" className="space-y-4">
                 <DashboardCanvas
                   tiles={tiles}
                   data={data}
                   columns={columns}
-                  filters={filters}
                   onRemoveTile={removeTile}
                   onUpdateTile={updateTile}
+                  filters={filters}
                   onFiltersChange={setFilters}
                 />
               </TabsContent>
             </Tabs>
-
-            <div className="flex justify-center">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setData([]);
-                  setColumns([]);
-                  setFileName('');
-                  setWorksheetName('');
-                  setActiveTab('preview');
-                }}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload New Data
-              </Button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Index;

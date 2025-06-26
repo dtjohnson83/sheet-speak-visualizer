@@ -1,6 +1,6 @@
 
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ComposedChart, LabelList } from 'recharts';
-import { DataRow } from '@/types/data';
+import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { formatNumber, formatTooltipValue } from '@/lib/numberUtils';

@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
-import { ColumnInfo } from '@/types/data';
+import { ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 
 interface SeriesManagerProps {

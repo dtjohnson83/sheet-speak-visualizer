@@ -4,7 +4,7 @@ import { DashboardTile, DashboardTileData } from './DashboardTile';
 import { DashboardHeader } from './DashboardHeader';
 import { EmptyDashboard } from './EmptyDashboard';
 import { DashboardFilters, FilterCondition } from './DashboardFilters';
-import { DataRow, ColumnInfo } from '@/types/data';
+import { DataRow, ColumnInfo } from '@/pages/Index';
 import { applyFilters } from '@/lib/dataFilters';
 
 interface DashboardCanvasProps {

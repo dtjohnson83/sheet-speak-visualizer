@@ -1,7 +1,8 @@
+
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ColumnInfo } from '@/types/data';
+import { ColumnInfo } from '@/pages/Index';
 
 export type AggregationMethod = 'sum' | 'average' | 'count' | 'min' | 'max';
 
