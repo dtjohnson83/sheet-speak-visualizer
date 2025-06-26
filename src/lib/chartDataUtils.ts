@@ -7,16 +7,44 @@ export interface SankeyData {
   links: { source: string; target: string; value: number }[];
 }
 
+const cleanNumericValue = (value: any): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  
+  // If it's already a number, return it
+  if (typeof value === 'number') return value;
+  
+  // Convert to string and clean it
+  const cleanedStr = String(value)
+    .replace(/[$,€£¥%]/g, '') // Remove common currency and percentage symbols
+    .replace(/[^\d.-]/g, '') // Remove any non-numeric characters except decimal point and minus
+    .trim();
+  
+  if (cleanedStr === '' || cleanedStr === '-') return null;
+  
+  const num = Number(cleanedStr);
+  return isNaN(num) || !isFinite(num) ? null : num;
+};
+
 export const isValidNumber = (value: any): boolean => {
-  if (value === null || value === undefined || value === '') return false;
-  const num = Number(value);
-  return !isNaN(num) && isFinite(num);
+  const cleaned = cleanNumericValue(value);
+  return cleaned !== null;
 };
 
 export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'asc' | 'desc') => {
   if (!sortColumn || sortColumn === 'none') return data;
   
-  console.log('Sorting data by:', sortColumn, sortDirection, 'Sample values:', data.slice(0, 3).map(row => ({ [sortColumn]: row[sortColumn], type: typeof row[sortColumn] })));
+  // Normalize sort direction to lowercase
+  const normalizedDirection = sortDirection.toLowerCase() as 'asc' | 'desc';
+  if (normalizedDirection !== 'asc' && normalizedDirection !== 'desc') {
+    console.warn('Invalid sort direction:', sortDirection, 'defaulting to asc');
+    return data;
+  }
+  
+  console.log('Sorting data by:', sortColumn, normalizedDirection, 'Sample values:', data.slice(0, 3).map(row => ({ 
+    [sortColumn]: row[sortColumn], 
+    type: typeof row[sortColumn],
+    cleaned: cleanNumericValue(row[sortColumn])
+  })));
   
   return [...data].sort((a, b) => {
     const aValue = a[sortColumn];
@@ -24,33 +52,34 @@ export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'as
     
     // Handle null/undefined values
     if (aValue == null && bValue == null) return 0;
-    if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
-    if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue == null) return normalizedDirection === 'asc' ? 1 : -1;
+    if (bValue == null) return normalizedDirection === 'asc' ? -1 : 1;
     
-    // Check if both values are valid numbers
-    const aIsNumber = isValidNumber(aValue);
-    const bIsNumber = isValidNumber(bValue);
+    // Try to clean and convert to numbers
+    const aNum = cleanNumericValue(aValue);
+    const bNum = cleanNumericValue(bValue);
+    
+    const aIsNumber = aNum !== null;
+    const bIsNumber = bNum !== null;
     
     if (aIsNumber && bIsNumber) {
-      // Both are numbers - do numeric comparison
-      const aNum = Number(aValue);
-      const bNum = Number(bValue);
-      console.log('Comparing numbers:', aNum, 'vs', bNum, 'direction:', sortDirection);
-      const result = sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      // Both are valid numbers after cleaning - do numeric comparison
+      console.log('Comparing cleaned numbers:', aNum, 'vs', bNum, 'direction:', normalizedDirection);
+      const result = normalizedDirection === 'asc' ? aNum! - bNum! : bNum! - aNum!;
       return result;
     } else if (aIsNumber && !bIsNumber) {
       // Only a is a number - numbers come first in ascending order
-      return sortDirection === 'asc' ? -1 : 1;
+      return normalizedDirection === 'asc' ? -1 : 1;
     } else if (!aIsNumber && bIsNumber) {
       // Only b is a number - numbers come first in ascending order
-      return sortDirection === 'asc' ? 1 : -1;
+      return normalizedDirection === 'asc' ? 1 : -1;
     } else {
       // Both are strings - do string comparison
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
       
-      if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
-      if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
+      if (aStr < bStr) return normalizedDirection === 'asc' ? -1 : 1;
+      if (aStr > bStr) return normalizedDirection === 'asc' ? 1 : -1;
       return 0;
     }
   });
