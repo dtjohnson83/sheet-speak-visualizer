@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
@@ -7,6 +6,8 @@ import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/useDashboard';
+
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface DataRow {
   [key: string]: any;
@@ -32,13 +33,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-8 relative">
+          <div className="absolute top-0 right-0">
+            <ThemeToggle />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             Vizly
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-300">
             Upload Excel files, visualize data, and build dashboards
           </p>
         </div>
