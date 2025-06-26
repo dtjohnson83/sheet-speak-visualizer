@@ -1,4 +1,6 @@
+
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { ColumnStatsHeader } from './ColumnStats';
 
 interface DataTableProps {
   data: DataRow[];
