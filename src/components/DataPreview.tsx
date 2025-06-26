@@ -16,6 +16,7 @@ interface DataPreviewProps {
   data: DataRow[];
   columns: ColumnInfo[];
   fileName: string;
+  onDataUpdated?: (newData: DataRow[], newColumns: ColumnInfo[]) => void;
 }
 
 interface SortConfig {
@@ -37,7 +38,7 @@ const formatDateValue = (value: any): string => {
   }
 };
 
-export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
+export const DataPreview = ({ data, columns, fileName, onDataUpdated }: DataPreviewProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
@@ -116,6 +117,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
         onToggleHierarchies={() => setShowHierarchies(!showHierarchies)}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleRowsPerPageChange}
+        onDataUpdated={onDataUpdated}
       />
 
       {/* Hierarchy Detection Results */}
