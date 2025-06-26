@@ -77,7 +77,7 @@ export const ChartContainer = ({
         onSaveTile={onSaveTile}
       />
       
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto mt-6">
         <ChartRenderer
           data={data}
           columns={columns}

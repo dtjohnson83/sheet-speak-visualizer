@@ -84,24 +84,30 @@ export const TileChartRenderer = ({
     showDataLabels: showDataLabels || false
   };
 
-  switch (chartType) {
-    case 'heatmap':
-      return <HeatmapRenderer data={chartData as Array<{ x: string; y: string; value: number }>} chartColors={chartColors} />;
-    case 'stacked-bar':
-      return <StackedBarRenderer {...commonProps} stackColumn={stackColumn} originalData={data} />;
-    case 'treemap':
-      return <TreemapRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
-    case 'sankey':
-      return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
-    case 'bar':
-      return <BarChartRenderer {...commonProps} />;
-    case 'line':
-      return <LineChartRenderer {...commonProps} />;
-    case 'pie':
-      return <PieChartRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
-    case 'scatter':
-      return <ScatterChartRenderer {...commonProps} />;
-    default:
-      return null;
-  }
+  return (
+    <div className="mt-4">
+      {(() => {
+        switch (chartType) {
+          case 'heatmap':
+            return <HeatmapRenderer data={chartData as Array<{ x: string; y: string; value: number }>} chartColors={chartColors} />;
+          case 'stacked-bar':
+            return <StackedBarRenderer {...commonProps} stackColumn={stackColumn} originalData={data} />;
+          case 'treemap':
+            return <TreemapRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
+          case 'sankey':
+            return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
+          case 'bar':
+            return <BarChartRenderer {...commonProps} />;
+          case 'line':
+            return <LineChartRenderer {...commonProps} />;
+          case 'pie':
+            return <PieChartRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
+          case 'scatter':
+            return <ScatterChartRenderer {...commonProps} />;
+          default:
+            return null;
+        }
+      })()}
+    </div>
+  );
 };
