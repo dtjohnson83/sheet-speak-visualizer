@@ -92,7 +92,7 @@ export const ChartRenderer = ({
 
   switch (chartType) {
     case 'heatmap':
-      return <HeatmapRenderer data={chartData as Array<{ x: string; y: string; value: number }>} />;
+      return <HeatmapRenderer data={chartData as Array<{ x: string; y: string; value: number }>} chartColors={chartColors} />;
 
     case 'stacked-bar':
       return <StackedBarRenderer {...commonProps} stackColumn={stackColumn} originalData={data} />;
@@ -101,7 +101,7 @@ export const ChartRenderer = ({
       return <TreemapRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
 
     case 'sankey':
-      return <SankeyRenderer data={chartData as SankeyData} />;
+      return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
 
     case 'bar':
       return <BarChartRenderer {...commonProps} />;

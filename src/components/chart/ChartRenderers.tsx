@@ -1,3 +1,4 @@
+
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ComposedChart, LabelList } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
@@ -15,6 +16,7 @@ interface ChartProps {
 
 interface SankeyProps {
   data: SankeyData;
+  chartColors: string[];
 }
 
 interface StackedBarProps extends ChartProps {
@@ -24,6 +26,7 @@ interface StackedBarProps extends ChartProps {
 
 interface HeatmapProps {
   data: Array<{ x: string; y: string; value: number }>;
+  chartColors: string[];
 }
 
 const customTooltipFormatter = (value: any, name: string) => [
@@ -55,6 +58,7 @@ const customDataLabel = (props: any) => {
 export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, showDataLabels = false }: ChartProps) => {
   // Check if we have mixed chart types (bar + line)
   const hasMixedTypes = series.some(s => s.type === 'line');
+  const primaryColor = chartColors[0] || '#8884d8';
   
   if (hasMixedTypes) {
     // Use ComposedChart for mixed types
@@ -78,7 +82,7 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, 
           <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
           <Tooltip formatter={customTooltipFormatter} />
           <Legend />
-          <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn}>
+          <Bar yAxisId="left" dataKey={yColumn} fill={primaryColor} name={yColumn}>
             {showDataLabels && <LabelList dataKey={yColumn} content={customDataLabel} />}
           </Bar>
           {series.map((seriesConfig) => {
@@ -134,7 +138,7 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, 
         <YAxis yAxisId="right" orientation="right" tickFormatter={customTickFormatter} />
         <Tooltip formatter={customTooltipFormatter} />
         <Legend />
-        <Bar yAxisId="left" dataKey={yColumn} fill="#8884d8" name={yColumn}>
+        <Bar yAxisId="left" dataKey={yColumn} fill={primaryColor} name={yColumn}>
           {showDataLabels && <LabelList dataKey={yColumn} content={customDataLabel} />}
         </Bar>
         {series.map((seriesConfig) => (
@@ -153,9 +157,10 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, 
   );
 };
 
-export const LineChartRenderer = ({ data, xColumn, yColumn, series, showDataLabels = false }: ChartProps) => {
+export const LineChartRenderer = ({ data, xColumn, yColumn, series, chartColors, showDataLabels = false }: ChartProps) => {
   // Check if we have mixed chart types (line + bar)
   const hasMixedTypes = series.some(s => s.type === 'bar');
+  const primaryColor = chartColors[0] || '#8884d8';
   
   if (hasMixedTypes) {
     // Use ComposedChart for mixed types
@@ -183,7 +188,7 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series, showDataLabe
             yAxisId="left"
             type="monotone" 
             dataKey={yColumn} 
-            stroke="#8884d8" 
+            stroke={primaryColor} 
             strokeWidth={2}
             dot={{ r: 4 }}
             name={yColumn}
@@ -249,7 +254,7 @@ export const LineChartRenderer = ({ data, xColumn, yColumn, series, showDataLabe
           yAxisId="left"
           type="monotone" 
           dataKey={yColumn} 
-          stroke="#8884d8" 
+          stroke={primaryColor} 
           strokeWidth={2}
           dot={{ r: 4 }}
           name={yColumn}
@@ -297,47 +302,51 @@ export const PieChartRenderer = ({ data, chartColors }: { data: DataRow[]; chart
   </ResponsiveContainer>
 );
 
-export const ScatterChartRenderer = ({ data, xColumn, yColumn, series }: ChartProps) => (
-  <ResponsiveContainer width="100%" height={400}>
-    <ScatterChart
-      width={800}
-      height={400}
-      data={data}
-      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis 
-        dataKey={xColumn} 
-        type="number"
-        domain={['dataMin', 'dataMax']}
-        tick={{ fontSize: 12 }}
-        tickFormatter={customTickFormatter}
-      />
-      <YAxis 
-        dataKey={yColumn} 
-        type="number"
-        domain={['dataMin', 'dataMax']}
-        tick={{ fontSize: 12 }}
-        tickFormatter={customTickFormatter}
-      />
-      <Tooltip formatter={customTooltipFormatter} />
-      <Legend />
-      <Scatter 
-        dataKey={yColumn} 
-        fill="#8884d8"
-        name={`${yColumn} vs ${xColumn}`}
-      />
-      {series.map((seriesConfig) => (
-        <Scatter 
-          key={seriesConfig.id}
-          dataKey={seriesConfig.column} 
-          fill={seriesConfig.color}
-          name={`${seriesConfig.column} vs ${xColumn}`}
+export const ScatterChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: ChartProps) => {
+  const primaryColor = chartColors[0] || '#8884d8';
+  
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <ScatterChart
+        width={800}
+        height={400}
+        data={data}
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey={xColumn} 
+          type="number"
+          domain={['dataMin', 'dataMax']}
+          tick={{ fontSize: 12 }}
+          tickFormatter={customTickFormatter}
         />
-      ))}
-    </ScatterChart>
-  </ResponsiveContainer>
-);
+        <YAxis 
+          dataKey={yColumn} 
+          type="number"
+          domain={['dataMin', 'dataMax']}
+          tick={{ fontSize: 12 }}
+          tickFormatter={customTickFormatter}
+        />
+        <Tooltip formatter={customTooltipFormatter} />
+        <Legend />
+        <Scatter 
+          dataKey={yColumn} 
+          fill={primaryColor}
+          name={`${yColumn} vs ${xColumn}`}
+        />
+        {series.map((seriesConfig) => (
+          <Scatter 
+            key={seriesConfig.id}
+            dataKey={seriesConfig.column} 
+            fill={seriesConfig.color}
+            name={`${seriesConfig.column} vs ${xColumn}`}
+          />
+        ))}
+      </ScatterChart>
+    </ResponsiveContainer>
+  );
+};
 
 export const TreemapRenderer = ({ data, chartColors }: { data: DataRow[]; chartColors: string[] }) => (
   <ResponsiveContainer width="100%" height={400}>
@@ -394,7 +403,7 @@ export const StackedBarRenderer = ({ data, xColumn, originalData, stackColumn, c
   );
 };
 
-export const HeatmapRenderer = ({ data }: HeatmapProps) => {
+export const HeatmapRenderer = ({ data, chartColors }: HeatmapProps) => {
   const xValues = [...new Set(data.map(d => d.x))];
   const yValues = [...new Set(data.map(d => d.y))];
   
@@ -407,8 +416,14 @@ export const HeatmapRenderer = ({ data }: HeatmapProps) => {
 
   const getColor = (value: number) => {
     const intensity = (value - minValue) / (maxValue - minValue);
+    const baseColor = chartColors[0] || '#8884d8';
+    // Convert hex to rgba with varying opacity
+    const hex = baseColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
     const opacity = 0.2 + (intensity * 0.8);
-    return `rgba(136, 132, 216, ${opacity})`;
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
   return (
@@ -476,7 +491,7 @@ export const HeatmapRenderer = ({ data }: HeatmapProps) => {
   );
 };
 
-export const SankeyRenderer = ({ data }: SankeyProps) => {
+export const SankeyRenderer = ({ data, chartColors }: SankeyProps) => {
   const width = 800;
   const height = 400;
   const nodeWidth = 20;
@@ -488,6 +503,10 @@ export const SankeyRenderer = ({ data }: SankeyProps) => {
   const sourceX = 50;
   const targetX = width - 100;
   const nodeHeight = (height - (sourceNodes.length + 1) * nodePadding) / sourceNodes.length;
+
+  const sourceColor = chartColors[0] || '#8884d8';
+  const targetColor = chartColors[1] || '#82ca9d';
+  const linkColor = chartColors[2] || '#ffc658';
 
   return (
     <div className="overflow-auto">
@@ -501,7 +520,7 @@ export const SankeyRenderer = ({ data }: SankeyProps) => {
                 y={y}
                 width={nodeWidth}
                 height={nodeHeight}
-                fill="#8884d8"
+                fill={sourceColor}
                 stroke="#fff"
               />
               <text
@@ -527,7 +546,7 @@ export const SankeyRenderer = ({ data }: SankeyProps) => {
                 y={y}
                 width={nodeWidth}
                 height={nodeHeight}
-                fill="#82ca9d"
+                fill={targetColor}
                 stroke="#fff"
               />
               <text
@@ -557,7 +576,7 @@ export const SankeyRenderer = ({ data }: SankeyProps) => {
             <path
               key={index}
               d={`M ${sourceX + nodeWidth} ${sourceY} C ${(sourceX + targetX) / 2} ${sourceY} ${(sourceX + targetX) / 2} ${targetY} ${targetX} ${targetY}`}
-              stroke="#ffc658"
+              stroke={linkColor}
               strokeWidth={linkWidth}
               fill="none"
               opacity={0.6}
