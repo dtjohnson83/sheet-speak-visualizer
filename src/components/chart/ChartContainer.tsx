@@ -1,0 +1,100 @@
+
+import { Card } from '@/components/ui/card';
+import { ChartHeader } from './ChartHeader';
+import { ChartRenderer } from './ChartRenderer';
+import { DataRow, ColumnInfo } from '@/pages/Index';
+import { SeriesConfig } from '@/hooks/useChartState';
+
+interface ChartContainerProps {
+  data: DataRow[];
+  columns: ColumnInfo[];
+  chartType: string;
+  xColumn: string;
+  yColumn: string;
+  stackColumn?: string;
+  sankeyTargetColumn?: string;
+  sortColumn: string;
+  sortDirection: 'asc' | 'desc';
+  series: SeriesConfig[];
+  aggregationMethod: any;
+  showDataLabels: boolean;
+  supportsMultipleSeries: boolean;
+  chartColors: string[];
+  onSaveTile?: () => void;
+}
+
+export const ChartContainer = ({
+  data,
+  columns,
+  chartType,
+  xColumn,
+  yColumn,
+  stackColumn,
+  sankeyTargetColumn,
+  sortColumn,
+  sortDirection,
+  series,
+  aggregationMethod,
+  showDataLabels,
+  supportsMultipleSeries,
+  chartColors,
+  onSaveTile
+}: ChartContainerProps) => {
+  const numericColumns = columns.filter(col => col.type === 'numeric');
+
+  // Prepare chart data for header display
+  const { prepareChartData } = require('@/lib/chartDataProcessor');
+  const chartData = prepareChartData(
+    data,
+    columns,
+    chartType as any,
+    xColumn,
+    yColumn,
+    series,
+    sortColumn,
+    sortDirection,
+    stackColumn,
+    sankeyTargetColumn,
+    supportsMultipleSeries,
+    numericColumns,
+    aggregationMethod
+  );
+
+  return (
+    <Card className="p-6">
+      <ChartHeader
+        chartType={chartType}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        sankeyTargetColumn={sankeyTargetColumn}
+        series={series}
+        stackColumn={stackColumn}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        showDataLabels={showDataLabels}
+        aggregationMethod={aggregationMethod}
+        chartData={chartData}
+        onSaveTile={onSaveTile}
+      />
+      
+      <div className="w-full overflow-x-auto">
+        <ChartRenderer
+          data={data}
+          columns={columns}
+          chartType={chartType}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          stackColumn={stackColumn}
+          sankeyTargetColumn={sankeyTargetColumn}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          series={series}
+          aggregationMethod={aggregationMethod}
+          showDataLabels={showDataLabels}
+          supportsMultipleSeries={supportsMultipleSeries}
+          chartColors={chartColors}
+        />
+      </div>
+    </Card>
+  );
+};
