@@ -19,6 +19,22 @@ interface WorksheetInfo {
   data: any[];
 }
 
+// Excel date serial number conversion
+const convertExcelDate = (serial: number): string => {
+  // Excel's epoch is 1900-01-01, but Excel incorrectly treats 1900 as a leap year
+  // So we need to account for this bug
+  const excelEpoch = new Date(1899, 11, 30); // December 30, 1899
+  const date = new Date(excelEpoch.getTime() + serial * 24 * 60 * 60 * 1000);
+  return date.toISOString();
+};
+
+// Check if a number could be an Excel date serial number
+const isExcelDateSerial = (value: number): boolean => {
+  // Excel date serials are typically between 1 (1900-01-01) and ~50000 (2037)
+  // But let's be more conservative and check for reasonable date ranges
+  return value >= 1 && value <= 100000 && Number.isInteger(value);
+};
+
 export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
@@ -47,6 +63,17 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       /^\d{1,2}:\d{1,2}:\d{1,2}$/,                  // HH:MM:SS
       /^\d{1,2}:\d{1,2}$/,                          // HH:MM
     ];
+    
+    // Check for Excel date serial numbers first
+    const potentialDateSerials = nonEmptyValues.filter(v => {
+      const num = Number(v);
+      return !isNaN(num) && isExcelDateSerial(num);
+    });
+    
+    // If more than 80% of values look like Excel date serials, treat as dates
+    if (potentialDateSerials.length > nonEmptyValues.length * 0.8) {
+      return 'date';
+    }
     
     // Check for date values with improved logic
     const dateValues = nonEmptyValues.filter(v => {
@@ -116,10 +143,52 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     // Get column names from the first row
     const columnNames = Object.keys(rawData[0]);
     
-    // Detect column types
-    const columns: ColumnInfo[] = columnNames.map(name => {
+    // First pass: detect column types
+    const columnTypes: Record<string, 'numeric' | 'date' | 'categorical' | 'text'> = {};
+    columnNames.forEach(name => {
       const values = rawData.map(row => row[name]);
-      const type = detectColumnType(values);
+      columnTypes[name] = detectColumnType(values);
+    });
+
+    // Second pass: convert data based on detected types
+    const processedData = rawData.map(row => {
+      const processedRow: DataRow = {};
+      
+      columnNames.forEach(columnName => {
+        const value = row[columnName];
+        const columnType = columnTypes[columnName];
+        
+        if (value === null || value === undefined || value === '') {
+          processedRow[columnName] = value;
+          return;
+        }
+        
+        if (columnType === 'date') {
+          const num = Number(value);
+          // If it's a number and looks like an Excel date serial, convert it
+          if (!isNaN(num) && isExcelDateSerial(num)) {
+            processedRow[columnName] = convertExcelDate(num);
+          } else {
+            // Try to parse as regular date and convert to ISO string
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              processedRow[columnName] = date.toISOString();
+            } else {
+              processedRow[columnName] = value; // Keep original if can't parse
+            }
+          }
+        } else {
+          processedRow[columnName] = value;
+        }
+      });
+      
+      return processedRow;
+    });
+    
+    // Create column info with processed values
+    const columns: ColumnInfo[] = columnNames.map(name => {
+      const values = processedData.map(row => row[name]);
+      const type = columnTypes[name];
       return {
         name,
         type,
@@ -128,11 +197,13 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     });
 
     console.log('Detected columns:', columns);
-    onDataLoaded(rawData, columns, currentFileName, worksheetData.name);
+    console.log('Processed data sample:', processedData.slice(0, 3));
+    
+    onDataLoaded(processedData, columns, currentFileName, worksheetData.name);
     
     toast({
       title: "Success",
-      description: `Loaded ${rawData.length} rows from "${worksheetData.name}" with ${columns.length} columns`,
+      description: `Loaded ${processedData.length} rows from "${worksheetData.name}" with ${columns.length} columns`,
     });
   }, [onDataLoaded, toast, currentFileName]);
 
