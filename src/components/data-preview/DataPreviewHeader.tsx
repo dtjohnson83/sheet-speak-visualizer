@@ -1,8 +1,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TreePine } from 'lucide-react';
-import { DataRow, ColumnInfo } from '@/pages/Index';
+import { TreePine, Network } from 'lucide-react';
+import { DataRow, ColumnInfo } from '@/types/data';
 
 interface DataPreviewHeaderProps {
   fileName: string;
@@ -12,6 +12,8 @@ interface DataPreviewHeaderProps {
   hierarchiesCount: number;
   showHierarchies: boolean;
   onToggleHierarchies: () => void;
+  showKnowledgeGraph: boolean;
+  onToggleKnowledgeGraph: () => void;
   rowsPerPage: number;
   onRowsPerPageChange: (value: number) => void;
 }
@@ -24,6 +26,8 @@ export const DataPreviewHeader = ({
   hierarchiesCount,
   showHierarchies,
   onToggleHierarchies,
+  showKnowledgeGraph,
+  onToggleKnowledgeGraph,
   rowsPerPage,
   onRowsPerPageChange
 }: DataPreviewHeaderProps) => {
@@ -41,6 +45,14 @@ export const DataPreviewHeader = ({
         </p>
       </div>
       <div className="flex items-center space-x-2">
+        <Button
+          variant={showKnowledgeGraph ? "default" : "outline"}
+          size="sm"
+          onClick={onToggleKnowledgeGraph}
+        >
+          <Network className="h-4 w-4 mr-2" />
+          Knowledge Graph
+        </Button>
         {hierarchiesCount > 0 && (
           <Button
             variant={showHierarchies ? "default" : "outline"}
