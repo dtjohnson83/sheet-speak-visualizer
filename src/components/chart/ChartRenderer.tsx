@@ -1,5 +1,5 @@
 
-import { DataRow, ColumnInfo } from '@/pages/Index';
+import { DataRow, ColumnInfo } from '@/types/data';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { SankeyData } from '@/lib/chartDataUtils';

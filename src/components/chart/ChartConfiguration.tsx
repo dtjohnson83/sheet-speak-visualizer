@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ArrowUp, ArrowDown } from 'lucide-react';
-import { ColumnInfo } from '@/pages/Index';
+import { ColumnInfo } from '@/types/data';
 import { ColorPaletteSelector } from './ColorPaletteSelector';
 
 interface ChartConfigurationProps {

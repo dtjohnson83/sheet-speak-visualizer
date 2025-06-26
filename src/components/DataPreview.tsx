@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { DataRow, ColumnInfo } from '@/pages/Index';
+import { DataRow, ColumnInfo } from '@/types/data';
 import { detectHierarchies } from '@/lib/hierarchyDetection';
 import { sortData } from '@/lib/chartDataUtils';
 import { DataPreviewHeader } from './data-preview/DataPreviewHeader';

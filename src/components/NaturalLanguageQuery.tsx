@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Sparkles } from 'lucide-react';
-import { DataRow, ColumnInfo } from '@/pages/Index';
+import { DataRow, ColumnInfo } from '@/types/data';
 
 interface NaturalLanguageQueryProps {
   data: DataRow[];

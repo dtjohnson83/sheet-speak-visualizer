@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { DataRow, ColumnInfo } from '@/components/FileUpload';
+import { DataRow, ColumnInfo } from '@/types/data';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';

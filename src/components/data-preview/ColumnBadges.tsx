@@ -1,6 +1,5 @@
-
 import { Badge } from '@/components/ui/badge';
-import { ColumnInfo } from '@/pages/Index';
+import { ColumnInfo } from '@/types/data';
 
 interface ColumnBadgesProps {
   columns: ColumnInfo[];
@@ -18,3 +17,4 @@ export const ColumnBadges = ({ columns, getTypeColor }: ColumnBadgesProps) => {
     </div>
   );
 };
+

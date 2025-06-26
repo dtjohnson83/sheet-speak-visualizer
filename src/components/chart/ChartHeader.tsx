@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, Edit2, Check, X } from 'lucide-react';
-import { DataRow } from '@/pages/Index';
+import { DataRow } from '@/types/data';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { useState } from 'react';
