@@ -7,30 +7,32 @@ import { applyAggregation } from './aggregationUtils';
 export const prepareSankeyData = (
   data: DataRow[],
   xColumn: string,
-  sankeyTargetColumn: string,
-  valueColumn: string,
   yColumn: string,
+  valueColumn: string,
   aggregationMethod: AggregationMethod,
   sortColumn: string,
   sortDirection: 'asc' | 'desc'
 ): SankeyData => {
-  if (!sankeyTargetColumn) return { nodes: [], links: [] };
+  if (!yColumn) return { nodes: [], links: [] };
   
   const sortedData = sortData(data, sortColumn, sortDirection);
   
-  // Use valueColumn if provided, otherwise fall back to yColumn
-  const sankeyValueColumn = valueColumn || yColumn;
-  
+  // Use valueColumn if provided, otherwise fall back to counting occurrences
   const sankeyData = sortedData.reduce((acc, row) => {
     const source = row[xColumn]?.toString() || 'Unknown';
-    const target = row[sankeyTargetColumn]?.toString() || 'Unknown';
-    const value = Number(row[sankeyValueColumn]);
+    const target = row[yColumn]?.toString() || 'Unknown';
+    const key = `${source}_${target}`;
     
-    if (isValidNumber(value) && value > 0) {
-      const key = `${source}_${target}`;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(value);
+    let value = 1; // Default to count
+    if (valueColumn) {
+      const numValue = Number(row[valueColumn]);
+      if (isValidNumber(numValue)) {
+        value = numValue;
+      }
     }
+    
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(value);
     return acc;
   }, {} as Record<string, number[]>);
 

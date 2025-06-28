@@ -38,7 +38,7 @@ export const prepareChartData = (
 
   switch (chartType) {
     case 'sankey':
-      return prepareSankeyData(data, xColumn, sankeyTargetColumn, valueColumn!, yColumn, aggregationMethod, sortColumn, sortDirection);
+      return prepareSankeyData(data, xColumn, yColumn, valueColumn!, aggregationMethod, sortColumn, sortDirection);
 
     case 'heatmap':
       return prepareHeatmapData(data, xColumn, yColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);

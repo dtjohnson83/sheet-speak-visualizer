@@ -72,8 +72,8 @@ export const ChartConfiguration = ({
     if (chartType === 'stacked-bar' && !stackColumn && categoricalColumns.length > 1) {
       setStackColumn(categoricalColumns[1].name);
     }
-    if (chartType === 'sankey' && !sankeyTargetColumn && categoricalColumns.length > 1) {
-      setSankeyTargetColumn(categoricalColumns[1].name);
+    if (chartType === 'sankey' && !yColumn && categoricalColumns.length > 1) {
+      setYColumn(categoricalColumns[1].name);
     }
     if ((chartType === 'heatmap' || chartType === 'sankey') && !valueColumn && numericColumns.length > 0) {
       setValueColumn(numericColumns[0].name);
@@ -167,24 +167,6 @@ export const ChartConfiguration = ({
           <div>
             <label className="block text-sm font-medium mb-2">Stack By</label>
             <Select value={stackColumn} onValueChange={setStackColumn}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select column" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoricalColumns.map((col) => (
-                  <SelectItem key={col.name} value={col.name}>
-                    {col.name} ({col.type})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {chartType === 'sankey' && (
-          <div>
-            <label className="block text-sm font-medium mb-2">Target</label>
-            <Select value={sankeyTargetColumn} onValueChange={setSankeyTargetColumn}>
               <SelectTrigger>
                 <SelectValue placeholder="Select column" />
               </SelectTrigger>
