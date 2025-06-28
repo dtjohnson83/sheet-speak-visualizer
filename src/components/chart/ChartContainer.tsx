@@ -14,6 +14,7 @@ interface ChartContainerProps {
   yColumn: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
+  valueColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
   series: SeriesConfig[];
@@ -34,6 +35,7 @@ export const ChartContainer = ({
   yColumn,
   stackColumn,
   sankeyTargetColumn,
+  valueColumn,
   sortColumn,
   sortDirection,
   series,
@@ -61,7 +63,8 @@ export const ChartContainer = ({
     sankeyTargetColumn,
     supportsMultipleSeries,
     numericColumns,
-    aggregationMethod
+    aggregationMethod,
+    valueColumn
   );
 
   return (
@@ -92,6 +95,7 @@ export const ChartContainer = ({
           yColumn={yColumn}
           stackColumn={stackColumn}
           sankeyTargetColumn={sankeyTargetColumn}
+          valueColumn={valueColumn}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
           series={series}

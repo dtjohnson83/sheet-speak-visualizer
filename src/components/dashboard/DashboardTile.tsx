@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -15,6 +14,7 @@ export interface DashboardTileData {
   yColumn: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
+  valueColumn?: string;
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
   series: SeriesConfig[];
@@ -83,6 +83,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
           yColumn={tile.yColumn}
           stackColumn={tile.stackColumn}
           sankeyTargetColumn={tile.sankeyTargetColumn}
+          valueColumn={tile.valueColumn}
           sortColumn={tile.sortColumn}
           sortDirection={tile.sortDirection}
           series={tile.series}
