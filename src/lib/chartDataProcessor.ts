@@ -38,10 +38,10 @@ export const prepareChartData = (
 
   switch (chartType) {
     case 'sankey':
-      return prepareSankeyData(data, xColumn, sankeyTargetColumn, valueColumn!, yColumn, sortColumn, sortDirection);
+      return prepareSankeyData(data, xColumn, sankeyTargetColumn, valueColumn!, yColumn, aggregationMethod, sortColumn, sortDirection);
 
     case 'heatmap':
-      return prepareHeatmapData(data, xColumn, yColumn, valueColumn, numericColumns, sortColumn, sortDirection);
+      return prepareHeatmapData(data, xColumn, yColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);
 
     case 'treemap':
       return prepareTreemapData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);

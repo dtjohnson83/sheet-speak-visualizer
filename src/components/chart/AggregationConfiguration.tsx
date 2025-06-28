@@ -10,6 +10,7 @@ interface AggregationConfigurationProps {
   aggregationMethod: AggregationMethod;
   setAggregationMethod: (method: AggregationMethod) => void;
   yColumn: string;
+  chartType: string;
   numericColumns: ColumnInfo[];
 }
 
@@ -17,12 +18,17 @@ export const AggregationConfiguration = ({
   aggregationMethod,
   setAggregationMethod,
   yColumn,
+  chartType,
   numericColumns
 }: AggregationConfigurationProps) => {
-  // Only show aggregation options if we have a numeric Y column
-  const isNumericYColumn = numericColumns.some(col => col.name === yColumn);
+  // Show aggregation for charts that support it
+  const supportsAggregation = ['pie', 'treemap', 'stacked-bar', 'heatmap', 'sankey'].includes(chartType);
   
-  if (!isNumericYColumn || !yColumn) {
+  // For numeric Y columns or charts that always support aggregation
+  const isNumericYColumn = numericColumns.some(col => col.name === yColumn);
+  const shouldShow = supportsAggregation && (isNumericYColumn || ['heatmap', 'sankey'].includes(chartType));
+  
+  if (!shouldShow || !yColumn) {
     return null;
   }
 
@@ -50,7 +56,12 @@ export const AggregationConfiguration = ({
           </div>
         </div>
         <p className="text-xs text-gray-600">
-          Data will be grouped by X-axis and {aggregationMethod} will be applied to {yColumn}
+          {chartType === 'heatmap' 
+            ? `Values will be grouped by X and Y axes and ${aggregationMethod} will be applied`
+            : chartType === 'sankey'
+            ? `Flow values will be grouped by source-target pairs and ${aggregationMethod} will be applied`
+            : `Data will be grouped by X-axis and ${aggregationMethod} will be applied to ${yColumn}`
+          }
         </p>
       </div>
     </Card>

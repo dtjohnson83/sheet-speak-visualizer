@@ -109,6 +109,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
             aggregationMethod={aggregationMethod}
             setAggregationMethod={setAggregationMethod}
             yColumn={yColumn}
+            chartType={chartType}
             numericColumns={numericColumns}
           />
         </div>

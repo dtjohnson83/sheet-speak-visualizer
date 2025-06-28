@@ -1,6 +1,8 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { isValidNumber, sortData } from '@/lib/chartDataUtils';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
+import { applyAggregation } from './aggregationUtils';
 
 export const prepareHeatmapData = (
   data: DataRow[],
@@ -8,6 +10,7 @@ export const prepareHeatmapData = (
   yColumn: string,
   valueColumn: string | undefined,
   numericColumns: ColumnInfo[],
+  aggregationMethod: AggregationMethod,
   sortColumn: string,
   sortDirection: 'asc' | 'desc'
 ): Array<{ x: string; y: string; value: number }> => {
@@ -29,14 +32,19 @@ export const prepareHeatmapData = (
       }
     }
     
-    acc[key] = (acc[key] || 0) + value;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(value);
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, number[]>);
 
-  const result = Object.entries(heatmapData).map(([key, value]) => {
+  const result = Object.entries(heatmapData).map(([key, values]) => {
     const [x, y] = key.split('_');
-    return { x, y, value };
-  });
+    return { 
+      x, 
+      y, 
+      value: applyAggregation(values, aggregationMethod)
+    };
+  }).filter(item => item.value > 0);
 
   console.log('Heatmap data prepared:', result);
   return result;

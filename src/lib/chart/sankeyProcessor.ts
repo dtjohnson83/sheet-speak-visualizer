@@ -1,6 +1,8 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SankeyData, isValidNumber, sortData } from '@/lib/chartDataUtils';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
+import { applyAggregation } from './aggregationUtils';
 
 export const prepareSankeyData = (
   data: DataRow[],
@@ -8,6 +10,7 @@ export const prepareSankeyData = (
   sankeyTargetColumn: string,
   valueColumn: string,
   yColumn: string,
+  aggregationMethod: AggregationMethod,
   sortColumn: string,
   sortDirection: 'asc' | 'desc'
 ): SankeyData => {
@@ -25,18 +28,23 @@ export const prepareSankeyData = (
     
     if (isValidNumber(value) && value > 0) {
       const key = `${source}_${target}`;
-      acc[key] = (acc[key] || 0) + value;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(value);
     }
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, number[]>);
 
   const nodes = new Set<string>();
-  const links = Object.entries(sankeyData).map(([key, value]) => {
+  const links = Object.entries(sankeyData).map(([key, values]) => {
     const [source, target] = key.split('_');
     nodes.add(source);
     nodes.add(target);
-    return { source, target, value };
-  });
+    return { 
+      source, 
+      target, 
+      value: applyAggregation(values, aggregationMethod)
+    };
+  }).filter(link => link.value > 0);
 
   const result: SankeyData = {
     nodes: Array.from(nodes).map(id => ({ id, name: id })),
