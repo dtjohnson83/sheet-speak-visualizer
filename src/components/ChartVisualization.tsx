@@ -1,22 +1,33 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { WorksheetData } from '@/types/worksheet';
 import { useChartState } from '@/hooks/useChartState';
 import { SeriesManager } from './chart/SeriesManager';
 import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
+import { DataSourceSelector } from './chart/DataSourceSelector';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { useState } from 'react';
 
 interface ChartVisualizationProps {
   data: DataRow[];
   columns: ColumnInfo[];
+  worksheets: WorksheetData[];
+  selectedWorksheet: WorksheetData | null;
   onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void;
 }
 
-export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualizationProps) => {
+export const ChartVisualization = ({ 
+  data, 
+  columns, 
+  worksheets, 
+  selectedWorksheet, 
+  onSaveTile 
+}: ChartVisualizationProps) => {
   const [customTitle, setCustomTitle] = useState<string>('');
   const [valueColumn, setValueColumn] = useState<string>('');
+  const [chartDataSource, setChartDataSource] = useState<WorksheetData | null>(selectedWorksheet);
 
   const {
     chartType,
@@ -46,9 +57,13 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
     supportsDataLabels
   } = useChartState();
 
-  const numericColumns = columns.filter(col => col.type === 'numeric');
-  const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
-  const dateColumns = columns.filter(col => col.type === 'date');
+  // Use data from selected chart data source
+  const activeData = chartDataSource?.data || data;
+  const activeColumns = chartDataSource?.columns || columns;
+  
+  const numericColumns = activeColumns.filter(col => col.type === 'numeric');
+  const categoricalColumns = activeColumns.filter(col => col.type === 'categorical' || col.type === 'text');
+  const dateColumns = activeColumns.filter(col => col.type === 'date');
 
   const handleSaveTile = () => {
     if (!xColumn || !yColumn || !onSaveTile) return;
@@ -67,14 +82,33 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
       sortColumn,
       sortDirection,
       series,
-      showDataLabels
+      showDataLabels,
+      worksheetId: chartDataSource?.id
     });
+  };
+
+  const handleDataSourceChange = (worksheet: WorksheetData | null) => {
+    setChartDataSource(worksheet);
+    // Reset column selections when changing data source
+    setXColumn('');
+    setYColumn('');
+    setStackColumn('');
+    setValueColumn('');
+    setSortColumn('none');
   };
 
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-4">Data Visualization</h3>
+        
+        {worksheets.length > 1 && (
+          <DataSourceSelector
+            worksheets={worksheets}
+            selectedWorksheet={chartDataSource}
+            onWorksheetChange={handleDataSourceChange}
+          />
+        )}
         
         <ChartConfiguration
           chartType={chartType}
@@ -98,7 +132,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
           supportsDataLabels={supportsDataLabels}
           selectedPalette={selectedPalette}
           setSelectedPalette={setSelectedPalette}
-          columns={columns}
+          columns={activeColumns}
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}
           dateColumns={dateColumns}
@@ -126,8 +160,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
       </div>
 
       <ChartContainer
-        data={data}
-        columns={columns}
+        data={activeData}
+        columns={activeColumns}
         chartType={chartType}
         xColumn={xColumn}
         yColumn={yColumn}

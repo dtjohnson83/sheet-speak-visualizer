@@ -41,6 +41,7 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
   const [worksheets, setWorksheets] = useState<WorksheetInfo[]>([]);
   const [currentFileName, setCurrentFileName] = useState('');
   const [showWorksheetSelector, setShowWorksheetSelector] = useState(false);
+  const [loadMultipleSheets, setLoadMultipleSheets] = useState(false);
   const { toast } = useToast();
 
   const detectColumnType = (values: any[]): 'numeric' | 'date' | 'categorical' | 'text' => {
@@ -208,16 +209,30 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
   }, [onDataLoaded, toast, currentFileName]);
 
   const handleWorksheetSelected = useCallback((worksheet: WorksheetInfo) => {
+    processWorksheetData(worksheet);
+    
+    if (!loadMultipleSheets) {
+      setShowWorksheetSelector(false);
+      setWorksheets([]);
+    }
+  }, [processWorksheetData, loadMultipleSheets]);
+
+  const handleLoadAllSheets = useCallback(() => {
+    worksheets.forEach(worksheet => {
+      processWorksheetData(worksheet);
+    });
+    
     setShowWorksheetSelector(false);
     setWorksheets([]);
-    processWorksheetData(worksheet);
-  }, [processWorksheetData]);
+    setLoadMultipleSheets(false);
+  }, [worksheets, processWorksheetData]);
 
   const handleWorksheetSelectorCancel = useCallback(() => {
     setShowWorksheetSelector(false);
     setWorksheets([]);
     setCurrentFileName('');
     setIsLoading(false);
+    setLoadMultipleSheets(false);
   }, []);
 
   const processExcelFile = useCallback((workbook: XLSX.WorkBook, fileName: string) => {
@@ -327,7 +342,9 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
           worksheets={worksheets}
           fileName={currentFileName}
           onWorksheetSelected={handleWorksheetSelected}
+          onLoadAllSheets={handleLoadAllSheets}
           onCancel={handleWorksheetSelectorCancel}
+          allowMultiple={true}
         />
       </div>
     );
