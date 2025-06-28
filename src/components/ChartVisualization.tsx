@@ -1,4 +1,3 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { WorksheetData } from '@/types/worksheet';
 import { useChartState } from '@/hooks/useChartState';
@@ -8,7 +7,10 @@ import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { DataSourceSelector } from './chart/DataSourceSelector';
 import { DashboardTileData } from './dashboard/DashboardTile';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { MultiWorksheetSelector } from './chart/MultiWorksheetSelector';
+import { detectCrossWorksheetRelations, CrossWorksheetRelation, JoinConfiguration } from '@/lib/crossWorksheetRelations';
+import { joinWorksheetData, JoinedDataset } from '@/lib/dataJoiner';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -28,6 +30,29 @@ export const ChartVisualization = ({
   const [customTitle, setCustomTitle] = useState<string>('');
   const [valueColumn, setValueColumn] = useState<string>('');
   const [chartDataSource, setChartDataSource] = useState<WorksheetData | null>(selectedWorksheet);
+  const [selectedWorksheets, setSelectedWorksheets] = useState<string[]>([]);
+  const [joinConfig, setJoinConfig] = useState<JoinConfiguration | null>(null);
+
+  // Detect relationships between worksheets
+  const crossWorksheetRelations = useMemo(() => {
+    if (worksheets.length > 1) {
+      return detectCrossWorksheetRelations(worksheets);
+    }
+    return [];
+  }, [worksheets]);
+
+  // Create joined dataset when multiple worksheets are selected
+  const joinedDataset = useMemo<JoinedDataset | null>(() => {
+    if (joinConfig && selectedWorksheets.length > 1) {
+      try {
+        return joinWorksheetData(worksheets, joinConfig);
+      } catch (error) {
+        console.error('Failed to join worksheets:', error);
+        return null;
+      }
+    }
+    return null;
+  }, [worksheets, joinConfig, selectedWorksheets]);
 
   const {
     chartType,
@@ -57,9 +82,9 @@ export const ChartVisualization = ({
     supportsDataLabels
   } = useChartState();
 
-  // Use data from selected chart data source
-  const activeData = chartDataSource?.data || data;
-  const activeColumns = chartDataSource?.columns || columns;
+  // Determine active data and columns
+  const activeData = joinedDataset?.data || chartDataSource?.data || data;
+  const activeColumns = joinedDataset?.columns || chartDataSource?.columns || columns;
   
   const numericColumns = activeColumns.filter(col => col.type === 'numeric');
   const categoricalColumns = activeColumns.filter(col => col.type === 'categorical' || col.type === 'text');
@@ -83,13 +108,26 @@ export const ChartVisualization = ({
       sortDirection,
       series,
       showDataLabels,
-      worksheetId: chartDataSource?.id
+      worksheetId: joinedDataset ? 'joined' : chartDataSource?.id
     });
   };
 
-  const handleDataSourceChange = (worksheet: WorksheetData | null) => {
+  const handleSingleWorksheetChange = (worksheet: WorksheetData | null) => {
     setChartDataSource(worksheet);
     // Reset column selections when changing data source
+    setXColumn('');
+    setYColumn('');
+    setStackColumn('');
+    setValueColumn('');
+    setSortColumn('none');
+  };
+
+  const handleMultiWorksheetChange = (worksheetIds: string[]) => {
+    setSelectedWorksheets(worksheetIds);
+    if (worksheetIds.length === 0) {
+      setJoinConfig(null);
+    }
+    // Reset column selections when changing worksheets
     setXColumn('');
     setYColumn('');
     setStackColumn('');
@@ -103,11 +141,36 @@ export const ChartVisualization = ({
         <h3 className="text-xl font-semibold mb-4">Data Visualization</h3>
         
         {worksheets.length > 1 && (
+          <MultiWorksheetSelector
+            worksheets={worksheets}
+            relations={crossWorksheetRelations}
+            selectedWorksheets={selectedWorksheets}
+            joinConfig={joinConfig}
+            onWorksheetsChange={handleMultiWorksheetChange}
+            onJoinConfigChange={setJoinConfig}
+            onSingleWorksheetChange={handleSingleWorksheetChange}
+          />
+        )}
+        
+        {worksheets.length === 1 && (
           <DataSourceSelector
             worksheets={worksheets}
             selectedWorksheet={chartDataSource}
-            onWorksheetChange={handleDataSourceChange}
+            onWorksheetChange={handleSingleWorksheetChange}
           />
+        )}
+
+        {joinedDataset && (
+          <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 mb-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <Link className="h-4 w-4 text-blue-600" />
+              <span className="font-medium text-blue-800">Joined Dataset</span>
+              <Badge variant="secondary">{joinedDataset.data.length} rows, {joinedDataset.columns.length} columns</Badge>
+            </div>
+            <p className="text-xs text-blue-700 whitespace-pre-line">
+              {joinedDataset.joinSummary}
+            </p>
+          </Card>
         )}
         
         <ChartConfiguration

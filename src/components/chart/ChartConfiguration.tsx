@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -85,6 +84,15 @@ export const ChartConfiguration = ({
 
   const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey';
 
+  // Helper function to display column names nicely
+  const formatColumnDisplay = (col: ColumnInfo) => {
+    const hasWorksheet = 'worksheet' in col;
+    if (hasWorksheet) {
+      return `${col.name} (${col.type}) - ${(col as any).worksheet}`;
+    }
+    return `${col.name} (${col.type})`;
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
@@ -118,7 +126,7 @@ export const ChartConfiguration = ({
             <SelectContent>
               {(chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
-                  {col.name} ({col.type})
+                  {formatColumnDisplay(col)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -136,7 +144,7 @@ export const ChartConfiguration = ({
             <SelectContent>
               {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
-                  {col.name} ({col.type})
+                  {formatColumnDisplay(col)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -155,7 +163,7 @@ export const ChartConfiguration = ({
               <SelectContent>
                 {numericColumns.map((col) => (
                   <SelectItem key={col.name} value={col.name}>
-                    {col.name} ({col.type})
+                    {formatColumnDisplay(col)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -173,7 +181,7 @@ export const ChartConfiguration = ({
               <SelectContent>
                 {categoricalColumns.map((col) => (
                   <SelectItem key={col.name} value={col.name}>
-                    {col.name} ({col.type})
+                    {formatColumnDisplay(col)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -191,7 +199,7 @@ export const ChartConfiguration = ({
               <SelectItem value="none">None</SelectItem>
               {columns.map((col) => (
                 <SelectItem key={col.name} value={col.name}>
-                  {col.name} ({col.type})
+                  {formatColumnDisplay(col)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -221,7 +229,6 @@ export const ChartConfiguration = ({
         </div>
       </div>
 
-      {/* Color palette and data labels section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <ColorPaletteSelector
           selectedPalette={selectedPalette}
