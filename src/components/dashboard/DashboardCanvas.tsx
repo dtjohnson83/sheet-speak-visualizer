@@ -5,12 +5,14 @@ import { DashboardHeader } from './DashboardHeader';
 import { EmptyDashboard } from './EmptyDashboard';
 import { DashboardFilters, FilterCondition } from './DashboardFilters';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { WorksheetData } from '@/types/worksheet';
 import { applyFilters } from '@/lib/dataFilters';
 
 interface DashboardCanvasProps {
   tiles: DashboardTileData[];
   data: DataRow[];
   columns: ColumnInfo[];
+  worksheets: WorksheetData[];
   onRemoveTile: (id: string) => void;
   onUpdateTile?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number } }) => void;
   filters: FilterCondition[];
@@ -21,6 +23,7 @@ export const DashboardCanvas = ({
   tiles, 
   data, 
   columns, 
+  worksheets,
   onRemoveTile, 
   onUpdateTile,
   filters,
@@ -48,6 +51,7 @@ export const DashboardCanvas = ({
             tile={tile}
             data={filteredData}
             columns={columns}
+            worksheets={worksheets}
             onRemove={onRemoveTile}
             onUpdate={onUpdateTile}
           />
