@@ -16,6 +16,7 @@ interface ChartVisualizationProps {
 
 export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualizationProps) => {
   const [customTitle, setCustomTitle] = useState<string>('');
+  const [valueColumn, setValueColumn] = useState<string>('');
 
   const {
     chartType,
@@ -62,6 +63,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
       yColumn,
       stackColumn,
       sankeyTargetColumn,
+      valueColumn,
       sortColumn,
       sortDirection,
       series,
@@ -85,6 +87,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
           setStackColumn={setStackColumn}
           sankeyTargetColumn={sankeyTargetColumn}
           setSankeyTargetColumn={setSankeyTargetColumn}
+          valueColumn={valueColumn}
+          setValueColumn={setValueColumn}
           sortColumn={sortColumn}
           setSortColumn={setSortColumn}
           sortDirection={sortDirection}
@@ -128,6 +132,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
         yColumn={yColumn}
         stackColumn={stackColumn}
         sankeyTargetColumn={sankeyTargetColumn}
+        valueColumn={valueColumn}
         sortColumn={sortColumn}
         sortDirection={sortDirection}
         series={series}

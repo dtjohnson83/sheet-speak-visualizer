@@ -27,6 +27,7 @@ export interface TileChartRendererProps {
   yColumn: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
+  valueColumn?: string;
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
   series: SeriesConfig[];
@@ -42,6 +43,7 @@ export const TileChartRenderer = ({
   yColumn,
   stackColumn,
   sankeyTargetColumn,
+  valueColumn,
   sortColumn,
   sortDirection,
   series,
@@ -64,7 +66,9 @@ export const TileChartRenderer = ({
     stackColumn,
     sankeyTargetColumn,
     ['bar', 'line', 'scatter'].includes(chartType),
-    numericColumns
+    numericColumns,
+    'sum',
+    valueColumn
   );
 
   if (!xColumn || !yColumn || (Array.isArray(chartData) && chartData.length === 0)) {

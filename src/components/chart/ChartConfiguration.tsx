@@ -17,6 +17,8 @@ interface ChartConfigurationProps {
   setStackColumn: (value: string) => void;
   sankeyTargetColumn: string;
   setSankeyTargetColumn: (value: string) => void;
+  valueColumn: string;
+  setValueColumn: (value: string) => void;
   sortColumn: string;
   setSortColumn: (value: string) => void;
   sortDirection: 'asc' | 'desc';
@@ -44,6 +46,8 @@ export const ChartConfiguration = ({
   setStackColumn,
   sankeyTargetColumn,
   setSankeyTargetColumn,
+  valueColumn,
+  setValueColumn,
   sortColumn,
   setSortColumn,
   sortDirection,
@@ -71,10 +75,15 @@ export const ChartConfiguration = ({
     if (chartType === 'sankey' && !sankeyTargetColumn && categoricalColumns.length > 1) {
       setSankeyTargetColumn(categoricalColumns[1].name);
     }
+    if ((chartType === 'heatmap' || chartType === 'sankey') && !valueColumn && numericColumns.length > 0) {
+      setValueColumn(numericColumns[0].name);
+    }
     if (sortColumn === 'none' && numericColumns.length > 0) {
       setSortColumn(numericColumns[0].name);
     }
   };
+
+  const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey';
 
   return (
     <>
@@ -118,14 +127,14 @@ export const ChartConfiguration = ({
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            {chartType === 'sankey' ? 'Value' : 'Y-Axis'}
+            {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
           </label>
           <Select value={yColumn} onValueChange={setYColumn}>
             <SelectTrigger>
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent>
-              {(chartType === 'heatmap' || chartType === 'treemap' ? [...categoricalColumns, ...numericColumns] : numericColumns).map((col) => (
+              {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
                 </SelectItem>
@@ -133,6 +142,26 @@ export const ChartConfiguration = ({
             </SelectContent>
           </Select>
         </div>
+
+        {needsValueColumn && (
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {chartType === 'heatmap' ? 'Value (Intensity)' : 'Value (Flow)'}
+            </label>
+            <Select value={valueColumn} onValueChange={setValueColumn}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select column" />
+              </SelectTrigger>
+              <SelectContent>
+                {numericColumns.map((col) => (
+                  <SelectItem key={col.name} value={col.name}>
+                    {col.name} ({col.type})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {chartType === 'stacked-bar' && (
           <div>

@@ -16,7 +16,8 @@ export const prepareChartData = (
   sankeyTargetColumn: string,
   supportsMultipleSeries: boolean,
   numericColumns: ColumnInfo[],
-  aggregationMethod: AggregationMethod = 'sum'
+  aggregationMethod: AggregationMethod = 'sum',
+  valueColumn?: string
 ): DataRow[] | SankeyData => {
   if (!xColumn || !yColumn) return [];
 
@@ -25,17 +26,20 @@ export const prepareChartData = (
 
   if (!xCol || !yCol) return [];
 
-  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod });
+  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod, valueColumn });
 
   const sortedData = sortData(data, sortColumn, sortDirection);
 
   if (chartType === 'sankey') {
     if (!sankeyTargetColumn) return { nodes: [], links: [] };
     
+    // Use valueColumn if provided, otherwise fall back to yColumn
+    const sankeyValueColumn = valueColumn || yColumn;
+    
     const sankeyData = sortedData.reduce((acc, row) => {
       const source = row[xColumn]?.toString() || 'Unknown';
       const target = row[sankeyTargetColumn]?.toString() || 'Unknown';
-      const value = Number(row[yColumn]);
+      const value = Number(row[sankeyValueColumn]);
       
       if (isValidNumber(value) && value > 0) {
         const key = `${source}_${target}`;
@@ -85,15 +89,17 @@ export const prepareChartData = (
   }
 
   if (chartType === 'heatmap') {
+    // Use valueColumn if provided, otherwise use first numeric column or default to count
+    const heatmapValueColumn = valueColumn || (numericColumns.length > 0 ? numericColumns[0].name : null);
+    
     const heatmapData = sortedData.reduce((acc, row) => {
       const xValue = row[xColumn]?.toString() || 'Unknown';
       const yValue = row[yColumn]?.toString() || 'Unknown';
       const key = `${xValue}_${yValue}`;
       
-      let value = 1;
-      const firstNumericCol = numericColumns[0];
-      if (firstNumericCol) {
-        const numValue = Number(row[firstNumericCol.name]);
+      let value = 1; // Default to count
+      if (heatmapValueColumn) {
+        const numValue = Number(row[heatmapValueColumn]);
         if (isValidNumber(numValue)) {
           value = numValue;
         }

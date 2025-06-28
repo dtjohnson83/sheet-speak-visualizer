@@ -22,6 +22,7 @@ interface ChartRendererProps {
   yColumn: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
+  valueColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
   series: SeriesConfig[];
@@ -39,6 +40,7 @@ export const ChartRenderer = ({
   yColumn,
   stackColumn,
   sankeyTargetColumn,
+  valueColumn,
   sortColumn,
   sortDirection,
   series,
@@ -62,7 +64,8 @@ export const ChartRenderer = ({
     sankeyTargetColumn,
     supportsMultipleSeries,
     numericColumns,
-    aggregationMethod
+    aggregationMethod,
+    valueColumn
   );
 
   const isSankeyData = (data: DataRow[] | SankeyData): data is SankeyData => {
