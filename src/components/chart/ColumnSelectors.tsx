@@ -33,12 +33,18 @@ export const ColumnSelectors = ({
 }: ColumnSelectorsProps) => {
   const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey';
 
+  // Debug logging
+  console.log('ColumnSelectors received:', {
+    chartType,
+    numericColumns: numericColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
+    categoricalColumns: categoricalColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
+    dateColumns: dateColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet }))
+  });
+
   // Helper function to display column names nicely
   const formatColumnDisplay = (col: ColumnInfo) => {
-    // Check if column has worksheet info (for joined datasets)
-    const hasWorksheetInfo = col && typeof col === 'object' && 'worksheet' in col && (col as any).worksheet;
-    if (hasWorksheetInfo) {
-      return `${col.name} (${col.type}) - ${(col as any).worksheet}`;
+    if (col.worksheet) {
+      return `${col.name} (${col.type}) - ${col.worksheet}`;
     }
     return `${col.name} (${col.type})`;
   };

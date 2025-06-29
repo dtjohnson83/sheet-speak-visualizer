@@ -85,13 +85,32 @@ export const ChartVisualization = ({
     supportsDataLabels
   } = useChartState();
 
-  // Determine active data and columns
+  // Determine active data and columns with proper debug logging
   const activeData = joinedDataset?.data || chartDataSource?.data || data;
   const activeColumns = joinedDataset?.columns || chartDataSource?.columns || columns;
   
-  const numericColumns = activeColumns.filter(col => col.type === 'numeric');
-  const categoricalColumns = activeColumns.filter(col => col.type === 'categorical' || col.type === 'text');
-  const dateColumns = activeColumns.filter(col => col.type === 'date');
+  console.log('ChartVisualization active columns:', activeColumns.map(col => ({ 
+    name: col.name, 
+    type: col.type, 
+    worksheet: col.worksheet || 'default' 
+  })));
+  
+  // Filter columns properly, ensuring they exist and have the right types
+  const numericColumns = activeColumns.filter(col => 
+    col && col.type === 'numeric' && col.name
+  );
+  const categoricalColumns = activeColumns.filter(col => 
+    col && (col.type === 'categorical' || col.type === 'text') && col.name
+  );
+  const dateColumns = activeColumns.filter(col => 
+    col && col.type === 'date' && col.name
+  );
+
+  console.log('Filtered columns:', {
+    numeric: numericColumns.map(col => col.name),
+    categorical: categoricalColumns.map(col => col.name),
+    date: dateColumns.map(col => col.name)
+  });
 
   const handleSaveTile = () => {
     if (!xColumn || !yColumn || !onSaveTile) return;
