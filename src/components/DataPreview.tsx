@@ -11,6 +11,7 @@ import { sortData } from '@/lib/chartDataUtils';
 import { DataPreviewHeader } from './data-preview/DataPreviewHeader';
 import { DataTable } from './data-preview/DataTable';
 import { HierarchyTreeNode } from './data-preview/HierarchyTreeNode';
+import { ColumnFormatting, ColumnFormat } from './data-preview/ColumnFormatting';
 
 interface DataPreviewProps {
   data: DataRow[];
@@ -42,6 +43,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [showHierarchies, setShowHierarchies] = useState(false);
+  const [columnFormats, setColumnFormats] = useState<ColumnFormat[]>([]);
 
   // Detect hierarchies when data changes
   const hierarchies = detectHierarchies(data, columns);
@@ -106,17 +108,25 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
 
   return (
     <div className="space-y-6">
-      <DataPreviewHeader
-        fileName={fileName}
-        data={data}
-        columns={columns}
-        sortConfig={sortConfig}
-        hierarchiesCount={hierarchies.length}
-        showHierarchies={showHierarchies}
-        onToggleHierarchies={() => setShowHierarchies(!showHierarchies)}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleRowsPerPageChange}
-      />
+      <div className="flex items-center justify-between">
+        <DataPreviewHeader
+          fileName={fileName}
+          data={data}
+          columns={columns}
+          sortConfig={sortConfig}
+          hierarchiesCount={hierarchies.length}
+          showHierarchies={showHierarchies}
+          onToggleHierarchies={() => setShowHierarchies(!showHierarchies)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
+        
+        <ColumnFormatting
+          columns={columns}
+          formats={columnFormats}
+          onFormatsChange={setColumnFormats}
+        />
+      </div>
 
       {/* Hierarchy Detection Results */}
       {showHierarchies && hierarchies.length > 0 && (
@@ -172,6 +182,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
           getSortIcon={getSortIcon}
           getTypeColor={getTypeColor}
           formatValue={formatValue}
+          columnFormats={columnFormats}
         />
 
         <div className="flex justify-between items-center">
