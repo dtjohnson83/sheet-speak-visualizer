@@ -21,8 +21,8 @@ export const AggregationConfiguration = ({
   chartType,
   numericColumns
 }: AggregationConfigurationProps) => {
-  // Show aggregation for charts that support it
-  const supportsAggregation = ['pie', 'treemap', 'stacked-bar', 'heatmap', 'sankey'].includes(chartType);
+  // Show aggregation for charts that support it - now including bar and line charts
+  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'stacked-bar', 'heatmap', 'sankey'].includes(chartType);
   
   // For numeric Y columns or charts that always support aggregation
   const isNumericYColumn = numericColumns.some(col => col.name === yColumn);
@@ -31,6 +31,20 @@ export const AggregationConfiguration = ({
   if (!shouldShow || !yColumn) {
     return null;
   }
+
+  const getAggregationDescription = () => {
+    switch (chartType) {
+      case 'heatmap':
+        return `Values will be grouped by X and Y axes and ${aggregationMethod} will be applied`;
+      case 'sankey':
+        return `Flow values will be grouped by source-target pairs and ${aggregationMethod} will be applied`;
+      case 'bar':
+      case 'line':
+        return `Data points with the same X-axis value will be grouped and ${aggregationMethod} will be applied to ${yColumn}`;
+      default:
+        return `Data will be grouped by X-axis and ${aggregationMethod} will be applied to ${yColumn}`;
+    }
+  };
 
   return (
     <Card className="p-4">
@@ -56,12 +70,7 @@ export const AggregationConfiguration = ({
           </div>
         </div>
         <p className="text-xs text-gray-600">
-          {chartType === 'heatmap' 
-            ? `Values will be grouped by X and Y axes and ${aggregationMethod} will be applied`
-            : chartType === 'sankey'
-            ? `Flow values will be grouped by source-target pairs and ${aggregationMethod} will be applied`
-            : `Data will be grouped by X-axis and ${aggregationMethod} will be applied to ${yColumn}`
-          }
+          {getAggregationDescription()}
         </p>
       </div>
     </Card>
