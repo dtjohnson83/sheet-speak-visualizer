@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { ColumnInfo } from '@/pages/Index';
-import { useEffect } from 'react';
 
 interface SortControlsProps {
   sortColumn: string;
@@ -20,11 +19,8 @@ export const SortControls = ({
   setSortDirection,
   columns
 }: SortControlsProps) => {
-  // Debug logging
-  console.log('SortControls received columns:', columns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })));
-  console.log('SortControls current state:', { sortColumn, sortDirection });
+  console.log('SortControls render:', { sortColumn, sortDirection, columnsCount: columns.length });
 
-  // Helper function to display column names nicely
   const formatColumnDisplay = (col: ColumnInfo) => {
     if (col.worksheet) {
       return `${col.name} (${col.type}) - ${col.worksheet}`;
@@ -34,19 +30,22 @@ export const SortControls = ({
 
   const handleSortDirectionToggle = () => {
     const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    console.log('Toggling sort direction from', sortDirection, 'to', newDirection);
+    console.log('Sort direction toggle:', sortDirection, '->', newDirection);
     setSortDirection(newDirection);
+    // Force a small delay to ensure state is updated
+    setTimeout(() => {
+      console.log('Sort direction after toggle:', newDirection);
+    }, 100);
   };
 
   const handleSortColumnChange = (value: string) => {
-    console.log('Sort column changed to:', value);
+    console.log('Sort column change:', value);
     setSortColumn(value);
+    // If selecting "none", reset to a default direction
+    if (value === 'none') {
+      setSortDirection('desc');
+    }
   };
-
-  // Effect to log when sort state changes
-  useEffect(() => {
-    console.log('Sort state updated:', { sortColumn, sortDirection });
-  }, [sortColumn, sortDirection]);
 
   return (
     <>
@@ -73,17 +72,17 @@ export const SortControls = ({
           variant="outline"
           onClick={handleSortDirectionToggle}
           disabled={!sortColumn || sortColumn === 'none'}
-          className="flex items-center justify-center space-x-2"
+          className="flex items-center justify-center space-x-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           {sortDirection === 'asc' ? (
             <>
               <ArrowUp className="h-4 w-4" />
-              <span>Asc</span>
+              <span>Ascending</span>
             </>
           ) : (
             <>
               <ArrowDown className="h-4 w-4" />
-              <span>Desc</span>
+              <span>Descending</span>
             </>
           )}
         </Button>

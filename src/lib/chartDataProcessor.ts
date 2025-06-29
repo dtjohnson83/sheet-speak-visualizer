@@ -34,23 +34,30 @@ export const prepareChartData = (
 
   if (!xCol || !yCol) return [];
 
-  console.log('Preparing chart data for:', { 
-    xColumn, 
-    yColumn, 
-    chartType, 
-    series, 
-    aggregationMethod, 
-    valueColumn, 
+  console.log('prepareChartData called with sort settings:', { 
     sortColumn, 
-    sortDirection 
+    sortDirection, 
+    chartType,
+    dataLength: data.length
   });
 
-  // Apply sorting to data first if specified
-  const sortedData = sortColumn && sortColumn !== 'none' 
-    ? sortData(data, sortColumn, sortDirection) 
-    : data;
-
-  console.log('Data sorted by:', sortColumn, sortDirection, 'First 3 rows:', sortedData.slice(0, 3));
+  // Apply sorting to data first if specified - this is crucial!
+  let sortedData = data;
+  if (sortColumn && sortColumn !== 'none') {
+    console.log('Applying sort before chart processing:', { sortColumn, sortDirection });
+    sortedData = sortData(data, sortColumn, sortDirection);
+    console.log('Data after sorting:', {
+      originalLength: data.length,
+      sortedLength: sortedData.length,
+      firstSortedValues: sortedData.slice(0, 3).map(row => ({ 
+        [sortColumn]: row[sortColumn],
+        [xColumn]: row[xColumn],
+        [yColumn]: row[yColumn]
+      }))
+    });
+  } else {
+    console.log('No sorting applied - sortColumn:', sortColumn);
+  }
 
   switch (chartType) {
     case 'sankey':

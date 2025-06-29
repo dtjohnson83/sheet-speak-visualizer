@@ -49,6 +49,8 @@ export const ChartRenderer = ({
   supportsMultipleSeries,
   chartColors
 }: ChartRendererProps) => {
+  console.log('ChartRenderer with sort settings:', { sortColumn, sortDirection, chartType });
+  
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
   const chartData = prepareChartData(
@@ -67,6 +69,8 @@ export const ChartRenderer = ({
     aggregationMethod,
     valueColumn
   );
+
+  console.log('ChartRenderer prepared data length:', Array.isArray(chartData) ? chartData.length : 'non-array');
 
   const isSankeyData = (data: DataRow[] | SankeyData): data is SankeyData => {
     return chartType === 'sankey' && typeof data === 'object' && 'nodes' in data && 'links' in data;
