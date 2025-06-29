@@ -36,18 +36,45 @@ export const ColumnSelectors = ({
   // Debug logging
   console.log('ColumnSelectors received:', {
     chartType,
-    numericColumns: numericColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
-    categoricalColumns: categoricalColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
-    dateColumns: dateColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' }))
+    numericColumns: numericColumns.length,
+    categoricalColumns: categoricalColumns.length,
+    dateColumns: dateColumns.length,
+    allColumns: [...numericColumns, ...categoricalColumns, ...dateColumns].map(col => col.name)
   });
 
-  // Helper function to display column names nicely
+  // Helper function to display column names - simplified and more robust
   const formatColumnDisplay = (col: ColumnInfo) => {
-    if (col.worksheet) {
-      return `${col.name} (${col.type}) - ${col.worksheet}`;
-    }
-    return `${col.name} (${col.type})`;
+    const baseDisplay = `${col.name} (${col.type})`;
+    return col.worksheet && col.worksheet !== 'default' ? `${baseDisplay} - ${col.worksheet}` : baseDisplay;
   };
+
+  // Get appropriate columns for X-axis based on chart type
+  const getXAxisColumns = () => {
+    if (chartType === 'scatter') {
+      return [...numericColumns, ...dateColumns];
+    }
+    return [...categoricalColumns, ...dateColumns];
+  };
+
+  // Get appropriate columns for Y-axis based on chart type
+  const getYAxisColumns = () => {
+    if (chartType === 'heatmap') {
+      return [...categoricalColumns, ...numericColumns];
+    }
+    if (chartType === 'sankey') {
+      return categoricalColumns;
+    }
+    return numericColumns;
+  };
+
+  const xAxisColumns = getXAxisColumns();
+  const yAxisColumns = getYAxisColumns();
+
+  console.log('Column options:', {
+    xAxisColumns: xAxisColumns.map(col => col.name),
+    yAxisColumns: yAxisColumns.map(col => col.name),
+    numericForValue: numericColumns.map(col => col.name)
+  });
 
   return (
     <>
@@ -56,11 +83,11 @@ export const ColumnSelectors = ({
           {chartType === 'sankey' ? 'Source' : 'X-Axis'}
         </label>
         <Select value={xColumn} onValueChange={setXColumn}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
             <SelectValue placeholder="Select column" />
           </SelectTrigger>
-          <SelectContent>
-            {(chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
+          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
+            {xAxisColumns.map((col) => (
               <SelectItem key={col.name} value={col.name}>
                 {formatColumnDisplay(col)}
               </SelectItem>
@@ -74,11 +101,11 @@ export const ColumnSelectors = ({
           {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
         </label>
         <Select value={yColumn} onValueChange={setYColumn}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
             <SelectValue placeholder="Select column" />
           </SelectTrigger>
-          <SelectContent>
-            {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
+          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
+            {yAxisColumns.map((col) => (
               <SelectItem key={col.name} value={col.name}>
                 {formatColumnDisplay(col)}
               </SelectItem>
@@ -93,10 +120,10 @@ export const ColumnSelectors = ({
             {chartType === 'heatmap' ? 'Value (Intensity)' : 'Value (Flow)'}
           </label>
           <Select value={valueColumn} onValueChange={setValueColumn}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
               {numericColumns.map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {formatColumnDisplay(col)}
@@ -111,10 +138,10 @@ export const ColumnSelectors = ({
         <div>
           <label className="block text-sm font-medium mb-2">Stack By</label>
           <Select value={stackColumn} onValueChange={setStackColumn}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
               <SelectValue placeholder="Select column" />
-            </SelectTrigger>
-            <SelectContent>
+            </Select>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
               {categoricalColumns.map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {formatColumnDisplay(col)}

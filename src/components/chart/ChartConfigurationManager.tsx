@@ -48,27 +48,30 @@ export const ChartConfigurationManager = ({
     supportsDataLabels
   } = useChartState();
 
-  console.log('ChartConfigurationManager active columns:', columns.map(col => ({ 
+  console.log('ChartConfigurationManager columns:', columns.length, columns.map(col => ({ 
     name: col.name, 
     type: col.type, 
     worksheet: col.worksheet || 'default' 
   })));
   
+  // Ensure we have valid columns and filter them properly
+  const validColumns = columns.filter(col => col && col.name && col.type);
+  
   // Filter columns properly, ensuring they exist and have the right types
-  const numericColumns = columns.filter(col => 
-    col && col.type === 'numeric' && col.name
+  const numericColumns = validColumns.filter(col => col.type === 'numeric');
+  const categoricalColumns = validColumns.filter(col => 
+    col.type === 'categorical' || col.type === 'text'
   );
-  const categoricalColumns = columns.filter(col => 
-    col && (col.type === 'categorical' || col.type === 'text') && col.name
-  );
-  const dateColumns = columns.filter(col => 
-    col && col.type === 'date' && col.name
-  );
+  const dateColumns = validColumns.filter(col => col.type === 'date');
 
-  console.log('Filtered columns:', {
-    numeric: numericColumns.map(col => col.name),
-    categorical: categoricalColumns.map(col => col.name),
-    date: dateColumns.map(col => col.name)
+  console.log('Filtered columns in manager:', {
+    total: validColumns.length,
+    numeric: numericColumns.length,
+    categorical: categoricalColumns.length,
+    date: dateColumns.length,
+    numericNames: numericColumns.map(col => col.name),
+    categoricalNames: categoricalColumns.map(col => col.name),
+    dateNames: dateColumns.map(col => col.name)
   });
 
   return (
@@ -95,42 +98,10 @@ export const ChartConfigurationManager = ({
         supportsDataLabels={supportsDataLabels}
         selectedPalette={selectedPalette}
         setSelectedPalette={setSelectedPalette}
-        columns={columns}
+        columns={validColumns}
         numericColumns={numericColumns}
         categoricalColumns={categoricalColumns}
         dateColumns={dateColumns}
-        chartState={{
-          chartType,
-          setChartType,
-          xColumn,
-          setXColumn,
-          yColumn,
-          setYColumn,
-          stackColumn,
-          setStackColumn,
-          sankeyTargetColumn,
-          setSankeyTargetColumn,
-          sortColumn,
-          setSortColumn,
-          sortDirection,
-          setSortDirection,
-          series,
-          setSeries,
-          aggregationMethod,
-          setAggregationMethod,
-          showDataLabels,
-          setShowDataLabels,
-          selectedPalette,
-          setSelectedPalette,
-          chartColors,
-          supportsMultipleSeries,
-          supportsDataLabels,
-          valueColumn,
-          setValueColumn,
-          numericColumns,
-          categoricalColumns,
-          dateColumns
-        }}
       />
 
       <AggregationConfiguration
