@@ -61,6 +61,44 @@ export const prepareStandardChartData = (
     })
     .filter(row => row !== null);
 
-  console.log('Chart data prepared (aggregated with per-series methods and formatted):', processedData);
+  // Apply sorting if specified
+  if (sortColumn && sortColumn !== 'none') {
+    processedData.sort((a, b) => {
+      let aVal = a[sortColumn];
+      let bVal = b[sortColumn];
+
+      // Try to convert to numbers for numeric comparison
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        // Both are numbers, do numeric comparison
+        if (sortDirection === 'asc') {
+          return aNum - bNum;
+        } else {
+          return bNum - aNum;
+        }
+      } else {
+        // String comparison
+        const aStr = String(aVal || '').toLowerCase();
+        const bStr = String(bVal || '').toLowerCase();
+        
+        if (sortDirection === 'asc') {
+          return aStr.localeCompare(bStr);
+        } else {
+          return bStr.localeCompare(aStr);
+        }
+      }
+    });
+  }
+
+  console.log('Chart data prepared (aggregated, formatted, and sorted):', {
+    originalCount: data.length,
+    processedCount: processedData.length,
+    sortColumn,
+    sortDirection,
+    sample: processedData.slice(0, 3)
+  });
+  
   return processedData;
 };

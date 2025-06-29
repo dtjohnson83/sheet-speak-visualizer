@@ -40,7 +40,19 @@ export const prepareChartData = (
 
   if (!xCol || (!yCol && chartType !== 'histogram')) return [];
 
-  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins });
+  console.log('Preparing chart data for:', { 
+    xColumn, 
+    yColumn, 
+    chartType, 
+    series, 
+    aggregationMethod, 
+    valueColumn, 
+    columnFormats, 
+    topXLimit, 
+    histogramBins,
+    sortColumn,
+    sortDirection
+  });
 
   let processedData: DataRow[] | SankeyData = [];
 
@@ -84,7 +96,9 @@ export const prepareChartData = (
   if (Array.isArray(processedData) && topXLimit && topXLimit > 0) {
     const limitSupportedCharts = ['bar', 'horizontal-bar', 'pie', 'stacked-bar', 'treemap'];
     if (limitSupportedCharts.includes(chartType)) {
+      // Use the yColumn as the default sort column for limiting if no specific sort column is set
       const sortColumnForLimit = sortColumn === 'none' ? yColumn : sortColumn;
+      console.log('Applying top X limit:', { topXLimit, sortColumnForLimit, sortDirection });
       processedData = applyTopXLimit(processedData, topXLimit, sortColumnForLimit, sortDirection);
     }
   }

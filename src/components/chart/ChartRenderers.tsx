@@ -159,6 +159,14 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, 
 export const HorizontalBarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, showDataLabels = false }: ChartProps) => {
   const primaryColor = chartColors[0] || '#8884d8';
   
+  console.log('HorizontalBarChartRenderer - Data structure:', {
+    dataCount: data.length,
+    xColumn,
+    yColumn,
+    sampleData: data.slice(0, 2),
+    seriesCount: series.length
+  });
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <BarChart

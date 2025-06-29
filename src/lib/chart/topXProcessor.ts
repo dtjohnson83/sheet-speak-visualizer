@@ -11,18 +11,47 @@ export const applyTopXLimit = (
     return data;
   }
 
-  // Sort the data
+  // Create a copy for sorting to avoid mutating the original
   const sortedData = [...data].sort((a, b) => {
-    const aVal = Number(a[sortColumn]) || 0;
-    const bVal = Number(b[sortColumn]) || 0;
+    let aVal = a[sortColumn];
+    let bVal = b[sortColumn];
+
+    // Handle null/undefined values
+    if (aVal == null && bVal == null) return 0;
+    if (aVal == null) return sortDirection === 'asc' ? -1 : 1;
+    if (bVal == null) return sortDirection === 'asc' ? 1 : -1;
+
+    // Try numeric comparison first
+    const aNum = Number(aVal);
+    const bNum = Number(bVal);
     
-    if (sortDirection === 'asc') {
-      return aVal - bVal;
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      // Both are valid numbers
+      if (sortDirection === 'asc') {
+        return aNum - bNum;
+      } else {
+        return bNum - aNum;
+      }
     } else {
-      return bVal - aVal;
+      // Fallback to string comparison
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      
+      if (sortDirection === 'asc') {
+        return aStr.localeCompare(bStr);
+      } else {
+        return bStr.localeCompare(aStr);
+      }
     }
   });
 
-  console.log(`Applied top ${limit} limit to ${data.length} rows, sorted by ${sortColumn} ${sortDirection}`);
-  return sortedData.slice(0, limit);
+  const result = sortedData.slice(0, limit);
+  console.log(`Applied top ${limit} limit to ${data.length} rows, sorted by ${sortColumn} ${sortDirection}`, {
+    originalCount: data.length,
+    limitedCount: result.length,
+    sortColumn,
+    sortDirection
+  });
+  
+  return result;
 };
