@@ -22,7 +22,7 @@ export const SortControls = ({
   // Helper function to display column names nicely
   const formatColumnDisplay = (col: ColumnInfo) => {
     // Check if column has worksheet info (for joined datasets)
-    const hasWorksheetInfo = 'worksheet' in col && col.worksheet;
+    const hasWorksheetInfo = col && typeof col === 'object' && 'worksheet' in col && (col as any).worksheet;
     if (hasWorksheetInfo) {
       return `${col.name} (${col.type}) - ${(col as any).worksheet}`;
     }
