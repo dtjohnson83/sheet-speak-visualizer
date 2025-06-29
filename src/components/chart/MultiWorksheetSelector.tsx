@@ -120,10 +120,10 @@ export const MultiWorksheetSelector = ({
         {mode === 'single' ? (
           <div>
             <Select value={selectedSingle} onValueChange={handleSingleSelection}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
                 <SelectValue placeholder="Select a worksheet..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
                 {worksheets.map((worksheet) => (
                   <SelectItem key={worksheet.id} value={worksheet.id}>
                     <div className="flex items-center space-x-2">
@@ -179,7 +179,7 @@ export const MultiWorksheetSelector = ({
                       const sourceWs = worksheets.find(ws => ws.id === relation.sourceWorksheet);
                       const targetWs = worksheets.find(ws => ws.id === relation.targetWorksheet);
                       return (
-                        <div key={relation.id} className="flex items-center space-x-2 p-2 bg-blue-50 rounded text-sm">
+                        <div key={relation.id} className="flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm">
                           <Link className="h-3 w-3 text-blue-500" />
                           <span>
                             {sourceWs?.name}.{relation.sourceColumn} → {targetWs?.name}.{relation.targetColumn}
@@ -192,11 +192,11 @@ export const MultiWorksheetSelector = ({
                     })}
                   </div>
                 ) : selectedWorksheets.length >= 2 && (
-                  <div className="flex items-start space-x-2 p-3 bg-yellow-50 rounded text-sm">
+                  <div className="flex items-start space-x-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded text-sm">
                     <Info className="h-4 w-4 text-yellow-600 mt-0.5" />
                     <div>
-                      <p className="text-yellow-800 font-medium">No automatic relationships found</p>
-                      <p className="text-yellow-700 text-xs mt-1">
+                      <p className="text-yellow-800 dark:text-yellow-200 font-medium">No automatic relationships found</p>
+                      <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-1">
                         You can still combine the sheets, but you may need to configure joins manually.
                       </p>
                     </div>
@@ -204,12 +204,12 @@ export const MultiWorksheetSelector = ({
                 )}
 
                 {joinConfig && (
-                  <div className="p-3 bg-green-50 rounded">
-                    <div className="flex items-center space-x-2 text-sm text-green-800">
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <div className="flex items-center space-x-2 text-sm text-green-800 dark:text-green-200">
                       <ArrowRight className="h-4 w-4" />
                       <span className="font-medium">Join Configuration Ready</span>
                     </div>
-                    <p className="text-xs text-green-700 mt-1">
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">
                       {joinConfig.joins.length} worksheet(s) will be joined to create combined dataset
                     </p>
                   </div>

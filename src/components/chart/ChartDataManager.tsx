@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { WorksheetData } from '@/types/worksheet';
 import { DataSourceSelector } from './DataSourceSelector';
@@ -23,14 +23,26 @@ export const ChartDataManager = ({
   onDataSourceChange,
   onColumnSelectionReset
 }: ChartDataManagerProps) => {
-  const [chartDataSource, setChartDataSource] = useState<WorksheetData | null>(selectedWorksheet);
+  const [chartDataSource, setChartDataSource] = useState<WorksheetData | null>(null);
   const [selectedWorksheets, setSelectedWorksheets] = useState<string[]>([]);
   const [joinConfig, setJoinConfig] = useState<JoinConfiguration | null>(null);
+
+  // Initialize chart data source when selectedWorksheet changes
+  useEffect(() => {
+    if (selectedWorksheet && !chartDataSource) {
+      setChartDataSource(selectedWorksheet);
+    }
+  }, [selectedWorksheet, chartDataSource]);
 
   // Detect relationships between worksheets
   const crossWorksheetRelations = useMemo(() => {
     if (worksheets.length > 1) {
-      return detectCrossWorksheetRelations(worksheets);
+      try {
+        return detectCrossWorksheetRelations(worksheets);
+      } catch (error) {
+        console.error('Error detecting cross-worksheet relations:', error);
+        return [];
+      }
     }
     return [];
   }, [worksheets]);
@@ -49,7 +61,7 @@ export const ChartDataManager = ({
   }, [worksheets, joinConfig, selectedWorksheets]);
 
   // Update parent when data changes
-  useMemo(() => {
+  useEffect(() => {
     const activeData = joinedDataset?.data || chartDataSource?.data || [];
     const activeColumns = joinedDataset?.columns || chartDataSource?.columns || [];
     onDataSourceChange(activeData, activeColumns);
@@ -57,6 +69,8 @@ export const ChartDataManager = ({
 
   const handleSingleWorksheetChange = (worksheet: WorksheetData | null) => {
     setChartDataSource(worksheet);
+    setSelectedWorksheets([]);
+    setJoinConfig(null);
     onColumnSelectionReset();
   };
 
@@ -65,6 +79,7 @@ export const ChartDataManager = ({
     if (worksheetIds.length === 0) {
       setJoinConfig(null);
     }
+    setChartDataSource(null);
     onColumnSelectionReset();
   };
 
@@ -94,10 +109,10 @@ export const ChartDataManager = ({
         <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 mb-4">
           <div className="flex items-center space-x-2 mb-2">
             <Link className="h-4 w-4 text-blue-600" />
-            <span className="font-medium text-blue-800">Joined Dataset</span>
+            <span className="font-medium text-blue-800 dark:text-blue-200">Joined Dataset</span>
             <Badge variant="secondary">{joinedDataset.data.length} rows, {joinedDataset.columns.length} columns</Badge>
           </div>
-          <p className="text-xs text-blue-700 whitespace-pre-line">
+          <p className="text-xs text-blue-700 dark:text-blue-300 whitespace-pre-line">
             {joinedDataset.joinSummary}
           </p>
         </Card>
