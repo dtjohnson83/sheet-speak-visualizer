@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { ColumnInfo } from '@/pages/Index';
 import { ColorPaletteSelector } from './ColorPaletteSelector';
@@ -29,6 +30,11 @@ interface ChartConfigurationProps {
   supportsDataLabels: boolean;
   selectedPalette: string;
   setSelectedPalette: (value: string) => void;
+  topXLimit: number | null;
+  setTopXLimit: (value: number | null) => void;
+  supportsTopXLimit: boolean;
+  histogramBins: number;
+  setHistogramBins: (value: number) => void;
   columns: ColumnInfo[];
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
@@ -57,12 +63,18 @@ export const ChartConfiguration = ({
   supportsDataLabels,
   selectedPalette,
   setSelectedPalette,
+  topXLimit,
+  setTopXLimit,
+  supportsTopXLimit,
+  histogramBins,
+  setHistogramBins,
   columns,
   numericColumns,
   categoricalColumns,
   dateColumns
 }: ChartConfigurationProps) => {
   const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey';
+  const isHistogram = chartType === 'histogram';
 
   return (
     <>
@@ -75,10 +87,12 @@ export const ChartConfiguration = ({
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50">
               <SelectItem value="bar">Bar Chart</SelectItem>
+              <SelectItem value="horizontal-bar">Horizontal Bar Chart</SelectItem>
               <SelectItem value="stacked-bar">Stacked Bar Chart</SelectItem>
               <SelectItem value="line">Line Chart</SelectItem>
               <SelectItem value="pie">Pie Chart</SelectItem>
               <SelectItem value="scatter">Scatter Plot</SelectItem>
+              <SelectItem value="histogram">Histogram</SelectItem>
               <SelectItem value="heatmap">Heatmap</SelectItem>
               <SelectItem value="treemap">Tree Map</SelectItem>
               <SelectItem value="sankey">Sankey Diagram</SelectItem>
@@ -88,14 +102,14 @@ export const ChartConfiguration = ({
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            {chartType === 'sankey' ? 'Source' : 'X-Axis'}
+            {chartType === 'sankey' ? 'Source' : isHistogram ? 'Column to Analyze' : 'X-Axis'}
           </label>
           <Select value={xColumn} onValueChange={setXColumn}>
             <SelectTrigger className="bg-white dark:bg-gray-800">
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
-              {(chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
+              {(isHistogram ? numericColumns : chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
                 </SelectItem>
@@ -104,23 +118,25 @@ export const ChartConfiguration = ({
           </Select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
-          </label>
-          <Select value={yColumn} onValueChange={setYColumn}>
-            <SelectTrigger className="bg-white dark:bg-gray-800">
-              <SelectValue placeholder="Select column" />
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
-              {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
-                <SelectItem key={col.name} value={col.name}>
-                  {col.name} ({col.type})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!isHistogram && (
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
+            </label>
+            <Select value={yColumn} onValueChange={setYColumn}>
+              <SelectTrigger className="bg-white dark:bg-gray-800">
+                <SelectValue placeholder="Select column" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
+                {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
+                  <SelectItem key={col.name} value={col.name}>
+                    {col.name} ({col.type})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {needsValueColumn && (
           <div>
@@ -157,6 +173,34 @@ export const ChartConfiguration = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        )}
+
+        {isHistogram && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Number of Bins</label>
+            <Input
+              type="number"
+              min="3"
+              max="50"
+              value={histogramBins}
+              onChange={(e) => setHistogramBins(Number(e.target.value))}
+              className="bg-white dark:bg-gray-800"
+            />
+          </div>
+        )}
+
+        {supportsTopXLimit && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Top X Values</label>
+            <Input
+              type="number"
+              min="1"
+              placeholder="All values"
+              value={topXLimit || ''}
+              onChange={(e) => setTopXLimit(e.target.value ? Number(e.target.value) : null)}
+              className="bg-white dark:bg-gray-800"
+            />
           </div>
         )}
 

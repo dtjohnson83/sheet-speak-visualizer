@@ -1,3 +1,4 @@
+
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
@@ -11,7 +12,9 @@ import {
   TreemapRenderer,
   StackedBarRenderer,
   HeatmapRenderer,
-  SankeyRenderer
+  SankeyRenderer,
+  HorizontalBarChartRenderer,
+  HistogramRenderer
 } from './ChartRenderers';
 
 interface ChartRendererProps {
@@ -31,6 +34,8 @@ interface ChartRendererProps {
   supportsMultipleSeries: boolean;
   chartColors: string[];
   columnFormats?: ColumnFormat[];
+  topXLimit?: number | null;
+  histogramBins?: number;
 }
 
 export const ChartRenderer = ({
@@ -49,7 +54,9 @@ export const ChartRenderer = ({
   showDataLabels,
   supportsMultipleSeries,
   chartColors,
-  columnFormats
+  columnFormats,
+  topXLimit,
+  histogramBins
 }: ChartRendererProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
@@ -68,7 +75,9 @@ export const ChartRenderer = ({
     numericColumns,
     aggregationMethod,
     valueColumn,
-    columnFormats
+    columnFormats,
+    topXLimit,
+    histogramBins
   );
 
   const isSankeyData = (data: DataRow[] | SankeyData): data is SankeyData => {
@@ -79,7 +88,7 @@ export const ChartRenderer = ({
     return Array.isArray(data);
   };
 
-  if (!xColumn || !yColumn || (isArrayData(chartData) && chartData.length === 0) || (isSankeyData(chartData) && chartData.links.length === 0)) {
+  if (!xColumn || (!yColumn && chartType !== 'histogram') || (isArrayData(chartData) && chartData.length === 0) || (isSankeyData(chartData) && chartData.links.length === 0)) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
         <p>Select columns to display chart</p>
@@ -109,6 +118,12 @@ export const ChartRenderer = ({
 
     case 'sankey':
       return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
+
+    case 'horizontal-bar':
+      return <HorizontalBarChartRenderer {...commonProps} />;
+
+    case 'histogram':
+      return <HistogramRenderer data={chartData as DataRow[]} chartColors={chartColors} showDataLabels={showDataLabels} />;
 
     case 'bar':
       return <BarChartRenderer {...commonProps} />;

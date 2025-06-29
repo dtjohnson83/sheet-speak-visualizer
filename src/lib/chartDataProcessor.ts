@@ -11,6 +11,8 @@ import { preparePieData } from './chart/pieProcessor';
 import { prepareStackedBarData } from './chart/stackedBarProcessor';
 import { prepareScatterData } from './chart/scatterProcessor';
 import { prepareStandardChartData } from './chart/standardChartProcessor';
+import { prepareHistogramData } from './chart/histogramProcessor';
+import { applyTopXLimit } from './chart/topXProcessor';
 
 export const prepareChartData = (
   data: DataRow[],
@@ -27,42 +29,65 @@ export const prepareChartData = (
   numericColumns: ColumnInfo[],
   aggregationMethod: AggregationMethod = 'sum',
   valueColumn?: string,
-  columnFormats?: ColumnFormat[]
+  columnFormats?: ColumnFormat[],
+  topXLimit?: number | null,
+  histogramBins?: number
 ): DataRow[] | SankeyData => {
-  if (!xColumn || !yColumn) return [];
+  if (!xColumn || (!yColumn && chartType !== 'histogram')) return [];
 
   const xCol = columns.find(col => col.name === xColumn);
   const yCol = columns.find(col => col.name === yColumn);
 
-  if (!xCol || !yCol) return [];
+  if (!xCol || (!yCol && chartType !== 'histogram')) return [];
 
-  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod, valueColumn, columnFormats });
+  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins });
+
+  let processedData: DataRow[] | SankeyData = [];
 
   switch (chartType) {
     case 'sankey':
-      return prepareSankeyData(data, xColumn, yColumn, valueColumn!, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareSankeyData(data, xColumn, yColumn, valueColumn!, aggregationMethod, sortColumn, sortDirection);
+      break;
 
     case 'heatmap':
-      return prepareHeatmapData(data, xColumn, yColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareHeatmapData(data, xColumn, yColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);
+      break;
 
     case 'treemap':
-      return prepareTreemapData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareTreemapData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);
+      break;
 
     case 'pie':
-      return preparePieData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);
+      processedData = preparePieData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);
+      break;
 
     case 'stacked-bar':
-      return prepareStackedBarData(data, xColumn, yColumn, stackColumn, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareStackedBarData(data, xColumn, yColumn, stackColumn, aggregationMethod, sortColumn, sortDirection);
+      break;
+
+    case 'histogram':
+      processedData = prepareHistogramData(data, xColumn, histogramBins || 10);
+      break;
 
     case 'scatter':
       if (xCol.type === 'numeric' && yCol.type === 'numeric') {
-        return prepareScatterData(data, xColumn, yColumn, xCol, yCol, series, supportsMultipleSeries, sortColumn, sortDirection);
+        processedData = prepareScatterData(data, xColumn, yColumn, xCol, yCol, series, supportsMultipleSeries, sortColumn, sortDirection);
       }
       break;
 
+    case 'horizontal-bar':
     default:
-      return prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
+      processedData = prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
   }
 
-  return prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
+  // Apply top X limiting for supported chart types (only for array data, not SankeyData)
+  if (Array.isArray(processedData) && topXLimit && topXLimit > 0) {
+    const limitSupportedCharts = ['bar', 'horizontal-bar', 'pie', 'stacked-bar', 'treemap'];
+    if (limitSupportedCharts.includes(chartType)) {
+      const sortColumnForLimit = sortColumn === 'none' ? yColumn : sortColumn;
+      processedData = applyTopXLimit(processedData, topXLimit, sortColumnForLimit, sortDirection);
+    }
+  }
+
+  return processedData;
 };

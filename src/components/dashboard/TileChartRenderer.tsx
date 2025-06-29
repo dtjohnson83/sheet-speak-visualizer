@@ -13,7 +13,9 @@ import {
   TreemapRenderer,
   StackedBarRenderer,
   HeatmapRenderer,
-  SankeyRenderer
+  SankeyRenderer,
+  HorizontalBarChartRenderer,
+  HistogramRenderer
 } from '../chart/ChartRenderers';
 
 export interface TileChartRendererProps {
@@ -62,14 +64,14 @@ export const TileChartRenderer = ({
     sortDirection || 'desc',
     stackColumn,
     sankeyTargetColumn,
-    ['bar', 'line', 'scatter'].includes(chartType),
+    ['bar', 'line', 'scatter', 'horizontal-bar'].includes(chartType),
     numericColumns,
     'sum',
     valueColumn,
     columnFormats
   );
 
-  if (!xColumn || !yColumn || (Array.isArray(chartData) && chartData.length === 0)) {
+  if (!xColumn || (!yColumn && chartType !== 'histogram') || (Array.isArray(chartData) && chartData.length === 0)) {
     return (
       <div className="flex items-center justify-center h-32 text-gray-500">
         <p>No data to display</p>
@@ -99,6 +101,10 @@ export const TileChartRenderer = ({
             return <TreemapRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
           case 'sankey':
             return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
+          case 'horizontal-bar':
+            return <HorizontalBarChartRenderer {...commonProps} />;
+          case 'histogram':
+            return <HistogramRenderer data={chartData as DataRow[]} chartColors={chartColors} showDataLabels={showDataLabels} />;
           case 'bar':
             return <BarChartRenderer {...commonProps} />;
           case 'line':

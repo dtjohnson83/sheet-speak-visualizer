@@ -27,6 +27,8 @@ interface ChartContainerProps {
   customTitle?: string;
   onTitleChange?: (title: string) => void;
   columnFormats?: ColumnFormat[];
+  topXLimit?: number | null;
+  histogramBins?: number;
 }
 
 export const ChartContainer = ({
@@ -48,7 +50,9 @@ export const ChartContainer = ({
   onSaveTile,
   customTitle,
   onTitleChange,
-  columnFormats
+  columnFormats,
+  topXLimit,
+  histogramBins
 }: ChartContainerProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
@@ -68,7 +72,9 @@ export const ChartContainer = ({
     numericColumns,
     aggregationMethod,
     valueColumn,
-    columnFormats
+    columnFormats,
+    topXLimit,
+    histogramBins
   );
 
   return (
@@ -108,6 +114,8 @@ export const ChartContainer = ({
           supportsMultipleSeries={supportsMultipleSeries}
           chartColors={chartColors}
           columnFormats={columnFormats}
+          topXLimit={topXLimit}
+          histogramBins={histogramBins}
         />
       </div>
     </Card>

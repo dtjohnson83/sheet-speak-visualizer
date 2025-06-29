@@ -1,4 +1,3 @@
-
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, ScatterChart, Scatter, Treemap, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ComposedChart, LabelList } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
@@ -152,6 +151,78 @@ export const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, 
             {showDataLabels && <LabelList dataKey={seriesConfig.column} content={customDataLabel} />}
           </Bar>
         ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const HorizontalBarChartRenderer = ({ data, xColumn, yColumn, series, chartColors, showDataLabels = false }: ChartProps) => {
+  const primaryColor = chartColors[0] || '#8884d8';
+  
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart
+        layout="horizontal"
+        width={800}
+        height={400}
+        data={data}
+        margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis type="number" tickFormatter={customTickFormatter} />
+        <YAxis 
+          type="category" 
+          dataKey={xColumn} 
+          tick={{ fontSize: 12 }}
+          width={90}
+        />
+        <Tooltip formatter={customTooltipFormatter} />
+        <Legend />
+        <Bar dataKey={yColumn} fill={primaryColor} name={yColumn}>
+          {showDataLabels && <LabelList dataKey={yColumn} position="right" formatter={formatNumber} fontSize="11" fill="#666" />}
+        </Bar>
+        {series.map((seriesConfig) => (
+          <Bar 
+            key={seriesConfig.id}
+            dataKey={seriesConfig.column} 
+            fill={seriesConfig.color}
+            name={seriesConfig.column}
+          >
+            {showDataLabels && <LabelList dataKey={seriesConfig.column} position="right" formatter={formatNumber} fontSize="11" fill="#666" />}
+          </Bar>
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const HistogramRenderer = ({ data, chartColors, showDataLabels = false }: { data: DataRow[]; chartColors: string[]; showDataLabels?: boolean }) => {
+  const primaryColor = chartColors[0] || '#8884d8';
+  
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart
+        width={800}
+        height={400}
+        data={data}
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="range" 
+          tick={{ fontSize: 12 }}
+          angle={-45}
+          textAnchor="end"
+          height={60}
+        />
+        <YAxis tickFormatter={customTickFormatter} />
+        <Tooltip 
+          formatter={(value: any) => [formatNumber(Number(value)), 'Frequency']}
+          labelFormatter={(label) => `Range: ${label}`}
+        />
+        <Bar dataKey="frequency" fill={primaryColor} name="Frequency">
+          {showDataLabels && <LabelList dataKey="frequency" content={customDataLabel} />}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );

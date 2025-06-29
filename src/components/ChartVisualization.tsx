@@ -43,9 +43,14 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
     setShowDataLabels,
     selectedPalette,
     setSelectedPalette,
+    topXLimit,
+    setTopXLimit,
+    histogramBins,
+    setHistogramBins,
     chartColors,
     supportsMultipleSeries,
-    supportsDataLabels
+    supportsDataLabels,
+    supportsTopXLimit
   } = useChartState();
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
@@ -67,9 +72,9 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
   }, [chartType, supportsMultipleSeries, xColumn, yColumn, numericColumns, series]);
 
   const handleSaveTile = () => {
-    if (!xColumn || !yColumn || !onSaveTile) return;
+    if (!xColumn || (!yColumn && chartType !== 'histogram') || !onSaveTile) return;
     
-    const defaultTitle = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn} vs ${yColumn}`;
+    const defaultTitle = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn}${yColumn ? ` vs ${yColumn}` : ''}`;
     const title = customTitle || defaultTitle;
     
     onSaveTile({
@@ -114,6 +119,11 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
           supportsDataLabels={supportsDataLabels}
           selectedPalette={selectedPalette}
           setSelectedPalette={setSelectedPalette}
+          topXLimit={topXLimit}
+          setTopXLimit={setTopXLimit}
+          supportsTopXLimit={supportsTopXLimit}
+          histogramBins={histogramBins}
+          setHistogramBins={setHistogramBins}
           columns={columns}
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}
@@ -152,6 +162,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
               <div>Selected X: {xColumn || 'None'}</div>
               <div>Selected Y: {yColumn || 'None'}</div>
               <div>Series Count: {series.length}</div>
+              <div>Top X Limit: {topXLimit || 'None'}</div>
             </div>
           </div>
         )}
@@ -177,6 +188,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
         customTitle={customTitle}
         onTitleChange={setCustomTitle}
         columnFormats={columnFormats}
+        topXLimit={topXLimit}
+        histogramBins={histogramBins}
       />
     </div>
   );

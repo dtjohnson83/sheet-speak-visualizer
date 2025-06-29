@@ -12,7 +12,7 @@ export interface SeriesConfig {
 }
 
 export const useChartState = () => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'horizontal-bar' | 'histogram'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
@@ -23,6 +23,8 @@ export const useChartState = () => {
   const [aggregationMethod, setAggregationMethod] = useState<AggregationMethod>('sum');
   const [showDataLabels, setShowDataLabels] = useState<boolean>(false);
   const [selectedPalette, setSelectedPalette] = useState<string>('Default');
+  const [topXLimit, setTopXLimit] = useState<number | null>(null);
+  const [histogramBins, setHistogramBins] = useState<number>(10);
 
   // Get colors from selected palette
   const getChartColors = () => {
@@ -32,12 +34,16 @@ export const useChartState = () => {
 
   const chartColors = getChartColors();
 
-  const multiSeriesChartTypes = ['bar', 'line', 'scatter'];
+  const multiSeriesChartTypes = ['bar', 'line', 'scatter', 'horizontal-bar'];
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
 
   // Charts that support data labels
-  const dataLabelSupportedCharts = ['bar', 'line', 'stacked-bar'];
+  const dataLabelSupportedCharts = ['bar', 'line', 'stacked-bar', 'horizontal-bar', 'histogram'];
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
+
+  // Charts that support top X limiting
+  const topXSupportedCharts = ['bar', 'horizontal-bar', 'pie', 'stacked-bar', 'treemap'];
+  const supportsTopXLimit = topXSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {
     console.log('useChartState - Chart type changing:', { from: chartType, to: newType });
@@ -54,6 +60,11 @@ export const useChartState = () => {
     if (!dataLabelSupportedCharts.includes(newType)) {
       console.log('useChartState - Disabling data labels (chart type does not support them)');
       setShowDataLabels(false);
+    }
+
+    // Reset top X limit if chart type doesn't support it
+    if (!topXSupportedCharts.includes(newType)) {
+      setTopXLimit(null);
     }
   };
 
@@ -102,8 +113,13 @@ export const useChartState = () => {
     setShowDataLabels,
     selectedPalette,
     setSelectedPalette,
+    topXLimit,
+    setTopXLimit,
+    histogramBins,
+    setHistogramBins,
     chartColors,
     supportsMultipleSeries,
-    supportsDataLabels
+    supportsDataLabels,
+    supportsTopXLimit
   };
 };
