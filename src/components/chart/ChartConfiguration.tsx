@@ -65,10 +65,10 @@ export const ChartConfiguration = ({
   // Debug logging
   console.log('ChartConfiguration received:', {
     chartType,
-    columns: columns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
-    numericColumns: numericColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
-    categoricalColumns: categoricalColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
-    dateColumns: dateColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
+    columns: columns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
+    numericColumns: numericColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
+    categoricalColumns: categoricalColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
+    dateColumns: dateColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
     currentSelections: { xColumn, yColumn, stackColumn, valueColumn, sortColumn }
   });
 

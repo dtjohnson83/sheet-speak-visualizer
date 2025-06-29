@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
@@ -19,6 +18,8 @@ export interface ColumnInfo {
   name: string;
   type: 'numeric' | 'date' | 'categorical' | 'text';
   values: any[];
+  worksheet?: string;
+  originalName?: string;
 }
 
 const Index = () => {

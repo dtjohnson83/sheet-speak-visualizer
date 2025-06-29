@@ -36,9 +36,9 @@ export const ColumnSelectors = ({
   // Debug logging
   console.log('ColumnSelectors received:', {
     chartType,
-    numericColumns: numericColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
-    categoricalColumns: categoricalColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })),
-    dateColumns: dateColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet }))
+    numericColumns: numericColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
+    categoricalColumns: categoricalColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })),
+    dateColumns: dateColumns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' }))
   });
 
   // Helper function to display column names nicely

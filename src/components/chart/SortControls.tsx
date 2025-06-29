@@ -20,7 +20,7 @@ export const SortControls = ({
   columns
 }: SortControlsProps) => {
   // Debug logging
-  console.log('SortControls received columns:', columns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet })));
+  console.log('SortControls received columns:', columns.map(col => ({ name: col.name, type: col.type, worksheet: col.worksheet || 'default' })));
 
   // Helper function to display column names nicely
   const formatColumnDisplay = (col: ColumnInfo) => {
