@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,9 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Upload, BarChart3, Layout, Share2, Zap, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Landing = () => {
   const [isHovered, setIsHovered] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const features = [
     {
@@ -58,7 +59,22 @@ const Landing = () => {
             <BarChart3 className="h-8 w-8 text-blue-600" />
             <span className="text-2xl font-bold text-gray-900 dark:text-white">Charta</span>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            {user ? (
+              <Link to="/app">
+                <Button variant="outline">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button variant="outline">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -80,11 +96,19 @@ const Landing = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/app">
-              <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                Get Started Free
-              </Button>
-            </Link>
+            {user ? (
+              <Link to="/app">
+                <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Get Started Free
+                </Button>
+              </Link>
+            )}
             <Button variant="outline" size="lg" className="text-lg px-8 py-6">
               View Demo
             </Button>
@@ -191,11 +215,19 @@ const Landing = () => {
           <p className="text-xl text-blue-100 mb-8">
             Join thousands of users who trust Charta for their data visualization needs.
           </p>
-          <Link to="/app">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-              Start Visualizing Now
-            </Button>
-          </Link>
+          {user ? (
+            <Link to="/app">
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
+                Go to Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
+                Start Visualizing Now
+              </Button>
+            </Link>
+          )}
         </div>
       </section>
 

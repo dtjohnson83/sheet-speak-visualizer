@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
@@ -9,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/useDashboard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UserMenu } from '@/components/UserMenu';
 
 export interface DataRow {
   [key: string]: any;
@@ -52,7 +52,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 relative">
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-0 right-0 flex items-center gap-2">
+            <UserMenu />
             <ThemeToggle />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
