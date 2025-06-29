@@ -62,39 +62,18 @@ export const ChartConfiguration = ({
   categoricalColumns,
   dateColumns
 }: ChartConfigurationProps) => {
-  const autoSelect = () => {
-    if (!xColumn && categoricalColumns.length > 0) {
-      setXColumn(categoricalColumns[0].name);
-    }
-    if (!yColumn && numericColumns.length > 0) {
-      setYColumn(numericColumns[0].name);
-    }
-    if (chartType === 'stacked-bar' && !stackColumn && categoricalColumns.length > 1) {
-      setStackColumn(categoricalColumns[1].name);
-    }
-    if (chartType === 'sankey' && !yColumn && categoricalColumns.length > 1) {
-      setYColumn(categoricalColumns[1].name);
-    }
-    if ((chartType === 'heatmap' || chartType === 'sankey') && !valueColumn && numericColumns.length > 0) {
-      setValueColumn(numericColumns[0].name);
-    }
-    if (sortColumn === 'none' && numericColumns.length > 0) {
-      setSortColumn(numericColumns[0].name);
-    }
-  };
-
   const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey';
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-2">Chart Type</label>
           <Select value={chartType} onValueChange={setChartType}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-800">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50">
               <SelectItem value="bar">Bar Chart</SelectItem>
               <SelectItem value="stacked-bar">Stacked Bar Chart</SelectItem>
               <SelectItem value="line">Line Chart</SelectItem>
@@ -112,10 +91,10 @@ export const ChartConfiguration = ({
             {chartType === 'sankey' ? 'Source' : 'X-Axis'}
           </label>
           <Select value={xColumn} onValueChange={setXColumn}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-800">
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
               {(chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
@@ -130,10 +109,10 @@ export const ChartConfiguration = ({
             {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
           </label>
           <Select value={yColumn} onValueChange={setYColumn}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-800">
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
               {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
@@ -149,10 +128,10 @@ export const ChartConfiguration = ({
               {chartType === 'heatmap' ? 'Value (Intensity)' : 'Value (Flow)'}
             </label>
             <Select value={valueColumn} onValueChange={setValueColumn}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-gray-800">
                 <SelectValue placeholder="Select column" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
                 {numericColumns.map((col) => (
                   <SelectItem key={col.name} value={col.name}>
                     {col.name} ({col.type})
@@ -167,10 +146,10 @@ export const ChartConfiguration = ({
           <div>
             <label className="block text-sm font-medium mb-2">Stack By</label>
             <Select value={stackColumn} onValueChange={setStackColumn}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-gray-800">
                 <SelectValue placeholder="Select column" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
                 {categoricalColumns.map((col) => (
                   <SelectItem key={col.name} value={col.name}>
                     {col.name} ({col.type})
@@ -184,10 +163,10 @@ export const ChartConfiguration = ({
         <div>
           <label className="block text-sm font-medium mb-2">Sort By</label>
           <Select value={sortColumn} onValueChange={setSortColumn}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-800">
               <SelectValue placeholder="None" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
               <SelectItem value="none">None</SelectItem>
               {columns.map((col) => (
                 <SelectItem key={col.name} value={col.name}>
@@ -245,15 +224,6 @@ export const ChartConfiguration = ({
             </p>
           </div>
         )}
-      </div>
-
-      <div className="flex justify-end mb-8">
-        <Button 
-          onClick={autoSelect}
-          disabled={!columns.length}
-        >
-          Auto-select
-        </Button>
       </div>
     </>
   );
