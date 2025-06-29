@@ -6,6 +6,7 @@ import { DashboardTileData } from './dashboard/DashboardTile';
 import { useState } from 'react';
 import { ChartDataManager } from './chart/ChartDataManager';
 import { ChartConfigurationManager } from './chart/ChartConfigurationManager';
+import { useChartState } from '@/hooks/useChartState';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -27,6 +28,21 @@ export const ChartVisualization = ({
   const [activeData, setActiveData] = useState<DataRow[]>(data);
   const [activeColumns, setActiveColumns] = useState<ColumnInfo[]>(columns);
 
+  const {
+    chartType,
+    xColumn,
+    yColumn,
+    stackColumn,
+    sankeyTargetColumn,
+    sortColumn,
+    sortDirection,
+    series,
+    aggregationMethod,
+    showDataLabels,
+    supportsMultipleSeries,
+    chartColors
+  } = useChartState();
+
   const handleDataSourceChange = (newData: DataRow[], newColumns: ColumnInfo[]) => {
     setActiveData(newData);
     setActiveColumns(newColumns);
@@ -36,33 +52,25 @@ export const ChartVisualization = ({
     setValueColumn('');
   };
 
-  const configManager = ChartConfigurationManager({
-    columns: activeColumns,
-    customTitle,
-    setCustomTitle,
-    valueColumn,
-    setValueColumn
-  });
-
   const handleSaveTile = () => {
-    if (!configManager.xColumn || !configManager.yColumn || !onSaveTile) return;
+    if (!xColumn || !yColumn || !onSaveTile) return;
     
-    const defaultTitle = `${configManager.chartType.charAt(0).toUpperCase() + configManager.chartType.slice(1).replace('-', ' ')} - ${configManager.xColumn} vs ${configManager.yColumn}`;
+    const defaultTitle = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn} vs ${yColumn}`;
     const title = customTitle || defaultTitle;
     
     onSaveTile({
       title,
-      chartType: configManager.chartType,
-      xColumn: configManager.xColumn,
-      yColumn: configManager.yColumn,
-      stackColumn: configManager.stackColumn,
-      sankeyTargetColumn: configManager.sankeyTargetColumn,
-      valueColumn: configManager.valueColumn,
-      sortColumn: configManager.sortColumn,
-      sortDirection: configManager.sortDirection,
-      series: configManager.series,
-      showDataLabels: configManager.showDataLabels,
-      worksheetId: 'joined' // This will need to be updated based on data source
+      chartType,
+      xColumn,
+      yColumn,
+      stackColumn,
+      sankeyTargetColumn,
+      valueColumn,
+      sortColumn,
+      sortDirection,
+      series,
+      showDataLabels,
+      worksheetId: 'joined'
     });
   };
 
@@ -78,33 +86,31 @@ export const ChartVisualization = ({
           onColumnSelectionReset={handleColumnSelectionReset}
         />
         
-        <configManager.ChartConfigurationComponent />
-
-        <div className="mt-4">
-          <configManager.AggregationConfigurationComponent />
-        </div>
-
-        {configManager.SeriesManagerComponent && (
-          <configManager.SeriesManagerComponent />
-        )}
+        <ChartConfigurationManager
+          columns={activeColumns}
+          customTitle={customTitle}
+          setCustomTitle={setCustomTitle}
+          valueColumn={valueColumn}
+          setValueColumn={setValueColumn}
+        />
       </div>
 
       <ChartContainer
         data={activeData}
         columns={activeColumns}
-        chartType={configManager.chartType}
-        xColumn={configManager.xColumn}
-        yColumn={configManager.yColumn}
-        stackColumn={configManager.stackColumn}
-        sankeyTargetColumn={configManager.sankeyTargetColumn}
-        valueColumn={configManager.valueColumn}
-        sortColumn={configManager.sortColumn}
-        sortDirection={configManager.sortDirection}
-        series={configManager.series}
-        aggregationMethod={configManager.aggregationMethod}
-        showDataLabels={configManager.showDataLabels}
-        supportsMultipleSeries={configManager.supportsMultipleSeries}
-        chartColors={configManager.chartColors}
+        chartType={chartType}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        stackColumn={stackColumn}
+        sankeyTargetColumn={sankeyTargetColumn}
+        valueColumn={valueColumn}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        series={series}
+        aggregationMethod={aggregationMethod}
+        showDataLabels={showDataLabels}
+        supportsMultipleSeries={supportsMultipleSeries}
+        chartColors={chartColors}
         onSaveTile={handleSaveTile}
         customTitle={customTitle}
         onTitleChange={setCustomTitle}

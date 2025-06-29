@@ -71,43 +71,8 @@ export const ChartConfigurationManager = ({
     date: dateColumns.map(col => col.name)
   });
 
-  return {
-    // Chart state
-    chartType,
-    setChartType,
-    xColumn,
-    setXColumn,
-    yColumn,
-    setYColumn,
-    stackColumn,
-    setStackColumn,
-    sankeyTargetColumn,
-    setSankeyTargetColumn,
-    sortColumn,
-    setSortColumn,
-    sortDirection,
-    setSortDirection,
-    series,
-    setSeries,
-    aggregationMethod,
-    setAggregationMethod,
-    showDataLabels,
-    setShowDataLabels,
-    selectedPalette,
-    setSelectedPalette,
-    chartColors,
-    supportsMultipleSeries,
-    supportsDataLabels,
-    valueColumn,
-    setValueColumn,
-    
-    // Filtered columns
-    numericColumns,
-    categoricalColumns,
-    dateColumns,
-    
-    // Components
-    ChartConfigurationComponent: () => (
+  return (
+    <div className="space-y-4">
       <ChartConfiguration
         chartType={chartType}
         setChartType={setChartType}
@@ -134,10 +99,40 @@ export const ChartConfigurationManager = ({
         numericColumns={numericColumns}
         categoricalColumns={categoricalColumns}
         dateColumns={dateColumns}
+        chartState={{
+          chartType,
+          setChartType,
+          xColumn,
+          setXColumn,
+          yColumn,
+          setYColumn,
+          stackColumn,
+          setStackColumn,
+          sankeyTargetColumn,
+          setSankeyTargetColumn,
+          sortColumn,
+          setSortColumn,
+          sortDirection,
+          setSortDirection,
+          series,
+          setSeries,
+          aggregationMethod,
+          setAggregationMethod,
+          showDataLabels,
+          setShowDataLabels,
+          selectedPalette,
+          setSelectedPalette,
+          chartColors,
+          supportsMultipleSeries,
+          supportsDataLabels,
+          valueColumn,
+          setValueColumn,
+          numericColumns,
+          categoricalColumns,
+          dateColumns
+        }}
       />
-    ),
-    
-    AggregationConfigurationComponent: () => (
+
       <AggregationConfiguration
         aggregationMethod={aggregationMethod}
         setAggregationMethod={setAggregationMethod}
@@ -145,16 +140,16 @@ export const ChartConfigurationManager = ({
         chartType={chartType}
         numericColumns={numericColumns}
       />
-    ),
-    
-    SeriesManagerComponent: supportsMultipleSeries ? () => (
-      <SeriesManager
-        series={series}
-        setSeries={setSeries}
-        numericColumns={numericColumns}
-        yColumn={yColumn}
-        chartColors={chartColors}
-      />
-    ) : null
-  };
+
+      {supportsMultipleSeries && (
+        <SeriesManager
+          series={series}
+          setSeries={setSeries}
+          numericColumns={numericColumns}
+          yColumn={yColumn}
+          chartColors={chartColors}
+        />
+      )}
+    </div>
+  );
 };

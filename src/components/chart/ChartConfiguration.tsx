@@ -32,6 +32,7 @@ interface ChartConfigurationProps {
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
   dateColumns: ColumnInfo[];
+  chartState?: any;
 }
 
 export const ChartConfiguration = ({
