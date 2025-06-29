@@ -140,7 +140,7 @@ export const ColumnSelectors = ({
           <Select value={stackColumn} onValueChange={setStackColumn}>
             <SelectTrigger className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
               <SelectValue placeholder="Select column" />
-            </Select>
+            </SelectTrigger>
             <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 z-50">
               {categoricalColumns.map((col) => (
                 <SelectItem key={col.name} value={col.name}>
