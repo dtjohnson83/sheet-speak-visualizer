@@ -1,12 +1,13 @@
+
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
+import { ColumnTypeOverride } from '@/components/data-preview/ColumnTypeOverride';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/useDashboard';
-
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface DataRow {
@@ -34,6 +35,17 @@ const Index = () => {
     setWorksheetName(worksheet || '');
   };
 
+  const handleColumnTypeChange = (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => {
+    setColumns(prevColumns => {
+      return prevColumns.map(col => {
+        if (col.name === columnName) {
+          return { ...col, type: newType };
+        }
+        return col;
+      });
+    });
+  };
+
   const displayFileName = worksheetName ? `${fileName} - ${worksheetName}` : fileName;
 
   return (
@@ -58,8 +70,9 @@ const Index = () => {
 
           {data.length > 0 && (
             <Tabs defaultValue="preview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="preview">Data Preview</TabsTrigger>
+                <TabsTrigger value="types">Column Types</TabsTrigger>
                 <TabsTrigger value="charts">Visualizations</TabsTrigger>
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               </TabsList>
@@ -70,6 +83,15 @@ const Index = () => {
                     data={data} 
                     columns={columns} 
                     fileName={displayFileName}
+                  />
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="types" className="space-y-4">
+                <Card className="p-6">
+                  <ColumnTypeOverride 
+                    columns={columns}
+                    onColumnTypeChange={handleColumnTypeChange}
                   />
                 </Card>
               </TabsContent>

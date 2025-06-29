@@ -28,11 +28,11 @@ const convertExcelDate = (serial: number): string => {
   return date.toISOString();
 };
 
-// Check if a number could be an Excel date serial number
+// Improved Excel date serial number detection - more conservative
 const isExcelDateSerial = (value: number): boolean => {
-  // Excel date serials are typically between 1 (1900-01-01) and ~50000 (2037)
-  // But let's be more conservative and check for reasonable date ranges
-  return value >= 1 && value <= 100000 && Number.isInteger(value);
+  // More conservative range: 25569 (1970-01-01) to 54794 (2050-01-01)
+  // This avoids treating small integers or IDs as dates
+  return value >= 25569 && value <= 54794 && Number.isInteger(value);
 };
 
 export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
@@ -48,7 +48,48 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     
     if (nonEmptyValues.length === 0) return 'text';
     
-    // Enhanced date detection patterns
+    console.log('Detecting column type for values:', nonEmptyValues.slice(0, 10));
+    
+    // STEP 1: Check for numeric values FIRST (higher priority)
+    const numericValues = nonEmptyValues.filter(v => {
+      const num = Number(v);
+      return !isNaN(num) && isFinite(num) && String(v).trim() !== '';
+    });
+    
+    console.log('Numeric values found:', numericValues.length, 'out of', nonEmptyValues.length);
+    
+    // If 80% or more values are numeric, treat as numeric
+    if (numericValues.length >= nonEmptyValues.length * 0.8) {
+      // Special case: Check if it's a year column (4-digit years)
+      const yearValues = nonEmptyValues.filter(v => {
+        const str = String(v).trim();
+        if (!/^\d{4}$/.test(str)) return false;
+        const year = parseInt(str);
+        return year >= 1900 && year <= new Date().getFullYear() + 20;
+      });
+      
+      // If most values are years, treat as numeric (not date)
+      if (yearValues.length >= nonEmptyValues.length * 0.8) {
+        console.log('Detected as year column (numeric)');
+        return 'numeric';
+      }
+      
+      // Check if values look like IDs, counts, or other clearly numeric data
+      const allIntegers = numericValues.every(v => Number.isInteger(Number(v)));
+      const hasLargeValues = numericValues.some(v => Math.abs(Number(v)) > 10000);
+      const hasSmallConsecutive = numericValues.some(v => Number(v) >= 1 && Number(v) <= 1000);
+      
+      // If all integers with either large values or small consecutive values, likely numeric IDs/counts
+      if (allIntegers && (hasLargeValues || hasSmallConsecutive)) {
+        console.log('Detected as numeric (IDs/counts)');
+        return 'numeric';
+      }
+      
+      console.log('Detected as numeric (general)');
+      return 'numeric';
+    }
+    
+    // STEP 2: Enhanced date detection patterns (only after numeric check)
     const datePatterns = [
       /^\d{4}-\d{1,2}-\d{1,2}$/,                    // YYYY-MM-DD
       /^\d{1,2}\/\d{1,2}\/\d{4}$/,                  // MM/DD/YYYY or DD/MM/YYYY
@@ -64,20 +105,24 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       /^\d{1,2}:\d{1,2}$/,                          // HH:MM
     ];
     
-    // Check for Excel date serial numbers first
+    // Check for Excel date serial numbers (more conservative)
     const potentialDateSerials = nonEmptyValues.filter(v => {
       const num = Number(v);
       return !isNaN(num) && isExcelDateSerial(num);
     });
     
-    // If more than 80% of values look like Excel date serials, treat as dates
-    if (potentialDateSerials.length > nonEmptyValues.length * 0.8) {
+    // Only if more than 70% of values look like Excel date serials in valid range
+    if (potentialDateSerials.length > nonEmptyValues.length * 0.7) {
+      console.log('Detected as Excel date serials');
       return 'date';
     }
     
-    // Check for date values with improved logic
+    // Check for date string patterns with strict validation
     const dateValues = nonEmptyValues.filter(v => {
       const str = String(v).trim();
+      
+      // Skip if it looks like a pure number (avoid false positives)
+      if (/^\d+$/.test(str)) return false;
       
       // Check against date patterns
       const matchesPattern = datePatterns.some(pattern => pattern.test(str));
@@ -91,39 +136,23 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       const year = date.getFullYear();
       if (year < 1900 || year > 2100) return false;
       
-      // Check if it's not just a number being interpreted as a date
-      // (e.g., "2023" shouldn't be considered a date if it's likely a year column)
-      if (/^\d{4}$/.test(str) && year >= 1900 && year <= new Date().getFullYear() + 10) {
-        // Could be a year, need more context - check if other values in column are similar
-        const yearLikeValues = nonEmptyValues.filter(val => /^\d{4}$/.test(String(val).trim()));
-        if (yearLikeValues.length > nonEmptyValues.length * 0.8) {
-          return false; // Likely a year column, not dates
-        }
-      }
-      
       return true;
     });
     
-    // If more than 60% of values are valid dates, consider it a date column
-    if (dateValues.length > nonEmptyValues.length * 0.6) {
+    // If more than 70% of values are valid dates, consider it a date column
+    if (dateValues.length > nonEmptyValues.length * 0.7) {
+      console.log('Detected as date column');
       return 'date';
     }
     
-    // Check for numeric values (after date check to avoid conflicts)
-    const numericValues = nonEmptyValues.filter(v => {
-      const num = Number(v);
-      return !isNaN(num) && isFinite(num) && String(v).trim() !== '';
-    });
-    if (numericValues.length > nonEmptyValues.length * 0.7) {
-      return 'numeric';
-    }
-    
-    // Check for categorical (limited unique values)
+    // STEP 3: Check for categorical (limited unique values)
     const uniqueValues = new Set(nonEmptyValues.map(v => String(v).toLowerCase().trim()));
     if (uniqueValues.size < nonEmptyValues.length * 0.5 && uniqueValues.size > 1 && uniqueValues.size <= 50) {
+      console.log('Detected as categorical');
       return 'categorical';
     }
     
+    console.log('Detected as text (default)');
     return 'text';
   };
 
@@ -143,11 +172,13 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     // Get column names from the first row
     const columnNames = Object.keys(rawData[0]);
     
-    // First pass: detect column types
+    // First pass: detect column types with improved logic
     const columnTypes: Record<string, 'numeric' | 'date' | 'categorical' | 'text'> = {};
     columnNames.forEach(name => {
       const values = rawData.map(row => row[name]);
-      columnTypes[name] = detectColumnType(values);
+      const detectedType = detectColumnType(values);
+      columnTypes[name] = detectedType;
+      console.log(`Column "${name}" detected as: ${detectedType}`);
     });
 
     // Second pass: convert data based on detected types
@@ -196,7 +227,7 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       };
     });
 
-    console.log('Detected columns:', columns);
+    console.log('Final detected columns:', columns.map(c => ({ name: c.name, type: c.type })));
     console.log('Processed data sample:', processedData.slice(0, 3));
     
     onDataLoaded(processedData, columns, currentFileName, worksheetData.name);
