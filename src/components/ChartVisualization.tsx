@@ -11,6 +11,9 @@ import { useState, useMemo } from 'react';
 import { MultiWorksheetSelector } from './chart/MultiWorksheetSelector';
 import { detectCrossWorksheetRelations, CrossWorksheetRelation, JoinConfiguration } from '@/lib/crossWorksheetRelations';
 import { joinWorksheetData, JoinedDataset } from '@/lib/dataJoiner';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'lucide-react';
 
 interface ChartVisualizationProps {
   data: DataRow[];

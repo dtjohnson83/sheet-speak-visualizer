@@ -117,16 +117,16 @@ const calculateNameSimilarity = (name1: string, name2: string): number => {
   
   // Check for common patterns
   const patterns = [
-    [/_?id$/i, ''],
-    [/^id_?/i, ''],
-    [/_name$/i, ''],
-    [/_code$/i, '']
+    { pattern: /_?id$/i, replacement: '' },
+    { pattern: /^id_?/i, replacement: '' },
+    { pattern: /_name$/i, replacement: '' },
+    { pattern: /_code$/i, replacement: '' }
   ];
   
   let clean1 = n1;
   let clean2 = n2;
   
-  patterns.forEach(([pattern, replacement]) => {
+  patterns.forEach(({ pattern, replacement }) => {
     clean1 = clean1.replace(pattern, replacement);
     clean2 = clean2.replace(pattern, replacement);
   });
