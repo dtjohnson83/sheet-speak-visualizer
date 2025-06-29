@@ -2,6 +2,7 @@
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { isValidNumber, aggregateData } from '@/lib/chartDataUtils';
+import { ColumnFormat, formatCellValue } from '@/lib/columnFormatting';
 
 export const prepareStandardChartData = (
   data: DataRow[],
@@ -13,7 +14,8 @@ export const prepareStandardChartData = (
   aggregationMethod: any,
   sortColumn: string,
   sortDirection: 'asc' | 'desc',
-  chartType: string
+  chartType: string,
+  columnFormats?: ColumnFormat[]
 ): DataRow[] => {
   // Use the updated aggregateData function that handles per-series aggregation
   const aggregatedData = aggregateData(data, xColumn, yColumn, series, aggregationMethod);
@@ -31,6 +33,18 @@ export const prepareStandardChartData = (
           const date = new Date(xValue);
           if (isNaN(date.getTime())) return null;
           xValue = date.getTime();
+        } else {
+          // For non-scatter charts, format the date for display
+          const xColumnFormat = columnFormats?.find(f => f.columnName === xColumn);
+          if (xColumnFormat && xColumnFormat.type === 'date') {
+            xValue = formatCellValue(xValue, xColumnFormat);
+          } else {
+            // Default date formatting if no specific format is set
+            const date = new Date(xValue);
+            if (!isNaN(date.getTime())) {
+              xValue = date.toLocaleDateString('en-CA'); // ISO format YYYY-MM-DD
+            }
+          }
         }
       }
 
@@ -47,6 +61,6 @@ export const prepareStandardChartData = (
     })
     .filter(row => row !== null);
 
-  console.log('Chart data prepared (aggregated with per-series methods):', processedData);
+  console.log('Chart data prepared (aggregated with per-series methods and formatted):', processedData);
   return processedData;
 };

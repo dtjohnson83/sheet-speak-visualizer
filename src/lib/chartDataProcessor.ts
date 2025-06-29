@@ -3,6 +3,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { SankeyData } from '@/lib/chartDataUtils';
+import { ColumnFormat } from '@/lib/columnFormatting';
 import { prepareSankeyData } from './chart/sankeyProcessor';
 import { prepareHeatmapData } from './chart/heatmapProcessor';
 import { prepareTreemapData } from './chart/treemapProcessor';
@@ -25,7 +26,8 @@ export const prepareChartData = (
   supportsMultipleSeries: boolean,
   numericColumns: ColumnInfo[],
   aggregationMethod: AggregationMethod = 'sum',
-  valueColumn?: string
+  valueColumn?: string,
+  columnFormats?: ColumnFormat[]
 ): DataRow[] | SankeyData => {
   if (!xColumn || !yColumn) return [];
 
@@ -34,7 +36,7 @@ export const prepareChartData = (
 
   if (!xCol || !yCol) return [];
 
-  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod, valueColumn });
+  console.log('Preparing chart data for:', { xColumn, yColumn, chartType, series, aggregationMethod, valueColumn, columnFormats });
 
   switch (chartType) {
     case 'sankey':
@@ -59,8 +61,8 @@ export const prepareChartData = (
       break;
 
     default:
-      return prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType);
+      return prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
   }
 
-  return prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType);
+  return prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
 };

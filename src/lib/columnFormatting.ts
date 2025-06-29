@@ -1,7 +1,6 @@
-
 import { ColumnFormat } from '@/components/data-preview/ColumnFormatting';
 
-export { ColumnFormat };
+export type { ColumnFormat };
 
 export const formatCellValue = (value: any, columnFormat: ColumnFormat): string => {
   if (value === null || value === undefined || value === '') return '';

@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { SeriesConfig } from '@/hooks/useChartState';
+import { ColumnFormat } from '@/lib/columnFormatting';
 import {
   BarChartRenderer,
   LineChartRenderer,
@@ -28,6 +30,7 @@ export interface TileChartRendererProps {
   data: DataRow[];
   columns: ColumnInfo[];
   chartColors: string[];
+  columnFormats?: ColumnFormat[];
 }
 
 export const TileChartRenderer = ({
@@ -43,7 +46,8 @@ export const TileChartRenderer = ({
   showDataLabels,
   data,
   columns,
-  chartColors
+  chartColors,
+  columnFormats
 }: TileChartRendererProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
@@ -61,7 +65,8 @@ export const TileChartRenderer = ({
     ['bar', 'line', 'scatter'].includes(chartType),
     numericColumns,
     'sum',
-    valueColumn
+    valueColumn,
+    columnFormats
   );
 
   if (!xColumn || !yColumn || (Array.isArray(chartData) && chartData.length === 0)) {
@@ -78,7 +83,8 @@ export const TileChartRenderer = ({
     yColumn,
     series,
     chartColors,
-    showDataLabels: showDataLabels || false
+    showDataLabels: showDataLabels || false,
+    columnFormats
   };
 
   return (

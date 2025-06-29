@@ -1,8 +1,8 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { SankeyData } from '@/lib/chartDataUtils';
+import { ColumnFormat } from '@/lib/columnFormatting';
 import {
   BarChartRenderer,
   LineChartRenderer,
@@ -30,6 +30,7 @@ interface ChartRendererProps {
   showDataLabels: boolean;
   supportsMultipleSeries: boolean;
   chartColors: string[];
+  columnFormats?: ColumnFormat[];
 }
 
 export const ChartRenderer = ({
@@ -47,7 +48,8 @@ export const ChartRenderer = ({
   aggregationMethod,
   showDataLabels,
   supportsMultipleSeries,
-  chartColors
+  chartColors,
+  columnFormats
 }: ChartRendererProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
@@ -65,7 +67,8 @@ export const ChartRenderer = ({
     supportsMultipleSeries,
     numericColumns,
     aggregationMethod,
-    valueColumn
+    valueColumn,
+    columnFormats
   );
 
   const isSankeyData = (data: DataRow[] | SankeyData): data is SankeyData => {
@@ -90,7 +93,8 @@ export const ChartRenderer = ({
     yColumn,
     series,
     chartColors,
-    showDataLabels
+    showDataLabels,
+    columnFormats
   };
 
   switch (chartType) {

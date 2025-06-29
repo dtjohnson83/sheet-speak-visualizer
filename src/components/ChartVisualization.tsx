@@ -6,15 +6,17 @@ import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { DashboardTileData } from './dashboard/DashboardTile';
+import { ColumnFormat } from '@/lib/columnFormatting';
 import { useState } from 'react';
 
 interface ChartVisualizationProps {
   data: DataRow[];
   columns: ColumnInfo[];
   onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void;
+  columnFormats?: ColumnFormat[];
 }
 
-export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualizationProps) => {
+export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }: ChartVisualizationProps) => {
   const [customTitle, setCustomTitle] = useState<string>('');
   const [valueColumn, setValueColumn] = useState<string>('');
 
@@ -144,6 +146,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile }: ChartVisualiza
         onSaveTile={handleSaveTile}
         customTitle={customTitle}
         onTitleChange={setCustomTitle}
+        columnFormats={columnFormats}
       />
     </div>
   );

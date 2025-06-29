@@ -5,6 +5,7 @@ import { ChartRenderer } from './ChartRenderer';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
+import { ColumnFormat } from '@/lib/columnFormatting';
 
 interface ChartContainerProps {
   data: DataRow[];
@@ -25,6 +26,7 @@ interface ChartContainerProps {
   onSaveTile?: () => void;
   customTitle?: string;
   onTitleChange?: (title: string) => void;
+  columnFormats?: ColumnFormat[];
 }
 
 export const ChartContainer = ({
@@ -45,7 +47,8 @@ export const ChartContainer = ({
   chartColors,
   onSaveTile,
   customTitle,
-  onTitleChange
+  onTitleChange,
+  columnFormats
 }: ChartContainerProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
@@ -64,7 +67,8 @@ export const ChartContainer = ({
     supportsMultipleSeries,
     numericColumns,
     aggregationMethod,
-    valueColumn
+    valueColumn,
+    columnFormats
   );
 
   return (
@@ -103,6 +107,7 @@ export const ChartContainer = ({
           showDataLabels={showDataLabels}
           supportsMultipleSeries={supportsMultipleSeries}
           chartColors={chartColors}
+          columnFormats={columnFormats}
         />
       </div>
     </Card>
