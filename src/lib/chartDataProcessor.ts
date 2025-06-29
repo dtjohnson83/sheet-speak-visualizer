@@ -87,14 +87,14 @@ export const prepareChartData = (
       }
       break;
 
-    case 'horizontal-bar':
+    case 'bar':
     default:
       processedData = prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
   }
 
   // Apply top X limiting for supported chart types (only for array data, not SankeyData)
   if (Array.isArray(processedData) && topXLimit && topXLimit > 0) {
-    const limitSupportedCharts = ['bar', 'horizontal-bar', 'pie', 'stacked-bar', 'treemap'];
+    const limitSupportedCharts = ['bar', 'pie', 'stacked-bar', 'treemap'];
     if (limitSupportedCharts.includes(chartType)) {
       // Use the yColumn as the default sort column for limiting if no specific sort column is set
       const sortColumnForLimit = sortColumn === 'none' ? yColumn : sortColumn;

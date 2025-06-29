@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { COLOR_PALETTES } from '@/components/chart/ColorPaletteSelector';
@@ -12,7 +11,7 @@ export interface SeriesConfig {
 }
 
 export const useChartState = () => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'horizontal-bar' | 'histogram'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'histogram'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
@@ -34,15 +33,15 @@ export const useChartState = () => {
 
   const chartColors = getChartColors();
 
-  const multiSeriesChartTypes = ['bar', 'line', 'scatter', 'horizontal-bar'];
+  const multiSeriesChartTypes = ['bar', 'line', 'scatter'];
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
 
   // Charts that support data labels
-  const dataLabelSupportedCharts = ['bar', 'line', 'stacked-bar', 'horizontal-bar', 'histogram'];
+  const dataLabelSupportedCharts = ['bar', 'line', 'stacked-bar', 'histogram'];
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
 
   // Charts that support top X limiting
-  const topXSupportedCharts = ['bar', 'horizontal-bar', 'pie', 'stacked-bar', 'treemap'];
+  const topXSupportedCharts = ['bar', 'pie', 'stacked-bar', 'treemap'];
   const supportsTopXLimit = topXSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {

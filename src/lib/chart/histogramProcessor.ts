@@ -29,8 +29,13 @@ export const prepareHistogramData = (
       i === binCount - 1 ? val >= binMin && val <= binMax : val >= binMin && val < binMax
     ).length;
 
+    // Format range with proper decimal places for better display
+    const formattedMin = binMin.toFixed(1);
+    const formattedMax = binMax.toFixed(1);
+    const range = `${formattedMin} - ${formattedMax}`;
+
     bins.push({
-      range: `${binMin.toFixed(1)} - ${binMax.toFixed(1)}`,
+      range,
       count,
       min: binMin,
       max: binMax
@@ -40,6 +45,7 @@ export const prepareHistogramData = (
   console.log('Histogram data prepared:', bins);
   return bins.map(bin => ({
     [column]: bin.range,
+    range: bin.range, // Ensure range is available for display
     frequency: bin.count,
     value: bin.count
   }));

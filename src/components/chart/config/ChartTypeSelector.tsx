@@ -16,7 +16,6 @@ export const ChartTypeSelector = ({ chartType, setChartType }: ChartTypeSelector
         </SelectTrigger>
         <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50">
           <SelectItem value="bar">Bar Chart</SelectItem>
-          <SelectItem value="horizontal-bar">Horizontal Bar Chart</SelectItem>
           <SelectItem value="stacked-bar">Stacked Bar Chart</SelectItem>
           <SelectItem value="line">Line Chart</SelectItem>
           <SelectItem value="pie">Pie Chart</SelectItem>

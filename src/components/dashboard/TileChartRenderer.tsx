@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { prepareChartData } from '@/lib/chartDataProcessor';
@@ -14,7 +13,6 @@ import {
   StackedBarRenderer,
   HeatmapRenderer,
   SankeyRenderer,
-  HorizontalBarChartRenderer,
   HistogramRenderer
 } from '../chart/ChartRenderers';
 
@@ -64,7 +62,7 @@ export const TileChartRenderer = ({
     sortDirection || 'desc',
     stackColumn,
     sankeyTargetColumn,
-    ['bar', 'line', 'scatter', 'horizontal-bar'].includes(chartType),
+    ['bar', 'line', 'scatter'].includes(chartType),
     numericColumns,
     'sum',
     valueColumn,
@@ -101,8 +99,6 @@ export const TileChartRenderer = ({
             return <TreemapRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
           case 'sankey':
             return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
-          case 'horizontal-bar':
-            return <HorizontalBarChartRenderer {...commonProps} />;
           case 'histogram':
             return <HistogramRenderer data={chartData as DataRow[]} chartColors={chartColors} showDataLabels={showDataLabels} />;
           case 'bar':

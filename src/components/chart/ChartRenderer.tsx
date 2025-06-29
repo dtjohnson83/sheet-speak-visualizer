@@ -1,4 +1,3 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
@@ -13,7 +12,6 @@ import {
   StackedBarRenderer,
   HeatmapRenderer,
   SankeyRenderer,
-  HorizontalBarChartRenderer,
   HistogramRenderer
 } from './ChartRenderers';
 
@@ -118,9 +116,6 @@ export const ChartRenderer = ({
 
     case 'sankey':
       return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
-
-    case 'horizontal-bar':
-      return <HorizontalBarChartRenderer {...commonProps} />;
 
     case 'histogram':
       return <HistogramRenderer data={chartData as DataRow[]} chartColors={chartColors} showDataLabels={showDataLabels} />;
