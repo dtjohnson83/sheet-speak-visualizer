@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useTileInteractions } from './TileInteractionHandlers';
-import { TileChartRenderer, SeriesConfig } from './TileChartRenderer';
+import { TileChartRenderer } from './TileChartRenderer';
+import { SeriesConfig } from '@/hooks/useChartState';
 import { TileControls } from './TileControls';
 import { ResizeHandle } from './ResizeHandle';
 
