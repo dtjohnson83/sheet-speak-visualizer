@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { SankeyData } from '@/lib/chartDataUtils';
+import { SeriesConfig } from '@/hooks/useChartState';
 import {
   BarChartRenderer,
   LineChartRenderer,
@@ -13,13 +13,6 @@ import {
   HeatmapRenderer,
   SankeyRenderer
 } from '../chart/ChartRenderers';
-
-export interface SeriesConfig {
-  id: string;
-  column: string;
-  color: string;
-  type: 'bar' | 'line';
-}
 
 export interface TileChartRendererProps {
   chartType: string;
