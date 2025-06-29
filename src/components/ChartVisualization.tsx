@@ -1,12 +1,14 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { WorksheetData } from '@/types/worksheet';
+import { useChartState } from '@/hooks/useChartState';
+import { SeriesManager } from './chart/SeriesManager';
+import { ChartConfiguration } from './chart/ChartConfiguration';
+import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
+import { DataSourceSelector } from './chart/DataSourceSelector';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { useState } from 'react';
-import { ChartDataManager } from './chart/ChartDataManager';
-import { ChartConfigurationManager } from './chart/ChartConfigurationManager';
-import { useChartState } from '@/hooks/useChartState';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -25,32 +27,43 @@ export const ChartVisualization = ({
 }: ChartVisualizationProps) => {
   const [customTitle, setCustomTitle] = useState<string>('');
   const [valueColumn, setValueColumn] = useState<string>('');
-  const [activeData, setActiveData] = useState<DataRow[]>(data);
-  const [activeColumns, setActiveColumns] = useState<ColumnInfo[]>(columns);
+  const [chartDataSource, setChartDataSource] = useState<WorksheetData | null>(selectedWorksheet);
 
   const {
     chartType,
+    setChartType,
     xColumn,
+    setXColumn,
     yColumn,
+    setYColumn,
     stackColumn,
+    setStackColumn,
     sankeyTargetColumn,
+    setSankeyTargetColumn,
     sortColumn,
+    setSortColumn,
     sortDirection,
+    setSortDirection,
     series,
+    setSeries,
     aggregationMethod,
+    setAggregationMethod,
     showDataLabels,
+    setShowDataLabels,
+    selectedPalette,
+    setSelectedPalette,
+    chartColors,
     supportsMultipleSeries,
-    chartColors
+    supportsDataLabels
   } = useChartState();
 
-  const handleDataSourceChange = (newData: DataRow[], newColumns: ColumnInfo[]) => {
-    setActiveData(newData);
-    setActiveColumns(newColumns);
-  };
-
-  const handleColumnSelectionReset = () => {
-    setValueColumn('');
-  };
+  // Use data from selected chart data source
+  const activeData = chartDataSource?.data || data;
+  const activeColumns = chartDataSource?.columns || columns;
+  
+  const numericColumns = activeColumns.filter(col => col.type === 'numeric');
+  const categoricalColumns = activeColumns.filter(col => col.type === 'categorical' || col.type === 'text');
+  const dateColumns = activeColumns.filter(col => col.type === 'date');
 
   const handleSaveTile = () => {
     if (!xColumn || !yColumn || !onSaveTile) return;
@@ -70,8 +83,18 @@ export const ChartVisualization = ({
       sortDirection,
       series,
       showDataLabels,
-      worksheetId: 'joined'
+      worksheetId: chartDataSource?.id
     });
+  };
+
+  const handleDataSourceChange = (worksheet: WorksheetData | null) => {
+    setChartDataSource(worksheet);
+    // Reset column selections when changing data source
+    setXColumn('');
+    setYColumn('');
+    setStackColumn('');
+    setValueColumn('');
+    setSortColumn('none');
   };
 
   return (
@@ -79,20 +102,61 @@ export const ChartVisualization = ({
       <div>
         <h3 className="text-xl font-semibold mb-4">Data Visualization</h3>
         
-        <ChartDataManager
-          worksheets={worksheets}
-          selectedWorksheet={selectedWorksheet}
-          onDataSourceChange={handleDataSourceChange}
-          onColumnSelectionReset={handleColumnSelectionReset}
-        />
+        {worksheets.length > 1 && (
+          <DataSourceSelector
+            worksheets={worksheets}
+            selectedWorksheet={chartDataSource}
+            onWorksheetChange={handleDataSourceChange}
+          />
+        )}
         
-        <ChartConfigurationManager
-          columns={activeColumns}
-          customTitle={customTitle}
-          setCustomTitle={setCustomTitle}
+        <ChartConfiguration
+          chartType={chartType}
+          setChartType={setChartType}
+          xColumn={xColumn}
+          setXColumn={setXColumn}
+          yColumn={yColumn}
+          setYColumn={setYColumn}
+          stackColumn={stackColumn}
+          setStackColumn={setStackColumn}
+          sankeyTargetColumn={sankeyTargetColumn}
+          setSankeyTargetColumn={setSankeyTargetColumn}
           valueColumn={valueColumn}
           setValueColumn={setValueColumn}
+          sortColumn={sortColumn}
+          setSortColumn={setSortColumn}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+          showDataLabels={showDataLabels}
+          setShowDataLabels={setShowDataLabels}
+          supportsDataLabels={supportsDataLabels}
+          selectedPalette={selectedPalette}
+          setSelectedPalette={setSelectedPalette}
+          columns={activeColumns}
+          numericColumns={numericColumns}
+          categoricalColumns={categoricalColumns}
+          dateColumns={dateColumns}
         />
+
+        <div className="mt-4">
+          <AggregationConfiguration
+            aggregationMethod={aggregationMethod}
+            setAggregationMethod={setAggregationMethod}
+            yColumn={yColumn}
+            chartType={chartType}
+            numericColumns={numericColumns}
+          />
+        </div>
+
+        {supportsMultipleSeries && (
+          <SeriesManager
+            series={series}
+            setSeries={setSeries}
+            numericColumns={numericColumns}
+            yColumn={yColumn}
+            chartColors={chartColors}
+          />
+        )}
       </div>
 
       <ChartContainer
