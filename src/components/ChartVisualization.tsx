@@ -128,6 +128,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}
           dateColumns={dateColumns}
+          data={data}
         />
 
         <div className="mt-4">
