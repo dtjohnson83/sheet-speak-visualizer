@@ -1,4 +1,3 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
@@ -66,8 +65,12 @@ export const sortData = (data: DataRow[], sortColumn: string, sortDirection: 'as
     if (aIsNumber && bIsNumber) {
       // Both are valid numbers after cleaning - do numeric comparison
       console.log('Comparing cleaned numbers:', aNum, 'vs', bNum, 'direction:', normalizedDirection);
-      const result = normalizedDirection === 'asc' ? aNum! - bNum! : bNum! - aNum!;
-      return result;
+      // Fixed: proper numeric comparison
+      if (normalizedDirection === 'asc') {
+        return aNum! - bNum!;
+      } else {
+        return bNum! - aNum!;
+      }
     } else if (aIsNumber && !bIsNumber) {
       // Only a is a number - numbers come first in ascending order
       return normalizedDirection === 'asc' ? -1 : 1;
