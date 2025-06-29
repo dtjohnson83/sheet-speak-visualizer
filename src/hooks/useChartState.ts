@@ -8,6 +8,7 @@ export interface SeriesConfig {
   column: string;
   color: string;
   type: 'bar' | 'line';
+  aggregationMethod: AggregationMethod;
 }
 
 export const useChartState = () => {

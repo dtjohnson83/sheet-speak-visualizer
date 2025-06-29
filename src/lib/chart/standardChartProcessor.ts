@@ -15,6 +15,7 @@ export const prepareStandardChartData = (
   sortDirection: 'asc' | 'desc',
   chartType: string
 ): DataRow[] => {
+  // Use the updated aggregateData function that handles per-series aggregation
   const aggregatedData = aggregateData(data, xColumn, yColumn, series, aggregationMethod);
   
   const processedData = aggregatedData
@@ -46,6 +47,6 @@ export const prepareStandardChartData = (
     })
     .filter(row => row !== null);
 
-  console.log('Chart data prepared (aggregated):', processedData);
+  console.log('Chart data prepared (aggregated with per-series methods):', processedData);
   return processedData;
 };

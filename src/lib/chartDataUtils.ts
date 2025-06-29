@@ -1,3 +1,4 @@
+
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
@@ -152,10 +153,10 @@ export const aggregateData = (
       [yColumn]: applyAggregation(groupData.yValues, aggregationMethod)
     };
     
-    // Apply aggregation to series data
+    // Apply per-series aggregation methods
     series.forEach(seriesConfig => {
       const seriesValues = groupData.seriesValues[seriesConfig.column] || [];
-      result[seriesConfig.column] = applyAggregation(seriesValues, aggregationMethod);
+      result[seriesConfig.column] = applyAggregation(seriesValues, seriesConfig.aggregationMethod);
     });
     
     return result;

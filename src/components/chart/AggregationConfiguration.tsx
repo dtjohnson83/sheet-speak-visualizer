@@ -40,20 +40,20 @@ export const AggregationConfiguration = ({
         return `Flow values will be grouped by source-target pairs and ${aggregationMethod} will be applied`;
       case 'bar':
       case 'line':
-        return `Data points with the same X-axis value will be grouped and ${aggregationMethod} will be applied to ${yColumn}`;
+        return `Data points with the same X-axis value will be grouped and ${aggregationMethod} will be applied to ${yColumn} (primary series)`;
       default:
-        return `Data will be grouped by X-axis and ${aggregationMethod} will be applied to ${yColumn}`;
+        return `Data will be grouped by X-axis and ${aggregationMethod} will be applied to ${yColumn} (primary series)`;
     }
   };
 
   return (
     <Card className="p-4">
       <div className="space-y-3">
-        <h4 className="text-sm font-medium">Data Aggregation</h4>
+        <h4 className="text-sm font-medium">Primary Series Aggregation</h4>
         <div className="grid grid-cols-1 gap-3">
           <div>
             <Label htmlFor="aggregation-method" className="text-sm font-medium">
-              Aggregation Method
+              Aggregation Method for {yColumn}
             </Label>
             <Select value={aggregationMethod} onValueChange={setAggregationMethod}>
               <SelectTrigger>

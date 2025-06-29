@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, X } from 'lucide-react';
 import { ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 
 interface SeriesManagerProps {
   series: SeriesConfig[];
@@ -33,7 +34,8 @@ export const SeriesManager = ({
       id: Math.random().toString(36).substr(2, 9),
       column: availableColumns[0].name,
       color: chartColors[(series.length + 1) % chartColors.length],
-      type: 'bar'
+      type: 'bar',
+      aggregationMethod: 'sum'
     };
     
     setSeries([...series, newSeries]);
@@ -49,6 +51,10 @@ export const SeriesManager = ({
 
   const updateSeriesType = (id: string, type: 'bar' | 'line') => {
     setSeries(series.map(s => s.id === id ? { ...s, type } : s));
+  };
+
+  const updateSeriesAggregation = (id: string, aggregationMethod: AggregationMethod) => {
+    setSeries(series.map(s => s.id === id ? { ...s, aggregationMethod } : s));
   };
 
   const getAvailableSeriesColumns = () => {
@@ -73,11 +79,11 @@ export const SeriesManager = ({
       </div>
       
       {series.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {series.map((seriesConfig) => (
             <div key={seriesConfig.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <div 
-                className="w-4 h-4 rounded" 
+                className="w-4 h-4 rounded flex-shrink-0" 
                 style={{ backgroundColor: seriesConfig.color }}
               />
               <Select 
@@ -101,7 +107,7 @@ export const SeriesManager = ({
                 value={seriesConfig.type} 
                 onValueChange={(value: 'bar' | 'line') => updateSeriesType(seriesConfig.id, value)}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -109,11 +115,26 @@ export const SeriesManager = ({
                   <SelectItem value="line">Line</SelectItem>
                 </SelectContent>
               </Select>
+              <Select 
+                value={seriesConfig.aggregationMethod} 
+                onValueChange={(value: AggregationMethod) => updateSeriesAggregation(seriesConfig.id, value)}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sum">Sum</SelectItem>
+                  <SelectItem value="average">Avg</SelectItem>
+                  <SelectItem value="count">Count</SelectItem>
+                  <SelectItem value="min">Min</SelectItem>
+                  <SelectItem value="max">Max</SelectItem>
+                </SelectContent>
+              </Select>
               <Button
                 onClick={() => removeSeries(seriesConfig.id)}
                 variant="ghost"
                 size="sm"
-                className="text-red-500 hover:text-red-700"
+                className="text-red-500 hover:text-red-700 flex-shrink-0"
               >
                 <X className="h-4 w-4" />
               </Button>
