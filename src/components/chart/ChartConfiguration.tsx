@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -86,8 +87,9 @@ export const ChartConfiguration = ({
 
   // Helper function to display column names nicely
   const formatColumnDisplay = (col: ColumnInfo) => {
-    const hasWorksheet = 'worksheet' in col;
-    if (hasWorksheet) {
+    // Check if column has worksheet info (for joined datasets)
+    const hasWorksheetInfo = 'worksheet' in col && col.worksheet;
+    if (hasWorksheetInfo) {
       return `${col.name} (${col.type}) - ${(col as any).worksheet}`;
     }
     return `${col.name} (${col.type})`;
