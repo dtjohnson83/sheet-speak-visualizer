@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { WorksheetData } from '@/types/worksheet';
 import { useTileInteractions } from './TileInteractionHandlers';
 import { TileChartRenderer, SeriesConfig } from './TileChartRenderer';
 import { TileControls } from './TileControls';
@@ -23,28 +21,21 @@ export interface DashboardTileData {
   showDataLabels?: boolean;
   position: { x: number; y: number };
   size: { width: number; height: number };
-  worksheetId?: string;
 }
 
 interface DashboardTileProps {
   tile: DashboardTileData;
   data: DataRow[];
   columns: ColumnInfo[];
-  worksheets: WorksheetData[];
   onRemove: (id: string) => void;
   onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number }; title?: string }) => void;
 }
 
-export const DashboardTile = ({ tile, data, columns, worksheets, onRemove, onUpdate }: DashboardTileProps) => {
+export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: DashboardTileProps) => {
   const chartColors = [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
     '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#0000ff'
   ];
-
-  // Find the specific worksheet data for this tile
-  const tileWorksheet = worksheets.find(ws => ws.id === tile.worksheetId);
-  const tileData = tileWorksheet?.data || data;
-  const tileColumns = tileWorksheet?.columns || columns;
 
   const {
     tileRef,
@@ -97,19 +88,13 @@ export const DashboardTile = ({ tile, data, columns, worksheets, onRemove, onUpd
           sortDirection={tile.sortDirection}
           series={tile.series}
           showDataLabels={tile.showDataLabels}
-          data={tileData}
-          columns={tileColumns}
+          data={data}
+          columns={columns}
           chartColors={chartColors}
         />
       </div>
 
       <ResizeHandle onMouseDown={handleResizeMouseDown} />
-      
-      {tileWorksheet && (
-        <div className="absolute top-1 right-8 text-xs text-gray-500 bg-white px-1 rounded">
-          {tileWorksheet.fileName} - {tileWorksheet.name}
-        </div>
-      )}
     </Card>
   );
 };
