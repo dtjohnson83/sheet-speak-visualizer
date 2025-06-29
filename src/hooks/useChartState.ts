@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { COLOR_PALETTES } from '@/components/chart/ColorPaletteSelector';
 
@@ -40,14 +40,43 @@ export const useChartState = () => {
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {
+    console.log('useChartState - Chart type changing:', { from: chartType, to: newType });
+    
     setChartType(newType);
+    
+    // Clear series if chart type doesn't support multiple series
     if (!multiSeriesChartTypes.includes(newType)) {
+      console.log('useChartState - Clearing series (chart type does not support multiple series)');
       setSeries([]);
     }
+    
     // Reset data labels if chart type doesn't support them
     if (!dataLabelSupportedCharts.includes(newType)) {
+      console.log('useChartState - Disabling data labels (chart type does not support them)');
       setShowDataLabels(false);
     }
+  };
+
+  // Debug logging for series changes
+  useEffect(() => {
+    console.log('useChartState - Series updated:', {
+      chartType,
+      supportsMultipleSeries,
+      seriesCount: series.length,
+      series: series.map(s => ({ id: s.id, column: s.column, type: s.type }))
+    });
+  }, [series, chartType, supportsMultipleSeries]);
+
+  // Enhanced setSeries with logging
+  const handleSetSeries = (newSeries: SeriesConfig[]) => {
+    console.log('useChartState - Setting series:', {
+      previousCount: series.length,
+      newCount: newSeries.length,
+      chartType,
+      supportsMultipleSeries,
+      newSeries: newSeries.map(s => ({ id: s.id, column: s.column }))
+    });
+    setSeries(newSeries);
   };
 
   return {
@@ -66,7 +95,7 @@ export const useChartState = () => {
     sortDirection,
     setSortDirection,
     series,
-    setSeries,
+    setSeries: handleSetSeries,
     aggregationMethod,
     setAggregationMethod,
     showDataLabels,

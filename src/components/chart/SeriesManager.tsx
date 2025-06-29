@@ -1,7 +1,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Plus, X, Info } from 'lucide-react';
 import { ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
@@ -21,14 +22,38 @@ export const SeriesManager = ({
   yColumn, 
   chartColors 
 }: SeriesManagerProps) => {
-  const addSeries = () => {
-    if (numericColumns.length === 0) return;
-    
-    const availableColumns = numericColumns.filter(col => 
+  
+  const getAvailableSeriesColumns = () => {
+    const available = numericColumns.filter(col => 
       col.name !== yColumn && !series.some(s => s.column === col.name)
     );
     
-    if (availableColumns.length === 0) return;
+    console.log('SeriesManager - Available columns calculation:', {
+      totalNumericColumns: numericColumns.length,
+      numericColumnNames: numericColumns.map(c => c.name),
+      yColumn,
+      existingSeriesColumns: series.map(s => s.column),
+      availableColumns: available.map(c => c.name),
+      availableCount: available.length
+    });
+    
+    return available;
+  };
+
+  const availableColumns = getAvailableSeriesColumns();
+  const canAddSeries = availableColumns.length > 0;
+
+  const addSeries = () => {
+    console.log('SeriesManager - Add Series clicked:', {
+      canAddSeries,
+      availableColumnsCount: availableColumns.length,
+      currentSeriesCount: series.length
+    });
+    
+    if (!canAddSeries) {
+      console.warn('SeriesManager - Cannot add series: no available columns');
+      return;
+    }
     
     const newSeries: SeriesConfig = {
       id: Math.random().toString(36).substr(2, 9),
@@ -38,45 +63,106 @@ export const SeriesManager = ({
       aggregationMethod: 'sum'
     };
     
+    console.log('SeriesManager - Adding new series:', newSeries);
     setSeries([...series, newSeries]);
   };
 
   const removeSeries = (id: string) => {
+    console.log('SeriesManager - Removing series:', id);
     setSeries(series.filter(s => s.id !== id));
   };
 
   const updateSeriesColumn = (id: string, column: string) => {
+    console.log('SeriesManager - Updating series column:', { id, column });
     setSeries(series.map(s => s.id === id ? { ...s, column } : s));
   };
 
   const updateSeriesType = (id: string, type: 'bar' | 'line') => {
+    console.log('SeriesManager - Updating series type:', { id, type });
     setSeries(series.map(s => s.id === id ? { ...s, type } : s));
   };
 
   const updateSeriesAggregation = (id: string, aggregationMethod: AggregationMethod) => {
+    console.log('SeriesManager - Updating series aggregation:', { id, aggregationMethod });
     setSeries(series.map(s => s.id === id ? { ...s, aggregationMethod } : s));
   };
 
-  const getAvailableSeriesColumns = () => {
-    return numericColumns.filter(col => 
-      col.name !== yColumn && !series.some(s => s.column === col.name)
-    );
+  const getButtonTooltipContent = () => {
+    if (numericColumns.length === 0) {
+      return "No numeric columns available for series";
+    }
+    if (numericColumns.length === 1 && yColumn) {
+      return "Only one numeric column available (already used as Y-axis)";
+    }
+    if (!canAddSeries) {
+      return "All available numeric columns are already used";
+    }
+    return `Add a new data series (${availableColumns.length} columns available)`;
   };
 
   return (
     <div className="mt-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-medium">Additional Series</h4>
-        <Button
-          onClick={addSeries}
-          disabled={getAvailableSeriesColumns().length === 0}
-          size="sm"
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Series
-        </Button>
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-medium">Additional Series</h4>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-4 w-4 text-gray-400" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs max-w-48">
+                  Add multiple data series to compare different metrics on the same chart. 
+                  Only works with Bar, Line, and Scatter charts.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Button
+                  onClick={addSeries}
+                  disabled={!canAddSeries}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Series
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">{getButtonTooltipContent()}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
+
+      {/* Debug info - only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+          <div>Debug Info:</div>
+          <div>Total numeric columns: {numericColumns.length}</div>
+          <div>Y-column: {yColumn || 'None'}</div>
+          <div>Available for series: {availableColumns.length}</div>
+          <div>Current series: {series.length}</div>
+        </div>
+      )}
+
+      {!canAddSeries && numericColumns.length > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-700">
+            {numericColumns.length === 1 && yColumn 
+              ? "You need at least 2 numeric columns to add additional series."
+              : "All available numeric columns are already in use. Remove a series to add a different one."
+            }
+          </p>
+        </div>
+      )}
       
       {series.length > 0 && (
         <div className="space-y-3">

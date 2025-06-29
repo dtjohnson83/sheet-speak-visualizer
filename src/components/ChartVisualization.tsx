@@ -7,7 +7,7 @@ import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -51,6 +51,20 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
   const numericColumns = columns.filter(col => col.type === 'numeric');
   const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
   const dateColumns = columns.filter(col => col.type === 'date');
+
+  // Debug logging for series management
+  useEffect(() => {
+    console.log('ChartVisualization - State update:', {
+      chartType,
+      supportsMultipleSeries,
+      xColumn,
+      yColumn,
+      numericColumnsCount: numericColumns.length,
+      numericColumns: numericColumns.map(c => c.name),
+      seriesCount: series.length,
+      series: series.map(s => ({ id: s.id, column: s.column }))
+    });
+  }, [chartType, supportsMultipleSeries, xColumn, yColumn, numericColumns, series]);
 
   const handleSaveTile = () => {
     if (!xColumn || !yColumn || !onSaveTile) return;
@@ -124,6 +138,22 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
             yColumn={yColumn}
             chartColors={chartColors}
           />
+        )}
+
+        {/* Debug panel - only in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+            <h5 className="font-medium mb-2">Debug Information</h5>
+            <div className="text-sm space-y-1">
+              <div>Chart Type: {chartType} (supports series: {supportsMultipleSeries ? 'Yes' : 'No'})</div>
+              <div>Data Rows: {data.length}</div>
+              <div>Total Columns: {columns.length}</div>
+              <div>Numeric Columns: {numericColumns.length} ({numericColumns.map(c => c.name).join(', ')})</div>
+              <div>Selected X: {xColumn || 'None'}</div>
+              <div>Selected Y: {yColumn || 'None'}</div>
+              <div>Series Count: {series.length}</div>
+            </div>
+          </div>
         )}
       </div>
 
