@@ -38,15 +38,38 @@ export const TileChartRenderer = ({
   chartColors 
 }: TileChartRendererProps) => {
   // Create effective series with fallback logic similar to main chart renderers
-  const getEffectiveSeries = () => {
+  const getEffectiveSeries = (): SeriesConfig[] => {
     if (series.length > 0) {
       return series;
     }
     // Fallback to yColumn when series is empty
-    return yColumn ? [{ id: 'default', column: yColumn }] : [];
+    return yColumn ? [{
+      id: 'default',
+      column: yColumn,
+      color: chartColors[0],
+      type: 'bar',
+      aggregationMethod: 'sum'
+    }] : [];
   };
 
   const effectiveSeries = getEffectiveSeries();
+
+  // Custom label component for data labels
+  const renderDataLabel = (props: any) => {
+    const { x, y, width, height, value } = props;
+    return (
+      <text 
+        x={x + width / 2} 
+        y={y - 5} 
+        fill="#666" 
+        textAnchor="middle" 
+        dy={-6}
+        fontSize="12"
+      >
+        {formatTooltipValue(value)}
+      </text>
+    );
+  };
 
   if (chartType === 'bar') {
     return (
@@ -63,6 +86,7 @@ export const TileChartRenderer = ({
               dataKey={s.column} 
               fill={chartColors[index % chartColors.length]} 
               stackId={stackColumn ? 'stack' : undefined}
+              label={showDataLabels ? renderDataLabel : false}
             />
           ))}
         </BarChart>
@@ -87,6 +111,7 @@ export const TileChartRenderer = ({
               stroke={chartColors[index % chartColors.length]}
               strokeWidth={2}
               dot={{ r: 4 }}
+              label={showDataLabels ? renderDataLabel : false}
             />
           ))}
         </LineChart>
@@ -112,6 +137,7 @@ export const TileChartRenderer = ({
               stroke={chartColors[index % chartColors.length]} 
               fill={chartColors[index % chartColors.length]}
               fillOpacity={0.6}
+              label={showDataLabels ? renderDataLabel : false}
             />
           ))}
         </AreaChart>
@@ -131,7 +157,7 @@ export const TileChartRenderer = ({
             cy="50%"
             outerRadius={80}
             fill="#8884d8"
-            label={showDataLabels}
+            label={showDataLabels ? (entry: any) => `${entry.name}: ${formatTooltipValue(entry.value)}` : false}
           >
             {
               data.map((entry, index) => (

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ChartRenderersProps } from '@/types';
 import { KPIRenderer } from './KPIRenderer';
@@ -40,6 +41,7 @@ export const ChartRenderers = ({
         series={series}
         stackColumn={stackColumn}
         chartColors={chartColors}
+        showDataLabels={showDataLabels}
       />
     );
   }
@@ -52,6 +54,7 @@ export const ChartRenderers = ({
         yColumn={yColumn}
         series={series}
         chartColors={chartColors}
+        showDataLabels={showDataLabels}
       />
     );
   }
@@ -65,6 +68,7 @@ export const ChartRenderers = ({
         series={series}
         stackColumn={stackColumn}
         chartColors={chartColors}
+        showDataLabels={showDataLabels}
       />
     );
   }
@@ -98,6 +102,7 @@ export const ChartRenderers = ({
       <HistogramChartRenderer
         data={data}
         chartColors={chartColors}
+        showDataLabels={showDataLabels}
       />
     );
   }

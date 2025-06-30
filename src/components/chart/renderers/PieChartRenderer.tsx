@@ -13,6 +13,11 @@ export const PieChartRenderer = ({
   showDataLabels, 
   chartColors 
 }: PieChartRendererProps) => {
+  // Custom label function for pie chart
+  const renderLabel = (entry: any) => {
+    return `${entry.name}: ${formatTooltipValue(entry.value)}`;
+  };
+
   return (
     <ResponsiveContainer width="100%" height={400}>
       <PieChart>
@@ -24,7 +29,7 @@ export const PieChartRenderer = ({
           cy="50%"
           outerRadius={120}
           fill="#8884d8"
-          label={showDataLabels}
+          label={showDataLabels ? renderLabel : false}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
