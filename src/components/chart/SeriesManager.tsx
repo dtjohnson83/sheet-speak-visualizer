@@ -77,7 +77,7 @@ export const SeriesManager = ({
     setSeries(series.map(s => s.id === id ? { ...s, yAxisId } : s));
   };
 
-  // Only render the container if there are series or if we can add series
+  // Only render the container if there are series OR if we can add series
   if (series.length === 0 && !canAddSeries && numericColumns.length <= 1) {
     return null;
   }
