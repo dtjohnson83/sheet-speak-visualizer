@@ -56,6 +56,73 @@ export type Database = {
           },
         ]
       }
+      dashboard_filters: {
+        Row: {
+          created_at: string
+          dashboard_id: string
+          filters: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dashboard_id: string
+          filters?: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dashboard_id?: string
+          filters?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_filters_dashboard_id_fkey"
+            columns: ["dashboard_id"]
+            isOneToOne: false
+            referencedRelation: "saved_dashboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dashboard_tiles: {
+        Row: {
+          created_at: string
+          dashboard_id: string
+          id: string
+          position: Json
+          size: Json
+          tile_data: Json
+        }
+        Insert: {
+          created_at?: string
+          dashboard_id: string
+          id?: string
+          position: Json
+          size: Json
+          tile_data: Json
+        }
+        Update: {
+          created_at?: string
+          dashboard_id?: string
+          id?: string
+          position?: Json
+          size?: Json
+          tile_data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_tiles_dashboard_id_fkey"
+            columns: ["dashboard_id"]
+            isOneToOne: false
+            referencedRelation: "saved_dashboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       export_history: {
         Row: {
           confidence_threshold: number
@@ -128,6 +195,86 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_dashboards: {
+        Row: {
+          created_at: string
+          dataset_id: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dataset_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dataset_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_dashboards_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "saved_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_datasets: {
+        Row: {
+          columns: Json
+          created_at: string
+          data: Json
+          description: string | null
+          file_name: string
+          id: string
+          name: string
+          row_count: number
+          updated_at: string
+          user_id: string
+          worksheet_name: string | null
+        }
+        Insert: {
+          columns: Json
+          created_at?: string
+          data: Json
+          description?: string | null
+          file_name: string
+          id?: string
+          name: string
+          row_count?: number
+          updated_at?: string
+          user_id: string
+          worksheet_name?: string | null
+        }
+        Update: {
+          columns?: Json
+          created_at?: string
+          data?: Json
+          description?: string | null
+          file_name?: string
+          id?: string
+          name?: string
+          row_count?: number
+          updated_at?: string
+          user_id?: string
+          worksheet_name?: string | null
         }
         Relationships: []
       }

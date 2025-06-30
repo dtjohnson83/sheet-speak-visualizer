@@ -12,6 +12,9 @@ import { useSessionMonitor } from '@/hooks/useSessionMonitor';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserMenu } from '@/components/UserMenu';
 import { FeedbackButton } from '@/components/FeedbackButton';
+import { DatasetManager } from '@/components/data/DatasetManager';
+import { DashboardManager } from '@/components/dashboard/DashboardManager';
+import { SavedDataset } from '@/hooks/useDatasets';
 
 export interface DataRow {
   [key: string]: any;
@@ -28,6 +31,7 @@ const Index = () => {
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
   const [fileName, setFileName] = useState<string>('');
   const [worksheetName, setWorksheetName] = useState<string>('');
+  const [currentDatasetId, setCurrentDatasetId] = useState<string>('');
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
   
   // Initialize session monitoring
@@ -50,6 +54,53 @@ const Index = () => {
         return col;
       });
     });
+  };
+
+  const handleLoadDataset = (dataset: SavedDataset) => {
+    console.log('Loading dataset:', dataset);
+    setData(dataset.data);
+    setColumns(dataset.columns);
+    setFileName(dataset.file_name);
+    setWorksheetName(dataset.worksheet_name || '');
+    setCurrentDatasetId(dataset.id);
+  };
+
+  const handleLoadDashboard = (
+    loadedTiles: any[], 
+    loadedFilters: any[], 
+    loadedData?: DataRow[], 
+    loadedColumns?: ColumnInfo[]
+  ) => {
+    console.log('Loading dashboard with tiles:', loadedTiles);
+    
+    // Clear existing tiles and load new ones
+    tiles.forEach(tile => removeTile(tile.id));
+    
+    // Add loaded tiles
+    loadedTiles.forEach(tile => {
+      addTile({
+        title: tile.title,
+        chartType: tile.chartType,
+        xColumn: tile.xColumn,
+        yColumn: tile.yColumn,
+        stackColumn: tile.stackColumn,
+        sankeyTargetColumn: tile.sankeyTargetColumn,
+        valueColumn: tile.valueColumn,
+        sortColumn: tile.sortColumn,
+        sortDirection: tile.sortDirection,
+        series: tile.series,
+        showDataLabels: tile.showDataLabels
+      });
+    });
+    
+    // Load filters
+    setFilters(loadedFilters);
+    
+    // Load associated dataset if available
+    if (loadedData && loadedColumns) {
+      setData(loadedData);
+      setColumns(loadedColumns);
+    }
   };
 
   const displayFileName = worksheetName ? `${fileName} - ${worksheetName}` : fileName;
@@ -79,6 +130,16 @@ const Index = () => {
 
         <div className="space-y-6">
           <Card className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Data Management</h3>
+              <DatasetManager
+                currentData={data}
+                currentColumns={columns}
+                currentFileName={fileName}
+                currentWorksheetName={worksheetName}
+                onLoadDataset={handleLoadDataset}
+              />
+            </div>
             <FileUpload onDataLoaded={handleDataLoaded} />
           </Card>
 
@@ -121,6 +182,26 @@ const Index = () => {
               </TabsContent>
               
               <TabsContent value="dashboard" className="space-y-4">
+                <Card className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">Dashboard</h3>
+                      <p className="text-sm text-gray-600">
+                        {tiles.length === 0 
+                          ? "Save visualizations as tiles to build your dashboard" 
+                          : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard`
+                        }
+                      </p>
+                    </div>
+                    <DashboardManager
+                      tiles={tiles}
+                      filters={filters}
+                      currentDatasetId={currentDatasetId}
+                      onLoadDashboard={handleLoadDashboard}
+                    />
+                  </div>
+                </Card>
+                
                 <DashboardCanvas
                   tiles={tiles}
                   data={data}

@@ -16,11 +16,10 @@ export const DashboardHeader = ({ tiles }: DashboardHeaderProps) => {
   return (
     <div className="mb-4 flex items-center justify-between">
       <div>
-        <h3 className="text-lg font-semibold">Dashboard</h3>
         <p className="text-sm text-gray-600">
           {tiles.length === 0 
             ? "Save visualizations as tiles to build your dashboard" 
-            : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard • Drag tiles to rearrange • Drag corner to resize`
+            : `Drag tiles to rearrange • Drag corner to resize`
           }
         </p>
       </div>
