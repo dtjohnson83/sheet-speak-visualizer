@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { COLOR_PALETTES } from '@/components/chart/ColorPaletteSelector';
@@ -11,7 +12,7 @@ export interface SeriesConfig {
 }
 
 export const useChartState = () => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'histogram'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'histogram' | 'kpi'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');

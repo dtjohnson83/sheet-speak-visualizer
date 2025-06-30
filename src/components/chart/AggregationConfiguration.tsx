@@ -21,19 +21,21 @@ export const AggregationConfiguration = ({
   chartType,
   numericColumns
 }: AggregationConfigurationProps) => {
-  // Show aggregation for charts that support it - now including bar and line charts
-  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'stacked-bar', 'heatmap', 'sankey'].includes(chartType);
+  // Show aggregation for charts that support it - now including KPI
+  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'stacked-bar', 'heatmap', 'sankey', 'kpi'].includes(chartType);
   
   // For numeric Y columns or charts that always support aggregation
   const isNumericYColumn = numericColumns.some(col => col.name === yColumn);
-  const shouldShow = supportsAggregation && (isNumericYColumn || ['heatmap', 'sankey'].includes(chartType));
+  const shouldShow = supportsAggregation && (isNumericYColumn || ['heatmap', 'sankey', 'kpi'].includes(chartType));
   
-  if (!shouldShow || !yColumn) {
+  if (!shouldShow || (!yColumn && chartType !== 'kpi')) {
     return null;
   }
 
   const getAggregationDescription = () => {
     switch (chartType) {
+      case 'kpi':
+        return `KPI values will be ${aggregationMethod === 'count' ? 'counted' : 'aggregated using ' + aggregationMethod}`;
       case 'heatmap':
         return `Values will be grouped by X and Y axes and ${aggregationMethod} will be applied`;
       case 'sankey':
@@ -53,7 +55,7 @@ export const AggregationConfiguration = ({
         <div className="grid grid-cols-1 gap-3">
           <div>
             <Label htmlFor="aggregation-method" className="text-sm font-medium">
-              Aggregation Method for {yColumn}
+              Aggregation Method {yColumn && `for ${yColumn}`}
             </Label>
             <Select value={aggregationMethod} onValueChange={setAggregationMethod}>
               <SelectTrigger>

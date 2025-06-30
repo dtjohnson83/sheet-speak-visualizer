@@ -6,6 +6,8 @@ import { AxisConfiguration } from './config/AxisConfiguration';
 import { SpecializedConfiguration } from './config/SpecializedConfiguration';
 import { SortConfiguration } from './config/SortConfiguration';
 import { StyleConfiguration } from './config/StyleConfiguration';
+import { AggregationConfiguration } from './AggregationConfiguration';
+import { AggregationMethod } from './AggregationConfiguration';
 import { validateChartRequirements } from '@/lib/chartTypeInfo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
@@ -37,6 +39,8 @@ interface ChartConfigurationProps {
   supportsTopXLimit: boolean;
   histogramBins: number;
   setHistogramBins: (value: number) => void;
+  aggregationMethod: AggregationMethod;
+  setAggregationMethod: (value: AggregationMethod) => void;
   columns: ColumnInfo[];
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
@@ -69,6 +73,8 @@ export const ChartConfiguration = ({
   supportsTopXLimit,
   histogramBins,
   setHistogramBins,
+  aggregationMethod,
+  setAggregationMethod,
   columns,
   numericColumns,
   categoricalColumns,
@@ -156,7 +162,7 @@ export const ChartConfiguration = ({
         </Alert>
       )}
 
-      {validation.isValid && xColumn && (yColumn || chartType === 'histogram') && (
+      {validation.isValid && (xColumn || chartType === 'kpi') && (yColumn || chartType === 'histogram' || chartType === 'kpi') && (
         <Alert className="mb-4 border-green-200 bg-green-50 dark:bg-green-900/20">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800 dark:text-green-200">
@@ -164,6 +170,14 @@ export const ChartConfiguration = ({
           </AlertDescription>
         </Alert>
       )}
+
+      <AggregationConfiguration
+        aggregationMethod={aggregationMethod}
+        setAggregationMethod={setAggregationMethod}
+        yColumn={yColumn}
+        chartType={chartType}
+        numericColumns={numericColumns}
+      />
 
       <StyleConfiguration
         selectedPalette={selectedPalette}

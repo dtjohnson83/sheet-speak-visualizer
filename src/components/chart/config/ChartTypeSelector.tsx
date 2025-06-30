@@ -27,7 +27,7 @@ const chartTypes = [
   { value: 'kpi', label: 'KPI Cards', icon: Square },
 ];
 
-export const ChartTypeSelector = ({ chartType, setChartType }: ChartTypeSelectorProps) => {
+export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, yColumn, dataLength }: ChartTypeSelectorProps) => {
   return (
     <div>
       <Select onValueChange={setChartType} defaultValue={chartType}>
