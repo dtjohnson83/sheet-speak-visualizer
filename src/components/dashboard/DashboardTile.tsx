@@ -83,6 +83,18 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
     return Array.isArray(result) ? result : [];
   }, [data, columns, tile]);
 
+  console.log('DashboardTile - Processing data for tile:', {
+    tileId: tile.id,
+    chartType: tile.chartType,
+    xColumn: tile.xColumn,
+    yColumn: tile.yColumn,
+    sankeyTargetColumn: tile.sankeyTargetColumn,
+    valueColumn: tile.valueColumn,
+    originalDataLength: data.length,
+    processedDataLength: processedData.length,
+    sample: processedData.slice(0, 2)
+  });
+
   return (
     <Card 
       ref={tileRef}

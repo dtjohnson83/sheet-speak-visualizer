@@ -8,6 +8,10 @@ import { TileBarChartRenderer } from './renderers/TileBarChartRenderer';
 import { TileLineChartRenderer } from './renderers/TileLineChartRenderer';
 import { TileAreaChartRenderer } from './renderers/TileAreaChartRenderer';
 import { TileScatterChartRenderer } from './renderers/TileScatterChartRenderer';
+import { TileSankeyChartRenderer } from './renderers/TileSankeyChartRenderer';
+import { TileHeatmapChartRenderer } from './renderers/TileHeatmapChartRenderer';
+import { TileHistogramChartRenderer } from './renderers/TileHistogramChartRenderer';
+import { TileTreemapChartRenderer } from './renderers/TileTreemapChartRenderer';
 
 interface TileChartRendererProps {
   chartType: string;
@@ -92,12 +96,52 @@ export const TileChartRenderer = ({
     );
   }
 
-  // For unsupported chart types in tiles, show a simple message
-  if (chartType === 'heatmap' || chartType === 'histogram' || chartType === 'sankey' || chartType === 'treemap') {
+  if (chartType === 'sankey') {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-        {chartType} charts are not supported in dashboard tiles yet.
-      </div>
+      <TileSankeyChartRenderer
+        data={data}
+        xColumn={xColumn}
+        sankeyTargetColumn={sankeyTargetColumn}
+        valueColumn={valueColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+      />
+    );
+  }
+
+  if (chartType === 'heatmap') {
+    return (
+      <TileHeatmapChartRenderer
+        data={data}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        valueColumn={valueColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+      />
+    );
+  }
+
+  if (chartType === 'histogram') {
+    return (
+      <TileHistogramChartRenderer
+        data={data}
+        xColumn={xColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
+  if (chartType === 'treemap') {
+    return (
+      <TileTreemapChartRenderer
+        data={data}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
     );
   }
   
