@@ -1,4 +1,3 @@
-
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';

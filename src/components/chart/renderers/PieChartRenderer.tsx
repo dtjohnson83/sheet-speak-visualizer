@@ -22,8 +22,8 @@ export const PieChartRenderer = ({
     <ResponsiveContainer width="100%" height={400}>
       <PieChart>
         <Pie
-          dataKey={yColumn}
-          nameKey={xColumn}
+          dataKey="value"
+          nameKey="name"
           data={data}
           cx="50%"
           cy="50%"

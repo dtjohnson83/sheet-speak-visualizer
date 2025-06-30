@@ -9,7 +9,6 @@ import { AreaChartRenderer } from './renderers/AreaChartRenderer';
 import { PieChartRenderer } from './renderers/PieChartRenderer';
 import { ScatterChartRenderer } from './renderers/ScatterChartRenderer';
 import { HistogramChartRenderer } from './renderers/HistogramChartRenderer';
-import { TopXChartRenderer } from './renderers/TopXChartRenderer';
 import { HeatmapChartRenderer } from './renderers/HeatmapChartRenderer';
 import { SankeyChartRenderer } from './renderers/SankeyChartRenderer';
 import { TreemapChartRenderer } from './renderers/TreemapChartRenderer';
@@ -107,17 +106,6 @@ export const ChartRenderers = ({
         data={data}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
-      />
-    );
-  }
-
-  if (chartType === 'topX') {
-    return (
-      <TopXChartRenderer
-        data={data}
-        xColumn={xColumn}
-        yColumn={yColumn}
-        chartColors={chartColors}
       />
     );
   }
