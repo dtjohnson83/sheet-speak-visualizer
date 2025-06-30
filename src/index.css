@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -99,5 +100,30 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* PDF Export Styles - Fix for title cutoff */
+.chart-title,
+.kpi-title,
+.tile-title {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Print-specific styles */
+@media print {
+  .tile-grid {
+    page-break-inside: avoid;
+  }
+  
+  .chart-title,
+  .kpi-title,
+  .tile-title {
+    line-height: 1.2 !important;
+    margin-bottom: 8px !important;
   }
 }

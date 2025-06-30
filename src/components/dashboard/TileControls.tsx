@@ -66,7 +66,7 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange }: Ti
         </div>
       ) : (
         <div className="flex items-center gap-1 flex-1">
-          <h4 className="text-sm font-medium truncate">{title}</h4>
+          <h4 className="tile-title text-sm font-medium truncate">{title}</h4>
           {onTitleChange && (
             <Button
               variant="ghost"

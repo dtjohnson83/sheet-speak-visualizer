@@ -125,7 +125,7 @@ export const ChartHeader = ({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <h4 className="text-lg font-medium">
+              <h4 className="chart-title text-lg font-medium">
                 {customTitle || getDefaultTitle()}
               </h4>
               {onTitleChange && (
