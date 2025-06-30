@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileUpload } from '@/components/FileUpload';
@@ -12,6 +11,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useSessionMonitor } from '@/hooks/useSessionMonitor';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserMenu } from '@/components/UserMenu';
+import { FeedbackButton } from '@/components/FeedbackButton';
 
 export interface DataRow {
   [key: string]: any;
@@ -59,6 +59,7 @@ const Index = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 relative">
           <div className="absolute top-0 right-0 flex items-center gap-2">
+            <FeedbackButton />
             <UserMenu />
             <ThemeToggle />
           </div>

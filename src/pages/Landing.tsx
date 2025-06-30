@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { VideoModal } from '@/components/VideoModal';
+import { FeedbackButton } from '@/components/FeedbackButton';
 import { Upload, BarChart3, Layout, Share2, Zap, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -65,6 +67,7 @@ const Landing = () => {
             />
           </div>
           <div className="flex items-center gap-4">
+            <FeedbackButton />
             {user ? (
               <Link to="/app">
                 <Button variant="outline">
