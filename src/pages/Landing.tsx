@@ -84,9 +84,6 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <Badge variant="secondary" className="mb-4">
-            ✨ Transform Your Data Into Insights
-          </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
             Visualize Your Data
