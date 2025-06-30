@@ -6,10 +6,10 @@ import { AggregationMethod } from './AggregationConfiguration';
 import { BarChartRenderer } from './renderers/BarChartRenderer';
 import { LineChartRenderer } from './renderers/LineChartRenderer';
 import { AreaChartRenderer } from './renderers/AreaChartRenderer';
+import { PieChartRenderer } from './renderers/PieChartRenderer';
 import { ScatterChartRenderer } from './renderers/ScatterChartRenderer';
 import { HistogramChartRenderer } from './renderers/HistogramChartRenderer';
 import { HeatmapChartRenderer } from './renderers/HeatmapChartRenderer';
-import { SankeyChartRenderer } from './renderers/SankeyChartRenderer';
 import { TreemapChartRenderer } from './renderers/TreemapChartRenderer';
 import { PlaceholderChartRenderer } from './renderers/PlaceholderChartRenderer';
 
@@ -74,6 +74,16 @@ export const ChartRenderers = ({
     );
   }
 
+  if (chartType === 'pie') {
+    return (
+      <PieChartRenderer
+        data={data}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
   if (chartType === 'scatter') {
     return (
       <ScatterChartRenderer
@@ -100,15 +110,6 @@ export const ChartRenderers = ({
   if (chartType === 'heatmap') {
     return (
       <HeatmapChartRenderer
-        data={data}
-        chartColors={chartColors}
-      />
-    );
-  }
-
-  if (chartType === 'sankey') {
-    return (
-      <SankeyChartRenderer
         data={data}
         chartColors={chartColors}
       />

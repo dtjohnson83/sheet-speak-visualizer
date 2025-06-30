@@ -4,7 +4,6 @@ import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { ColumnFormat } from '@/lib/columnFormatting';
-import { prepareSankeyData } from './chart/sankeyProcessor';
 import { prepareHeatmapData } from './chart/heatmapProcessor';
 import { prepareTreemapData } from './chart/treemapProcessor';
 import { prepareStackedBarData } from './chart/stackedBarProcessor';
@@ -88,10 +87,6 @@ export const prepareChartData = (
   });
 
   switch (chartType) {
-    case 'sankey':
-      processedData = prepareSankeyData(validData, cleanXColumn, cleanYColumn, valueColumn!, aggregationMethod, sortColumn, sortDirection);
-      break;
-
     case 'heatmap':
       processedData = prepareHeatmapData(validData, cleanXColumn, cleanYColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);
       break;
@@ -114,6 +109,7 @@ export const prepareChartData = (
       }
       break;
 
+    case 'pie':
     case 'bar':
     default:
       processedData = prepareStandardChartData(validData, cleanXColumn, cleanYColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);

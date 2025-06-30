@@ -9,11 +9,11 @@ export interface SeriesConfig {
   color: string;
   type: 'bar' | 'line' | 'area';
   aggregationMethod: AggregationMethod;
-  yAxisId?: string; // Add support for multiple Y axes
+  yAxisId?: string;
 }
 
 export const useChartState = () => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'area' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'histogram' | 'kpi'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'area' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'histogram' | 'kpi'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
@@ -38,7 +38,7 @@ export const useChartState = () => {
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
 
   // Charts that support data labels
-  const dataLabelSupportedCharts = ['bar', 'line', 'area', 'stacked-bar', 'histogram'];
+  const dataLabelSupportedCharts = ['bar', 'line', 'area', 'pie', 'stacked-bar', 'histogram'];
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {

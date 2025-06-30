@@ -7,8 +7,8 @@ import { getEffectiveSeries } from './utils/seriesUtils';
 import { TileBarChartRenderer } from './renderers/TileBarChartRenderer';
 import { TileLineChartRenderer } from './renderers/TileLineChartRenderer';
 import { TileAreaChartRenderer } from './renderers/TileAreaChartRenderer';
+import { TilePieChartRenderer } from './renderers/TilePieChartRenderer';
 import { TileScatterChartRenderer } from './renderers/TileScatterChartRenderer';
-import { TileSankeyChartRenderer } from './renderers/TileSankeyChartRenderer';
 import { TileHeatmapChartRenderer } from './renderers/TileHeatmapChartRenderer';
 import { TileHistogramChartRenderer } from './renderers/TileHistogramChartRenderer';
 import { TileTreemapChartRenderer } from './renderers/TileTreemapChartRenderer';
@@ -24,7 +24,7 @@ interface TileChartRendererProps {
   sortDirection?: 'asc' | 'desc';
   series: SeriesConfig[];
   showDataLabels?: boolean;
-  data: DataRow[] | any; // Allow both array and structured data
+  data: DataRow[] | any;
   columns: ColumnInfo[];
   chartColors: string[];
 }
@@ -50,8 +50,6 @@ export const TileChartRenderer = ({
     chartType,
     xColumn,
     yColumn,
-    sankeyTargetColumn,
-    valueColumn,
     dataType: typeof data,
     isArray: Array.isArray(data),
     dataLength: Array.isArray(data) ? data.length : 'structured'
@@ -95,24 +93,22 @@ export const TileChartRenderer = ({
     );
   }
 
+  if (chartType === 'pie') {
+    return (
+      <TilePieChartRenderer
+        data={data}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
   if (chartType === 'scatter') {
     return (
       <TileScatterChartRenderer
         data={data}
         xColumn={xColumn}
-        valueColumn={valueColumn}
-        effectiveSeries={effectiveSeries}
-        chartColors={chartColors}
-      />
-    );
-  }
-
-  if (chartType === 'sankey') {
-    return (
-      <TileSankeyChartRenderer
-        data={data}
-        xColumn={xColumn}
-        sankeyTargetColumn={sankeyTargetColumn}
         valueColumn={valueColumn}
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}

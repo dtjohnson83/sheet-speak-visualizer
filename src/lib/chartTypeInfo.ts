@@ -1,4 +1,3 @@
-
 export const chartTypeInfo = {
   bar: {
     name: 'Bar Chart',
@@ -160,30 +159,6 @@ export const chartTypeInfo = {
     bestFor: ['Showing data distribution', 'Identifying patterns', 'Quality control'],
     examples: ['Age distribution', 'Test scores', 'Response times'],
     commonMistakes: ['Too few data points', 'Wrong bin size']
-  },
-  sankey: {
-    name: 'Sankey Diagram',
-    description: 'Visualize flow from one set of values to another',
-    requiredColumns: ['source', 'target', 'value'],
-    optionalColumns: [],
-    category: 'relationship',
-    icon: 'sankey',
-    configurable: {
-      aggregation: true,
-      sorting: false,
-      stacking: false,
-      dataLabels: false,
-      colors: true
-    },
-    requirements: {
-      xAxis: { label: 'Source', type: 'categorical' },
-      yAxis: { label: 'Target', type: 'categorical' },
-      additional: [{ label: 'Value', type: 'numeric' }]
-    },
-    minDataPoints: 3,
-    bestFor: ['Showing flow between categories', 'Process visualization', 'Budget allocation'],
-    examples: ['Energy flow', 'Budget allocation', 'User journey'],
-    commonMistakes: ['Circular flows', 'Too many small flows']
   },
   treemap: {
     name: 'Treemap',
