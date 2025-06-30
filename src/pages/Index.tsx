@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
@@ -62,11 +63,13 @@ const Index = () => {
             <ThemeToggle />
           </div>
           <div className="flex justify-center mb-4">
-            <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
-              alt="Charta Logo" 
-              className="h-24 w-auto md:h-32"
-            />
+            <Link to="/">
+              <img 
+                src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
+                alt="Charta Logo" 
+                className="h-24 w-auto md:h-32 hover:opacity-80 transition-opacity cursor-pointer"
+              />
+            </Link>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Upload Excel files, visualize data, and build dashboards

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,11 +73,13 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
-              alt="Charta Logo" 
-              className="h-20 w-auto md:h-24"
-            />
+            <Link to="/">
+              <img 
+                src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
+                alt="Charta Logo" 
+                className="h-20 w-auto md:h-24 hover:opacity-80 transition-opacity cursor-pointer"
+              />
+            </Link>
           </div>
           <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
             ← Back to home
