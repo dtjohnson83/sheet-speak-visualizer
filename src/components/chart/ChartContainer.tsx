@@ -87,14 +87,18 @@ export const ChartContainer = ({
     histogramBins
   );
 
-  // Ensure we have array data for chart rendering (some chart types return different structures)
-  const processedDataForChart = Array.isArray(chartData) ? chartData : [];
+  // Handle different data types for different chart types
+  const structuredDataChartTypes = ['sankey', 'heatmap', 'treemap'];
+  const processedDataForChart = structuredDataChartTypes.includes(chartType) 
+    ? chartData  // Pass structured data directly for charts that need it
+    : (Array.isArray(chartData) ? chartData : []); // Convert to array for standard charts
 
   console.log('ChartContainer - Processed data for chart:', {
     chartType,
     originalDataLength: data.length,
-    processedDataLength: processedDataForChart.length,
-    sample: processedDataForChart.slice(0, 3),
+    processedDataLength: Array.isArray(processedDataForChart) ? processedDataForChart.length : 'structured',
+    isStructuredData: structuredDataChartTypes.includes(chartType),
+    sample: Array.isArray(processedDataForChart) ? processedDataForChart.slice(0, 3) : processedDataForChart,
     xColumn: xColumn?.trim(),
     yColumn: yColumn?.trim()
   });

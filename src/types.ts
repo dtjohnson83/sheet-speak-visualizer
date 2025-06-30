@@ -5,7 +5,7 @@ import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 
 export interface ChartRenderersProps {
   chartType: string;
-  data: DataRow[];
+  data: DataRow[] | any; // Allow both array and structured data types
   columns: ColumnInfo[];
   xColumn: string;
   yColumn: string;

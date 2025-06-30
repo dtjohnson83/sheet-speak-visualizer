@@ -6,7 +6,7 @@ import { ChartRenderers } from './ChartRenderers';
 import { AggregationMethod } from './AggregationConfiguration';
 
 interface ChartRendererProps {
-  data: DataRow[];
+  data: DataRow[] | any; // Allow both array and structured data
   columns: ColumnInfo[];
   chartType: string;
   xColumn: string;
@@ -48,21 +48,47 @@ export const ChartRenderer = ({
 }: ChartRendererProps) => {
   console.log('ChartRenderer - Rendering with data:', {
     chartType,
-    dataLength: data.length,
+    dataType: typeof data,
+    isArray: Array.isArray(data),
+    dataLength: Array.isArray(data) ? data.length : 'structured',
     xColumn: xColumn?.trim(),
     yColumn: yColumn?.trim(),
     series: series.map(s => s.column),
-    sample: data.slice(0, 2),
-    hasValidData: data && data.length > 0
+    sample: Array.isArray(data) ? data.slice(0, 2) : data,
+    hasValidData: data && (Array.isArray(data) ? data.length > 0 : true)
   });
 
-  // Enhanced validation and fallback UI
-  if (!data || data.length === 0) {
+  // Enhanced validation based on chart type
+  const validateChartData = () => {
+    if (!data) return false;
+
+    switch (chartType) {
+      case 'sankey':
+        // For Sankey charts, check if data has nodes and links
+        return data.nodes && data.links && data.nodes.length > 0;
+      case 'heatmap':
+        // For heatmap, check if data is array with proper structure
+        return Array.isArray(data) && data.length > 0;
+      case 'treemap':
+        // For treemap, check if data is array with proper structure
+        return Array.isArray(data) && data.length > 0;
+      default:
+        // For standard charts, check if data is array with length
+        return Array.isArray(data) && data.length > 0;
+    }
+  };
+
+  if (!validateChartData()) {
     return (
       <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
         <div className="text-center p-4">
           <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No chart data available</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Check your columns and filters. Make sure your data contains valid values.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {chartType === 'sankey' 
+              ? 'Check your source and target columns for Sankey chart.'
+              : 'Check your columns and filters. Make sure your data contains valid values.'
+            }
+          </p>
         </div>
       </div>
     );
@@ -92,36 +118,38 @@ export const ChartRenderer = ({
       );
     }
 
-    // Check if selected columns exist in the data
-    const dataSample = data[0] || {};
-    const availableKeys = Object.keys(dataSample);
-    
-    if (!availableKeys.includes(cleanXColumn)) {
-      return (
-        <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
-          <div className="text-center p-4">
-            <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
-            <p className="text-sm text-red-600 dark:text-red-400">
-              X-column "{cleanXColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
-              {availableKeys.length > 5 && '...'}
-            </p>
+    // Check if selected columns exist in the data (only for array data)
+    if (Array.isArray(data) && data.length > 0) {
+      const dataSample = data[0] || {};
+      const availableKeys = Object.keys(dataSample);
+      
+      if (!availableKeys.includes(cleanXColumn)) {
+        return (
+          <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
+            <div className="text-center p-4">
+              <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                X-column "{cleanXColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
+                {availableKeys.length > 5 && '...'}
+              </p>
+            </div>
           </div>
-        </div>
-      );
-    }
+        );
+      }
 
-    if (chartType !== 'histogram' && !availableKeys.includes(cleanYColumn)) {
-      return (
-        <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
-          <div className="text-center p-4">
-            <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Y-column "{cleanYColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
-              {availableKeys.length > 5 && '...'}
-            </p>
+      if (chartType !== 'histogram' && !availableKeys.includes(cleanYColumn)) {
+        return (
+          <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
+            <div className="text-center p-4">
+              <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Y-column "{cleanYColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
+                {availableKeys.length > 5 && '...'}
+              </p>
+            </div>
           </div>
-        </div>
-      );
+        );
+      }
     }
   }
 
