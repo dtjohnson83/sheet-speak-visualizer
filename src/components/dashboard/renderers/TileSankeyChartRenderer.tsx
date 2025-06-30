@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
@@ -63,7 +64,7 @@ export const TileSankeyChartRenderer = ({
             {sourceNodes.map((nodeId, index) => {
               const totalValue = links
                 .filter(l => l.source === nodeId)
-                .reduce((sum, l) => sum + l.value, 0);
+                .reduce((sum, l) => sum + (typeof l.value === 'number' ? l.value : 0), 0);
               
               return (
                 <div
@@ -88,7 +89,7 @@ export const TileSankeyChartRenderer = ({
                 key={`${link.source}-${link.target}`}
                 className="p-1 bg-gray-100 dark:bg-gray-800 rounded text-center"
               >
-                <div className="font-medium">{formatTooltipValue(link.value)}</div>
+                <div className="font-medium">{formatTooltipValue(typeof link.value === 'number' ? link.value : 0)}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
                   {link.source} → {link.target}
                 </div>
@@ -107,7 +108,7 @@ export const TileSankeyChartRenderer = ({
             {targetNodes.map((nodeId, index) => {
               const totalValue = links
                 .filter(l => l.target === nodeId)
-                .reduce((sum, l) => sum + l.value, 0);
+                .reduce((sum, l) => sum + (typeof l.value === 'number' ? l.value : 0), 0);
               
               return (
                 <div
@@ -151,8 +152,8 @@ export const TileSankeyChartRenderer = ({
 
     const links = Object.entries(sankeyData).map(([key, value]) => {
       const [source, target] = key.split('_');
-      return { source, target, value };
-    }).filter(link => link.value > 0);
+      return { source, target, value: Number(value) };
+    }).filter(link => Number(link.value) > 0);
 
     const sourceNodes = [...new Set(links.map(l => l.source))];
     const targetNodes = [...new Set(links.map(l => l.target))];
@@ -166,7 +167,7 @@ export const TileSankeyChartRenderer = ({
             {sourceNodes.map((nodeId, index) => {
               const totalValue = links
                 .filter(l => l.source === nodeId)
-                .reduce((sum, l) => sum + l.value, 0);
+                .reduce((sum, l) => sum + Number(l.value), 0);
               
               return (
                 <div
@@ -191,7 +192,7 @@ export const TileSankeyChartRenderer = ({
                 key={`${link.source}-${link.target}`}
                 className="p-1 bg-gray-100 dark:bg-gray-800 rounded text-center"
               >
-                <div className="font-medium">{formatTooltipValue(link.value)}</div>
+                <div className="font-medium">{formatTooltipValue(Number(link.value))}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
                   {link.source} → {link.target}
                 </div>
@@ -210,7 +211,7 @@ export const TileSankeyChartRenderer = ({
             {targetNodes.map((nodeId, index) => {
               const totalValue = links
                 .filter(l => l.target === nodeId)
-                .reduce((sum, l) => sum + l.value, 0);
+                .reduce((sum, l) => sum + Number(l.value), 0);
               
               return (
                 <div
