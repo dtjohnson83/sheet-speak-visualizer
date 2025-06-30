@@ -56,13 +56,23 @@ export const ChartContainer = ({
 }: ChartContainerProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
+  // Debug logging for chart input
+  console.log('Chart input:', { 
+    xColumn: xColumn?.trim(), 
+    yColumn: yColumn?.trim(), 
+    dataSample: data.slice(0, 5),
+    chartType,
+    series,
+    originalColumns: columns.map(c => c.name)
+  });
+
   // Prepare chart data for both header display and chart rendering
   const chartData = prepareChartData(
     data,
     columns,
     chartType as any,
-    xColumn,
-    yColumn,
+    xColumn?.trim() || '',
+    yColumn?.trim() || '',
     series,
     sortColumn,
     sortDirection,
@@ -84,7 +94,9 @@ export const ChartContainer = ({
     chartType,
     originalDataLength: data.length,
     processedDataLength: processedDataForChart.length,
-    sample: processedDataForChart.slice(0, 3)
+    sample: processedDataForChart.slice(0, 3),
+    xColumn: xColumn?.trim(),
+    yColumn: yColumn?.trim()
   });
 
   return (
@@ -111,8 +123,8 @@ export const ChartContainer = ({
           data={processedDataForChart}
           columns={columns}
           chartType={chartType}
-          xColumn={xColumn}
-          yColumn={yColumn}
+          xColumn={xColumn?.trim() || ''}
+          yColumn={yColumn?.trim() || ''}
           stackColumn={stackColumn}
           sankeyTargetColumn={sankeyTargetColumn}
           valueColumn={valueColumn}

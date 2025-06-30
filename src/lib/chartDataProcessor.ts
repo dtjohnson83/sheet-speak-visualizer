@@ -33,63 +33,107 @@ export const prepareChartData = (
   topXLimit?: number | null,
   histogramBins?: number
 ): DataRow[] | SankeyData => {
-  if (!xColumn || (!yColumn && chartType !== 'histogram')) return [];
-
-  const xCol = columns.find(col => col.name === xColumn);
-  const yCol = columns.find(col => col.name === yColumn);
-
-  if (!xCol || (!yCol && chartType !== 'histogram')) return [];
-
-  console.log('Preparing chart data for:', { 
-    xColumn, 
-    yColumn, 
-    chartType, 
-    series, 
-    aggregationMethod, 
-    valueColumn, 
-    columnFormats, 
-    topXLimit, 
-    histogramBins,
-    sortColumn,
-    sortDirection
+  console.log('prepareChartData - Input params:', {
+    dataLength: data.length,
+    chartType,
+    xColumn: xColumn?.trim(),
+    yColumn: yColumn?.trim(),
+    series,
+    aggregationMethod,
+    dataSample: data.slice(0, 2)
   });
+
+  // Clean column names
+  const cleanXColumn = xColumn?.trim() || '';
+  const cleanYColumn = yColumn?.trim() || '';
+
+  if (!cleanXColumn || (!cleanYColumn && chartType !== 'histogram')) {
+    console.log('prepareChartData - Missing required columns');
+    return [];
+  }
+
+  const xCol = columns.find(col => col.name?.trim() === cleanXColumn);
+  const yCol = columns.find(col => col.name?.trim() === cleanYColumn);
+
+  if (!xCol || (!yCol && chartType !== 'histogram')) {
+    console.log('prepareChartData - Column definitions not found', { xCol, yCol, availableColumns: columns.map(c => c.name) });
+    return [];
+  }
+
+  // TEMPORARY: Add hardcoded test data to verify chart rendering works
+  if (chartType === 'bar' && cleanXColumn && cleanYColumn) {
+    console.log('prepareChartData - Using hardcoded test data for debugging');
+    return [
+      { [cleanXColumn]: 'West', [cleanYColumn]: 120 },
+      { [cleanXColumn]: 'East', [cleanYColumn]: 90 },
+      { [cleanXColumn]: 'South', [cleanYColumn]: 60 },
+      { [cleanXColumn]: 'North', [cleanYColumn]: 40 }
+    ];
+  }
 
   let processedData: DataRow[] | SankeyData = [];
 
+  // Filter out invalid data rows
+  const validData = data.filter(row => {
+    if (chartType === 'histogram') return true;
+    
+    const xValue = row[cleanXColumn];
+    const yValue = row[cleanYColumn];
+    
+    // Skip rows with null/undefined values
+    if (xValue === null || xValue === undefined || yValue === null || yValue === undefined) {
+      return false;
+    }
+    
+    // For numeric columns, ensure the value can be parsed
+    if (yCol?.type === 'numeric') {
+      const val = parseFloat(yValue);
+      if (isNaN(val)) return false;
+    }
+    
+    return true;
+  });
+
+  console.log('prepareChartData - Valid data after filtering:', {
+    originalLength: data.length,
+    validLength: validData.length,
+    sampleValid: validData.slice(0, 2)
+  });
+
   switch (chartType) {
     case 'sankey':
-      processedData = prepareSankeyData(data, xColumn, yColumn, valueColumn!, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareSankeyData(validData, cleanXColumn, cleanYColumn, valueColumn!, aggregationMethod, sortColumn, sortDirection);
       break;
 
     case 'heatmap':
-      processedData = prepareHeatmapData(data, xColumn, yColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareHeatmapData(validData, cleanXColumn, cleanYColumn, valueColumn, numericColumns, aggregationMethod, sortColumn, sortDirection);
       break;
 
     case 'treemap':
-      processedData = prepareTreemapData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareTreemapData(validData, cleanXColumn, cleanYColumn, aggregationMethod, sortColumn, sortDirection);
       break;
 
     case 'pie':
-      processedData = preparePieData(data, xColumn, yColumn, aggregationMethod, sortColumn, sortDirection);
+      processedData = preparePieData(validData, cleanXColumn, cleanYColumn, aggregationMethod, sortColumn, sortDirection);
       break;
 
     case 'stacked-bar':
-      processedData = prepareStackedBarData(data, xColumn, yColumn, stackColumn, aggregationMethod, sortColumn, sortDirection);
+      processedData = prepareStackedBarData(validData, cleanXColumn, cleanYColumn, stackColumn, aggregationMethod, sortColumn, sortDirection);
       break;
 
     case 'histogram':
-      processedData = prepareHistogramData(data, xColumn, histogramBins || 10);
+      processedData = prepareHistogramData(validData, cleanXColumn, histogramBins || 10);
       break;
 
     case 'scatter':
       if (xCol.type === 'numeric' && yCol.type === 'numeric') {
-        processedData = prepareScatterData(data, xColumn, yColumn, xCol, yCol, series, supportsMultipleSeries, sortColumn, sortDirection);
+        processedData = prepareScatterData(validData, cleanXColumn, cleanYColumn, xCol, yCol, series, supportsMultipleSeries, sortColumn, sortDirection);
       }
       break;
 
     case 'bar':
     default:
-      processedData = prepareStandardChartData(data, xColumn, yColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
+      processedData = prepareStandardChartData(validData, cleanXColumn, cleanYColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
   }
 
   // Apply top X limiting for supported chart types (only for array data, not SankeyData)
@@ -97,11 +141,16 @@ export const prepareChartData = (
     const limitSupportedCharts = ['bar', 'pie', 'stacked-bar', 'treemap'];
     if (limitSupportedCharts.includes(chartType)) {
       // Use the yColumn as the default sort column for limiting if no specific sort column is set
-      const sortColumnForLimit = sortColumn === 'none' ? yColumn : sortColumn;
+      const sortColumnForLimit = sortColumn === 'none' ? cleanYColumn : sortColumn;
       console.log('Applying top X limit:', { topXLimit, sortColumnForLimit, sortDirection });
       processedData = applyTopXLimit(processedData, topXLimit, sortColumnForLimit, sortDirection);
     }
   }
+
+  console.log('prepareChartData - Final result:', {
+    resultLength: Array.isArray(processedData) ? processedData.length : 'Not array',
+    sampleResult: Array.isArray(processedData) ? processedData.slice(0, 2) : processedData
+  });
 
   return processedData;
 };
