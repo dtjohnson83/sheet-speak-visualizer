@@ -76,10 +76,10 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'numeric': return 'bg-blue-100 text-blue-800';
-      case 'date': return 'bg-green-100 text-green-800';
-      case 'categorical': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'numeric': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'date': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'categorical': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
 
@@ -98,12 +98,12 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
 
   const getSortIcon = (columnName: string) => {
     if (!sortConfig || sortConfig.key !== columnName) {
-      return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+      return <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />;
     }
     
     return sortConfig.direction === 'asc' 
-      ? <ArrowUp className="h-4 w-4 text-blue-600" />
-      : <ArrowDown className="h-4 w-4 text-blue-600" />;
+      ? <ArrowUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      : <ArrowDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
   };
 
   return (
@@ -130,29 +130,29 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
 
       {/* Hierarchy Detection Results */}
       {showHierarchies && hierarchies.length > 0 && (
-        <Card className="p-4">
-          <h4 className="font-semibold mb-3 flex items-center">
-            <TreePine className="h-5 w-5 mr-2 text-green-600" />
+        <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <h4 className="font-semibold mb-3 flex items-center text-gray-900 dark:text-gray-100">
+            <TreePine className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
             Detected Hierarchies
           </h4>
           <div className="space-y-4">
             {hierarchies.map((hierarchy, index) => (
               <Collapsible key={index}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                   <div className="flex items-center space-x-3">
-                    <Badge className={`${hierarchy.confidence > 0.7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    <Badge className={`${hierarchy.confidence > 0.7 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>
                       {(hierarchy.confidence * 100).toFixed(0)}% confidence
                     </Badge>
-                    <span className="font-medium">{hierarchy.parentColumn} → {hierarchy.childColumn}</span>
-                    <Badge variant="outline" className="text-xs">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{hierarchy.parentColumn} → {hierarchy.childColumn}</span>
+                    <Badge variant="outline" className="text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                       {hierarchy.type}
                     </Badge>
                   </div>
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2">
-                  <div className="p-3 bg-white border rounded-lg">
-                    <p className="text-sm text-gray-600 mb-3">{hierarchy.description}</p>
+                  <div className="p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{hierarchy.description}</p>
                     <div className="max-h-60 overflow-y-auto">
                       {buildHierarchyTree(data, hierarchy.parentColumn, hierarchy.childColumn !== hierarchy.parentColumn + '_levels' ? hierarchy.childColumn : undefined).map((node, nodeIndex) => (
                         <HierarchyTreeNode key={nodeIndex} node={node} />
@@ -186,7 +186,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
         />
 
         <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             Showing {startIndex + 1} to {endIndex} of {sortedData.length} entries
           </div>
           <div className="flex items-center space-x-2">
@@ -199,7 +199,7 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-            <span className="text-sm">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               Page {currentPage + 1} of {totalPages}
             </span>
             <Button

@@ -177,12 +177,12 @@ export const ColumnStatsHeader = ({ columnName, columnType, data, onSort, getSor
     <div className="flex flex-col space-y-2">
       <button
         onClick={() => onSort(columnName)}
-        className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
+        className="flex items-center space-x-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
       >
         <span className="font-semibold">{columnName}</span>
         {getSortIcon(columnName)}
         {stats.hasAnomalies && (
-          <AlertTriangle className="h-4 w-4 text-orange-500" />
+          <AlertTriangle className="h-4 w-4 text-orange-500 dark:text-orange-400" />
         )}
       </button>
       
@@ -192,7 +192,7 @@ export const ColumnStatsHeader = ({ columnName, columnType, data, onSort, getSor
         </Badge>
         
         {/* Stats display */}
-        <div className="text-xs text-gray-600 space-y-0.5">
+        <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
           <div>Count: {stats.count.toLocaleString()}</div>
           <div>Unique: {stats.uniqueCount.toLocaleString()}</div>
           <div>Nulls: {stats.nullCount} ({stats.nullPercentage.toFixed(1)}%)</div>
@@ -215,7 +215,7 @@ export const ColumnStatsHeader = ({ columnName, columnType, data, onSort, getSor
             {stats.anomalies.map((anomaly, index) => (
               <Badge 
                 key={index} 
-                className="bg-orange-100 text-orange-800 text-xs w-fit"
+                className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 text-xs w-fit"
               >
                 ⚠ {anomaly}
               </Badge>

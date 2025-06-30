@@ -35,13 +35,13 @@ export const DataTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse border border-gray-200 rounded-lg">
+      <table className="w-full border-collapse border border-gray-200 dark:border-gray-700 rounded-lg">
         <thead>
-          <tr className="bg-gray-50">
+          <tr className="bg-gray-50 dark:bg-gray-800">
             {columns.map((column) => (
               <th 
                 key={column.name}
-                className="border border-gray-200 px-4 py-3 text-left font-medium text-gray-700 min-w-[180px]"
+                className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-200 min-w-[180px]"
               >
                 <ColumnStatsHeader
                   columnName={column.name}
@@ -57,11 +57,11 @@ export const DataTable = ({
         </thead>
         <tbody>
           {data.map((row, index) => (
-            <tr key={index} className="hover:bg-gray-50">
+            <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800">
               {columns.map((column) => (
                 <td 
                   key={column.name}
-                  className="border border-gray-200 px-4 py-3 text-sm"
+                  className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-900 dark:text-gray-100"
                 >
                   {getFormattedValue(row[column.name], column.name, column.type)}
                 </td>

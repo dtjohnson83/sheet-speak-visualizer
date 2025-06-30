@@ -30,11 +30,11 @@ export const DataPreviewHeader = ({
   return (
     <div className="flex justify-between items-center">
       <div>
-        <h3 className="text-xl font-semibold">Data Preview</h3>
-        <p className="text-gray-600">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Data Preview</h3>
+        <p className="text-gray-600 dark:text-gray-300">
           {fileName} • {data.length} rows • {columns.length} columns
           {sortConfig && (
-            <span className="ml-2 text-sm text-blue-600">
+            <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
               (sorted by {sortConfig.key} {sortConfig.direction === 'asc' ? '↑' : '↓'})
             </span>
           )}
@@ -62,7 +62,7 @@ export const DataPreviewHeader = ({
             <SelectItem value="100">100</SelectItem>
           </SelectContent>
         </Select>
-        <span className="text-sm text-gray-500">rows per page</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">rows per page</span>
       </div>
     </div>
   );
