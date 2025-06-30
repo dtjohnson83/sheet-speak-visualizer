@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,13 +55,12 @@ const Landing = () => {
       {/* Header */}
       <header className="relative z-10 px-4 py-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
+              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
               alt="Charta Logo" 
-              className="h-8 w-8"
+              className="h-8 w-auto"
             />
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Charta</span>
           </div>
           <div className="flex items-center gap-4">
             {user ? (
@@ -239,13 +237,12 @@ const Landing = () => {
       {/* Footer */}
       <footer className="px-4 py-12 bg-gray-900 dark:bg-gray-950">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
+          <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
+              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
               alt="Charta Logo" 
-              className="h-6 w-6"
+              className="h-6 w-auto"
             />
-            <span className="text-xl font-bold text-white">Charta</span>
           </div>
           <p className="text-gray-400 mb-4">
             Making data visualization accessible to everyone.

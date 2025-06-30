@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
@@ -60,9 +61,13 @@ const Index = () => {
             <UserMenu />
             <ThemeToggle />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Charta
-          </h1>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
+              alt="Charta Logo" 
+              className="h-12 w-auto"
+            />
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Upload Excel files, visualize data, and build dashboards
           </p>

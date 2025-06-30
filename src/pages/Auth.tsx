@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3 } from 'lucide-react';
 import { useEffect } from 'react';
 
 const Auth = () => {
@@ -74,9 +73,12 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <BarChart3 className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Charta</span>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
+              alt="Charta Logo" 
+              className="h-8 w-auto"
+            />
           </div>
           <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
             ← Back to home
