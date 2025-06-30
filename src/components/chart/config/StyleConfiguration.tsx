@@ -26,7 +26,7 @@ export const StyleConfiguration = ({
       />
 
       {supportsDataLabels && (
-        <div className="p-4 bg-gray-50 rounded-lg">
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="flex items-center space-x-2">
             <Switch
               id="data-labels"
@@ -37,7 +37,7 @@ export const StyleConfiguration = ({
               Show data labels on chart
             </Label>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Display values directly on chart elements for easier reading
           </p>
         </div>

@@ -11,9 +11,6 @@ interface SpecializedConfigurationProps {
   setValueColumn: (value: string) => void;
   histogramBins: number;
   setHistogramBins: (value: number) => void;
-  topXLimit: number | null;
-  setTopXLimit: (value: number | null) => void;
-  supportsTopXLimit: boolean;
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
 }
@@ -26,9 +23,6 @@ export const SpecializedConfiguration = ({
   setValueColumn,
   histogramBins,
   setHistogramBins,
-  topXLimit,
-  setTopXLimit,
-  supportsTopXLimit,
   numericColumns,
   categoricalColumns
 }: SpecializedConfigurationProps) => {
@@ -84,20 +78,6 @@ export const SpecializedConfiguration = ({
             max="50"
             value={histogramBins}
             onChange={(e) => setHistogramBins(Number(e.target.value))}
-            className="bg-white dark:bg-gray-800"
-          />
-        </div>
-      )}
-
-      {supportsTopXLimit && (
-        <div>
-          <label className="block text-sm font-medium mb-2">Top X Values</label>
-          <Input
-            type="number"
-            min="1"
-            placeholder="All values"
-            value={topXLimit || ''}
-            onChange={(e) => setTopXLimit(e.target.value ? Number(e.target.value) : null)}
             className="bg-white dark:bg-gray-800"
           />
         </div>

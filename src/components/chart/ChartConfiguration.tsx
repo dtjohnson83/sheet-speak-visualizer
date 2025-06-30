@@ -34,9 +34,6 @@ interface ChartConfigurationProps {
   supportsDataLabels: boolean;
   selectedPalette: string;
   setSelectedPalette: (value: string) => void;
-  topXLimit: number | null;
-  setTopXLimit: (value: number | null) => void;
-  supportsTopXLimit: boolean;
   histogramBins: number;
   setHistogramBins: (value: number) => void;
   aggregationMethod: AggregationMethod;
@@ -68,9 +65,6 @@ export const ChartConfiguration = ({
   supportsDataLabels,
   selectedPalette,
   setSelectedPalette,
-  topXLimit,
-  setTopXLimit,
-  supportsTopXLimit,
   histogramBins,
   setHistogramBins,
   aggregationMethod,
@@ -121,9 +115,6 @@ export const ChartConfiguration = ({
           setValueColumn={setValueColumn}
           histogramBins={histogramBins}
           setHistogramBins={setHistogramBins}
-          topXLimit={topXLimit}
-          setTopXLimit={setTopXLimit}
-          supportsTopXLimit={supportsTopXLimit}
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}
         />

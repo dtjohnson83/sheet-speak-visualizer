@@ -31,7 +31,7 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vizly-ui-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="charta-ui-theme">
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
