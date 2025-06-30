@@ -154,7 +154,7 @@ export const SeriesManager = ({
 
       {/* Debug info - only show in development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+        <div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
           <div>Debug Info:</div>
           <div>Total numeric columns: {numericColumns.length}</div>
           <div>Y-column: {yColumn || 'None'}</div>
@@ -164,8 +164,8 @@ export const SeriesManager = ({
       )}
 
       {!canAddSeries && numericColumns.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-700">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
             {numericColumns.length === 1 && yColumn 
               ? "You need at least 2 numeric columns to add additional series."
               : series.length >= 1
@@ -179,7 +179,7 @@ export const SeriesManager = ({
       {series.length > 0 && (
         <div className="space-y-3">
           {series.map((seriesConfig) => (
-            <div key={seriesConfig.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div key={seriesConfig.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div 
                 className="w-4 h-4 rounded flex-shrink-0" 
                 style={{ backgroundColor: seriesConfig.color }}

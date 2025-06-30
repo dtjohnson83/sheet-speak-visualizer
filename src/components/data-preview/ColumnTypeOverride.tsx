@@ -17,11 +17,11 @@ export const ColumnTypeOverride = ({ columns, onColumnTypeChange }: ColumnTypeOv
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'numeric': return 'bg-green-100 text-green-800';
-      case 'date': return 'bg-blue-100 text-blue-800';
-      case 'categorical': return 'bg-purple-100 text-purple-800';
-      case 'text': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'numeric': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'date': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'categorical': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'text': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
 
@@ -45,16 +45,16 @@ export const ColumnTypeOverride = ({ columns, onColumnTypeChange }: ColumnTypeOv
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold">Column Types</h4>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Click the edit button to manually override column types
         </p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {columns.map((column) => (
-          <div key={column.name} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+          <div key={column.name} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate" title={column.name}>
+              <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100" title={column.name}>
                 {column.name}
               </p>
               <div className="flex items-center gap-2 mt-1">
@@ -80,7 +80,7 @@ export const ColumnTypeOverride = ({ columns, onColumnTypeChange }: ColumnTypeOv
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Badge className={`${getTypeColor(column.type)} text-xs`}>
+                    <Badge className={`${getTypeColor(column.type)} text-xs border-0`}>
                       {column.type}
                     </Badge>
                     <Button 
