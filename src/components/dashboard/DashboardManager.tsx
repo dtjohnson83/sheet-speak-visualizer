@@ -37,10 +37,15 @@ export const DashboardManager = ({
   const handleSaveDashboard = () => {
     if (!name.trim()) return;
 
+    // Ensure we pass a valid UUID or undefined, not an empty string
+    const validDatasetId = currentDatasetId && currentDatasetId.trim() !== '' ? currentDatasetId : undefined;
+    
+    console.log('Saving dashboard with dataset ID:', validDatasetId);
+
     saveDashboard({
       name: name.trim(),
       description: description.trim() || undefined,
-      datasetId: currentDatasetId,
+      datasetId: validDatasetId,
       tiles,
       filters
     });

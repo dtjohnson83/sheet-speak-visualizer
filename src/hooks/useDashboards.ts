@@ -54,6 +54,11 @@ export const useDashboards = () => {
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      console.log('Saving dashboard mutation with:', { name, description, datasetId, tilesCount: tiles.length });
+
+      // Validate and clean the dataset ID
+      const cleanDatasetId = datasetId && datasetId.trim() !== '' ? datasetId.trim() : null;
+      
       // Create dashboard
       const { data: dashboard, error: dashboardError } = await supabase
         .from('saved_dashboards')
@@ -61,7 +66,7 @@ export const useDashboards = () => {
           user_id: user.id,
           name,
           description,
-          dataset_id: datasetId
+          dataset_id: cleanDatasetId
         })
         .select()
         .single();
@@ -116,6 +121,7 @@ export const useDashboards = () => {
       });
     },
     onError: (error) => {
+      console.error('Dashboard save error:', error);
       toast({
         title: "Failed to save dashboard",
         description: error.message,
