@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Save, FolderOpen, Trash2, Upload, BarChart3 } from 'lucide-react';
+import { Save, FolderOpen, Trash2, Upload, BarChart3, Edit2, Check, X } from 'lucide-react';
 import { useDashboards, SavedDashboard } from '@/hooks/useDashboards';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardTileData } from './DashboardTile';
@@ -28,11 +28,13 @@ export const DashboardManager = ({
   onLoadDashboard
 }: DashboardManagerProps) => {
   const { user } = useAuth();
-  const { dashboards, saveDashboard, loadDashboard, deleteDashboard, isSaving, isLoading } = useDashboards();
+  const { dashboards, saveDashboard, loadDashboard, deleteDashboard, updateDashboard, isSaving, isLoading, isUpdating } = useDashboards();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [editingDashboard, setEditingDashboard] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
 
   const handleSaveDashboard = () => {
     if (!name.trim()) return;
@@ -68,6 +70,28 @@ export const DashboardManager = ({
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     }
+  };
+
+  const handleStartEdit = (dashboard: SavedDashboard) => {
+    setEditingDashboard(dashboard.id);
+    setEditName(dashboard.name);
+  };
+
+  const handleSaveEdit = (dashboardId: string) => {
+    if (!editName.trim()) return;
+    
+    updateDashboard({
+      id: dashboardId,
+      name: editName.trim()
+    });
+    
+    setEditingDashboard(null);
+    setEditName('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingDashboard(null);
+    setEditName('');
   };
 
   if (!user) return null;
@@ -141,10 +165,55 @@ export const DashboardManager = ({
               </div>
             ) : (
               dashboards.map((dashboard) => (
-                <Card key={dashboard.id} className="p-4">
+                <Card key={dashboard.id} className="p-4 group">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-semibold">{dashboard.name}</h3>
+                      {editingDashboard === dashboard.id ? (
+                        <div className="flex items-center gap-2 mb-2">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="text-sm font-semibold"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveEdit(dashboard.id);
+                              } else if (e.key === 'Escape') {
+                                handleCancelEdit();
+                              }
+                            }}
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleSaveEdit(dashboard.id)}
+                            disabled={isUpdating}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleCancelEdit}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold">{dashboard.name}</h3>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleStartEdit(dashboard)}
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                       {dashboard.description && (
                         <p className="text-sm text-gray-600 mt-1">{dashboard.description}</p>
                       )}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -130,6 +129,50 @@ export const useDashboards = () => {
     },
   });
 
+  const updateDashboardMutation = useMutation({
+    mutationFn: async ({
+      id,
+      name,
+      description
+    }: {
+      id: string;
+      name?: string;
+      description?: string;
+    }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+
+      const { data, error } = await supabase
+        .from('saved_dashboards')
+        .update(updateData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboards', user?.id] });
+      toast({
+        title: "Dashboard updated",
+        description: "Your dashboard has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error('Dashboard update error:', error);
+      toast({
+        title: "Failed to update dashboard",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const loadDashboardMutation = useMutation({
     mutationFn: async (dashboardId: string) => {
       // Load dashboard info
@@ -234,8 +277,10 @@ export const useDashboards = () => {
     saveDashboard: saveDashboardMutation.mutate,
     loadDashboard: loadDashboardMutation.mutateAsync,
     deleteDashboard: deleteDashboardMutation.mutate,
+    updateDashboard: updateDashboardMutation.mutate,
     isSaving: saveDashboardMutation.isPending,
     isLoadingDashboard: loadDashboardMutation.isPending,
     isDeleting: deleteDashboardMutation.isPending,
+    isUpdating: updateDashboardMutation.isPending,
   };
 };
