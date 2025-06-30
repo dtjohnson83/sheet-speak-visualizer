@@ -6,7 +6,6 @@ import { AggregationMethod } from './AggregationConfiguration';
 import { BarChartRenderer } from './renderers/BarChartRenderer';
 import { LineChartRenderer } from './renderers/LineChartRenderer';
 import { AreaChartRenderer } from './renderers/AreaChartRenderer';
-import { PieChartRenderer } from './renderers/PieChartRenderer';
 import { ScatterChartRenderer } from './renderers/ScatterChartRenderer';
 import { HistogramChartRenderer } from './renderers/HistogramChartRenderer';
 import { HeatmapChartRenderer } from './renderers/HeatmapChartRenderer';
@@ -71,18 +70,6 @@ export const ChartRenderers = ({
         stackColumn={stackColumn}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
-      />
-    );
-  }
-
-  if (chartType === 'pie') {
-    return (
-      <PieChartRenderer
-        data={data}
-        xColumn={xColumn}
-        yColumn={yColumn}
-        showDataLabels={showDataLabels}
-        chartColors={chartColors}
       />
     );
   }

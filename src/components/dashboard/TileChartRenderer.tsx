@@ -7,7 +7,6 @@ import { getEffectiveSeries } from './utils/seriesUtils';
 import { TileBarChartRenderer } from './renderers/TileBarChartRenderer';
 import { TileLineChartRenderer } from './renderers/TileLineChartRenderer';
 import { TileAreaChartRenderer } from './renderers/TileAreaChartRenderer';
-import { TilePieChartRenderer } from './renderers/TilePieChartRenderer';
 import { TileScatterChartRenderer } from './renderers/TileScatterChartRenderer';
 
 interface TileChartRendererProps {
@@ -75,16 +74,6 @@ export const TileChartRenderer = ({
         xColumn={xColumn}
         stackColumn={stackColumn}
         effectiveSeries={effectiveSeries}
-        chartColors={chartColors}
-        showDataLabels={showDataLabels}
-      />
-    );
-  }
-
-  if (chartType === 'pie') {
-    return (
-      <TilePieChartRenderer
-        data={data}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
       />

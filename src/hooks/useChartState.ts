@@ -13,7 +13,7 @@ export interface SeriesConfig {
 }
 
 export const useChartState = () => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'histogram' | 'kpi'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'sankey' | 'histogram' | 'kpi'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [stackColumn, setStackColumn] = useState<string>('');
@@ -43,7 +43,7 @@ export const useChartState = () => {
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
 
   // Charts that support top X limiting
-  const topXSupportedCharts = ['bar', 'pie', 'stacked-bar', 'treemap'];
+  const topXSupportedCharts = ['bar', 'stacked-bar', 'treemap'];
   const supportsTopXLimit = topXSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {

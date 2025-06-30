@@ -17,8 +17,8 @@ export const LineChartRenderer = ({
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const, yAxisId: 'left' }] : [];
   
-  // Combine base series with additional series
-  const allSeries = [...baseSeries, ...series];
+  // Combine base series with additional series, ensuring all are line type
+  const allSeries = [...baseSeries, ...series.map(s => ({ ...s, type: 'line' as const }))];
   
   // Check if we need a right Y-axis
   const needsRightYAxis = series.some(s => s.yAxisId === 'right');
