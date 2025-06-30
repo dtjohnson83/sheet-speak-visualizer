@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { VideoModal } from '@/components/VideoModal';
 import { Upload, BarChart3, Layout, Share2, Zap, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Landing = () => {
   const [isHovered, setIsHovered] = useState<string | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const { user } = useAuth();
 
   const features = [
@@ -109,7 +111,12 @@ const Landing = () => {
                 </Button>
               </Link>
             )}
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-lg px-8 py-6"
+              onClick={() => setIsVideoModalOpen(true)}
+            >
               View Demo
             </Button>
           </div>
@@ -249,6 +256,14 @@ const Landing = () => {
           </p>
         </div>
       </footer>
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        videoUrl="https://vimeo.com/1097634521/90b5e70a7c?ts=0&share=copy"
+        title="Charta Demo"
+      />
     </div>
   );
 };
