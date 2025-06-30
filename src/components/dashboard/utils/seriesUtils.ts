@@ -8,7 +8,8 @@ export const getEffectiveSeries = (yColumn: string, series: SeriesConfig[], char
     column: yColumn,
     color: chartColors[0],
     type: 'bar' as const,
-    aggregationMethod: 'sum' as const
+    aggregationMethod: 'sum' as const,
+    yAxisId: 'left'
   }] : [];
   
   // Combine base series with additional series

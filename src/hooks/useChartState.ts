@@ -9,6 +9,7 @@ export interface SeriesConfig {
   color: string;
   type: 'bar' | 'line';
   aggregationMethod: AggregationMethod;
+  yAxisId?: string; // Add support for multiple Y axes
 }
 
 export const useChartState = () => {

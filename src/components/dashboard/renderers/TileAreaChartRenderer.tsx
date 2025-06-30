@@ -22,6 +22,9 @@ export const TileAreaChartRenderer = ({
   chartColors, 
   showDataLabels 
 }: TileAreaChartRendererProps) => {
+  // Check if we need a right Y-axis
+  const needsRightYAxis = effectiveSeries.some(s => s.yAxisId === 'right');
+
   const renderDataLabel = (props: any) => {
     const { x, y, width, height, value } = props;
     return (
@@ -43,7 +46,10 @@ export const TileAreaChartRenderer = ({
       <AreaChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
-        <YAxis />
+        <YAxis yAxisId="left" />
+        {needsRightYAxis && (
+          <YAxis yAxisId="right" orientation="right" />
+        )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
         {effectiveSeries.map((s, index) => (
@@ -55,6 +61,7 @@ export const TileAreaChartRenderer = ({
             stroke={chartColors[index % chartColors.length]} 
             fill={chartColors[index % chartColors.length]}
             fillOpacity={0.6}
+            yAxisId={s.yAxisId || 'left'}
             label={showDataLabels ? renderDataLabel : false}
           />
         ))}

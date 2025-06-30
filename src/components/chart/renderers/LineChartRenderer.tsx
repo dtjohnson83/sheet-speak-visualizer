@@ -15,10 +15,13 @@ export const LineChartRenderer = ({
   showDataLabels
 }: LineChartRendererProps) => {
   // Always include the base yColumn as the primary series
-  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const }] : [];
+  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const, yAxisId: 'left' }] : [];
   
   // Combine base series with additional series
   const allSeries = [...baseSeries, ...series];
+  
+  // Check if we need a right Y-axis
+  const needsRightYAxis = series.some(s => s.yAxisId === 'right');
   
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -41,7 +44,14 @@ export const LineChartRenderer = ({
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
-        <YAxis tickFormatter={formatTooltipValue} />
+        <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+        {needsRightYAxis && (
+          <YAxis 
+            yAxisId="right" 
+            orientation="right" 
+            tickFormatter={formatTooltipValue}
+          />
+        )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
         {allSeries.map((s, index) => (
@@ -52,6 +62,7 @@ export const LineChartRenderer = ({
             stroke={chartColors[index % chartColors.length]}
             strokeWidth={2}
             dot={{ r: 4 }}
+            yAxisId={s.yAxisId || 'left'}
             label={showDataLabels ? renderDataLabel : false}
           />
         ))}

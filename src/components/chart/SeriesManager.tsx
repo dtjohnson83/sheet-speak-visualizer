@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -60,7 +59,8 @@ export const SeriesManager = ({
       column: availableColumns[0].name,
       color: chartColors[(series.length + 1) % chartColors.length],
       type: 'bar',
-      aggregationMethod: 'sum'
+      aggregationMethod: 'sum',
+      yAxisId: 'right' // Assign additional series to right Y-axis
     };
     
     console.log('SeriesManager - Adding new series:', newSeries);
@@ -85,6 +85,11 @@ export const SeriesManager = ({
   const updateSeriesAggregation = (id: string, aggregationMethod: AggregationMethod) => {
     console.log('SeriesManager - Updating series aggregation:', { id, aggregationMethod });
     setSeries(series.map(s => s.id === id ? { ...s, aggregationMethod } : s));
+  };
+
+  const updateSeriesYAxis = (id: string, yAxisId: string) => {
+    console.log('SeriesManager - Updating series Y-axis:', { id, yAxisId });
+    setSeries(series.map(s => s.id === id ? { ...s, yAxisId } : s));
   };
 
   const getButtonTooltipContent = () => {
@@ -214,6 +219,18 @@ export const SeriesManager = ({
                   <SelectItem value="count">Count</SelectItem>
                   <SelectItem value="min">Min</SelectItem>
                   <SelectItem value="max">Max</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select 
+                value={seriesConfig.yAxisId || 'left'} 
+                onValueChange={(value) => updateSeriesYAxis(seriesConfig.id, value)}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
                 </SelectContent>
               </Select>
               <Button

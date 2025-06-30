@@ -16,10 +16,13 @@ export const AreaChartRenderer = ({
   showDataLabels
 }: AreaChartRendererProps) => {
   // Always include the base yColumn as the primary series
-  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'area' as const }] : [];
+  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'area' as const, yAxisId: 'left' }] : [];
   
   // Combine base series with additional series
   const allSeries = [...baseSeries, ...series];
+  
+  // Check if we need a right Y-axis
+  const needsRightYAxis = series.some(s => s.yAxisId === 'right');
   
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -42,7 +45,14 @@ export const AreaChartRenderer = ({
       <AreaChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
-        <YAxis tickFormatter={formatTooltipValue} />
+        <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+        {needsRightYAxis && (
+          <YAxis 
+            yAxisId="right" 
+            orientation="right" 
+            tickFormatter={formatTooltipValue}
+          />
+        )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
         {allSeries.map((s, index) => (
@@ -54,6 +64,7 @@ export const AreaChartRenderer = ({
             stroke={chartColors[index % chartColors.length]} 
             fill={chartColors[index % chartColors.length]}
             fillOpacity={0.6}
+            yAxisId={s.yAxisId || 'left'}
             label={showDataLabels ? renderDataLabel : false}
           />
         ))}

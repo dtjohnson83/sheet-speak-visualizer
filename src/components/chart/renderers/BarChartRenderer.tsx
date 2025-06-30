@@ -16,10 +16,13 @@ export const BarChartRenderer = ({
   showDataLabels
 }: BarChartRendererProps) => {
   // Always include the base yColumn as the primary series
-  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'bar' as const }] : [];
+  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'bar' as const, yAxisId: 'left' }] : [];
   
   // Combine base series with additional series
   const allSeries = [...baseSeries, ...series];
+  
+  // Check if we need a right Y-axis
+  const needsRightYAxis = series.some(s => s.yAxisId === 'right');
   
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -43,7 +46,14 @@ export const BarChartRenderer = ({
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
-        <YAxis tickFormatter={formatTooltipValue} />
+        <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+        {needsRightYAxis && (
+          <YAxis 
+            yAxisId="right" 
+            orientation="right" 
+            tickFormatter={formatTooltipValue}
+          />
+        )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
         {allSeries.map((s, index) => (
@@ -52,6 +62,7 @@ export const BarChartRenderer = ({
             dataKey={s.column} 
             fill={chartColors[index % chartColors.length]} 
             stackId={stackColumn ? 'stack' : undefined}
+            yAxisId={s.yAxisId || 'left'}
             label={showDataLabels ? renderDataLabel : false}
           />
         ))}
