@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { chartTypeInfo } from '@/lib/chartTypeInfo';
-import { Icons } from '@/components/ui/icons';
+import { BarChart3, LineChart, AreaChart, PieChart, Scatter, Square, BarChart2, List, Hash, TrendingUp } from 'lucide-react';
 
 interface ChartTypeSelectorProps {
   value: string;
@@ -9,17 +10,17 @@ interface ChartTypeSelectorProps {
 }
 
 const chartTypes = [
-  { value: 'bar', label: 'Bar Chart', icon: 'barChart' },
-  { value: 'line', label: 'Line Chart', icon: 'lineChart' },
-  { value: 'area', label: 'Area Chart', icon: 'areaChart' },
-  { value: 'pie', label: 'Pie Chart', icon: 'pieChart' },
-  { value: 'scatter', label: 'Scatter Plot', icon: 'scatter' },
-  { value: 'heatmap', label: 'Heatmap', icon: 'heatmap' },
-  { value: 'histogram', label: 'Histogram', icon: 'histogram' },
-  { value: 'sankey', label: 'Sankey Diagram', icon: 'sankey' },
-  { value: 'treemap', label: 'Treemap', icon: 'treemap' },
-  { value: 'topX', label: 'Top X Ranking', icon: 'list' },
-  { value: 'kpi', label: 'KPI Cards', icon: 'square' },
+  { value: 'bar', label: 'Bar Chart', icon: BarChart3 },
+  { value: 'line', label: 'Line Chart', icon: LineChart },
+  { value: 'area', label: 'Area Chart', icon: AreaChart },
+  { value: 'pie', label: 'Pie Chart', icon: PieChart },
+  { value: 'scatter', label: 'Scatter Plot', icon: Scatter },
+  { value: 'heatmap', label: 'Heatmap', icon: Hash },
+  { value: 'histogram', label: 'Histogram', icon: BarChart2 },
+  { value: 'sankey', label: 'Sankey Diagram', icon: TrendingUp },
+  { value: 'treemap', label: 'Treemap', icon: Square },
+  { value: 'topX', label: 'Top X Ranking', icon: List },
+  { value: 'kpi', label: 'KPI Cards', icon: Square },
 ];
 
 export const ChartTypeSelector = ({ value, onChange }: ChartTypeSelectorProps) => {
@@ -30,14 +31,17 @@ export const ChartTypeSelector = ({ value, onChange }: ChartTypeSelectorProps) =
           <SelectValue placeholder="Select chart type" />
         </SelectTrigger>
         <SelectContent>
-          {chartTypes.map((type) => (
-            <SelectItem key={type.value} value={type.value}>
-              <div className="flex items-center gap-2">
-                {type.icon && <Icons.chart[type.icon as keyof Icons['chart']] className="w-4 h-4" />}
-                {type.label}
-              </div>
-            </SelectItem>
-          ))}
+          {chartTypes.map((type) => {
+            const IconComponent = type.icon;
+            return (
+              <SelectItem key={type.value} value={type.value}>
+                <div className="flex items-center gap-2">
+                  <IconComponent className="w-4 h-4" />
+                  {type.label}
+                </div>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     </div>
