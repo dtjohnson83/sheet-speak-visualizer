@@ -1,10 +1,14 @@
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { formatTooltipValue } from '@/lib/numberUtils';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { KPIRenderer } from '../chart/KPIRenderer';
+import { getEffectiveSeries } from './utils/seriesUtils';
+import { TileBarChartRenderer } from './renderers/TileBarChartRenderer';
+import { TileLineChartRenderer } from './renderers/TileLineChartRenderer';
+import { TileAreaChartRenderer } from './renderers/TileAreaChartRenderer';
+import { TilePieChartRenderer } from './renderers/TilePieChartRenderer';
+import { TileScatterChartRenderer } from './renderers/TileScatterChartRenderer';
 
 interface TileChartRendererProps {
   chartType: string;
@@ -37,156 +41,65 @@ export const TileChartRenderer = ({
   columns, 
   chartColors 
 }: TileChartRendererProps) => {
-  // Create effective series with base series plus additional series
-  const getEffectiveSeries = (): SeriesConfig[] => {
-    // Always include the base yColumn as the primary series
-    const baseSeries = yColumn ? [{
-      id: 'base',
-      column: yColumn,
-      color: chartColors[0],
-      type: 'bar' as const,
-      aggregationMethod: 'sum' as const
-    }] : [];
-    
-    // Combine base series with additional series
-    return [...baseSeries, ...series];
-  };
-
-  const effectiveSeries = getEffectiveSeries();
-
-  // Custom label component for data labels
-  const renderDataLabel = (props: any) => {
-    const { x, y, width, height, value } = props;
-    return (
-      <text 
-        x={x + width / 2} 
-        y={y - 5} 
-        fill="#666" 
-        textAnchor="middle" 
-        dy={-6}
-        fontSize="12"
-      >
-        {formatTooltipValue(value)}
-      </text>
-    );
-  };
+  const effectiveSeries = getEffectiveSeries(yColumn, series, chartColors);
 
   if (chartType === 'bar') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis />
-          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-          <Legend />
-          {effectiveSeries.map((s, index) => (
-            <Bar 
-              key={s.column} 
-              dataKey={s.column} 
-              fill={chartColors[index % chartColors.length]} 
-              stackId={stackColumn ? 'stack' : undefined}
-              label={showDataLabels ? renderDataLabel : false}
-            />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
+      <TileBarChartRenderer
+        data={data}
+        xColumn={xColumn}
+        stackColumn={stackColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
     );
   }
 
   if (chartType === 'line') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis />
-          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-          <Legend />
-          {effectiveSeries.map((s, index) => (
-            <Line 
-              key={s.column} 
-              type="monotone" 
-              dataKey={s.column} 
-              stroke={chartColors[index % chartColors.length]}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              label={showDataLabels ? renderDataLabel : false}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+      <TileLineChartRenderer
+        data={data}
+        xColumn={xColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
     );
   }
 
   if (chartType === 'area') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis />
-          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-          <Legend />
-          {effectiveSeries.map((s, index) => (
-            <Area 
-              key={s.column} 
-              type="monotone" 
-              dataKey={s.column} 
-              stackId={stackColumn ? 'stack' : undefined}
-              stroke={chartColors[index % chartColors.length]} 
-              fill={chartColors[index % chartColors.length]}
-              fillOpacity={0.6}
-              label={showDataLabels ? renderDataLabel : false}
-            />
-          ))}
-        </AreaChart>
-      </ResponsiveContainer>
+      <TileAreaChartRenderer
+        data={data}
+        xColumn={xColumn}
+        stackColumn={stackColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
     );
   }
 
   if (chartType === 'pie') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            dataKey="value"
-            nameKey="name"
-            data={data}
-            cx="50%"
-            cy="50%"
-            outerRadius={80}
-            fill="#8884d8"
-            label={showDataLabels ? (entry: any) => `${entry.name}: ${formatTooltipValue(entry.value)}` : false}
-          >
-            {
-              data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
-              ))
-            }
-          </Pie>
-          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
+      <TilePieChartRenderer
+        data={data}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
     );
   }
 
   if (chartType === 'scatter') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <ScatterChart>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis />
-          <ZAxis dataKey={valueColumn} range={[64, 144]} />
-          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-          <Legend />
-          {effectiveSeries.map((s, index) => (
-            <Scatter key={s.column} data={data} dataKey={s.column} fill={chartColors[index % chartColors.length]} />
-          ))}
-        </ScatterChart>
-      </ResponsiveContainer>
+      <TileScatterChartRenderer
+        data={data}
+        xColumn={xColumn}
+        valueColumn={valueColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+      />
     );
   }
 
