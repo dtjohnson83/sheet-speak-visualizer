@@ -7,7 +7,7 @@ export interface SeriesConfig {
   id: string;
   column: string;
   color: string;
-  type: 'bar' | 'line';
+  type: 'bar' | 'line' | 'area';
   aggregationMethod: AggregationMethod;
   yAxisId?: string; // Add support for multiple Y axes
 }

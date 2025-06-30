@@ -44,7 +44,7 @@ export const TileChartRenderer = ({
   columns, 
   chartColors 
 }: TileChartRendererProps) => {
-  const effectiveSeries = getEffectiveSeries(yColumn, series, chartColors);
+  const effectiveSeries = getEffectiveSeries(yColumn, series, chartColors, chartType);
 
   if (chartType === 'bar') {
     return (
