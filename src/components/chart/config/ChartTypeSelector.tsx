@@ -27,7 +27,10 @@ const chartTypes = [
 
 export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, yColumn, dataLength }: ChartTypeSelectorProps) => {
   return (
-    <div>
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        Chart Type
+      </label>
       <Select onValueChange={setChartType} defaultValue={chartType}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select chart type" />

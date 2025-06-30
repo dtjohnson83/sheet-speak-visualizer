@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -109,8 +110,13 @@ export const SeriesManager = ({
     return `Add a new data series (${availableColumns.length} columns available)`;
   };
 
+  // Only render the container if there are series or if we can add series
+  if (series.length === 0 && !canAddSeries && numericColumns.length <= 1) {
+    return null;
+  }
+
   return (
-    <div className="mt-6 mb-6 bg-white dark:bg-gray-900 rounded-lg p-4">
+    <div className="mt-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h4 className="text-sm font-medium">Additional Series (Max: 1)</h4>
@@ -162,7 +168,7 @@ export const SeriesManager = ({
         </div>
       )}
 
-      {!canAddSeries && numericColumns.length > 0 && (
+      {!canAddSeries && numericColumns.length > 0 && series.length === 0 && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-700 dark:text-blue-300">
             {numericColumns.length === 1 && yColumn 
@@ -176,7 +182,7 @@ export const SeriesManager = ({
       )}
       
       {series.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3 bg-white dark:bg-gray-900 rounded-lg p-4">
           {series.map((seriesConfig) => (
             <div key={seriesConfig.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div 
