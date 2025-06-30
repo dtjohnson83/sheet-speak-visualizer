@@ -83,7 +83,7 @@ export const SeriesManager = ({
   }
 
   return (
-    <div className="mt-6 mb-6">
+    <div className="mt-4 mb-4">
       <SeriesManagerHeader
         canAddSeries={canAddSeries}
         availableColumns={availableColumns}
@@ -108,7 +108,7 @@ export const SeriesManager = ({
       />
       
       {series.length > 0 && (
-        <div className="space-y-3 bg-white dark:bg-gray-900 rounded-lg p-4">
+        <div className="space-y-2 bg-white dark:bg-gray-900 rounded-lg p-2">
           {series.map((seriesConfig) => (
             <SeriesManagerControls
               key={seriesConfig.id}
