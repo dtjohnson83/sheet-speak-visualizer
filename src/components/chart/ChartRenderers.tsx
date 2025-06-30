@@ -10,6 +10,9 @@ import { PieChartRenderer } from './renderers/PieChartRenderer';
 import { ScatterChartRenderer } from './renderers/ScatterChartRenderer';
 import { HistogramChartRenderer } from './renderers/HistogramChartRenderer';
 import { TopXChartRenderer } from './renderers/TopXChartRenderer';
+import { HeatmapChartRenderer } from './renderers/HeatmapChartRenderer';
+import { SankeyChartRenderer } from './renderers/SankeyChartRenderer';
+import { TreemapChartRenderer } from './renderers/TreemapChartRenderer';
 import { PlaceholderChartRenderer } from './renderers/PlaceholderChartRenderer';
 
 interface ExtendedChartRenderersProps extends ChartRenderersProps {
@@ -93,6 +96,7 @@ export const ChartRenderers = ({
         yColumn={yColumn}
         series={series}
         chartColors={chartColors}
+        showDataLabels={showDataLabels}
       />
     );
   }
@@ -117,6 +121,34 @@ export const ChartRenderers = ({
       />
     );
   }
+
+  if (chartType === 'heatmap') {
+    return (
+      <HeatmapChartRenderer
+        data={data}
+        chartColors={chartColors}
+      />
+    );
+  }
+
+  if (chartType === 'sankey') {
+    return (
+      <SankeyChartRenderer
+        data={data}
+        chartColors={chartColors}
+      />
+    );
+  }
+
+  if (chartType === 'treemap') {
+    return (
+      <TreemapChartRenderer
+        data={data}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
   
   if (chartType === 'kpi') {
     return (
@@ -131,19 +163,6 @@ export const ChartRenderers = ({
         aggregationMethod={aggregationMethod}
       />
     );
-  }
-
-  // Placeholder components for advanced chart types that need more complex implementation
-  if (chartType === 'heatmap') {
-    return <PlaceholderChartRenderer message="Heatmap Chart Renderer - Coming Soon" />;
-  }
-
-  if (chartType === 'sankey') {
-    return <PlaceholderChartRenderer message="Sankey Chart Renderer - Coming Soon" />;
-  }
-
-  if (chartType === 'treemap') {
-    return <PlaceholderChartRenderer message="Treemap Chart Renderer - Coming Soon" />;
   }
 
   return <PlaceholderChartRenderer message="Select a chart type to visualize your data." />;
