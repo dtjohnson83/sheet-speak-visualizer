@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ComposedChart, Bar, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
@@ -25,7 +25,25 @@ export const TileAreaChartRenderer = ({
   // Check if we need a right Y-axis
   const needsRightYAxis = effectiveSeries.some(s => s.yAxisId === 'right');
 
+  // Check if we have mixed chart types
+  const hasMixedTypes = effectiveSeries.some(s => s.type === 'bar');
+
   const renderDataLabel = (props: any) => {
+    const { x, y, value } = props;
+    return (
+      <text 
+        x={x} 
+        y={y - 10} 
+        fill="#666" 
+        textAnchor="middle" 
+        fontSize="12"
+      >
+        {formatTooltipValue(value)}
+      </text>
+    );
+  };
+
+  const renderBarDataLabel = (props: any) => {
     const { x, y, width, height, value } = props;
     return (
       <text 
@@ -43,7 +61,7 @@ export const TileAreaChartRenderer = ({
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data}>
+      <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
         <YAxis yAxisId="left" />
@@ -52,20 +70,34 @@ export const TileAreaChartRenderer = ({
         )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
-        {effectiveSeries.map((s, index) => (
-          <Area 
-            key={s.column} 
-            type="monotone" 
-            dataKey={s.column} 
-            stackId={stackColumn ? 'stack' : undefined}
-            stroke={chartColors[index % chartColors.length]} 
-            fill={chartColors[index % chartColors.length]}
-            fillOpacity={0.6}
-            yAxisId={s.yAxisId || 'left'}
-            label={showDataLabels ? renderDataLabel : false}
-          />
-        ))}
-      </AreaChart>
+        {effectiveSeries.map((s, index) => {
+          if (s.type === 'bar') {
+            return (
+              <Bar 
+                key={s.column} 
+                dataKey={s.column} 
+                fill={chartColors[index % chartColors.length]} 
+                yAxisId={s.yAxisId || 'left'}
+                label={showDataLabels ? renderBarDataLabel : false}
+              />
+            );
+          } else {
+            return (
+              <Area 
+                key={s.column} 
+                type="monotone" 
+                dataKey={s.column} 
+                stackId={stackColumn ? 'stack' : undefined}
+                stroke={chartColors[index % chartColors.length]} 
+                fill={chartColors[index % chartColors.length]}
+                fillOpacity={0.6}
+                yAxisId={s.yAxisId || 'left'}
+                label={showDataLabels ? renderDataLabel : false}
+              />
+            );
+          }
+        })}
+      </ComposedChart>
     </ResponsiveContainer>
   );
 };

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { chartTypeInfo } from '@/lib/chartTypeInfo';
-import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, List, Hash, TrendingUp } from 'lucide-react';
+import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, Hash, TrendingUp } from 'lucide-react';
 
 interface ChartTypeSelectorProps {
   chartType: string;
@@ -22,7 +22,6 @@ const chartTypes = [
   { value: 'histogram', label: 'Histogram', icon: BarChart2 },
   { value: 'sankey', label: 'Sankey Diagram', icon: TrendingUp },
   { value: 'treemap', label: 'Treemap', icon: Square },
-  { value: 'topX', label: 'Top X Ranking', icon: List },
   { value: 'kpi', label: 'KPI Cards', icon: Square },
 ];
 

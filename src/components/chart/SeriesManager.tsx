@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -40,7 +41,8 @@ export const SeriesManager = ({
   };
 
   const availableColumns = getAvailableSeriesColumns();
-  const canAddSeries = availableColumns.length > 0;
+  // Limit to only one additional series
+  const canAddSeries = availableColumns.length > 0 && series.length < 1;
 
   const addSeries = () => {
     console.log('SeriesManager - Add Series clicked:', {
@@ -50,7 +52,7 @@ export const SeriesManager = ({
     });
     
     if (!canAddSeries) {
-      console.warn('SeriesManager - Cannot add series: no available columns');
+      console.warn('SeriesManager - Cannot add series: limit reached or no available columns');
       return;
     }
     
@@ -99,7 +101,10 @@ export const SeriesManager = ({
     if (numericColumns.length === 1 && yColumn) {
       return "Only one numeric column available (already used as Y-axis)";
     }
-    if (!canAddSeries) {
+    if (series.length >= 1) {
+      return "Maximum of one additional series allowed";
+    }
+    if (!availableColumns.length) {
       return "All available numeric columns are already used";
     }
     return `Add a new data series (${availableColumns.length} columns available)`;
@@ -109,7 +114,7 @@ export const SeriesManager = ({
     <div className="mt-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h4 className="text-sm font-medium">Additional Series</h4>
+          <h4 className="text-sm font-medium">Additional Series (Max: 1)</h4>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -117,7 +122,7 @@ export const SeriesManager = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs max-w-48">
-                  Add multiple data series to compare different metrics on the same chart. 
+                  Add one additional data series to compare different metrics on the same chart. 
                   Only works with Bar, Line, and Scatter charts.
                 </p>
               </TooltipContent>
@@ -154,7 +159,7 @@ export const SeriesManager = ({
           <div>Total numeric columns: {numericColumns.length}</div>
           <div>Y-column: {yColumn || 'None'}</div>
           <div>Available for series: {availableColumns.length}</div>
-          <div>Current series: {series.length}</div>
+          <div>Current series: {series.length}/1</div>
         </div>
       )}
 
@@ -163,6 +168,8 @@ export const SeriesManager = ({
           <p className="text-sm text-blue-700">
             {numericColumns.length === 1 && yColumn 
               ? "You need at least 2 numeric columns to add additional series."
+              : series.length >= 1
+              ? "Maximum of one additional series reached. Remove the current series to add a different one."
               : "All available numeric columns are already in use. Remove a series to add a different one."
             }
           </p>
