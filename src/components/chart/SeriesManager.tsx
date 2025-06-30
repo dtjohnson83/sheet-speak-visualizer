@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -111,7 +110,7 @@ export const SeriesManager = ({
   };
 
   return (
-    <div className="mt-6 mb-6">
+    <div className="mt-6 mb-6 bg-white dark:bg-gray-900 rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h4 className="text-sm font-medium">Additional Series (Max: 1)</h4>
