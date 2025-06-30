@@ -1,3 +1,4 @@
+
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
@@ -11,7 +12,6 @@ import { prepareStackedBarData } from './chart/stackedBarProcessor';
 import { prepareScatterData } from './chart/scatterProcessor';
 import { prepareStandardChartData } from './chart/standardChartProcessor';
 import { prepareHistogramData } from './chart/histogramProcessor';
-import { applyTopXLimit } from './chart/topXProcessor';
 
 export const prepareChartData = (
   data: DataRow[],
@@ -122,17 +122,6 @@ export const prepareChartData = (
     case 'bar':
     default:
       processedData = prepareStandardChartData(validData, cleanXColumn, cleanYColumn, xCol, yCol, series, aggregationMethod, sortColumn, sortDirection, chartType, columnFormats);
-  }
-
-  // Apply top X limiting for supported chart types (only for array data, not SankeyData)
-  if (Array.isArray(processedData) && topXLimit && topXLimit > 0) {
-    const limitSupportedCharts = ['bar', 'pie', 'stacked-bar', 'treemap'];
-    if (limitSupportedCharts.includes(chartType)) {
-      // Use the yColumn as the default sort column for limiting if no specific sort column is set
-      const sortColumnForLimit = sortColumn === 'none' ? cleanYColumn : sortColumn;
-      console.log('Applying top X limit:', { topXLimit, sortColumnForLimit, sortDirection });
-      processedData = applyTopXLimit(processedData, topXLimit, sortColumnForLimit, sortDirection);
-    }
   }
 
   console.log('prepareChartData - Final result:', {
