@@ -77,7 +77,7 @@ const Auth = () => {
             <img 
               src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
               alt="Charta Logo" 
-              className="h-16 w-auto"
+              className="h-20 w-auto md:h-24"
             />
           </div>
           <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
