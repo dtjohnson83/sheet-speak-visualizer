@@ -5,8 +5,12 @@ import { chartTypeInfo } from '@/lib/chartTypeInfo';
 import { BarChart3, LineChart, AreaChart, PieChart, ScatterChart, Square, BarChart2, List, Hash, TrendingUp } from 'lucide-react';
 
 interface ChartTypeSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+  chartType: string;
+  setChartType: (value: any) => void;
+  columns: any[];
+  xColumn: string;
+  yColumn: string;
+  dataLength: number;
 }
 
 const chartTypes = [
@@ -23,10 +27,10 @@ const chartTypes = [
   { value: 'kpi', label: 'KPI Cards', icon: Square },
 ];
 
-export const ChartTypeSelector = ({ value, onChange }: ChartTypeSelectorProps) => {
+export const ChartTypeSelector = ({ chartType, setChartType }: ChartTypeSelectorProps) => {
   return (
     <div>
-      <Select onValueChange={onChange} defaultValue={value}>
+      <Select onValueChange={setChartType} defaultValue={chartType}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select chart type" />
         </SelectTrigger>

@@ -1,16 +1,68 @@
+
 import React from 'react';
-import { BarChartRenderer } from './BarChartRenderer';
-import { LineChartRenderer } from './LineChartRenderer';
-import { AreaChartRenderer } from './AreaChartRenderer';
-import { PieChartRenderer } from './PieChartRenderer';
-import { ScatterPlotRenderer } from './ScatterPlotRenderer';
-import { HeatmapChartRenderer } from './HeatmapChartRenderer';
-import { HistogramChartRenderer } from './HistogramChartRenderer';
-import { SankeyChartRenderer } from './SankeyChartRenderer';
-import { TreemapChartRenderer } from './TreemapChartRenderer';
-import { TopXChartRenderer } from './TopXChartRenderer';
 import { ChartRenderersProps } from '@/types';
 import { KPIRenderer } from './KPIRenderer';
+
+// Placeholder components for chart renderers that don't exist yet
+const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Bar Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const LineChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Line Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const AreaChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Area Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const PieChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Pie Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const ScatterPlotRenderer = ({ data, xColumn, yColumn, series, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Scatter Plot Renderer - Coming Soon</p>
+  </div>
+);
+
+const HeatmapChartRenderer = ({ data, xColumn, yColumn, valueColumn, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Heatmap Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const HistogramChartRenderer = ({ data, xColumn, yColumn, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Histogram Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const SankeyChartRenderer = ({ data, xColumn, sankeyTargetColumn, valueColumn, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Sankey Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const TreemapChartRenderer = ({ data, xColumn, yColumn, valueColumn, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Treemap Chart Renderer - Coming Soon</p>
+  </div>
+);
+
+const TopXChartRenderer = ({ data, xColumn, yColumn, sortColumn, sortDirection, chartColors }: any) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground">Top X Chart Renderer - Coming Soon</p>
+  </div>
+);
 
 export const ChartRenderers = ({ 
   chartType, 
