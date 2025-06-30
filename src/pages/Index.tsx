@@ -7,6 +7,7 @@ import { ColumnTypeOverride } from '@/components/data-preview/ColumnTypeOverride
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useSessionMonitor } from '@/hooks/useSessionMonitor';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserMenu } from '@/components/UserMenu';
 
@@ -26,6 +27,9 @@ const Index = () => {
   const [fileName, setFileName] = useState<string>('');
   const [worksheetName, setWorksheetName] = useState<string>('');
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
+  
+  // Initialize session monitoring
+  useSessionMonitor();
 
   const handleDataLoaded = (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => {
     console.log('Data loaded:', { loadedData, detectedColumns, name, worksheet });
