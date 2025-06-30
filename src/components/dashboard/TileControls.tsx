@@ -43,7 +43,7 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange }: Ti
   };
 
   return (
-    <div className="flex items-center justify-between mb-2">
+    <div className="flex items-center justify-between mb-3">
       {isEditingTitle ? (
         <div className="flex items-center gap-1 flex-1 mr-2">
           <Input

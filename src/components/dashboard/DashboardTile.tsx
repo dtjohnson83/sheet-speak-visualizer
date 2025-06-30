@@ -123,7 +123,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
   return (
     <Card 
       ref={tileRef}
-      className={`p-4 relative group cursor-move ${isDragging || isResizing ? 'z-50 shadow-2xl' : 'z-10'} select-none`}
+      className={`p-3 relative group cursor-move ${isDragging || isResizing ? 'z-50 shadow-2xl' : 'z-10'} select-none`}
       style={{
         position: 'absolute',
         left: tile.position.x,
@@ -140,7 +140,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
         onTitleChange={handleTitleChange}
       />
       
-      <div className="w-full h-[calc(100%-2rem)] overflow-hidden">
+      <div className="w-full h-[calc(100%-3rem)] overflow-hidden">
         <TileChartRenderer
           chartType={tile.chartType}
           xColumn={tile.xColumn}
