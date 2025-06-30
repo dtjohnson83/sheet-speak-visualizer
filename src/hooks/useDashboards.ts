@@ -70,28 +70,28 @@ export const useDashboards = () => {
 
       // Save tiles
       if (tiles.length > 0) {
+        const tileInserts = tiles.map(tile => ({
+          dashboard_id: dashboard.id,
+          tile_data: {
+            title: tile.title,
+            chartType: tile.chartType,
+            xColumn: tile.xColumn,
+            yColumn: tile.yColumn,
+            stackColumn: tile.stackColumn,
+            sankeyTargetColumn: tile.sankeyTargetColumn,
+            valueColumn: tile.valueColumn,
+            sortColumn: tile.sortColumn,
+            sortDirection: tile.sortDirection,
+            series: tile.series,
+            showDataLabels: tile.showDataLabels
+          } as any, // Cast to any for Json compatibility
+          position: tile.position as any, // Cast to any for Json compatibility
+          size: tile.size as any // Cast to any for Json compatibility
+        }));
+
         const { error: tilesError } = await supabase
           .from('dashboard_tiles')
-          .insert(
-            tiles.map(tile => ({
-              dashboard_id: dashboard.id,
-              tile_data: {
-                title: tile.title,
-                chartType: tile.chartType,
-                xColumn: tile.xColumn,
-                yColumn: tile.yColumn,
-                stackColumn: tile.stackColumn,
-                sankeyTargetColumn: tile.sankeyTargetColumn,
-                valueColumn: tile.valueColumn,
-                sortColumn: tile.sortColumn,
-                sortDirection: tile.sortDirection,
-                series: tile.series,
-                showDataLabels: tile.showDataLabels
-              },
-              position: tile.position,
-              size: tile.size
-            }))
-          );
+          .insert(tileInserts);
 
         if (tilesError) throw tilesError;
       }
@@ -101,7 +101,7 @@ export const useDashboards = () => {
         .from('dashboard_filters')
         .insert({
           dashboard_id: dashboard.id,
-          filters: filters
+          filters: filters as any // Cast to any for Json compatibility
         });
 
       if (filtersError) throw filtersError;
@@ -162,7 +162,11 @@ export const useDashboards = () => {
           .single();
 
         if (!datasetError) {
-          dataset = datasetData;
+          dataset = {
+            ...datasetData,
+            data: datasetData.data as any,
+            columns: datasetData.columns as any
+          };
         }
       }
 
@@ -170,11 +174,11 @@ export const useDashboards = () => {
         dashboard,
         tiles: tiles.map(tile => ({
           id: tile.id,
-          ...tile.tile_data,
-          position: tile.position,
-          size: tile.size
+          ...(tile.tile_data as any),
+          position: tile.position as any,
+          size: tile.size as any
         })) as DashboardTileData[],
-        filters: filters.filters as FilterCondition[],
+        filters: (filters.filters as any) as FilterCondition[],
         dataset
       };
     },
@@ -225,7 +229,7 @@ export const useDashboards = () => {
     loadDashboard: loadDashboardMutation.mutateAsync,
     deleteDashboard: deleteDashboardMutation.mutate,
     isSaving: saveDashboardMutation.isPending,
-    isLoading: loadDashboardMutation.isPending || isLoading,
+    isLoadingDashboard: loadDashboardMutation.isPending,
     isDeleting: deleteDashboardMutation.isPending,
   };
 };

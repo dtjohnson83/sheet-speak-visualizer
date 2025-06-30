@@ -36,7 +36,13 @@ export const useDatasets = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      return data as SavedDataset[];
+      
+      // Type cast the Json fields back to their proper types
+      return data.map(item => ({
+        ...item,
+        data: item.data as DataRow[],
+        columns: item.columns as ColumnInfo[]
+      })) as SavedDataset[];
     },
     enabled: !!user?.id,
   });
@@ -67,8 +73,8 @@ export const useDatasets = () => {
           description,
           file_name: fileName,
           worksheet_name: worksheetName,
-          data: data,
-          columns: columns,
+          data: data as any, // Cast to any for Json compatibility
+          columns: columns as any, // Cast to any for Json compatibility
           row_count: data.length
         })
         .select()
