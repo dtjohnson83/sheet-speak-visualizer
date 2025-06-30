@@ -77,7 +77,7 @@ const Auth = () => {
             <img 
               src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
               alt="Charta Logo" 
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
           </div>
           <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
@@ -87,7 +87,7 @@ const Auth = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Welcome to Charta</CardTitle>
+            <CardTitle>Welcome</CardTitle>
             <CardDescription>
               Sign in to your account or create a new one to get started
             </CardDescription>

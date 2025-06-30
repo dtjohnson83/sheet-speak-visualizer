@@ -65,7 +65,7 @@ const Index = () => {
             <img 
               src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
               alt="Charta Logo" 
-              className="h-12 w-auto"
+              className="h-20 w-auto md:h-24"
             />
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
