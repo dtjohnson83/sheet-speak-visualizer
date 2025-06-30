@@ -1,19 +1,18 @@
 
 import React from 'react';
 import { formatTooltipValue } from '@/lib/numberUtils';
-import { ChartRenderersProps } from '@/types';
+import { SankeyData } from '@/lib/chartDataUtils';
 
-interface SankeyChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors'> {}
-
-interface SankeyData {
-  nodes: Array<{ id: string; name: string }>;
-  links: Array<{ source: string; target: string; value: number }>;
+interface SankeyChartRendererProps {
+  data: SankeyData | any; // Allow both SankeyData and transformed data
+  chartColors: string[];
 }
 
 export const SankeyChartRenderer = ({ 
   data, 
   chartColors 
 }: SankeyChartRendererProps) => {
+  // Safely handle the data type conversion
   const sankeyData = data as SankeyData;
   
   if (!sankeyData.nodes || !sankeyData.links || sankeyData.nodes.length === 0) {
