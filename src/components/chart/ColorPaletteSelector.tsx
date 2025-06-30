@@ -77,13 +77,13 @@ export const ColorPaletteSelector = ({ selectedPalette, onPaletteChange }: Color
       </Select>
       
       {/* Preview of selected palette */}
-      <div className="mt-2 p-2 bg-gray-50 rounded-md">
-        <div className="text-xs text-gray-600 mb-1">Preview:</div>
+      <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+        <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">Preview:</div>
         <div className="flex gap-1">
           {selectedPaletteData.colors.map((color, index) => (
             <div
               key={index}
-              className="w-4 h-4 rounded border border-gray-200"
+              className="w-4 h-4 rounded border border-gray-200 dark:border-gray-600"
               style={{ backgroundColor: color }}
               title={color}
             />
