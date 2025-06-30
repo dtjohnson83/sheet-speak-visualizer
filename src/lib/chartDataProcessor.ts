@@ -7,7 +7,6 @@ import { ColumnFormat } from '@/lib/columnFormatting';
 import { prepareSankeyData } from './chart/sankeyProcessor';
 import { prepareHeatmapData } from './chart/heatmapProcessor';
 import { prepareTreemapData } from './chart/treemapProcessor';
-import { preparePieData } from './chart/pieProcessor';
 import { prepareStackedBarData } from './chart/stackedBarProcessor';
 import { prepareScatterData } from './chart/scatterProcessor';
 import { prepareStandardChartData } from './chart/standardChartProcessor';
@@ -99,10 +98,6 @@ export const prepareChartData = (
 
     case 'treemap':
       processedData = prepareTreemapData(validData, cleanXColumn, cleanYColumn, aggregationMethod, sortColumn, sortDirection);
-      break;
-
-    case 'pie':
-      processedData = preparePieData(validData, cleanXColumn, cleanYColumn, aggregationMethod, sortColumn, sortDirection);
       break;
 
     case 'stacked-bar':
