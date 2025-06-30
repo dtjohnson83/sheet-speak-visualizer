@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { ChartRenderersProps } from '@/types';
 import { KPIRenderer } from './KPIRenderer';
+import { AggregationMethod } from './AggregationConfiguration';
 
 // Placeholder components for chart renderers that don't exist yet
 const BarChartRenderer = ({ data, xColumn, yColumn, series, chartColors }: any) => (
@@ -64,6 +64,10 @@ const TopXChartRenderer = ({ data, xColumn, yColumn, sortColumn, sortDirection, 
   </div>
 );
 
+interface ExtendedChartRenderersProps extends ChartRenderersProps {
+  aggregationMethod?: AggregationMethod;
+}
+
 export const ChartRenderers = ({ 
   chartType, 
   data, 
@@ -77,8 +81,9 @@ export const ChartRenderers = ({
   sortDirection, 
   series, 
   showDataLabels, 
-  chartColors 
-}: ChartRenderersProps) => {
+  chartColors,
+  aggregationMethod = 'sum'
+}: ExtendedChartRenderersProps) => {
   if (chartType === 'bar') {
     return (
       <BarChartRenderer
@@ -228,6 +233,7 @@ export const ChartRenderers = ({
         valueColumn={valueColumn}
         series={series}
         chartColors={chartColors}
+        aggregationMethod={aggregationMethod}
       />
     );
   }

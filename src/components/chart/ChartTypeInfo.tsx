@@ -1,49 +1,91 @@
 
 import React from 'react';
-import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { getChartTypeInfo } from '@/lib/chartTypeInfo';
 
 interface ChartTypeInfoProps {
   chartType: string;
-  className?: string;
 }
 
-export const ChartTypeInfo = ({ chartType, className = '' }: ChartTypeInfoProps) => {
+export const ChartTypeInfo = ({ chartType }: ChartTypeInfoProps) => {
   const info = getChartTypeInfo(chartType);
-  
-  if (!info) return null;
+
+  if (!info) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-muted-foreground">Select a chart type to see more information.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Info className={`h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help ${className}`} />
-        </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-80">
-          <div className="space-y-2">
-            <div className="font-medium">{info.name}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-300">{info.description}</div>
-            <div className="text-xs">
-              <div className="font-medium mb-1">Requirements:</div>
-              <ul className="list-disc list-inside space-y-0.5 text-gray-600 dark:text-gray-300">
-                {info.requirements.xAxis && (
-                  <li>{info.requirements.xAxis.label}: {info.requirements.xAxis.type}</li>
-                )}
-                {info.requirements.yAxis && (
-                  <li>{info.requirements.yAxis.label}: {info.requirements.yAxis.type}</li>
-                )}
-                {info.requirements.additional?.map((req, index) => (
-                  <li key={index}>{req.label}: {req.type}</li>
+    <Card>
+      <CardHeader>
+        <CardTitle>{info.name}</CardTitle>
+        <CardDescription>{info.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h4 className="font-medium mb-2">Requirements</h4>
+          <div className="space-y-1 text-sm">
+            {'xAxis' in info.requirements && (
+              <div>
+                <strong>{info.requirements.xAxis.label}:</strong> {info.requirements.xAxis.type}
+              </div>
+            )}
+            {'yAxis' in info.requirements && (
+              <div>
+                <strong>{info.requirements.yAxis.label}:</strong> {info.requirements.yAxis.type}
+              </div>
+            )}
+            {'additional' in info.requirements && info.requirements.additional && (
+              <div>
+                <strong>Additional:</strong>
+                {info.requirements.additional.map((req, index) => (
+                  <span key={index}> {req.label} ({req.type})</span>
                 ))}
-              </ul>
-            </div>
-            <div className="text-xs">
-              <span className="font-medium">Best for:</span> {info.bestFor[0]}
-            </div>
+              </div>
+            )}
           </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+        </div>
+
+        <div>
+          <h4 className="font-medium mb-2">Category</h4>
+          <Badge variant="secondary">{info.category}</Badge>
+        </div>
+
+        <div>
+          <h4 className="font-medium mb-2">Best For</h4>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            {info.bestFor.map((use, index) => (
+              <li key={index}>• {use}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="font-medium mb-2">Examples</h4>
+          <div className="flex flex-wrap gap-1">
+            {info.examples.map((example, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {example}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-medium mb-2">Common Mistakes</h4>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            {info.commonMistakes.map((mistake, index) => (
+              <li key={index}>• {mistake}</li>
+            ))}
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

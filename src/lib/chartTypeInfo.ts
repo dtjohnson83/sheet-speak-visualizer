@@ -273,15 +273,17 @@ export const validateChartRequirements = (chartType: string, xColumn: string, yC
     issues.push(`This chart type requires at least ${info.minDataPoints} data points (you have ${dataLength})`);
   }
 
-  // Check required columns
-  if (info.requirements.xAxis && !xColumn) {
+  // Check required columns - handle different requirement structures
+  const requirements = info.requirements;
+  
+  if ('xAxis' in requirements && !xColumn) {
     issues.push(`X-axis column is required for ${info.name}`);
-    suggestions.push(`Select a ${info.requirements.xAxis.type} column for the X-axis`);
+    suggestions.push(`Select a ${requirements.xAxis.type} column for the X-axis`);
   }
 
-  if (info.requirements.yAxis && !yColumn && chartType !== 'histogram') {
+  if ('yAxis' in requirements && !yColumn && chartType !== 'histogram') {
     issues.push(`Y-axis column is required for ${info.name}`);
-    suggestions.push(`Select a ${info.requirements.yAxis.type} column for the Y-axis`);
+    suggestions.push(`Select a ${requirements.yAxis.type} column for the Y-axis`);
   }
 
   return {

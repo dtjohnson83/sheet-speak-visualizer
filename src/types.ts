@@ -1,6 +1,7 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 
 export interface ChartRenderersProps {
   chartType: string;
@@ -16,4 +17,5 @@ export interface ChartRenderersProps {
   series: SeriesConfig[];
   showDataLabels: boolean;
   chartColors: string[];
+  aggregationMethod?: AggregationMethod;
 }

@@ -1,10 +1,9 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
-import { prepareChartData } from '@/lib/chartDataProcessor';
-import { SankeyData } from '@/lib/chartDataUtils';
 import { ColumnFormat } from '@/lib/columnFormatting';
 import { ChartRenderers } from './ChartRenderers';
+import { AggregationMethod } from './AggregationConfiguration';
 
 interface ChartRendererProps {
   data: DataRow[];
@@ -18,7 +17,7 @@ interface ChartRendererProps {
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
   series: SeriesConfig[];
-  aggregationMethod: any;
+  aggregationMethod: AggregationMethod;
   showDataLabels: boolean;
   supportsMultipleSeries: boolean;
   chartColors: string[];
@@ -62,6 +61,7 @@ export const ChartRenderer = ({
       series={series}
       showDataLabels={showDataLabels}
       chartColors={chartColors}
+      aggregationMethod={aggregationMethod}
     />
   );
 };
