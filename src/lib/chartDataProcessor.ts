@@ -60,17 +60,6 @@ export const prepareChartData = (
     return [];
   }
 
-  // TEMPORARY: Add hardcoded test data to verify chart rendering works
-  if (chartType === 'bar' && cleanXColumn && cleanYColumn) {
-    console.log('prepareChartData - Using hardcoded test data for debugging');
-    return [
-      { [cleanXColumn]: 'West', [cleanYColumn]: 120 },
-      { [cleanXColumn]: 'East', [cleanYColumn]: 90 },
-      { [cleanXColumn]: 'South', [cleanYColumn]: 60 },
-      { [cleanXColumn]: 'North', [cleanYColumn]: 40 }
-    ];
-  }
-
   let processedData: DataRow[] | SankeyData = [];
 
   // Filter out invalid data rows

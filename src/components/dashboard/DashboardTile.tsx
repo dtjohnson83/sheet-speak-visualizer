@@ -7,6 +7,7 @@ import { TileChartRenderer } from './TileChartRenderer';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { TileControls } from './TileControls';
 import { ResizeHandle } from './ResizeHandle';
+import { prepareChartData } from '@/lib/chartDataProcessor';
 
 export interface DashboardTileData {
   id: string;
@@ -58,6 +59,30 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
     }
   };
 
+  // Process the data using the same pipeline as the main visualization
+  const processedData = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const result = prepareChartData(
+      data,
+      columns,
+      tile.chartType,
+      tile.xColumn,
+      tile.yColumn,
+      tile.series,
+      tile.sortColumn || 'none',
+      tile.sortDirection || 'desc',
+      tile.stackColumn || '',
+      tile.sankeyTargetColumn || '',
+      true, // supportsMultipleSeries
+      columns.filter(col => col.type === 'numeric'),
+      'sum',
+      tile.valueColumn
+    );
+
+    return Array.isArray(result) ? result : [];
+  }, [data, columns, tile]);
+
   return (
     <Card 
       ref={tileRef}
@@ -90,7 +115,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
           sortDirection={tile.sortDirection}
           series={tile.series}
           showDataLabels={tile.showDataLabels}
-          data={data}
+          data={processedData}
           columns={columns}
           chartColors={chartColors}
         />

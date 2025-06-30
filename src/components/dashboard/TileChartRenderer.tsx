@@ -37,6 +37,17 @@ export const TileChartRenderer = ({
   columns, 
   chartColors 
 }: TileChartRendererProps) => {
+  // Create effective series with fallback logic similar to main chart renderers
+  const getEffectiveSeries = () => {
+    if (series.length > 0) {
+      return series;
+    }
+    // Fallback to yColumn when series is empty
+    return yColumn ? [{ id: 'default', column: yColumn }] : [];
+  };
+
+  const effectiveSeries = getEffectiveSeries();
+
   if (chartType === 'bar') {
     return (
       <ResponsiveContainer width="100%" height="100%">
@@ -46,8 +57,13 @@ export const TileChartRenderer = ({
           <YAxis />
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
-          {series.map((s, index) => (
-            <Bar key={s.column} dataKey={s.column} fill={chartColors[index % chartColors.length]} stackId={stackColumn} />
+          {effectiveSeries.map((s, index) => (
+            <Bar 
+              key={s.column} 
+              dataKey={s.column} 
+              fill={chartColors[index % chartColors.length]} 
+              stackId={stackColumn ? 'stack' : undefined}
+            />
           ))}
         </BarChart>
       </ResponsiveContainer>
@@ -63,8 +79,15 @@ export const TileChartRenderer = ({
           <YAxis />
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
-          {series.map((s, index) => (
-            <Line key={s.column} type="monotone" dataKey={s.column} stroke={chartColors[index % chartColors.length]} />
+          {effectiveSeries.map((s, index) => (
+            <Line 
+              key={s.column} 
+              type="monotone" 
+              dataKey={s.column} 
+              stroke={chartColors[index % chartColors.length]}
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
           ))}
         </LineChart>
       </ResponsiveContainer>
@@ -80,8 +103,16 @@ export const TileChartRenderer = ({
           <YAxis />
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
-          {series.map((s, index) => (
-            <Area key={s.column} type="monotone" dataKey={s.column} stackId={stackColumn} stroke={chartColors[index % chartColors.length]} fill={chartColors[index % chartColors.length]} />
+          {effectiveSeries.map((s, index) => (
+            <Area 
+              key={s.column} 
+              type="monotone" 
+              dataKey={s.column} 
+              stackId={stackColumn ? 'stack' : undefined}
+              stroke={chartColors[index % chartColors.length]} 
+              fill={chartColors[index % chartColors.length]}
+              fillOpacity={0.6}
+            />
           ))}
         </AreaChart>
       </ResponsiveContainer>
@@ -94,12 +125,13 @@ export const TileChartRenderer = ({
         <PieChart>
           <Pie
             dataKey={yColumn}
+            nameKey={xColumn}
             data={data}
             cx="50%"
             cy="50%"
             outerRadius={80}
             fill="#8884d8"
-            label
+            label={showDataLabels}
           >
             {
               data.map((entry, index) => (
@@ -124,7 +156,7 @@ export const TileChartRenderer = ({
           <ZAxis dataKey={valueColumn} range={[64, 144]} />
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
-          {series.map((s, index) => (
+          {effectiveSeries.map((s, index) => (
             <Scatter key={s.column} data={data} dataKey={s.column} fill={chartColors[index % chartColors.length]} />
           ))}
         </ScatterChart>
@@ -149,7 +181,7 @@ export const TileChartRenderer = ({
         xColumn={xColumn}
         yColumn={yColumn}
         valueColumn={valueColumn}
-        series={series}
+        series={effectiveSeries}
         chartColors={chartColors}
       />
     );
