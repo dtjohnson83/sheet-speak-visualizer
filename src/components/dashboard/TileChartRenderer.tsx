@@ -1,22 +1,11 @@
 import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, ScatterChart, Scatter, ZAxis, Heatmap, Histogram, Sankey, Treemap } from 'recharts';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { prepareChartData } from '@/lib/chartDataProcessor';
-import { SankeyData } from '@/lib/chartDataUtils';
+import { formatTooltipValue } from '@/lib/numberUtils';
 import { SeriesConfig } from '@/hooks/useChartState';
-import { ColumnFormat } from '@/lib/columnFormatting';
-import {
-  BarChartRenderer,
-  LineChartRenderer,
-  PieChartRenderer,
-  ScatterChartRenderer,
-  TreemapRenderer,
-  StackedBarRenderer,
-  HeatmapRenderer,
-  SankeyRenderer,
-  HistogramRenderer
-} from '../chart/ChartRenderers';
+import { KPIRenderer } from '../chart/KPIRenderer';
 
-export interface TileChartRendererProps {
+interface TileChartRendererProps {
   chartType: string;
   xColumn: string;
   yColumn: string;
@@ -30,89 +19,180 @@ export interface TileChartRendererProps {
   data: DataRow[];
   columns: ColumnInfo[];
   chartColors: string[];
-  columnFormats?: ColumnFormat[];
 }
 
-export const TileChartRenderer = ({
-  chartType,
-  xColumn,
-  yColumn,
-  stackColumn,
-  sankeyTargetColumn,
-  valueColumn,
-  sortColumn,
-  sortDirection,
-  series,
-  showDataLabels,
-  data,
-  columns,
-  chartColors,
-  columnFormats
+export const TileChartRenderer = ({ 
+  chartType, 
+  xColumn, 
+  yColumn, 
+  stackColumn, 
+  sankeyTargetColumn, 
+  valueColumn, 
+  sortColumn, 
+  sortDirection, 
+  series, 
+  showDataLabels, 
+  data, 
+  columns, 
+  chartColors 
 }: TileChartRendererProps) => {
-  const numericColumns = columns.filter(col => col.type === 'numeric');
-
-  const chartData = prepareChartData(
-    data,
-    columns,
-    chartType as any,
-    xColumn,
-    yColumn,
-    series,
-    sortColumn || 'none',
-    sortDirection || 'desc',
-    stackColumn,
-    sankeyTargetColumn,
-    ['bar', 'line', 'scatter'].includes(chartType),
-    numericColumns,
-    'sum',
-    valueColumn,
-    columnFormats
-  );
-
-  if (!xColumn || (!yColumn && chartType !== 'histogram') || (Array.isArray(chartData) && chartData.length === 0)) {
+  if (chartType === 'bar') {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-500">
-        <p>No data to display</p>
-      </div>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xColumn} />
+          <YAxis />
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+          {series.map((s, index) => (
+            <Bar key={s.dataKey} dataKey={s.dataKey} fill={chartColors[index % chartColors.length]} stackId={stackColumn} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
     );
   }
 
-  const commonProps = {
-    data: chartData as DataRow[],
-    xColumn,
-    yColumn,
-    series,
-    chartColors,
-    showDataLabels: showDataLabels || false,
-    columnFormats
-  };
+  if (chartType === 'line') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xColumn} />
+          <YAxis />
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+          {series.map((s, index) => (
+            <Line key={s.dataKey} type="monotone" dataKey={s.dataKey} stroke={chartColors[index % chartColors.length]} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'area') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xColumn} />
+          <YAxis />
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+          {series.map((s, index) => (
+            <Area key={s.dataKey} type="monotone" dataKey={s.dataKey} stackId={stackColumn} stroke={chartColors[index % chartColors.length]} fill={chartColors[index % chartColors.length]} />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'pie') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            dataKey={yColumn}
+            data={data}
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            fill="#8884d8"
+            label
+          >
+            {
+              data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+              ))
+            }
+          </Pie>
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'scatter') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xColumn} />
+          <YAxis />
+          <ZAxis dataKey={valueColumn} range={[64, 144]} />
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+          {series.map((s, index) => (
+            <Scatter key={s.dataKey} data={data} dataKey={s.dataKey} fill={chartColors[index % chartColors.length]} />
+          ))}
+        </ScatterChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'heatmap') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <Heatmap
+          data={data}
+          xKey={xColumn}
+          yKey={yColumn}
+          zKey={valueColumn}
+          colors={chartColors}
+          margin={{ top: 20, right: 0, bottom: 0, left: 0 }}
+        >
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+        </Heatmap>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'histogram') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <Histogram data={data} dataKey={yColumn} fill={chartColors[0]} />
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'sankey') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <Sankey data={data} dataKey={yColumn} linkName={xColumn} targetKey={sankeyTargetColumn} fill={chartColors[0]} />
+      </ResponsiveContainer>
+    );
+  }
+
+  if (chartType === 'treemap') {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <Treemap data={data} dataKey={yColumn} nameKey={xColumn} fill={chartColors[0]} />
+      </ResponsiveContainer>
+    );
+  }
+  
+  if (chartType === 'kpi') {
+    return (
+      <KPIRenderer
+        data={data}
+        columns={columns}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        valueColumn={valueColumn}
+        series={series}
+        chartColors={chartColors}
+      />
+    );
+  }
 
   return (
-    <div className="mt-4">
-      {(() => {
-        switch (chartType) {
-          case 'heatmap':
-            return <HeatmapRenderer data={chartData as Array<{ x: string; y: string; value: number }>} chartColors={chartColors} />;
-          case 'stacked-bar':
-            return <StackedBarRenderer {...commonProps} stackColumn={stackColumn} originalData={data} />;
-          case 'treemap':
-            return <TreemapRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
-          case 'sankey':
-            return <SankeyRenderer data={chartData as SankeyData} chartColors={chartColors} />;
-          case 'histogram':
-            return <HistogramRenderer data={chartData as DataRow[]} chartColors={chartColors} showDataLabels={showDataLabels} />;
-          case 'bar':
-            return <BarChartRenderer {...commonProps} />;
-          case 'line':
-            return <LineChartRenderer {...commonProps} />;
-          case 'pie':
-            return <PieChartRenderer data={chartData as DataRow[]} chartColors={chartColors} />;
-          case 'scatter':
-            return <ScatterChartRenderer {...commonProps} />;
-          default:
-            return null;
-        }
-      })()}
+    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+      No chart type selected.
     </div>
   );
+};
+
+const Cell = (props: any) => {
+  return <cell fill={props.fill} />;
 };
