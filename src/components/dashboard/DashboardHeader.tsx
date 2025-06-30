@@ -13,27 +13,26 @@ export const DashboardHeader = ({ tiles }: DashboardHeaderProps) => {
     exportDashboardToScreenshot(tiles);
   };
 
+  if (tiles.length === 0) return null;
+
   return (
-    <div className="mb-4 flex items-center justify-between">
+    <div className="flex justify-between items-center mb-4">
       <div>
+        <h4 className="text-lg font-medium">Dashboard View</h4>
         <p className="text-sm text-gray-600">
-          {tiles.length === 0 
-            ? "Save visualizations as tiles to build your dashboard" 
-            : `Drag tiles to rearrange • Drag corner to resize`
-          }
+          {tiles.length} tile{tiles.length !== 1 ? 's' : ''}
         </p>
       </div>
-      
-      {tiles.length > 0 && (
-        <Button
-          onClick={handleScreenshotExport}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Export Screenshot
-        </Button>
-      )}
+      <Button 
+        onClick={handleScreenshotExport}
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-2"
+        data-export-exclude="true"
+      >
+        <Download className="w-4 h-4" />
+        Export Screenshot
+      </Button>
     </div>
   );
 };

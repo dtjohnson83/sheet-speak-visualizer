@@ -4,36 +4,32 @@ import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) => {
   if (tiles.length === 0) return;
 
-  // Try to find the main dashboard card first, then fall back to canvas
-  const dashboardCard = document.querySelector('[data-dashboard-canvas]')?.parentElement;
-  const dashboardElement = (dashboardCard || document.querySelector('[data-dashboard-canvas]')) as HTMLElement;
+  // Target the main dashboard container with data-export-container
+  const dashboardElement = document.querySelector('[data-export-container]') as HTMLElement;
   
   if (dashboardElement) {
     try {
-      // Calculate dynamic padding based on tile positions and content
-      const calculateDynamicPadding = () => {
+      // Calculate generous padding to ensure all titles and content are captured
+      const calculatePadding = () => {
         const minTileY = Math.min(...tiles.map(tile => tile.position.y));
-        const maxTileBottom = Math.max(...tiles.map(tile => tile.position.y + tile.size.height));
         
-        // Base padding for headers, filters, and general spacing
-        const basePadding = 60;
+        // Very generous top padding to ensure titles are captured
+        // Dashboard headers, filters, and tile titles need significant space
+        const topPadding = 120; // Increased from previous values
         
-        // Additional padding if tiles are positioned high (to capture titles)
-        const titlePadding = minTileY < 50 ? 40 : 20;
-        
-        // Extra padding for bottom to ensure full capture
-        const bottomPadding = 40;
+        // Add extra if tiles are positioned very high
+        const extraTopPadding = minTileY < 100 ? 60 : 0;
         
         return {
-          top: basePadding + titlePadding,
-          bottom: bottomPadding,
-          horizontal: 40
+          top: topPadding + extraTopPadding,
+          bottom: 60,
+          horizontal: 60
         };
       };
 
-      const padding = calculateDynamicPadding();
+      const padding = calculatePadding();
       
-      // Get the actual dimensions we need to capture
+      // Get container dimensions
       const elementRect = dashboardElement.getBoundingClientRect();
       const scrollWidth = dashboardElement.scrollWidth || elementRect.width;
       const scrollHeight = dashboardElement.scrollHeight || elementRect.height;
@@ -43,7 +39,8 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
         scrollWidth,
         scrollHeight,
         padding,
-        tilesCount: tiles.length
+        tilesCount: tiles.length,
+        minTileY: Math.min(...tiles.map(tile => tile.position.y))
       });
 
       // Use html2canvas to capture the dashboard
@@ -61,14 +58,23 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
           scrollY: 0,
           logging: false,
           ignoreElements: (element) => {
-            // Ignore interactive elements that shouldn't appear in screenshot
-            return element.classList.contains('opacity-0') || 
-                   element.classList.contains('group-hover:opacity-100') ||
-                   element.tagName === 'BUTTON' && (
-                     element.textContent?.includes('×') || 
-                     element.textContent?.includes('Move') ||
-                     element.classList.contains('resize-handle')
-                   );
+            // Comprehensive exclusion of interactive elements
+            const isButton = element.tagName === 'BUTTON';
+            const hasExportExclude = element.hasAttribute('data-export-exclude');
+            const isHoverElement = element.classList.contains('opacity-0') || 
+                                 element.classList.contains('group-hover:opacity-100');
+            const isResizeHandle = element.classList.contains('resize-handle') ||
+                                 element.classList.contains('absolute') && 
+                                 (element.classList.contains('bottom-0') || element.classList.contains('right-0'));
+            const isInteractiveButton = isButton && (
+              element.textContent?.includes('×') || 
+              element.textContent?.includes('Move') ||
+              element.textContent?.includes('Export') ||
+              element.getAttribute('aria-label')?.includes('remove') ||
+              element.getAttribute('aria-label')?.includes('close')
+            );
+            
+            return hasExportExclude || isHoverElement || isResizeHandle || isInteractiveButton;
           }
         })
       ).catch((error) => {
@@ -106,5 +112,7 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
     } catch (error) {
       console.error('Error generating screenshot:', error);
     }
+  } else {
+    console.error('Dashboard container not found for export');
   }
 };
