@@ -1,3 +1,4 @@
+
 export const chartTypeInfo = {
   bar: {
     name: 'Bar Chart',
@@ -12,7 +13,15 @@ export const chartTypeInfo = {
       stacking: true,
       dataLabels: true,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'categorical or date' },
+      yAxis: { label: 'Y-axis', type: 'numeric' }
+    },
+    minDataPoints: 1,
+    bestFor: ['Comparing values across categories', 'Showing rankings', 'Displaying survey results'],
+    examples: ['Sales by region', 'Product ratings', 'Monthly revenue'],
+    commonMistakes: ['Using too many categories without proper sorting', 'Not aggregating duplicate categories']
   },
   line: {
     name: 'Line Chart',
@@ -27,7 +36,15 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: true,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'date or numeric' },
+      yAxis: { label: 'Y-axis', type: 'numeric' }
+    },
+    minDataPoints: 2,
+    bestFor: ['Showing trends over time', 'Displaying continuous data', 'Tracking changes'],
+    examples: ['Stock prices over time', 'Website traffic', 'Temperature changes'],
+    commonMistakes: ['Using categorical data on X-axis', 'Not sorting time series data']
   },
   area: {
     name: 'Area Chart',
@@ -42,7 +59,15 @@ export const chartTypeInfo = {
       stacking: true,
       dataLabels: true,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'date or numeric' },
+      yAxis: { label: 'Y-axis', type: 'numeric' }
+    },
+    minDataPoints: 2,
+    bestFor: ['Showing cumulative values', 'Displaying stacked data over time', 'Emphasizing magnitude'],
+    examples: ['Revenue by product line over time', 'Website traffic sources', 'Budget allocation'],
+    commonMistakes: ['Overlapping areas without stacking', 'Using too many series']
   },
   pie: {
     name: 'Pie Chart',
@@ -57,7 +82,15 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: true,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'Categories', type: 'categorical' },
+      yAxis: { label: 'Values', type: 'numeric' }
+    },
+    minDataPoints: 2,
+    bestFor: ['Showing parts of a whole', 'Displaying percentages', 'Market share analysis'],
+    examples: ['Market share by company', 'Expense breakdown', 'Survey responses'],
+    commonMistakes: ['Using too many categories', 'Negative values', 'Time series data']
   },
   scatter: {
     name: 'Scatter Plot',
@@ -72,7 +105,15 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: false,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'numeric' },
+      yAxis: { label: 'Y-axis', type: 'numeric' }
+    },
+    minDataPoints: 3,
+    bestFor: ['Showing correlations', 'Identifying outliers', 'Exploring relationships'],
+    examples: ['Height vs weight', 'Price vs quality rating', 'Age vs income'],
+    commonMistakes: ['Using categorical data', 'Too many overlapping points']
   },
   heatmap: {
     name: 'Heatmap',
@@ -87,7 +128,16 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: false,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'categorical' },
+      yAxis: { label: 'Y-axis', type: 'categorical' },
+      additional: [{ label: 'Value', type: 'numeric' }]
+    },
+    minDataPoints: 4,
+    bestFor: ['Showing patterns in 2D data', 'Correlation matrices', 'Geographic data'],
+    examples: ['Sales by region and month', 'User activity by hour and day', 'Correlation matrix'],
+    commonMistakes: ['Too many categories', 'Missing data points']
   },
   histogram: {
     name: 'Histogram',
@@ -102,7 +152,14 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: false,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'Values', type: 'numeric' }
+    },
+    minDataPoints: 10,
+    bestFor: ['Showing data distribution', 'Identifying patterns', 'Quality control'],
+    examples: ['Age distribution', 'Test scores', 'Response times'],
+    commonMistakes: ['Too few data points', 'Wrong bin size']
   },
   sankey: {
     name: 'Sankey Diagram',
@@ -117,7 +174,16 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: false,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'Source', type: 'categorical' },
+      yAxis: { label: 'Target', type: 'categorical' },
+      additional: [{ label: 'Value', type: 'numeric' }]
+    },
+    minDataPoints: 3,
+    bestFor: ['Showing flow between categories', 'Process visualization', 'Budget allocation'],
+    examples: ['Energy flow', 'Budget allocation', 'User journey'],
+    commonMistakes: ['Circular flows', 'Too many small flows']
   },
   treemap: {
     name: 'Treemap',
@@ -132,7 +198,15 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: false,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'Category', type: 'categorical' },
+      yAxis: { label: 'Value', type: 'numeric' }
+    },
+    minDataPoints: 3,
+    bestFor: ['Hierarchical data', 'Proportional representation', 'Space-efficient display'],
+    examples: ['Disk usage by folder', 'Portfolio allocation', 'Company structure'],
+    commonMistakes: ['Too many small values', 'Deep hierarchies']
   },
   topX: {
     name: 'Top X',
@@ -147,7 +221,15 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: true,
       colors: true
-    }
+    },
+    requirements: {
+      xAxis: { label: 'Categories', type: 'categorical' },
+      yAxis: { label: 'Values', type: 'numeric' }
+    },
+    minDataPoints: 3,
+    bestFor: ['Showing rankings', 'Highlighting top performers', 'Focus on best/worst'],
+    examples: ['Top 10 products', 'Best performing regions', 'Highest scores'],
+    commonMistakes: ['Not setting appropriate limit', 'Wrong sort direction']
   },
   kpi: {
     name: 'KPI Card',
@@ -162,6 +244,49 @@ export const chartTypeInfo = {
       stacking: false,
       dataLabels: false,
       colors: true
-    }
+    },
+    requirements: {
+      yAxis: { label: 'Value', type: 'numeric' }
+    },
+    minDataPoints: 1,
+    bestFor: ['Executive dashboards', 'Key metrics summary', 'Performance monitoring'],
+    examples: ['Revenue this month', 'User growth rate', 'Conversion rate'],
+    commonMistakes: ['Too many KPIs', 'Missing context']
   }
+};
+
+export type ChartTypeInfo = typeof chartTypeInfo[keyof typeof chartTypeInfo];
+
+export const getChartTypeInfo = (chartType: string): ChartTypeInfo | null => {
+  return chartTypeInfo[chartType as keyof typeof chartTypeInfo] || null;
+};
+
+export const validateChartRequirements = (chartType: string, xColumn: string, yColumn: string, columns: any[], dataLength: number) => {
+  const info = getChartTypeInfo(chartType);
+  if (!info) return { isValid: false, issues: ['Unknown chart type'], suggestions: [] };
+
+  const issues: string[] = [];
+  const suggestions: string[] = [];
+
+  // Check minimum data points
+  if (dataLength < info.minDataPoints) {
+    issues.push(`This chart type requires at least ${info.minDataPoints} data points (you have ${dataLength})`);
+  }
+
+  // Check required columns
+  if (info.requirements.xAxis && !xColumn) {
+    issues.push(`X-axis column is required for ${info.name}`);
+    suggestions.push(`Select a ${info.requirements.xAxis.type} column for the X-axis`);
+  }
+
+  if (info.requirements.yAxis && !yColumn && chartType !== 'histogram') {
+    issues.push(`Y-axis column is required for ${info.name}`);
+    suggestions.push(`Select a ${info.requirements.yAxis.type} column for the Y-axis`);
+  }
+
+  return {
+    isValid: issues.length === 0,
+    issues,
+    suggestions
+  };
 };

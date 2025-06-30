@@ -105,3 +105,35 @@ export const prepareChartData = (
 
   return processedData;
 };
+
+// Add the processChartData export as an alias for compatibility
+export const processChartData = (
+  data: DataRow[],
+  columns: ColumnInfo[],
+  config: {
+    xColumn: string;
+    yColumn: string;
+    chartType: string;
+    series: SeriesConfig[];
+    valueColumn?: string;
+  }
+): DataRow[] => {
+  const result = prepareChartData(
+    data,
+    columns,
+    config.chartType,
+    config.xColumn,
+    config.yColumn,
+    config.series,
+    'none',
+    'desc',
+    '',
+    '',
+    false,
+    columns.filter(col => col.type === 'numeric'),
+    'sum',
+    config.valueColumn
+  );
+  
+  return Array.isArray(result) ? result : [];
+};

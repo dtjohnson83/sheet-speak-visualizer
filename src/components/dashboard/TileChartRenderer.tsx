@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, ScatterChart, Scatter, ZAxis, Heatmap, Histogram, Sankey, Treemap } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { SeriesConfig } from '@/hooks/useChartState';
@@ -46,7 +47,7 @@ export const TileChartRenderer = ({
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
           {series.map((s, index) => (
-            <Bar key={s.dataKey} dataKey={s.dataKey} fill={chartColors[index % chartColors.length]} stackId={stackColumn} />
+            <Bar key={s.column} dataKey={s.column} fill={chartColors[index % chartColors.length]} stackId={stackColumn} />
           ))}
         </BarChart>
       </ResponsiveContainer>
@@ -63,7 +64,7 @@ export const TileChartRenderer = ({
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
           {series.map((s, index) => (
-            <Line key={s.dataKey} type="monotone" dataKey={s.dataKey} stroke={chartColors[index % chartColors.length]} />
+            <Line key={s.column} type="monotone" dataKey={s.column} stroke={chartColors[index % chartColors.length]} />
           ))}
         </LineChart>
       </ResponsiveContainer>
@@ -80,7 +81,7 @@ export const TileChartRenderer = ({
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
           {series.map((s, index) => (
-            <Area key={s.dataKey} type="monotone" dataKey={s.dataKey} stackId={stackColumn} stroke={chartColors[index % chartColors.length]} fill={chartColors[index % chartColors.length]} />
+            <Area key={s.column} type="monotone" dataKey={s.column} stackId={stackColumn} stroke={chartColors[index % chartColors.length]} fill={chartColors[index % chartColors.length]} />
           ))}
         </AreaChart>
       </ResponsiveContainer>
@@ -124,51 +125,19 @@ export const TileChartRenderer = ({
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
           {series.map((s, index) => (
-            <Scatter key={s.dataKey} data={data} dataKey={s.dataKey} fill={chartColors[index % chartColors.length]} />
+            <Scatter key={s.column} data={data} dataKey={s.column} fill={chartColors[index % chartColors.length]} />
           ))}
         </ScatterChart>
       </ResponsiveContainer>
     );
   }
 
-  if (chartType === 'heatmap') {
+  // For unsupported chart types in tiles, show a simple message
+  if (chartType === 'heatmap' || chartType === 'histogram' || chartType === 'sankey' || chartType === 'treemap') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <Heatmap
-          data={data}
-          xKey={xColumn}
-          yKey={yColumn}
-          zKey={valueColumn}
-          colors={chartColors}
-          margin={{ top: 20, right: 0, bottom: 0, left: 0 }}
-        >
-          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-        </Heatmap>
-      </ResponsiveContainer>
-    );
-  }
-
-  if (chartType === 'histogram') {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <Histogram data={data} dataKey={yColumn} fill={chartColors[0]} />
-      </ResponsiveContainer>
-    );
-  }
-
-  if (chartType === 'sankey') {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <Sankey data={data} dataKey={yColumn} linkName={xColumn} targetKey={sankeyTargetColumn} fill={chartColors[0]} />
-      </ResponsiveContainer>
-    );
-  }
-
-  if (chartType === 'treemap') {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <Treemap data={data} dataKey={yColumn} nameKey={xColumn} fill={chartColors[0]} />
-      </ResponsiveContainer>
+      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+        {chartType} charts are not supported in dashboard tiles yet.
+      </div>
     );
   }
   
@@ -191,8 +160,4 @@ export const TileChartRenderer = ({
       No chart type selected.
     </div>
   );
-};
-
-const Cell = (props: any) => {
-  return <cell fill={props.fill} />;
 };
