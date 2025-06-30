@@ -75,7 +75,7 @@ const Auth = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
+              src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
               alt="Charta Logo" 
               className="h-8 w-auto"
             />

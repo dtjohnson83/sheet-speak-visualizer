@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,7 +58,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
             <img 
-              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
+              src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
               alt="Charta Logo" 
               className="h-8 w-auto"
             />
@@ -239,7 +240,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/46fcdf07-02cb-478d-a210-bb35917ae271.png" 
+              src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
               alt="Charta Logo" 
               className="h-6 w-auto"
             />
