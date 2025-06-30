@@ -57,7 +57,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
             <img 
-              src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
+              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
               alt="Charta Logo" 
               className="h-12 w-auto"
             />
@@ -239,7 +239,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/23f8deab-ac50-42c5-98e2-f399d9ca48c8.png" 
+              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
               alt="Charta Logo" 
               className="h-10 w-auto"
             />
