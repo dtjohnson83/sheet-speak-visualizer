@@ -14,8 +14,11 @@ export const LineChartRenderer = ({
   chartColors,
   showDataLabels
 }: LineChartRendererProps) => {
-  // If series is empty, create a default series using yColumn
-  const effectiveSeries = series.length > 0 ? series : [{ id: 'default', column: yColumn }];
+  // Always include the base yColumn as the primary series
+  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const }] : [];
+  
+  // Combine base series with additional series
+  const allSeries = [...baseSeries, ...series];
   
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -41,7 +44,7 @@ export const LineChartRenderer = ({
         <YAxis tickFormatter={formatTooltipValue} />
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
-        {effectiveSeries.map((s, index) => (
+        {allSeries.map((s, index) => (
           <Line 
             key={s.column} 
             type="monotone" 

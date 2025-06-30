@@ -37,19 +37,19 @@ export const TileChartRenderer = ({
   columns, 
   chartColors 
 }: TileChartRendererProps) => {
-  // Create effective series with fallback logic similar to main chart renderers
+  // Create effective series with base series plus additional series
   const getEffectiveSeries = (): SeriesConfig[] => {
-    if (series.length > 0) {
-      return series;
-    }
-    // Fallback to yColumn when series is empty
-    return yColumn ? [{
-      id: 'default',
+    // Always include the base yColumn as the primary series
+    const baseSeries = yColumn ? [{
+      id: 'base',
       column: yColumn,
       color: chartColors[0],
-      type: 'bar',
-      aggregationMethod: 'sum'
+      type: 'bar' as const,
+      aggregationMethod: 'sum' as const
     }] : [];
+    
+    // Combine base series with additional series
+    return [...baseSeries, ...series];
   };
 
   const effectiveSeries = getEffectiveSeries();
