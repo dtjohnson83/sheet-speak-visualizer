@@ -157,24 +157,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
             chartColors={chartColors}
           />
         )}
-
-        {/* Debug panel - only in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-            <h5 className="font-medium mb-2">Debug Information</h5>
-            <div className="text-sm space-y-1">
-              <div>Chart Type: {chartType} (supports series: {supportsMultipleSeries ? 'Yes' : 'No'})</div>
-              <div>Data Rows: {data.length}</div>
-              <div>Total Columns: {columns.length}</div>
-              <div>Numeric Columns: {numericColumns.length} ({numericColumns.map(c => c.name).join(', ')})</div>
-              <div>Selected X: {xColumn || 'None'}</div>
-              <div>Selected Y: {yColumn || 'None'}</div>
-              <div>Sankey Target: {sankeyTargetColumn || 'None'}</div>
-              <div>Value Column: {valueColumn || 'None'}</div>
-              <div>Series Count: {series.length}</div>
-            </div>
-          </div>
-        )}
       </div>
 
       <ChartContainer
