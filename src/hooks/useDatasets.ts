@@ -40,8 +40,8 @@ export const useDatasets = () => {
       // Type cast the Json fields back to their proper types
       return data.map(item => ({
         ...item,
-        data: item.data as DataRow[],
-        columns: item.columns as ColumnInfo[]
+        data: item.data as unknown as DataRow[],
+        columns: item.columns as unknown as ColumnInfo[]
       })) as SavedDataset[];
     },
     enabled: !!user?.id,
