@@ -46,6 +46,32 @@ export const ChartRenderer = ({
   topXLimit,
   histogramBins
 }: ChartRendererProps) => {
+  console.log('ChartRenderer - Rendering with data:', {
+    chartType,
+    dataLength: data.length,
+    xColumn,
+    yColumn,
+    series: series.map(s => s.column),
+    sample: data.slice(0, 2)
+  });
+
+  // Validate that we have the minimum required data and configuration
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">No data available to display.</p>
+      </div>
+    );
+  }
+
+  if (!xColumn || (!yColumn && chartType !== 'histogram')) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Please select the required columns to display the chart.</p>
+      </div>
+    );
+  }
+
   return (
     <ChartRenderers
       chartType={chartType}

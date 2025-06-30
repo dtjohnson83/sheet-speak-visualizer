@@ -56,7 +56,7 @@ export const ChartContainer = ({
 }: ChartContainerProps) => {
   const numericColumns = columns.filter(col => col.type === 'numeric');
 
-  // Prepare chart data for header display
+  // Prepare chart data for both header display and chart rendering
   const chartData = prepareChartData(
     data,
     columns,
@@ -76,6 +76,16 @@ export const ChartContainer = ({
     topXLimit,
     histogramBins
   );
+
+  // Ensure we have array data for chart rendering (some chart types return different structures)
+  const processedDataForChart = Array.isArray(chartData) ? chartData : [];
+
+  console.log('ChartContainer - Processed data for chart:', {
+    chartType,
+    originalDataLength: data.length,
+    processedDataLength: processedDataForChart.length,
+    sample: processedDataForChart.slice(0, 3)
+  });
 
   return (
     <Card className="p-6 group">
@@ -98,7 +108,7 @@ export const ChartContainer = ({
       
       <div className="w-full overflow-x-auto mt-6">
         <ChartRenderer
-          data={data}
+          data={processedDataForChart}
           columns={columns}
           chartType={chartType}
           xColumn={xColumn}
