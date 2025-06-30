@@ -63,9 +63,9 @@ const Index = () => {
           </div>
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
+              src="/lovable-uploads/51522836-86cf-4ecd-866a-5624b186670f.png" 
               alt="Charta Logo" 
-              className="h-20 w-auto md:h-24"
+              className="h-24 w-auto md:h-32"
             />
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
