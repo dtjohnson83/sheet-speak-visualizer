@@ -30,7 +30,7 @@ export const DashboardCanvas = ({
   const filteredData = applyFilters(data, filters);
 
   return (
-    <Card className="p-6 min-h-[600px] bg-gray-50 dark:bg-gray-900 relative overflow-auto">
+    <Card className="p-6 min-h-[600px] bg-gray-50 dark:bg-gray-900 relative overflow-auto" data-export-container>
       <DashboardHeader tiles={tiles} />
       
       {data.length > 0 && (
