@@ -4,14 +4,18 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { ChartRenderersProps } from '@/types';
 
-interface LineChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'series' | 'chartColors'> {}
+interface LineChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'chartColors'> {}
 
 export const LineChartRenderer = ({ 
   data, 
   xColumn, 
+  yColumn,
   series, 
   chartColors 
 }: LineChartRendererProps) => {
+  // If series is empty, create a default series using yColumn
+  const effectiveSeries = series.length > 0 ? series : [{ id: 'default', column: yColumn }];
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data}>
@@ -20,7 +24,7 @@ export const LineChartRenderer = ({
         <YAxis />
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
-        {series.map((s, index) => (
+        {effectiveSeries.map((s, index) => (
           <Line 
             key={s.column} 
             type="monotone" 

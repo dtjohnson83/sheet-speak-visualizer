@@ -4,15 +4,19 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { ChartRenderersProps } from '@/types';
 
-interface AreaChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'series' | 'stackColumn' | 'chartColors'> {}
+interface AreaChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors'> {}
 
 export const AreaChartRenderer = ({ 
   data, 
   xColumn, 
+  yColumn,
   series, 
   stackColumn, 
   chartColors 
 }: AreaChartRendererProps) => {
+  // If series is empty, create a default series using yColumn
+  const effectiveSeries = series.length > 0 ? series : [{ id: 'default', column: yColumn }];
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart data={data}>
@@ -21,7 +25,7 @@ export const AreaChartRenderer = ({
         <YAxis />
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
-        {series.map((s, index) => (
+        {effectiveSeries.map((s, index) => (
           <Area 
             key={s.column} 
             type="monotone" 

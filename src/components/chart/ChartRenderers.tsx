@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ChartRenderersProps } from '@/types';
 import { KPIRenderer } from './KPIRenderer';
@@ -37,6 +36,7 @@ export const ChartRenderers = ({
       <BarChartRenderer
         data={data}
         xColumn={xColumn}
+        yColumn={yColumn}
         series={series}
         stackColumn={stackColumn}
         chartColors={chartColors}
@@ -49,6 +49,7 @@ export const ChartRenderers = ({
       <LineChartRenderer
         data={data}
         xColumn={xColumn}
+        yColumn={yColumn}
         series={series}
         chartColors={chartColors}
       />
@@ -60,6 +61,7 @@ export const ChartRenderers = ({
       <AreaChartRenderer
         data={data}
         xColumn={xColumn}
+        yColumn={yColumn}
         series={series}
         stackColumn={stackColumn}
         chartColors={chartColors}
