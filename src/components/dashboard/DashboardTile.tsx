@@ -63,6 +63,15 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
   const processedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
+    console.log('DashboardTile - Processing data with configuration:', {
+      tileId: tile.id,
+      chartType: tile.chartType,
+      xColumn: tile.xColumn,
+      yColumn: tile.yColumn,
+      sankeyTargetColumn: tile.sankeyTargetColumn,
+      valueColumn: tile.valueColumn
+    });
+
     const result = prepareChartData(
       data,
       columns,
@@ -80,19 +89,35 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
       tile.valueColumn
     );
 
-    return Array.isArray(result) ? result : [];
+    console.log('DashboardTile - Data processing result:', {
+      tileId: tile.id,
+      chartType: tile.chartType,
+      isArrayResult: Array.isArray(result),
+      resultLength: Array.isArray(result) ? result.length : 'structured',
+      resultSample: Array.isArray(result) ? result.slice(0, 2) : result
+    });
+
+    return result;
   }, [data, columns, tile]);
 
-  console.log('DashboardTile - Processing data for tile:', {
+  // For structured data charts (like Sankey), pass the data directly
+  // For array-based charts, ensure we have an array
+  const dataForRenderer = React.useMemo(() => {
+    const structuredDataCharts = ['sankey', 'heatmap', 'treemap'];
+    if (structuredDataCharts.includes(tile.chartType)) {
+      return processedData; // Pass structured data directly
+    }
+    return Array.isArray(processedData) ? processedData : [];
+  }, [processedData, tile.chartType]);
+
+  console.log('DashboardTile - Final data for renderer:', {
     tileId: tile.id,
     chartType: tile.chartType,
-    xColumn: tile.xColumn,
-    yColumn: tile.yColumn,
     sankeyTargetColumn: tile.sankeyTargetColumn,
-    valueColumn: tile.valueColumn,
-    originalDataLength: data.length,
-    processedDataLength: processedData.length,
-    sample: processedData.slice(0, 2)
+    dataType: typeof dataForRenderer,
+    isArray: Array.isArray(dataForRenderer),
+    dataLength: Array.isArray(dataForRenderer) ? dataForRenderer.length : 'structured',
+    sample: Array.isArray(dataForRenderer) ? dataForRenderer.slice(0, 2) : dataForRenderer
   });
 
   return (
@@ -127,7 +152,7 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
           sortDirection={tile.sortDirection}
           series={tile.series}
           showDataLabels={tile.showDataLabels}
-          data={processedData}
+          data={dataForRenderer}
           columns={columns}
           chartColors={chartColors}
         />

@@ -24,7 +24,7 @@ interface TileChartRendererProps {
   sortDirection?: 'asc' | 'desc';
   series: SeriesConfig[];
   showDataLabels?: boolean;
-  data: DataRow[];
+  data: DataRow[] | any; // Allow both array and structured data
   columns: ColumnInfo[];
   chartColors: string[];
 }
@@ -45,6 +45,17 @@ export const TileChartRenderer = ({
   chartColors 
 }: TileChartRendererProps) => {
   const effectiveSeries = getEffectiveSeries(yColumn, series, chartColors, chartType);
+
+  console.log('TileChartRenderer - Rendering chart:', {
+    chartType,
+    xColumn,
+    yColumn,
+    sankeyTargetColumn,
+    valueColumn,
+    dataType: typeof data,
+    isArray: Array.isArray(data),
+    dataLength: Array.isArray(data) ? data.length : 'structured'
+  });
 
   if (chartType === 'bar') {
     return (

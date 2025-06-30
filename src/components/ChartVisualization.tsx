@@ -61,12 +61,14 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
       supportsMultipleSeries,
       xColumn,
       yColumn,
+      sankeyTargetColumn,
+      valueColumn,
       numericColumnsCount: numericColumns.length,
       numericColumns: numericColumns.map(c => c.name),
       seriesCount: series.length,
       series: series.map(s => ({ id: s.id, column: s.column }))
     });
-  }, [chartType, supportsMultipleSeries, xColumn, yColumn, numericColumns, series]);
+  }, [chartType, supportsMultipleSeries, xColumn, yColumn, sankeyTargetColumn, valueColumn, numericColumns, series]);
 
   const handleSaveTile = () => {
     if (!xColumn || (!yColumn && chartType !== 'histogram') || !onSaveTile) return;
@@ -74,7 +76,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
     const defaultTitle = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn}${yColumn ? ` vs ${yColumn}` : ''}`;
     const title = customTitle || defaultTitle;
     
-    onSaveTile({
+    const tileData = {
       title,
       chartType,
       xColumn,
@@ -86,7 +88,16 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
       sortDirection,
       series,
       showDataLabels
+    };
+
+    console.log('ChartVisualization - handleSaveTile - Preparing tile data:', {
+      chartType,
+      sankeyTargetColumn,
+      valueColumn,
+      fullTileData: tileData
     });
+    
+    onSaveTile(tileData);
   };
 
   return (
@@ -158,6 +169,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
               <div>Numeric Columns: {numericColumns.length} ({numericColumns.map(c => c.name).join(', ')})</div>
               <div>Selected X: {xColumn || 'None'}</div>
               <div>Selected Y: {yColumn || 'None'}</div>
+              <div>Sankey Target: {sankeyTargetColumn || 'None'}</div>
+              <div>Value Column: {valueColumn || 'None'}</div>
               <div>Series Count: {series.length}</div>
             </div>
           </div>
