@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { ColumnFormat } from './ColumnFormatting';
+import { formatCellValue } from '@/lib/columnFormatting';
 
 interface SortConfig {
   key: string;
@@ -21,12 +22,22 @@ const formatDateValue = (value: any): string => {
   if (value === null || value === undefined || value === '') return '';
   
   try {
-    const date = new Date(value);
+    // Handle ISO string dates properly
+    let date: Date;
+    if (typeof value === 'string' && value.includes('T')) {
+      // ISO string - parse directly
+      date = new Date(value);
+    } else {
+      // Other formats - let Date constructor handle it
+      date = new Date(value);
+    }
+    
     if (isNaN(date.getTime())) return String(value);
     
-    // Format as YYYY-MM-DD for consistency
+    // Format as YYYY-MM-DD for consistency, accounting for timezone
     return date.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format
-  } catch {
+  } catch (error) {
+    console.warn('Date formatting error:', error);
     return String(value);
   }
 };
@@ -40,10 +51,18 @@ const getTypeColor = (type: string) => {
   }
 };
 
-const formatValue = (value: any, type: string) => {
+const formatValue = (value: any, column: ColumnInfo, columnFormats: ColumnFormat[]) => {
   if (value === null || value === undefined) return '';
   
-  switch (type) {
+  // Check if there's a custom format for this column
+  const customFormat = columnFormats.find(f => f.columnName === column.name);
+  
+  if (customFormat) {
+    return formatCellValue(value, customFormat);
+  }
+  
+  // Default formatting based on column type
+  switch (column.type) {
     case 'numeric':
       return typeof value === 'number' ? value.toLocaleString() : value;
     case 'date':
@@ -95,11 +114,11 @@ export const DataTable = ({
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {data.map((row, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                {columns.map((column) => (
-                  <td key={column.name} className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                    {formatValue(row[column.name], column.type)}
-                  </td>
-                ))}
+                 {columns.map((column) => (
+                   <td key={column.name} className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                     {formatValue(row[column.name], column, columnFormats)}
+                   </td>
+                 ))}
               </tr>
             ))}
           </tbody>

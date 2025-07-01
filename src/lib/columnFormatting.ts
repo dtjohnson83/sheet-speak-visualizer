@@ -26,7 +26,16 @@ export const formatCellValue = (value: any, columnFormat: ColumnFormat): string 
       }
       
       case 'date': {
-        const date = new Date(value);
+        // Handle ISO string dates and other formats properly
+        let date: Date;
+        if (typeof value === 'string' && value.includes('T')) {
+          // ISO string - parse directly
+          date = new Date(value);
+        } else {
+          // Other formats - let Date constructor handle it
+          date = new Date(value);
+        }
+        
         if (isNaN(date.getTime())) return String(value);
         
         const format = columnFormat.dateFormat || 'YYYY-MM-DD';
@@ -54,6 +63,10 @@ export const formatCellValue = (value: any, columnFormat: ColumnFormat): string 
               month: 'short', 
               day: 'numeric' 
             });
+          case 'YYYY-MM-DD HH:MM':
+            return `${date.toLocaleDateString('en-CA')} ${date.toTimeString().slice(0, 5)}`;
+          case 'MM/DD/YYYY HH:MM':
+            return `${date.toLocaleDateString('en-US')} ${date.toTimeString().slice(0, 5)}`;
           case 'YYYY-MM-DD':
           default:
             return date.toLocaleDateString('en-CA'); // ISO format

@@ -31,7 +31,9 @@ const DEFAULT_DATE_FORMATS = [
   { value: 'DD/MM/YYYY', label: '25/12/2024' },
   { value: 'MMM DD, YYYY', label: 'Dec 25, 2024' },
   { value: 'MMMM DD, YYYY', label: 'December 25, 2024' },
-  { value: 'DD MMM YYYY', label: '25 Dec 2024' }
+  { value: 'DD MMM YYYY', label: '25 Dec 2024' },
+  { value: 'YYYY-MM-DD HH:MM', label: '2024-12-25 14:30' },
+  { value: 'MM/DD/YYYY HH:MM', label: '12/25/2024 14:30' }
 ];
 
 export const ColumnFormatting = ({ columns, formats, onFormatsChange }: ColumnFormattingProps) => {

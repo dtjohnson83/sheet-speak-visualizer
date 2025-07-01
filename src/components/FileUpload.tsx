@@ -38,11 +38,11 @@ const convertExcelDate = (serial: number): string => {
   return date.toISOString();
 };
 
-// Improved Excel date serial number detection - more conservative
+// Improved Excel date serial number detection - more inclusive
 const isExcelDateSerial = (value: number): boolean => {
-  // More conservative range: 25569 (1970-01-01) to 54794 (2050-01-01)
-  // This avoids treating small integers or IDs as dates
-  return value >= 25569 && value <= 54794 && Number.isInteger(value);
+  // Expanded range: 1 (1900-01-01) to 2958465 (2099-12-31)
+  // This catches more valid date ranges while avoiding obvious IDs
+  return value >= 1 && value <= 2958465 && Number.isInteger(value);
 };
 
 export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
@@ -108,6 +108,8 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       /^\d{1,2}\/\d{1,2}\/\d{4}$/,                  // MM/DD/YYYY or DD/MM/YYYY
       /^\d{1,2}-\d{1,2}-\d{4}$/,                    // MM-DD-YYYY or DD-MM-YYYY
       /^\d{4}\/\d{1,2}\/\d{1,2}$/,                  // YYYY/MM/DD
+      /^\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}:\d{1,2}(\.\d{1,3})?Z?$/,  // ISO datetime
+      /^\d{1,2}\/\d{1,2}\/\d{2}$/,                  // MM/DD/YY or DD/MM/YY
       /^\d{1,2}\/\d{1,2}\/\d{2}$/,                  // MM/DD/YY or DD/MM/YY
       /^\d{1,2}-\d{1,2}-\d{2}$/,                    // MM-DD-YY or DD-MM-YY
       /^\w{3}\s+\d{1,2},?\s+\d{4}$/,                // Mon DD, YYYY or Mon DD YYYY
@@ -124,13 +126,13 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       return !isNaN(num) && isExcelDateSerial(num);
     });
     
-    // Only if more than 70% of values look like Excel date serials in valid range
-    if (potentialDateSerials.length > nonEmptyValues.length * 0.7) {
+    // Reduced threshold from 70% to 50% to catch more date columns
+    if (potentialDateSerials.length > nonEmptyValues.length * 0.5) {
       console.log('Detected as Excel date serials');
       return 'date';
     }
     
-    // Check for date string patterns with strict validation
+    // Check for date string patterns with improved validation
     const dateValues = nonEmptyValues.filter(v => {
       const str = String(v).trim();
       
@@ -211,11 +213,17 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
           const num = Number(value);
           // If it's a number and looks like an Excel date serial, convert it
           if (!isNaN(num) && isExcelDateSerial(num)) {
-            processedRow[columnName] = convertExcelDate(num);
+            try {
+              processedRow[columnName] = convertExcelDate(num);
+            } catch (error) {
+              console.warn(`Failed to convert Excel date serial ${num}:`, error);
+              processedRow[columnName] = value;
+            }
           } else {
             // Try to parse as regular date and convert to ISO string
             const date = new Date(value);
             if (!isNaN(date.getTime())) {
+              // Ensure we store dates consistently as ISO strings
               processedRow[columnName] = date.toISOString();
             } else {
               processedRow[columnName] = value; // Keep original if can't parse
