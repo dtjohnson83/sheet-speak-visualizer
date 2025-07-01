@@ -1,63 +1,54 @@
 
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 
+// Wait for all charts to be ready for export
+const waitForChartsReady = async (container: HTMLElement): Promise<boolean> => {
+  const maxWaitTime = 5000; // 5 seconds max
+  const checkInterval = 100; // Check every 100ms
+  let waitTime = 0;
+
+  return new Promise((resolve) => {
+    const checkReadiness = () => {
+      const chartElements = container.querySelectorAll('.recharts-wrapper');
+      const allChartsReady = Array.from(chartElements).every(chart => {
+        const svg = chart.querySelector('svg');
+        return svg && svg.children.length > 0 && chart.getBoundingClientRect().width > 0;
+      });
+
+      if (allChartsReady || waitTime >= maxWaitTime) {
+        resolve(allChartsReady);
+      } else {
+        waitTime += checkInterval;
+        setTimeout(checkReadiness, checkInterval);
+      }
+    };
+
+    checkReadiness();
+  });
+};
+
 export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) => {
   if (tiles.length === 0) return;
 
-  // Target the main dashboard container with data-export-container
+  // Target the export container
   const dashboardElement = document.querySelector('[data-export-container]') as HTMLElement;
   
   if (dashboardElement) {
     try {
-      // Enhanced padding calculation based on actual title elements
-      const calculateDynamicPadding = () => {
-        const minTileY = Math.min(...tiles.map(tile => tile.position.y));
-        
-        // Measure all title elements in the dashboard
-        const titleElements = dashboardElement.querySelectorAll('.chart-title, .tile-title, h3, h4');
-        const dashboardHeaders = dashboardElement.querySelectorAll('h3, .text-lg');
-        
-        let maxTitleHeight = 0;
-        let highestTitleTop = Number.MAX_SAFE_INTEGER;
-        
-        titleElements.forEach(title => {
-          const rect = title.getBoundingClientRect();
-          const containerRect = dashboardElement.getBoundingClientRect();
-          const relativeTop = rect.top - containerRect.top;
-          
-          maxTitleHeight = Math.max(maxTitleHeight, rect.height);
-          highestTitleTop = Math.min(highestTitleTop, relativeTop);
-        });
-        
-        // Base padding ensuring all content is captured
-        const basePadding = 150;
-        
-        // Additional padding based on measured elements
-        const titlePadding = maxTitleHeight > 0 ? Math.max(80, maxTitleHeight + 40) : 80;
-        const positionPadding = highestTitleTop < 50 ? 100 : 60;
-        const extraTopPadding = minTileY < 100 ? 80 : 0;
-        
-        const totalTopPadding = Math.max(basePadding, titlePadding + positionPadding + extraTopPadding);
-        
-        console.log('Dynamic padding calculation:', {
-          basePadding,
-          titlePadding,
-          positionPadding,
-          extraTopPadding,
-          totalTopPadding,
-          maxTitleHeight,
-          highestTitleTop,
-          minTileY
-        });
-        
-        return {
-          top: totalTopPadding,
-          bottom: 80,
-          horizontal: 80
-        };
-      };
+      // Wait for charts to be ready before starting export
+      console.log('Waiting for charts to be ready...');
+      const chartsReady = await waitForChartsReady(dashboardElement);
+      
+      if (!chartsReady) {
+        console.warn('Charts may not be fully loaded for export');
+      }
 
-      const padding = calculateDynamicPadding();
+      // Simple, reliable padding
+      const padding = {
+        top: 100,
+        bottom: 50,
+        horizontal: 50
+      };
       
       // Get container dimensions
       const elementRect = dashboardElement.getBoundingClientRect();
@@ -69,45 +60,19 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
         scrollWidth,
         scrollHeight,
         padding,
-        tilesCount: tiles.length,
-        minTileY: Math.min(...tiles.map(tile => tile.position.y))
+        tilesCount: tiles.length
       });
 
-      // Pre-export DOM modifications for better title capture
-      const applyExportStyles = () => {
-        const style = document.createElement('style');
-        style.id = 'export-title-styles';
-        style.textContent = `
-          .chart-title, .tile-title, h3, h4 {
-            white-space: nowrap !important;
-            overflow: visible !important;
-            text-overflow: unset !important;
-            max-width: none !important;
-            line-height: 1.5 !important;
-            margin-bottom: 8px !important;
-          }
-          .tile-title {
-            font-size: 14px !important;
-            font-weight: 500 !important;
-          }
-          .chart-title {
-            font-size: 18px !important;
-            font-weight: 500 !important;
-          }
-        `;
-        document.head.appendChild(style);
-        return style;
-      };
-
-      const exportStyleSheet = applyExportStyles();
+      // Add a small delay to ensure React components are settled
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Use html2canvas to capture the dashboard
       const canvas = await import('html2canvas').then(module => 
         module.default(dashboardElement, {
-          scale: 2, // High quality
+          scale: 2,
           useCORS: true,
           allowTaint: true,
-          foreignObjectRendering: true, // Better text rendering
+          foreignObjectRendering: true,
           backgroundColor: '#ffffff',
           width: scrollWidth + (padding.horizontal * 2),
           height: scrollHeight + padding.top + padding.bottom,
@@ -117,41 +82,36 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
           scrollY: 0,
           logging: false,
           onclone: (clonedDoc) => {
-            // Ensure titles are fully visible in cloned document
-            const clonedTitles = clonedDoc.querySelectorAll('.chart-title, .tile-title, h3, h4');
-            clonedTitles.forEach(title => {
-              const titleElement = title as HTMLElement;
-              titleElement.style.whiteSpace = 'nowrap';
-              titleElement.style.overflow = 'visible';
-              titleElement.style.textOverflow = 'unset';
-              titleElement.style.maxWidth = 'none';
-              titleElement.style.position = 'relative';
-              titleElement.style.zIndex = '1000';
+            // Ensure all SVG elements and charts are visible in the clone
+            const svgElements = clonedDoc.querySelectorAll('svg');
+            svgElements.forEach(svg => {
+              svg.style.visibility = 'visible';
+              svg.style.display = 'block';
+            });
+            
+            // Ensure chart containers are visible
+            const chartContainers = clonedDoc.querySelectorAll('.recharts-wrapper');
+            chartContainers.forEach(container => {
+              const element = container as HTMLElement;
+              element.style.visibility = 'visible';
+              element.style.display = 'block';
             });
           },
           ignoreElements: (element) => {
-            // Comprehensive exclusion of interactive elements
+            // Filter out interactive and UI elements
             const isButton = element.tagName === 'BUTTON';
             const hasExportExclude = element.hasAttribute('data-export-exclude');
             const isHoverElement = element.classList.contains('opacity-0') || 
                                  element.classList.contains('group-hover:opacity-100');
-            const isResizeHandle = element.classList.contains('resize-handle') ||
-                                 element.classList.contains('absolute') && 
-                                 (element.classList.contains('bottom-0') || element.classList.contains('right-0'));
+            const isResizeHandle = element.classList.contains('resize-handle');
+            const isFilter = !!element.closest('[data-export-exclude]');
             const isInteractiveButton = isButton && (
               element.textContent?.includes('×') || 
-              element.textContent?.includes('Move') ||
               element.textContent?.includes('Export') ||
-              element.getAttribute('aria-label')?.includes('remove') ||
-              element.getAttribute('aria-label')?.includes('close')
+              element.getAttribute('aria-label')?.includes('remove')
             );
             
-            return hasExportExclude || isHoverElement || isResizeHandle || isInteractiveButton;
-          }
-        }).finally(() => {
-          // Clean up export styles
-          if (exportStyleSheet) {
-            document.head.removeChild(exportStyleSheet);
+            return hasExportExclude || isHoverElement || isResizeHandle || isFilter || isInteractiveButton;
           }
         })
       ).catch((error) => {

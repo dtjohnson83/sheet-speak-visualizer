@@ -67,7 +67,7 @@ export const DashboardFilters = ({ columns, filters, onFiltersChange }: Dashboar
 
   if (filters.length === 0 && !isExpanded) {
     return (
-      <Card className="p-3 mb-4">
+      <Card className="p-3 mb-4" data-export-exclude>
         <Button variant="outline" onClick={() => setIsExpanded(true)} className="w-full">
           <Filter className="h-4 w-4 mr-2" />
           Add Filters
@@ -77,7 +77,7 @@ export const DashboardFilters = ({ columns, filters, onFiltersChange }: Dashboar
   }
 
   return (
-    <Card className="p-4 mb-4">
+    <Card className="p-4 mb-4" data-export-exclude>
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-medium flex items-center">
           <Filter className="h-4 w-4 mr-2" />

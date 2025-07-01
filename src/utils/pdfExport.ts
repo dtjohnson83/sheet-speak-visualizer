@@ -2,22 +2,48 @@
 import jsPDF from 'jspdf';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 
+// Wait for all charts to be ready for export
+const waitForChartsReady = async (container: HTMLElement): Promise<boolean> => {
+  const maxWaitTime = 5000; // 5 seconds max
+  const checkInterval = 100; // Check every 100ms
+  let waitTime = 0;
+
+  return new Promise((resolve) => {
+    const checkReadiness = () => {
+      const chartElements = container.querySelectorAll('.recharts-wrapper');
+      const allChartsReady = Array.from(chartElements).every(chart => {
+        const svg = chart.querySelector('svg');
+        return svg && svg.children.length > 0;
+      });
+
+      if (allChartsReady || waitTime >= maxWaitTime) {
+        resolve(allChartsReady);
+      } else {
+        waitTime += checkInterval;
+        setTimeout(checkReadiness, checkInterval);
+      }
+    };
+
+    checkReadiness();
+  });
+};
+
 export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
   if (tiles.length === 0) return;
 
-  const pdf = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+  const pdf = new jsPDF('l', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 15;
   const contentWidth = pageWidth - (margin * 2);
-  const contentHeight = pageHeight - 140; // Increased space even more for header and titles (was 120)
+  const contentHeight = pageHeight - 140;
   
-  // Add title with more generous spacing
+  // Add title
   pdf.setFontSize(24);
   pdf.setFont('helvetica', 'bold');
   pdf.text('Dashboard Export', margin, 25);
   
-  // Add timestamp with better formatting
+  // Add timestamp
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
   pdf.text(`Generated on: ${new Date().toLocaleString()}`, margin, 35);
@@ -26,34 +52,68 @@ export const exportDashboardToPDF = async (tiles: DashboardTileData[]) => {
   pdf.setLineWidth(0.5);
   pdf.line(margin, 40, pageWidth - margin, 40);
   
-  // Add more descriptive text with additional spacing
+  // Add description
   pdf.setFontSize(11);
   pdf.text(`Dashboard contains ${tiles.length} visualization${tiles.length !== 1 ? 's' : ''}`, margin, 50);
   
-  // Capture dashboard area
-  const dashboardElement = document.querySelector('[data-dashboard-canvas]') as HTMLElement;
+  // Target the export container instead of canvas
+  const dashboardElement = document.querySelector('[data-export-container]') as HTMLElement;
   
   if (dashboardElement) {
     try {
-      // Use html2canvas with enhanced settings for better quality
+      // Wait for charts to be ready before starting export
+      console.log('Waiting for charts to be ready...');
+      const chartsReady = await waitForChartsReady(dashboardElement);
+      
+      if (!chartsReady) {
+        console.warn('Charts may not be fully loaded for export');
+      }
+
+      // Add a small delay to ensure React components are settled
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Use html2canvas with optimized settings for dashboard export
       const canvas = await import('html2canvas').then(module => 
         module.default(dashboardElement, {
-          scale: 2, // Increased scale for even better quality
+          scale: 2,
           useCORS: true,
           allowTaint: true,
-          backgroundColor: '#ffffff', // White background for better contrast
+          foreignObjectRendering: true,
+          backgroundColor: '#ffffff',
           width: dashboardElement.scrollWidth,
           height: dashboardElement.scrollHeight,
           scrollX: 0,
           scrollY: 0,
           logging: false,
+          onclone: (clonedDoc) => {
+            // Ensure all SVG elements are visible in the clone
+            const svgElements = clonedDoc.querySelectorAll('svg');
+            svgElements.forEach(svg => {
+              svg.style.visibility = 'visible';
+              svg.style.display = 'block';
+            });
+          },
           ignoreElements: (element) => {
-            // Ignore buttons and resize handles in PDF export
-            return element.classList.contains('opacity-0') || 
-                   element.classList.contains('group-hover:opacity-100');
+            // Comprehensive filtering of interactive elements
+            const isButton = element.tagName === 'BUTTON';
+            const hasExportExclude = element.hasAttribute('data-export-exclude');
+            const isHoverElement = element.classList.contains('opacity-0') || 
+                                 element.classList.contains('group-hover:opacity-100');
+            const isResizeHandle = element.classList.contains('resize-handle');
+            const isFilter = !!element.closest('[data-export-exclude]');
+            
+            return hasExportExclude || isHoverElement || isResizeHandle || isFilter ||
+                   (isButton && (
+                     element.textContent?.includes('×') || 
+                     element.textContent?.includes('Export') ||
+                     element.getAttribute('aria-label')?.includes('remove')
+                   ));
           }
         })
-      ).catch(() => null);
+      ).catch((error) => {
+        console.error('html2canvas error:', error);
+        return null;
+      });
       
       if (canvas) {
         const imgData = canvas.toDataURL('image/png', 1.0); // High quality PNG
