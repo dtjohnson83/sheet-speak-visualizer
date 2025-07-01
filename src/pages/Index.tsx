@@ -20,7 +20,8 @@ import { DashboardManager } from '@/components/dashboard/DashboardManager';
 import { SavedDataset } from '@/hooks/useDatasets';
 import { NaturalLanguageQuery } from '@/components/NaturalLanguageQuery';
 import { AIDataChat } from '@/components/AIDataChat';
-import { Bot, Database, BarChart3, Layout, Settings } from 'lucide-react';
+import { AISummaryReport } from '@/components/AISummaryReport';
+import { Bot, Database, BarChart3, Layout, Settings, FileText } from 'lucide-react';
 
 export interface DataRow {
   [key: string]: any;
@@ -155,7 +156,7 @@ const Index = () => {
               <TabsList className={`w-full ${
                 isMobile 
                   ? 'flex overflow-x-auto justify-start gap-1 p-1' 
-                  : 'grid grid-cols-5'
+                  : 'grid grid-cols-6'
               }`}>
                 <TabsTrigger 
                   value="preview" 
@@ -177,6 +178,13 @@ const Index = () => {
                 >
                   <Bot className="h-4 w-4" />
                   <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'AI' : 'AI Chat'}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ai-report" 
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="charts" 
@@ -220,6 +228,14 @@ const Index = () => {
                     columns={columns}
                   />
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="ai-report" className="space-y-4">
+                <AISummaryReport 
+                  data={data} 
+                  columns={columns}
+                  fileName={displayFileName}
+                />
               </TabsContent>
               
               <TabsContent value="charts" className="space-y-4">

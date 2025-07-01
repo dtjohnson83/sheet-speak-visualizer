@@ -3,3 +3,6 @@ project_id = "jkgqjeadviqmxwmwwkma"
 
 [functions.ai-data-chat]
 verify_jwt = false
+
+[functions.ai-summary-report]
+verify_jwt = false
