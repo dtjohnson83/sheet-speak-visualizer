@@ -5,7 +5,7 @@ import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
-import { ColumnTypeOverride } from '@/components/data-preview/ColumnTypeOverride';
+
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -156,7 +156,7 @@ const Index = () => {
               <TabsList className={`w-full ${
                 isMobile 
                   ? 'flex overflow-x-auto justify-start gap-1 p-1' 
-                  : 'grid grid-cols-6'
+                  : 'grid grid-cols-5'
               }`}>
                 <TabsTrigger 
                   value="preview" 
@@ -164,13 +164,6 @@ const Index = () => {
                 >
                   <Database className="h-4 w-4" />
                   <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Data' : 'Data Preview'}</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="types" 
-                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-                >
-                  <Settings className="h-4 w-4" />
-                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Types' : 'Column Types'}</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="ai-chat" 
@@ -212,14 +205,6 @@ const Index = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="types" className="space-y-4">
-                <Card className="p-6">
-                  <ColumnTypeOverride 
-                    columns={columns}
-                    onColumnTypeChange={handleColumnTypeChange}
-                  />
-                </Card>
-              </TabsContent>
               
               <TabsContent value="ai-chat" className="space-y-4">
                 <Card className="p-6">
