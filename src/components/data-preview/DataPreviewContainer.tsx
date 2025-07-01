@@ -8,7 +8,6 @@ import { HierarchySection } from './HierarchySection';
 import { ColumnFormatting, ColumnFormat } from './ColumnFormatting';
 import { DataExportButton } from './DataExportButton';
 import { DataPreviewPagination } from './DataPreviewPagination';
-import { DataPreviewTypes } from './DataPreviewTypes';
 import { ColumnTypeOverride } from './ColumnTypeOverride';
 
 interface DataPreviewContainerProps {
@@ -114,8 +113,6 @@ export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewCon
           columns={columnsInfo}
           onColumnTypeChange={handleColumnTypeChange}
         />
-        
-        <DataPreviewTypes columns={columnsInfo} />
 
         <DataTable
           data={currentData}
