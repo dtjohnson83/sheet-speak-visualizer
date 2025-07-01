@@ -9,25 +9,55 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
   
   if (dashboardElement) {
     try {
-      // Calculate generous padding to ensure all titles and content are captured
-      const calculatePadding = () => {
+      // Enhanced padding calculation based on actual title elements
+      const calculateDynamicPadding = () => {
         const minTileY = Math.min(...tiles.map(tile => tile.position.y));
         
-        // Very generous top padding to ensure titles are captured
-        // Dashboard headers, filters, and tile titles need significant space
-        const topPadding = 120; // Increased from previous values
+        // Measure all title elements in the dashboard
+        const titleElements = dashboardElement.querySelectorAll('.chart-title, .tile-title, h3, h4');
+        const dashboardHeaders = dashboardElement.querySelectorAll('h3, .text-lg');
         
-        // Add extra if tiles are positioned very high
-        const extraTopPadding = minTileY < 100 ? 60 : 0;
+        let maxTitleHeight = 0;
+        let highestTitleTop = Number.MAX_SAFE_INTEGER;
+        
+        titleElements.forEach(title => {
+          const rect = title.getBoundingClientRect();
+          const containerRect = dashboardElement.getBoundingClientRect();
+          const relativeTop = rect.top - containerRect.top;
+          
+          maxTitleHeight = Math.max(maxTitleHeight, rect.height);
+          highestTitleTop = Math.min(highestTitleTop, relativeTop);
+        });
+        
+        // Base padding ensuring all content is captured
+        const basePadding = 150;
+        
+        // Additional padding based on measured elements
+        const titlePadding = maxTitleHeight > 0 ? Math.max(80, maxTitleHeight + 40) : 80;
+        const positionPadding = highestTitleTop < 50 ? 100 : 60;
+        const extraTopPadding = minTileY < 100 ? 80 : 0;
+        
+        const totalTopPadding = Math.max(basePadding, titlePadding + positionPadding + extraTopPadding);
+        
+        console.log('Dynamic padding calculation:', {
+          basePadding,
+          titlePadding,
+          positionPadding,
+          extraTopPadding,
+          totalTopPadding,
+          maxTitleHeight,
+          highestTitleTop,
+          minTileY
+        });
         
         return {
-          top: topPadding + extraTopPadding,
-          bottom: 60,
-          horizontal: 60
+          top: totalTopPadding,
+          bottom: 80,
+          horizontal: 80
         };
       };
 
-      const padding = calculatePadding();
+      const padding = calculateDynamicPadding();
       
       // Get container dimensions
       const elementRect = dashboardElement.getBoundingClientRect();
@@ -43,12 +73,41 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
         minTileY: Math.min(...tiles.map(tile => tile.position.y))
       });
 
+      // Pre-export DOM modifications for better title capture
+      const applyExportStyles = () => {
+        const style = document.createElement('style');
+        style.id = 'export-title-styles';
+        style.textContent = `
+          .chart-title, .tile-title, h3, h4 {
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+            max-width: none !important;
+            line-height: 1.5 !important;
+            margin-bottom: 8px !important;
+          }
+          .tile-title {
+            font-size: 14px !important;
+            font-weight: 500 !important;
+          }
+          .chart-title {
+            font-size: 18px !important;
+            font-weight: 500 !important;
+          }
+        `;
+        document.head.appendChild(style);
+        return style;
+      };
+
+      const exportStyleSheet = applyExportStyles();
+
       // Use html2canvas to capture the dashboard
       const canvas = await import('html2canvas').then(module => 
         module.default(dashboardElement, {
           scale: 2, // High quality
           useCORS: true,
           allowTaint: true,
+          foreignObjectRendering: true, // Better text rendering
           backgroundColor: '#ffffff',
           width: scrollWidth + (padding.horizontal * 2),
           height: scrollHeight + padding.top + padding.bottom,
@@ -57,6 +116,19 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
           scrollX: 0,
           scrollY: 0,
           logging: false,
+          onclone: (clonedDoc) => {
+            // Ensure titles are fully visible in cloned document
+            const clonedTitles = clonedDoc.querySelectorAll('.chart-title, .tile-title, h3, h4');
+            clonedTitles.forEach(title => {
+              const titleElement = title as HTMLElement;
+              titleElement.style.whiteSpace = 'nowrap';
+              titleElement.style.overflow = 'visible';
+              titleElement.style.textOverflow = 'unset';
+              titleElement.style.maxWidth = 'none';
+              titleElement.style.position = 'relative';
+              titleElement.style.zIndex = '1000';
+            });
+          },
           ignoreElements: (element) => {
             // Comprehensive exclusion of interactive elements
             const isButton = element.tagName === 'BUTTON';
@@ -75,6 +147,11 @@ export const exportDashboardToScreenshot = async (tiles: DashboardTileData[]) =>
             );
             
             return hasExportExclude || isHoverElement || isResizeHandle || isInteractiveButton;
+          }
+        }).finally(() => {
+          // Clean up export styles
+          if (exportStyleSheet) {
+            document.head.removeChild(exportStyleSheet);
           }
         })
       ).catch((error) => {
