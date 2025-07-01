@@ -67,24 +67,20 @@ export const UserMenu = () => {
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        {isAdmin && (
-          <>
-            <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
-              <DialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  <span>Admin Panel</span>
-                </DropdownMenuItem>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Admin Panel</DialogTitle>
-                </DialogHeader>
-                <AdminPanel />
-              </DialogContent>
-            </Dialog>
-          </>
-        )}
+        <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
+          <DialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Shield className="mr-2 h-4 w-4" />
+              <span>Admin Panel</span>
+            </DropdownMenuItem>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Admin Panel</DialogTitle>
+            </DialogHeader>
+            <AdminPanel />
+          </DialogContent>
+        </Dialog>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
           <LogOut className="mr-2 h-4 w-4" />
