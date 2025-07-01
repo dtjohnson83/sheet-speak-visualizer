@@ -1,4 +1,5 @@
 
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -58,11 +59,12 @@ serve(async (req) => {
       provider = 'OpenAI';
     } else {
       console.error('No API key found. Checked: XAI_API_KEY, GROQ_API_KEY, OPENAI_API_KEY');
+      console.error('Available environment variables:', Object.keys(Deno.env.toObject()).filter(key => key.includes('API')));
       throw new Error('API key not configured. Please add XAI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY to your Supabase secrets.');
     }
 
     console.log(`Using ${provider} API with model ${model}`);
-    console.log('Using API key starting with:', apiKey.substring(0, 10) + '...');
+    console.log('API key found and configured successfully');
 
     // Create system prompt with data context
     const systemPrompt = `You are an expert data analyst assistant. You help users analyze their data and create visualizations.
@@ -133,3 +135,4 @@ Be conversational, helpful, and provide actionable insights about the data.`;
     });
   }
 });
+
