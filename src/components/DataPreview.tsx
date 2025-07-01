@@ -12,6 +12,7 @@ import { DataPreviewHeader } from './data-preview/DataPreviewHeader';
 import { DataTable } from './data-preview/DataTable';
 import { HierarchyTreeNode } from './data-preview/HierarchyTreeNode';
 import { ColumnFormatting, ColumnFormat } from './data-preview/ColumnFormatting';
+import { DataExportButton } from './data-preview/DataExportButton';
 
 interface DataPreviewProps {
   data: DataRow[];
@@ -121,11 +122,18 @@ export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
           onRowsPerPageChange={handleRowsPerPageChange}
         />
         
-        <ColumnFormatting
-          columns={columns}
-          formats={columnFormats}
-          onFormatsChange={setColumnFormats}
-        />
+        <div className="flex items-center gap-2">
+          <ColumnFormatting
+            columns={columns}
+            formats={columnFormats}
+            onFormatsChange={setColumnFormats}
+          />
+          <DataExportButton
+            data={sortedData}
+            columns={columns}
+            fileName={fileName}
+          />
+        </div>
       </div>
 
       {/* Hierarchy Detection Results */}

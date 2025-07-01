@@ -3,14 +3,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Upload, FileSpreadsheet, Link } from 'lucide-react';
+import { Upload, FileSpreadsheet, Link, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { WorksheetSelector } from './WorksheetSelector';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { FileErrorMessage, NetworkErrorMessage, ErrorMessage } from '@/components/ui/error-message';
 
 interface FileUploadProps {
   onDataLoaded: (data: DataRow[], columns: ColumnInfo[], fileName: string, worksheetName?: string) => void;
+}
+
+type ProcessingStage = 'idle' | 'reading' | 'parsing' | 'processing' | 'complete' | 'error';
+
+interface ProcessingStatus {
+  stage: ProcessingStage;
+  message: string;
+  progress?: number;
 }
 
 interface WorksheetInfo {
@@ -36,12 +46,15 @@ const isExcelDateSerial = (value: number): boolean => {
 };
 
 export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [processing, setProcessing] = useState<ProcessingStatus>({ stage: 'idle', message: '' });
   const [googleSheetUrl, setGoogleSheetUrl] = useState('');
   const [worksheets, setWorksheets] = useState<WorksheetInfo[]>([]);
   const [currentFileName, setCurrentFileName] = useState('');
   const [showWorksheetSelector, setShowWorksheetSelector] = useState(false);
+  const [error, setError] = useState<{type: 'file' | 'network' | 'validation', message: string, details?: string} | null>(null);
   const { toast } = useToast();
+
+  const isLoading = processing.stage !== 'idle' && processing.stage !== 'complete' && processing.stage !== 'error';
 
   const detectColumnType = (values: any[]): 'numeric' | 'date' | 'categorical' | 'text' => {
     const nonEmptyValues = values.filter(v => v !== null && v !== undefined && v !== '');
@@ -158,14 +171,14 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
 
   const processWorksheetData = useCallback((worksheetData: WorksheetInfo) => {
     console.log('Processing worksheet data:', worksheetData);
+    setProcessing({ stage: 'processing', message: 'Processing data columns...' });
+    setError(null);
     
     const rawData = worksheetData.data;
     if (!rawData || rawData.length === 0) {
-      toast({
-        title: "Error",
-        description: "No data found in the selected worksheet",
-        variant: "destructive",
-      });
+      const errorMsg = "No data found in the selected worksheet. Please ensure the worksheet contains data with headers.";
+      setError({ type: 'validation', message: errorMsg });
+      setProcessing({ stage: 'error', message: errorMsg });
       return;
     }
 
@@ -230,12 +243,16 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     console.log('Final detected columns:', columns.map(c => ({ name: c.name, type: c.type })));
     console.log('Processed data sample:', processedData.slice(0, 3));
     
+    setProcessing({ stage: 'complete', message: 'Data loaded successfully!' });
     onDataLoaded(processedData, columns, currentFileName, worksheetData.name);
     
     toast({
       title: "Success",
       description: `Loaded ${processedData.length} rows from "${worksheetData.name}" with ${columns.length} columns`,
     });
+    
+    // Reset processing state after a brief delay
+    setTimeout(() => setProcessing({ stage: 'idle', message: '' }), 2000);
   }, [onDataLoaded, toast, currentFileName]);
 
   const handleWorksheetSelected = useCallback((worksheet: WorksheetInfo) => {
@@ -248,7 +265,8 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     setShowWorksheetSelector(false);
     setWorksheets([]);
     setCurrentFileName('');
-    setIsLoading(false);
+    setProcessing({ stage: 'idle', message: '' });
+    setError(null);
   }, []);
 
   const processExcelFile = useCallback((workbook: XLSX.WorkBook, fileName: string) => {
@@ -279,81 +297,122 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
       setWorksheets(worksheetInfos);
       setCurrentFileName(fileName);
       setShowWorksheetSelector(true);
+      setProcessing({ stage: 'idle', message: '' });
     }
-    setIsLoading(false);
   }, [processWorksheetData]);
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsLoading(true);
+    // Validate file type
+    const validTypes = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    if (!validTypes.includes(fileExtension)) {
+      const errorMsg = `Invalid file type. Please upload ${validTypes.join(', ')} files only.`;
+      setError({ type: 'file', message: errorMsg, details: `File: ${file.name}, Type: ${fileExtension}` });
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const errorMsg = `File too large. Maximum size is 50MB.`;
+      setError({ type: 'file', message: errorMsg, details: `File size: ${(file.size / 1024 / 1024).toFixed(2)}MB` });
+      return;
+    }
+
+    setProcessing({ stage: 'reading', message: 'Reading file...' });
+    setError(null);
     
     try {
       const reader = new FileReader();
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 100;
+          setProcessing({ stage: 'reading', message: `Reading file... ${progress.toFixed(0)}%`, progress });
+        }
+      };
       reader.onload = (e) => {
         const data = e.target?.result;
         if (!data) return;
 
-        const workbook = XLSX.read(data, { type: 'binary' });
-        processExcelFile(workbook, file.name);
+        setProcessing({ stage: 'parsing', message: 'Parsing spreadsheet...' });
+        try {
+          const workbook = XLSX.read(data, { type: 'binary' });
+          processExcelFile(workbook, file.name);
+        } catch (parseError) {
+          const errorMsg = 'Failed to parse the spreadsheet. The file may be corrupted or in an unsupported format.';
+          setError({ type: 'file', message: errorMsg, details: String(parseError) });
+          setProcessing({ stage: 'error', message: errorMsg });
+        }
+      };
+      reader.onerror = () => {
+        const errorMsg = 'Failed to read the file. Please try again.';
+        setError({ type: 'file', message: errorMsg });
+        setProcessing({ stage: 'error', message: errorMsg });
       };
       reader.readAsBinaryString(file);
     } catch (error) {
+      const errorMsg = 'An unexpected error occurred while processing the file.';
+      setError({ type: 'file', message: errorMsg, details: String(error) });
+      setProcessing({ stage: 'error', message: errorMsg });
       console.error('Error reading file:', error);
-      toast({
-        title: "Error",
-        description: "Failed to read the file. Please check the file format.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
     }
-  }, [processExcelFile, toast]);
+  }, [processExcelFile]);
 
   const handleGoogleSheetLoad = useCallback(async () => {
     if (!googleSheetUrl) {
-      toast({
-        title: "Error",
-        description: "Please enter a Google Sheets URL",
-        variant: "destructive",
-      });
+      const errorMsg = "Please enter a Google Sheets URL";
+      setError({ type: 'validation', message: errorMsg });
       return;
     }
 
-    setIsLoading(true);
+    setProcessing({ stage: 'reading', message: 'Connecting to Google Sheets...' });
+    setError(null);
     
     try {
       // Convert Google Sheets URL to CSV export URL
       const match = googleSheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
       if (!match) {
-        throw new Error('Invalid Google Sheets URL');
+        throw new Error('Invalid Google Sheets URL format. Please use a valid Google Sheets sharing URL.');
       }
       
       const sheetId = match[1];
       const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
       
+      setProcessing({ stage: 'reading', message: 'Downloading data from Google Sheets...' });
       const response = await fetch(csvUrl);
       if (!response.ok) {
-        throw new Error('Failed to fetch Google Sheet data');
+        if (response.status === 403) {
+          throw new Error('Access denied. Please ensure the Google Sheet is published to the web.');
+        } else if (response.status === 404) {
+          throw new Error('Google Sheet not found. Please check the URL.');
+        } else {
+          throw new Error(`Failed to fetch Google Sheet data (Status: ${response.status})`);
+        }
       }
       
+      setProcessing({ stage: 'parsing', message: 'Processing Google Sheets data...' });
       const csvText = await response.text();
       const workbook = XLSX.read(csvText, { type: 'string' });
       processExcelFile(workbook, 'Google Sheet');
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to load Google Sheet. Please try again.';
+      setError({ type: 'network', message: errorMsg, details: String(error) });
+      setProcessing({ stage: 'error', message: errorMsg });
       console.error('Error loading Google Sheet:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load Google Sheet. Make sure the sheet is published to web.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
     }
-  }, [googleSheetUrl, processExcelFile, toast]);
+  }, [googleSheetUrl, processExcelFile]);
 
   if (showWorksheetSelector) {
     return (
       <div className="space-y-6">
+        {isLoading && (
+          <div className="text-center py-4">
+            <LoadingSkeleton variant="card" count={1} />
+          </div>
+        )}
         <WorksheetSelector
           worksheets={worksheets}
           fileName={currentFileName}
@@ -364,6 +423,11 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
     );
   }
 
+  const retryLastAction = () => {
+    setError(null);
+    setProcessing({ stage: 'idle', message: '' });
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -372,6 +436,68 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
           Upload an Excel file (.xlsx) or connect to a Google Sheets document
         </p>
       </div>
+
+      {/* Processing Status */}
+      {isLoading && (
+        <Card className="p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center space-x-3">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                {processing.message}
+              </div>
+              {processing.progress && (
+                <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${processing.progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Success Status */}
+      {processing.stage === 'complete' && (
+        <Card className="p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+          <div className="flex items-center space-x-3">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="text-sm font-medium text-green-800 dark:text-green-200">
+              {processing.message}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="space-y-2">
+          {error.type === 'file' && (
+            <FileErrorMessage 
+              message={error.message} 
+              details={error.details} 
+              onRetry={retryLastAction}
+            />
+          )}
+          {error.type === 'network' && (
+            <NetworkErrorMessage 
+              message={error.message} 
+              details={error.details} 
+              onRetry={retryLastAction}
+            />
+          )}
+          {error.type === 'validation' && (
+            <ErrorMessage 
+              type="validation"
+              message={error.message} 
+              details={error.details} 
+              onRetry={retryLastAction}
+            />
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="p-6">
@@ -399,8 +525,17 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
               disabled={isLoading}
               className="w-full"
             >
-              <Upload className="h-4 w-4 mr-2" />
-              {isLoading ? 'Processing...' : 'Choose File'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Choose File
+                </>
+              )}
             </Button>
           </div>
         </Card>
@@ -424,8 +559,17 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
                 disabled={isLoading || !googleSheetUrl}
                 className="w-full"
               >
-                <Link className="h-4 w-4 mr-2" />
-                {isLoading ? 'Loading...' : 'Load Sheet'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Link className="h-4 w-4 mr-2" />
+                    Load Sheet
+                  </>
+                )}
               </Button>
             </div>
           </div>
