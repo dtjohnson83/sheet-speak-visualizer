@@ -1,0 +1,117 @@
+import { useState } from 'react';
+import { DataRow, ColumnInfo } from '@/pages/Index';
+import { detectHierarchies } from '@/lib/hierarchyDetection';
+import { sortData } from '@/lib/chartDataUtils';
+import { DataPreviewHeader } from './DataPreviewHeader';
+import { DataTable } from './DataTable';
+import { HierarchySection } from './HierarchySection';
+import { ColumnFormatting, ColumnFormat } from './ColumnFormatting';
+import { DataExportButton } from './DataExportButton';
+import { DataPreviewPagination } from './DataPreviewPagination';
+import { DataPreviewTypes } from './DataPreviewTypes';
+
+interface DataPreviewContainerProps {
+  data: DataRow[];
+  columns: ColumnInfo[];
+  fileName: string;
+}
+
+interface SortConfig {
+  key: string;
+  direction: 'asc' | 'desc';
+}
+
+export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewContainerProps) => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+  const [showHierarchies, setShowHierarchies] = useState(false);
+  const [columnFormats, setColumnFormats] = useState<ColumnFormat[]>([]);
+
+  // Detect hierarchies when data changes
+  const hierarchies = detectHierarchies(data, columns);
+
+  const handleSort = (columnName: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    
+    if (sortConfig && sortConfig.key === columnName && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    setSortConfig({ key: columnName, direction });
+    setCurrentPage(0);
+  };
+
+  const handleRowsPerPageChange = (value: number) => {
+    setRowsPerPage(value);
+    setCurrentPage(0);
+  };
+
+  // Use the improved sorting logic from chartDataUtils
+  const sortedData = sortConfig 
+    ? sortData(data, sortConfig.key, sortConfig.direction)
+    : data;
+
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+  const startIndex = currentPage * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, sortedData.length);
+  const currentData = sortedData.slice(startIndex, endIndex);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <DataPreviewHeader
+          fileName={fileName}
+          data={data}
+          columns={columns}
+          sortConfig={sortConfig}
+          hierarchiesCount={hierarchies.length}
+          showHierarchies={showHierarchies}
+          onToggleHierarchies={() => setShowHierarchies(!showHierarchies)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
+        
+        <div className="flex items-center gap-2">
+          <ColumnFormatting
+            columns={columns}
+            formats={columnFormats}
+            onFormatsChange={setColumnFormats}
+          />
+          <DataExportButton
+            data={sortedData}
+            columns={columns}
+            fileName={fileName}
+          />
+        </div>
+      </div>
+
+      <HierarchySection 
+        hierarchies={hierarchies}
+        showHierarchies={showHierarchies}
+        data={data}
+      />
+
+      <div className="space-y-4">
+        <DataPreviewTypes columns={columns} />
+
+        <DataTable
+          data={currentData}
+          columns={columns}
+          onSort={handleSort}
+          sortConfig={sortConfig}
+          columnFormats={columnFormats}
+        />
+
+        <DataPreviewPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalEntries={sortedData.length}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </div>
+  );
+};
