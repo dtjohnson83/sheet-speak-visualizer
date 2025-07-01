@@ -54,6 +54,14 @@ export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewCon
       col.name === columnName ? { ...col, type: newType } : col
     );
     setColumnsInfo(updatedColumns);
+    
+    // If changing to date type, we might need to reprocess the data values
+    // This is especially important for Excel date serials that were detected as numeric
+    if (newType === 'date') {
+      console.log(`Manual column type change: ${columnName} -> date`);
+      // The actual data reprocessing would happen in the parent component that manages the data
+      // For now, the column type change will be reflected in the display formatting
+    }
   };
 
   // Use the improved sorting logic from chartDataUtils

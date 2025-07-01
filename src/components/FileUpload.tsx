@@ -29,7 +29,7 @@ interface WorksheetInfo {
   data: any[];
 }
 
-// Excel date serial number conversion
+// Excel date serial number conversion with time support
 const convertExcelDate = (serial: number): string => {
   // Excel's epoch is 1900-01-01, but Excel incorrectly treats 1900 as a leap year
   // So we need to account for this bug
@@ -38,11 +38,11 @@ const convertExcelDate = (serial: number): string => {
   return date.toISOString();
 };
 
-// Improved Excel date serial number detection - more inclusive
+// Improved Excel date serial number detection - handles decimal values
 const isExcelDateSerial = (value: number): boolean => {
   // Expanded range: 1 (1900-01-01) to 2958465 (2099-12-31)
-  // This catches more valid date ranges while avoiding obvious IDs
-  return value >= 1 && value <= 2958465 && Number.isInteger(value);
+  // Accept both integers and decimals (decimals represent time component)
+  return value >= 1 && value <= 2958465;
 };
 
 export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
@@ -215,6 +215,7 @@ export const FileUpload = ({ onDataLoaded }: FileUploadProps) => {
           if (!isNaN(num) && isExcelDateSerial(num)) {
             try {
               processedRow[columnName] = convertExcelDate(num);
+              console.log(`Converted Excel serial ${num} to date:`, processedRow[columnName]);
             } catch (error) {
               console.warn(`Failed to convert Excel date serial ${num}:`, error);
               processedRow[columnName] = value;

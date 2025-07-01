@@ -4,6 +4,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { ColumnFormat } from './ColumnFormatting';
 import { formatCellValue } from '@/lib/columnFormatting';
+import { formatDateForDisplay } from '@/lib/dateConversion';
 
 interface SortConfig {
   key: string;
@@ -19,27 +20,7 @@ interface DataTableProps {
 }
 
 const formatDateValue = (value: any): string => {
-  if (value === null || value === undefined || value === '') return '';
-  
-  try {
-    // Handle ISO string dates properly
-    let date: Date;
-    if (typeof value === 'string' && value.includes('T')) {
-      // ISO string - parse directly
-      date = new Date(value);
-    } else {
-      // Other formats - let Date constructor handle it
-      date = new Date(value);
-    }
-    
-    if (isNaN(date.getTime())) return String(value);
-    
-    // Format as YYYY-MM-DD for consistency, accounting for timezone
-    return date.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format
-  } catch (error) {
-    console.warn('Date formatting error:', error);
-    return String(value);
-  }
+  return formatDateForDisplay(value, 'YYYY-MM-DD');
 };
 
 const getTypeColor = (type: string) => {
