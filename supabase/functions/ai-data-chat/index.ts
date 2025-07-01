@@ -4,7 +4,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Try multiple possible environment variable names for the API key
-const groqApiKey = Deno.env.get('GROQ_API_KEY');
 const xaiApiKey = Deno.env.get('XAI_API_KEY');
 const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -47,20 +46,15 @@ serve(async (req) => {
       apiKey = xaiApiKey;
       model = 'grok-beta';
       provider = 'xAI';
-    } else if (groqApiKey) {
-      apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-      apiKey = groqApiKey;
-      model = 'llama-3.1-8b-instant';
-      provider = 'Groq';
     } else if (openaiApiKey) {
       apiUrl = 'https://api.openai.com/v1/chat/completions';
       apiKey = openaiApiKey;
       model = 'gpt-4o-mini';
       provider = 'OpenAI';
     } else {
-      console.error('No API key found. Checked: XAI_API_KEY, GROQ_API_KEY, OPENAI_API_KEY');
+      console.error('No API key found. Checked: XAI_API_KEY, OPENAI_API_KEY');
       console.error('Available environment variables:', Object.keys(Deno.env.toObject()).filter(key => key.includes('API')));
-      throw new Error('API key not configured. Please add XAI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY to your Supabase secrets.');
+      throw new Error('API key not configured. Please add XAI_API_KEY or OPENAI_API_KEY to your Supabase secrets.');
     }
 
     console.log(`Using ${provider} API with model ${model}`);
