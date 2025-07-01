@@ -15,6 +15,8 @@ import { FeedbackButton } from '@/components/FeedbackButton';
 import { DatasetManager } from '@/components/data/DatasetManager';
 import { DashboardManager } from '@/components/dashboard/DashboardManager';
 import { SavedDataset } from '@/hooks/useDatasets';
+import { NaturalLanguageQuery } from '@/components/NaturalLanguageQuery';
+import { AIDataChat } from '@/components/AIDataChat';
 
 export interface DataRow {
   [key: string]: any;
@@ -145,9 +147,10 @@ const Index = () => {
 
           {data.length > 0 && (
             <Tabs defaultValue="preview" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="preview">Data Preview</TabsTrigger>
                 <TabsTrigger value="types">Column Types</TabsTrigger>
+                <TabsTrigger value="ai-chat">AI Chat</TabsTrigger>
                 <TabsTrigger value="charts">Visualizations</TabsTrigger>
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               </TabsList>
@@ -167,6 +170,15 @@ const Index = () => {
                   <ColumnTypeOverride 
                     columns={columns}
                     onColumnTypeChange={handleColumnTypeChange}
+                  />
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="ai-chat" className="space-y-4">
+                <Card className="p-6">
+                  <AIDataChat 
+                    data={data} 
+                    columns={columns}
                   />
                 </Card>
               </TabsContent>
