@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { VideoModal } from '@/components/VideoModal';
 import { FeedbackButton } from '@/components/FeedbackButton';
-import { Upload, BarChart3, Layout, Share2, Zap, Shield } from 'lucide-react';
+import { Upload, BarChart3, Layout, Share2, Zap, Shield, Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,6 +21,12 @@ const Landing = () => {
       title: "Easy File Upload",
       description: "Simply drag and drop your Excel files or browse to upload. Support for multiple worksheets and formats.",
       color: "text-blue-500"
+    },
+    {
+      icon: Brain,
+      title: "AI-Powered Analysis",
+      description: "Get instant insights with AI-generated reports. Choose from Executive, Marketing, Finance, and other expert perspectives.",
+      color: "text-indigo-500"
     },
     {
       icon: BarChart3,
@@ -96,8 +102,8 @@ const Landing = () => {
           </h1>
           
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Upload Excel files, create stunning visualizations, and build interactive dashboards. 
-            No technical expertise required – just drag, drop, and discover insights.
+            Upload Excel files, create stunning visualizations, and build interactive dashboards with AI-powered insights. 
+            Get automated analysis reports and discover patterns instantly – no technical expertise required.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -196,9 +202,9 @@ const Landing = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 2
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Visualize</h3>
+              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Analyze & Visualize</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Choose from various chart types and customize colors, labels, and styling to match your needs.
+                Get AI-powered insights and create stunning charts. Choose from various chart types and generate automated analysis reports.
               </p>
             </div>
 
