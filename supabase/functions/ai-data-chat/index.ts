@@ -3,9 +3,9 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Try multiple possible environment variable names for the API key
-const groqApiKey = Deno.env.get('GROQ_API_KEY') || 
-                   Deno.env.get('XAI_API_KEY') || 
-                   Deno.env.get('OPENAI_API_KEY');
+const groqApiKey = Deno.env.get('GROQ_API_KEY');
+const xaiApiKey = Deno.env.get('XAI_API_KEY');
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,12 +35,34 @@ serve(async (req) => {
   try {
     const { messages, dataContext }: { messages: ChatMessage[], dataContext: DataContext } = await req.json();
 
-    if (!groqApiKey) {
-      console.error('API key not found. Checked: GROQ_API_KEY, XAI_API_KEY, OPENAI_API_KEY');
-      throw new Error('API key not configured. Please add GROQ_API_KEY to your Supabase secrets.');
+    // Determine which API to use based on available keys
+    let apiUrl = '';
+    let apiKey = '';
+    let model = '';
+    let provider = '';
+
+    if (xaiApiKey) {
+      apiUrl = 'https://api.x.ai/v1/chat/completions';
+      apiKey = xaiApiKey;
+      model = 'grok-beta';
+      provider = 'xAI';
+    } else if (groqApiKey) {
+      apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+      apiKey = groqApiKey;
+      model = 'llama-3.1-8b-instant';
+      provider = 'Groq';
+    } else if (openaiApiKey) {
+      apiUrl = 'https://api.openai.com/v1/chat/completions';
+      apiKey = openaiApiKey;
+      model = 'gpt-4o-mini';
+      provider = 'OpenAI';
+    } else {
+      console.error('No API key found. Checked: XAI_API_KEY, GROQ_API_KEY, OPENAI_API_KEY');
+      throw new Error('API key not configured. Please add XAI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY to your Supabase secrets.');
     }
 
-    console.log('Using API key starting with:', groqApiKey.substring(0, 10) + '...');
+    console.log(`Using ${provider} API with model ${model}`);
+    console.log('Using API key starting with:', apiKey.substring(0, 10) + '...');
 
     // Create system prompt with data context
     const systemPrompt = `You are an expert data analyst assistant. You help users analyze their data and create visualizations.
@@ -64,16 +86,16 @@ When suggesting visualizations, specify:
 
 Be conversational, helpful, and provide actionable insights about the data.`;
 
-    console.log('Making request to Groq API...');
+    console.log(`Making request to ${provider} API...`);
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: model,
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -84,16 +106,16 @@ Be conversational, helpful, and provide actionable insights about the data.`;
       }),
     });
 
-    console.log('Groq API response status:', response.status);
+    console.log(`${provider} API response status:`, response.status);
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Groq API error response:', error);
-      throw new Error(`Groq API error: ${response.status} - ${error}`);
+      console.error(`${provider} API error response:`, error);
+      throw new Error(`${provider} API error: ${response.status} - ${error}`);
     }
 
     const data = await response.json();
-    console.log('Groq API response received successfully');
+    console.log(`${provider} API response received successfully`);
     
     const aiResponse = data.choices[0].message.content;
 
