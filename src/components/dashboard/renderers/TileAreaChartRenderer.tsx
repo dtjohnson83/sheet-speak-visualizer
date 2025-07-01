@@ -64,9 +64,9 @@ export const TileAreaChartRenderer = ({
       <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
-        <YAxis yAxisId="left" />
+        <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
         {needsRightYAxis && (
-          <YAxis yAxisId="right" orientation="right" />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={formatTooltipValue} />
         )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />

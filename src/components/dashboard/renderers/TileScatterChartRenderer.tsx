@@ -25,7 +25,7 @@ export const TileScatterChartRenderer = ({
       <ScatterChart>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xColumn} />
-        <YAxis />
+        <YAxis tickFormatter={formatTooltipValue} />
         <ZAxis dataKey={valueColumn} range={[64, 144]} />
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
