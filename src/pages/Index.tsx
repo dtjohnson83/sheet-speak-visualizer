@@ -173,12 +173,10 @@ const Index = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="ai-chat" 
-                  disabled
-                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2 opacity-50 cursor-not-allowed`}
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
                 >
                   <Bot className="h-4 w-4" />
                   <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'AI' : 'AI Chat'}</span>
-                  <Badge variant="secondary" className="text-xs ml-1">Soon</Badge>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="charts" 
@@ -217,16 +215,10 @@ const Index = () => {
               
               <TabsContent value="ai-chat" className="space-y-4">
                 <Card className="p-6">
-                  <div className="text-center py-12">
-                    <Bot className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-xl font-semibold mb-2">AI Data Chat</h3>
-                    <p className="text-gray-600 mb-4">
-                      Intelligent data analysis and visualization suggestions are coming soon!
-                    </p>
-                    <Badge variant="outline" className="text-sm">
-                      Feature in Development
-                    </Badge>
-                  </div>
+                  <AIDataChat 
+                    data={data} 
+                    columns={columns}
+                  />
                 </Card>
               </TabsContent>
               
