@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { Send, Bot, User, Sparkles, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -32,6 +34,7 @@ export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChat
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -68,6 +71,10 @@ export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChat
 
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
+
+    // Check usage limit before proceeding
+    const canProceed = await decrementUsage();
+    if (!canProceed) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -161,10 +168,17 @@ export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChat
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-blue-500" />
-          AI Data Chat
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xl font-semibold flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-500" />
+            AI Data Chat
+          </h3>
+          {!usageLoading && (
+            <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
+              {usesRemaining} uses remaining
+            </Badge>
+          )}
+        </div>
         <p className="text-gray-600">
           Ask questions about your data and get intelligent insights and visualization suggestions.
         </p>
@@ -230,8 +244,9 @@ export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChat
             />
             <Button 
               onClick={sendMessage} 
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || !inputValue.trim() || usesRemaining <= 0}
               size="icon"
+              title={usesRemaining <= 0 ? "No AI uses remaining" : "Send message"}
             >
               <Send className="h-4 w-4" />
             </Button>

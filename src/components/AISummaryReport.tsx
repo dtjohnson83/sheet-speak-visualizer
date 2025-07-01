@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -39,6 +41,7 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const [selectedPersona, setSelectedPersona] = useState('general');
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const { toast } = useToast();
+  const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
 
   const generateReport = async () => {
     if (!data.length || !columns.length) {
@@ -49,6 +52,10 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       });
       return;
     }
+
+    // Check usage limit before proceeding
+    const canProceed = await decrementUsage();
+    if (!canProceed) return;
 
     setIsGenerating(true);
 
@@ -133,10 +140,17 @@ Report Metadata:
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-500" />
-          AI Summary Report
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xl font-semibold flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-500" />
+            AI Summary Report
+          </h3>
+          {!usageLoading && (
+            <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
+              {usesRemaining} uses remaining
+            </Badge>
+          )}
+        </div>
         <p className="text-gray-600">
           Generate comprehensive insights and analysis of your data with AI-powered reporting.
         </p>
@@ -175,8 +189,9 @@ Report Metadata:
             </div>
             <Button 
               onClick={generateReport} 
-              disabled={isGenerating}
+              disabled={isGenerating || usesRemaining <= 0}
               className="flex items-center gap-2"
+              title={usesRemaining <= 0 ? "No AI uses remaining" : "Generate AI report"}
             >
               {isGenerating ? (
                 <>
