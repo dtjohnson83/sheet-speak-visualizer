@@ -43,7 +43,7 @@ const Landing = () => {
     {
       icon: Share2,
       title: "Export & Share",
-      description: "Export your visualizations as images or PDFs. Share insights with your team effortlessly.",
+      description: "Export feature coming soon! For now, use browser screenshots to share your beautiful visualizations.",
       color: "text-orange-500"
     },
     {

@@ -29,9 +29,10 @@ export const DashboardHeader = ({ tiles }: DashboardHeaderProps) => {
         size="sm"
         className="flex items-center gap-2"
         data-export-exclude="true"
+        disabled
       >
         <Download className="w-4 h-4" />
-        Export Screenshot
+        Export (Coming Soon)
       </Button>
     </div>
   );
