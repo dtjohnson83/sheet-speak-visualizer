@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileUpload } from '@/components/FileUpload';
@@ -7,8 +8,10 @@ import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
 import { ColumnTypeOverride } from '@/components/data-preview/ColumnTypeOverride';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useSessionMonitor } from '@/hooks/useSessionMonitor';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserMenu } from '@/components/UserMenu';
 import { FeedbackButton } from '@/components/FeedbackButton';
@@ -17,6 +20,7 @@ import { DashboardManager } from '@/components/dashboard/DashboardManager';
 import { SavedDataset } from '@/hooks/useDatasets';
 import { NaturalLanguageQuery } from '@/components/NaturalLanguageQuery';
 import { AIDataChat } from '@/components/AIDataChat';
+import { Bot, Database, BarChart3, Layout, Settings } from 'lucide-react';
 
 export interface DataRow {
   [key: string]: any;
@@ -35,6 +39,7 @@ const Index = () => {
   const [worksheetName, setWorksheetName] = useState<string>('');
   const [currentDatasetId, setCurrentDatasetId] = useState<string>('');
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
+  const isMobile = useIsMobile();
   
   // Initialize session monitoring
   useSessionMonitor();
@@ -147,12 +152,48 @@ const Index = () => {
 
           {data.length > 0 && (
             <Tabs defaultValue="preview" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="preview">Data Preview</TabsTrigger>
-                <TabsTrigger value="types">Column Types</TabsTrigger>
-                <TabsTrigger value="ai-chat">AI Chat</TabsTrigger>
-                <TabsTrigger value="charts">Visualizations</TabsTrigger>
-                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsList className={`w-full ${
+                isMobile 
+                  ? 'flex overflow-x-auto justify-start gap-1 p-1' 
+                  : 'grid grid-cols-5'
+              }`}>
+                <TabsTrigger 
+                  value="preview" 
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+                >
+                  <Database className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Data' : 'Data Preview'}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="types" 
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Types' : 'Column Types'}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ai-chat" 
+                  disabled
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2 opacity-50 cursor-not-allowed`}
+                >
+                  <Bot className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'AI' : 'AI Chat'}</span>
+                  <Badge variant="secondary" className="text-xs ml-1">Soon</Badge>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="charts" 
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Charts' : 'Visualizations'}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="dashboard" 
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+                >
+                  <Layout className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>Dashboard</span>
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="preview" className="space-y-4">
@@ -176,10 +217,16 @@ const Index = () => {
               
               <TabsContent value="ai-chat" className="space-y-4">
                 <Card className="p-6">
-                  <AIDataChat 
-                    data={data} 
-                    columns={columns}
-                  />
+                  <div className="text-center py-12">
+                    <Bot className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-xl font-semibold mb-2">AI Data Chat</h3>
+                    <p className="text-gray-600 mb-4">
+                      Intelligent data analysis and visualization suggestions are coming soon!
+                    </p>
+                    <Badge variant="outline" className="text-sm">
+                      Feature in Development
+                    </Badge>
+                  </div>
                 </Card>
               </TabsContent>
               
