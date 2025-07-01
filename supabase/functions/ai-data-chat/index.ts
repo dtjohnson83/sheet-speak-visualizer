@@ -44,7 +44,7 @@ serve(async (req) => {
     if (xaiApiKey) {
       apiUrl = 'https://api.x.ai/v1/chat/completions';
       apiKey = xaiApiKey;
-      model = 'grok-beta';
+      model = 'grok-3';
       provider = 'xAI';
     } else if (openaiApiKey) {
       apiUrl = 'https://api.openai.com/v1/chat/completions';
