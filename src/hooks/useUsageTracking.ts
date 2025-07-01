@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface UsageData {
   usesRemaining: number;
@@ -12,6 +13,7 @@ interface UsageData {
 export const useUsageTracking = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
   const [usage, setUsage] = useState<UsageData>({
     usesRemaining: 0,
     totalUses: 0,
@@ -72,6 +74,11 @@ export const useUsageTracking = () => {
 
   const decrementUsage = async (): Promise<boolean> => {
     if (!user) return false;
+
+    // Admins have unlimited usage
+    if (isAdmin) {
+      return true;
+    }
 
     if (usage.usesRemaining <= 0) {
       toast({
@@ -138,6 +145,8 @@ export const useUsageTracking = () => {
 
   return {
     ...usage,
+    isAdmin,
+    isLoading: usage.isLoading || roleLoading,
     decrementUsage,
     refreshUsage: fetchUsage
   };

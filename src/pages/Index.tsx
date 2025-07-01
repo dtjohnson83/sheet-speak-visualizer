@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useSessionMonitor } from '@/hooks/useSessionMonitor';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserMenu } from '@/components/UserMenu';
 import { FeedbackButton } from '@/components/FeedbackButton';
@@ -40,6 +41,7 @@ const Index = () => {
   const [worksheetName, setWorksheetName] = useState<string>('');
   const [currentDatasetId, setCurrentDatasetId] = useState<string>('');
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
+  const { isAdmin, usesRemaining } = useUsageTracking();
   const isMobile = useIsMobile();
   
   // Initialize session monitoring
@@ -118,6 +120,15 @@ const Index = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 relative">
           <div className="absolute top-0 right-0 flex items-center gap-2">
+            {isAdmin ? (
+              <Badge variant="secondary" className="text-xs">
+                Admin - Unlimited AI
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                {usesRemaining} AI uses left
+              </Badge>
+            )}
             <FeedbackButton />
             <UserMenu />
             <ThemeToggle />

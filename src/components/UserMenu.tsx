@@ -9,13 +9,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, LogOut } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
+import { AdminPanel } from '@/components/AdminPanel';
+import { User, LogOut, Shield } from 'lucide-react';
 
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const [isLoading, setIsLoading] = useState(false);
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
   const handleSignOut = async () => {
     setIsLoading(true);
@@ -41,7 +53,10 @@ export const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{displayName}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium leading-none">{displayName}</p>
+              {isAdmin && <Badge variant="secondary" className="text-xs">Admin</Badge>}
+            </div>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
@@ -52,6 +67,24 @@ export const UserMenu = () => {
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
+        {isAdmin && (
+          <>
+            <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>Admin Panel</span>
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Admin Panel</DialogTitle>
+                </DialogHeader>
+                <AdminPanel />
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
           <LogOut className="mr-2 h-4 w-4" />
