@@ -5,10 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
-import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain } from 'lucide-react';
+import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
+import { exportAIReportToPDF } from '@/utils/pdfExport';
 
 interface AISummaryReportProps {
   data: DataRow[];
@@ -120,6 +121,25 @@ Report Metadata:
     URL.revokeObjectURL(url);
   };
 
+  const exportReportToPDF = async () => {
+    if (!reportData) return;
+
+    try {
+      await exportAIReportToPDF(reportData, fileName);
+      toast({
+        title: "Export Successful",
+        description: "AI report exported to PDF successfully.",
+      });
+    } catch (error) {
+      console.error('Error exporting report to PDF:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export report to PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (data.length === 0) {
     return (
       <Card className="p-6 text-center">
@@ -219,15 +239,26 @@ Report Metadata:
                 {personas.find(p => p.value === reportData.metadata.persona)?.label} perspective
               </p>
             </div>
-            <Button 
-              onClick={exportReport} 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={exportReportToPDF} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <FileDown className="h-4 w-4" />
+                Export PDF
+              </Button>
+              <Button 
+                onClick={exportReport} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export Text
+              </Button>
+            </div>
           </div>
 
           <div className="prose prose-sm max-w-none">

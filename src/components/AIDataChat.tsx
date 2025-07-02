@@ -7,10 +7,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
-import { Send, Bot, User, Sparkles, BarChart3 } from 'lucide-react';
+import { Send, Bot, User, Sparkles, BarChart3, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContext';
+import { exportAIChatToPDF } from '@/utils/pdfExport';
 
 interface Message {
   id: string;
@@ -151,6 +152,32 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
     inputRef.current?.focus();
   };
 
+  const handleExportToPDF = async () => {
+    if (messages.length === 0) {
+      toast({
+        title: "No Messages",
+        description: "There are no messages to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await exportAIChatToPDF(messages, fileName);
+      toast({
+        title: "Export Successful",
+        description: "Chat conversation exported to PDF successfully.",
+      });
+    } catch (error) {
+      console.error('Error exporting chat to PDF:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export chat to PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (data.length === 0) {
     return (
       <Card className="p-6 text-center">
@@ -170,6 +197,17 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
             AI Data Chat
           </h3>
           <div className="flex items-center gap-2">
+            {messages.length > 1 && (
+              <Button
+                onClick={handleExportToPDF}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <FileDown className="h-4 w-4" />
+                Export PDF
+              </Button>
+            )}
             {hasEnhancedContext && (
               <Badge variant="default" className="text-xs">
                 Enhanced AI
