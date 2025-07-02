@@ -12,6 +12,10 @@ import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import GuidesHub from "./pages/guides/GuidesHub";
+import QuickStartGuide from "./pages/guides/QuickStartGuide";
+import AIFeaturesGuide from "./pages/guides/AIFeaturesGuide";
+import BestPracticesGuide from "./pages/guides/BestPracticesGuide";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +44,10 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/guides" element={<GuidesHub />} />
+                <Route path="/guides/quick-start" element={<QuickStartGuide />} />
+                <Route path="/guides/ai-features" element={<AIFeaturesGuide />} />
+                <Route path="/guides/best-practices" element={<BestPracticesGuide />} />
                 <Route 
                   path="/app" 
                   element={

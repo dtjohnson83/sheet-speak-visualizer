@@ -1,26 +1,31 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Brain, Play, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BookOpen, Brain, Users, ArrowLeft } from 'lucide-react';
 
-interface LearnHelpSectionProps {
-  onWatchDemo: () => void;
-}
-
-export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
+const GuidesHub = () => {
   return (
-    <section className="px-4 py-20 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Learn & Get Help
-          </h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="flex items-center gap-4 mb-8">
+          <Link to="/">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
+        </div>
+
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Chartuvo Guides
+          </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Master Chartuvo with comprehensive guides and tutorials
+            Master data visualization with our comprehensive guides
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Link to="/guides/quick-start">
             <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
               <CardHeader className="text-center">
@@ -53,20 +58,6 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
             </Card>
           </Link>
 
-          <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Play className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <CardTitle className="text-lg">Video Tutorials</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Watch step-by-step tutorials covering advanced features and best practices.
-              </p>
-            </CardContent>
-          </Card>
-
           <Link to="/guides/best-practices">
             <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
               <CardHeader className="text-center">
@@ -83,19 +74,9 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
             </Card>
           </Link>
         </div>
-
-        <div className="text-center mt-12">
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="text-lg px-8 py-3"
-            onClick={onWatchDemo}
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Watch Demo Video
-          </Button>
-        </div>
       </div>
-    </section>
+    </div>
   );
 };
+
+export default GuidesHub;
