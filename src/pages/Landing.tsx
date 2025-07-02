@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { VideoModal } from '@/components/VideoModal';
 import { FeedbackButton } from '@/components/FeedbackButton';
-import { Upload, BarChart3, Layout, Share2, Zap, Shield, Brain } from 'lucide-react';
+import { Upload, BarChart3, Layout, Zap, Shield, Brain, BookOpen, Play, Users, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,39 +24,33 @@ const Landing = () => {
     },
     {
       icon: Brain,
-      title: "AI-Powered Analysis",
-      description: "Get instant insights with AI-generated reports. Choose from Executive, Marketing, Finance, and other expert perspectives.",
+      title: "Enhanced AI Analysis",
+      description: "Get comprehensive AI insights with interactive chat, expert reports from multiple personas, and business context integration for domain-specific analysis.",
       color: "text-indigo-500"
+    },
+    {
+      icon: Zap,
+      title: "AI-Powered Agents",
+      description: "Deploy autonomous AI agents for continuous data monitoring, anomaly detection, trend analysis, and automated insight generation.",
+      color: "text-purple-600"
     },
     {
       icon: BarChart3,
       title: "Rich Visualizations",
-      description: "Create stunning charts with multiple types: bar, line, pie, scatter, and more. Customize colors and styles.",
+      description: "Create stunning charts with multiple types: bar, line, pie, scatter, heatmaps, and more. Customize colors and styles effortlessly.",
       color: "text-green-500"
     },
     {
       icon: Layout,
       title: "Interactive Dashboards",
-      description: "Build comprehensive dashboards with drag-and-drop tiles. Filter and analyze your data in real-time.",
-      color: "text-purple-500"
-    },
-    {
-      icon: Share2,
-      title: "Export & Share",
-      description: "Export feature coming soon! For now, use browser screenshots to share your beautiful visualizations.",
-      color: "text-orange-500"
-    },
-    {
-      icon: Zap,
-      title: "Real-time Filtering",
-      description: "Apply dynamic filters across your entire dashboard. See your data update instantly.",
-      color: "text-yellow-500"
+      description: "Build comprehensive dashboards with drag-and-drop tiles. Filter and analyze your data in real-time with advanced business context.",
+      color: "text-cyan-500"
     },
     {
       icon: Shield,
-      title: "Secure & Private",
-      description: "Your data stays secure. Process files locally in your browser with no server uploads required.",
-      color: "text-red-500"
+      title: "Business Context Integration",
+      description: "Enhance AI accuracy with domain-specific understanding. Input business rules, industry context, and organizational knowledge.",
+      color: "text-amber-600"
     }
   ];
 
@@ -181,19 +175,19 @@ const Landing = () => {
               How It Works
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Get from data to insights in three simple steps
+              From data upload to intelligent insights in four powerful steps
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {/* Step 1 */}
             <div className="text-center relative">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 1
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Upload</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Upload & Prepare</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Drop your Excel file or browse to upload. We'll automatically detect your data structure.
+                Upload Excel files and let AI automatically detect structure, data types, and business context.
               </p>
             </div>
 
@@ -202,9 +196,9 @@ const Landing = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 2
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Analyze & Visualize</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">AI Analysis</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Get AI-powered insights and create stunning charts. Choose from various chart types and generate automated analysis reports.
+                Get comprehensive AI insights, chat with your data, and generate expert reports from multiple perspectives.
               </p>
             </div>
 
@@ -213,11 +207,106 @@ const Landing = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 3
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Dashboard</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Visualize</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Build interactive dashboards with multiple charts and apply real-time filters to explore your data.
+                Create stunning charts and build interactive dashboards with drag-and-drop tiles and real-time filtering.
               </p>
             </div>
+
+            {/* Step 4 */}
+            <div className="text-center relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
+                4
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Automate</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Deploy AI agents for continuous monitoring, anomaly detection, and automated insight generation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Learn & Get Help */}
+      <section className="px-4 py-20 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Learn & Get Help
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+              Master Charta with comprehensive guides and tutorials
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <CardTitle className="text-lg">Quick Start Guide</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Learn the basics: upload files, create charts, and build your first dashboard in minutes.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <CardTitle className="text-lg">AI Features Guide</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Master AI chat, agents, and business context to get deeper insights from your data.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Play className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+                <CardTitle className="text-lg">Video Tutorials</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Watch step-by-step tutorials covering advanced features and best practices.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <CardTitle className="text-lg">Best Practices</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Discover data preparation tips and visualization best practices from experts.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mt-12">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-lg px-8 py-3"
+              onClick={() => setIsVideoModalOpen(true)}
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Watch Demo Video
+            </Button>
           </div>
         </div>
       </section>
