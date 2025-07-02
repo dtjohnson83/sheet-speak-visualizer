@@ -142,8 +142,8 @@ const Index = () => {
           <div className="flex justify-center mb-4">
             <Link to="/">
               <img 
-                src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
-                alt="Charta Logo" 
+                src="/lovable-uploads/b6f37075-7fc7-47ba-9704-f02449e75dfe.png" 
+                alt="Chartuvo Logo" 
                 className="h-24 w-auto md:h-32 hover:opacity-80 transition-opacity cursor-pointer"
               />
             </Link>

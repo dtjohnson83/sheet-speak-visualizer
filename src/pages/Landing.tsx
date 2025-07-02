@@ -67,8 +67,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
             <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
-              alt="Charta Logo" 
+              src="/lovable-uploads/b6f37075-7fc7-47ba-9704-f02449e75dfe.png" 
+              alt="Chartuvo Logo" 
               className="h-20 w-auto md:h-24"
             />
           </div>
@@ -252,8 +252,8 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
-              alt="Charta Logo" 
+              src="/lovable-uploads/b6f37075-7fc7-47ba-9704-f02449e75dfe.png" 
+              alt="Chartuvo Logo" 
               className="h-16 w-auto"
             />
           </div>
