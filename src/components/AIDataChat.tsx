@@ -10,6 +10,7 @@ import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { Send, Bot, User, Sparkles, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContext';
 
 interface Message {
   id: string;
@@ -21,6 +22,8 @@ interface Message {
 interface AIDataChatProps {
   data: DataRow[];
   columns: ColumnInfo[];
+  fileName?: string;
+  enhancedContext?: any;
   onSuggestVisualization?: (suggestion: {
     chartType: string;
     xColumn: string;
@@ -29,12 +32,13 @@ interface AIDataChatProps {
   }) => void;
 }
 
-export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChatProps) => {
+export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggestVisualization }: AIDataChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
+  const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,16 +92,8 @@ export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChat
     setIsLoading(true);
 
     try {
-      // Prepare data context for AI
-      const dataContext = {
-        columns: columns.map(col => ({
-          name: col.name,
-          type: col.type,
-          values: col.values.slice(0, 10) // Send sample values
-        })),
-        sampleData: data.slice(0, 5), // Send first 5 rows as sample
-        totalRows: data.length
-      };
+      // Prepare enhanced data context for AI
+      const dataContext = buildAIContext(data, columns, fileName, 10);
 
       // Prepare messages for AI (exclude welcome message)
       const chatMessages = messages
@@ -173,11 +169,18 @@ export const AIDataChat = ({ data, columns, onSuggestVisualization }: AIDataChat
             <Sparkles className="h-5 w-5 text-blue-500" />
             AI Data Chat
           </h3>
-          {!usageLoading && (
-            <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
-              {usesRemaining} uses remaining
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {hasEnhancedContext && (
+              <Badge variant="default" className="text-xs">
+                Enhanced AI
+              </Badge>
+            )}
+            {!usageLoading && (
+              <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
+                {usesRemaining} uses remaining
+              </Badge>
+            )}
+          </div>
         </div>
         <p className="text-gray-600">
           Ask questions about your data and get intelligent insights and visualization suggestions.

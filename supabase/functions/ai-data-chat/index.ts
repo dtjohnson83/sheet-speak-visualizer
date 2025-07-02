@@ -60,27 +60,60 @@ serve(async (req) => {
     console.log(`Using ${provider} API with model ${model}`);
     console.log('API key found and configured successfully');
 
-    // Create system prompt with data context
-    const systemPrompt = `You are an expert data analyst assistant. You help users analyze their data and create visualizations.
+    // Create enhanced system prompt with data context
+    let systemPrompt = `You are an expert data analyst assistant. You help users analyze their data and create visualizations.
 
 Current Dataset Context:
 - Total rows: ${dataContext.totalRows}
-- Columns: ${dataContext.columns.map(col => `${col.name} (${col.type})`).join(', ')}
-- Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 3))}
+- Columns: ${dataContext.columns.map(col => {
+      let desc = `${col.name} (${col.type})`;
+      if (col.description) desc += ` - ${col.description}`;
+      if (col.businessMeaning) desc += ` [${col.businessMeaning}]`;
+      if (col.unit) desc += ` (${col.unit})`;
+      return desc;
+    }).join(', ')}
+- Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 3))}`;
+
+    // Add enhanced context if available
+    if (dataContext.enhancedContext) {
+      const ctx = dataContext.enhancedContext;
+      systemPrompt += `
+
+ENHANCED BUSINESS CONTEXT:
+- Business Domain: ${ctx.businessDomain}
+- Purpose: ${ctx.businessPurpose}
+- Industry: ${ctx.industry}
+- Time Period: ${ctx.timePeriod}
+- Key Objectives: ${ctx.objectives.join(', ')}
+- Primary Date Column: ${ctx.primaryDateColumn}
+- Key Metrics/KPIs: ${ctx.keyMetrics.join(', ')}
+- Business Rules: ${ctx.businessRules.join('; ')}
+- Data Quality: ${ctx.dataQuality.completeness}% complete, ${ctx.dataQuality.consistency}% consistent
+
+ANALYSIS GUIDELINES:
+- Focus on objectives: ${ctx.objectives.join(', ')}
+- Consider business domain patterns for ${ctx.businessDomain}
+- Use ${ctx.primaryDateColumn} for time-series analysis
+- Prioritize insights about: ${ctx.keyMetrics.join(', ')}
+- Apply domain knowledge for ${ctx.industry} industry`;
+    }
+
+    systemPrompt += `
 
 Your capabilities:
-1. Analyze data patterns and provide insights
+1. Analyze data patterns and provide business-relevant insights
 2. Suggest appropriate chart types for visualizations
 3. Help with data filtering and grouping
-4. Explain statistical concepts in simple terms
+4. Explain findings in business context
+5. Validate insights against business rules
 
 When suggesting visualizations, specify:
 - Chart type (bar, line, pie, scatter, etc.)
-- X-axis column
-- Y-axis column (if applicable)
+- X-axis column (prefer ${dataContext.enhancedContext?.primaryDateColumn || 'date columns'} for time series)
+- Y-axis column (prioritize KPIs: ${dataContext.enhancedContext?.keyMetrics.join(', ') || 'numeric columns'})
 - Any grouping or filtering needed
 
-Be conversational, helpful, and provide actionable insights about the data.`;
+Be conversational, business-focused, and provide actionable insights relevant to the business context.`;
 
     console.log(`Making request to ${provider} API...`);
 

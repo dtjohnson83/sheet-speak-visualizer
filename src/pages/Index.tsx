@@ -22,6 +22,8 @@ import { SavedDataset } from '@/hooks/useDatasets';
 import { NaturalLanguageQuery } from '@/components/NaturalLanguageQuery';
 import { AIDataChat } from '@/components/AIDataChat';
 import { AISummaryReport } from '@/components/AISummaryReport';
+import { EnhancedDataContextManager, EnhancedDataContext } from '@/components/ai-context/EnhancedDataContextManager';
+import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
 import { Bot, Database, BarChart3, Layout, Settings, FileText } from 'lucide-react';
 
 export interface DataRow {
@@ -40,8 +42,10 @@ const Index = () => {
   const [fileName, setFileName] = useState<string>('');
   const [worksheetName, setWorksheetName] = useState<string>('');
   const [currentDatasetId, setCurrentDatasetId] = useState<string>('');
+  const [showContextSetup, setShowContextSetup] = useState(false);
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
   const { isAdmin, usesRemaining } = useUsageTracking();
+  const { setContext, clearContext } = useEnhancedAIContext();
   const isMobile = useIsMobile();
   
   // Initialize session monitoring
@@ -53,6 +57,8 @@ const Index = () => {
     setColumns(detectedColumns);
     setFileName(name);
     setWorksheetName(worksheet || '');
+    setShowContextSetup(true);
+    clearContext();
   };
 
   const handleColumnTypeChange = (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => {
@@ -218,12 +224,26 @@ const Index = () => {
               
               
               <TabsContent value="ai-chat" className="space-y-4">
-                <Card className="p-6">
-                  <AIDataChat 
-                    data={data} 
+                {showContextSetup ? (
+                  <EnhancedDataContextManager
+                    data={data}
                     columns={columns}
+                    fileName={displayFileName}
+                    onContextReady={(context) => {
+                      setContext(context);
+                      setShowContextSetup(false);
+                    }}
+                    onSkip={() => setShowContextSetup(false)}
                   />
-                </Card>
+                ) : (
+                  <Card className="p-6">
+                    <AIDataChat 
+                      data={data} 
+                      columns={columns}
+                      fileName={displayFileName}
+                    />
+                  </Card>
+                )}
               </TabsContent>
               
               <TabsContent value="ai-report" className="space-y-4">

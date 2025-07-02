@@ -8,6 +8,7 @@ import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
 
 interface AISummaryReportProps {
   data: DataRow[];
@@ -42,6 +43,7 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
+  const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
 
   const generateReport = async () => {
     if (!data.length || !columns.length) {
@@ -60,17 +62,8 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     setIsGenerating(true);
 
     try {
-      // Prepare data context for AI
-      const dataContext = {
-        columns: columns.map(col => ({
-          name: col.name,
-          type: col.type,
-          values: col.values.slice(0, 20) // Send more sample values for better analysis
-        })),
-        sampleData: data.slice(0, 10), // Send more sample rows
-        totalRows: data.length,
-        fileName
-      };
+      // Prepare enhanced data context for AI
+      const dataContext = buildAIContext(data, columns, fileName, 20);
 
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
         body: {
@@ -145,11 +138,18 @@ Report Metadata:
             <Sparkles className="h-5 w-5 text-purple-500" />
             AI Summary Report
           </h3>
-          {!usageLoading && (
-            <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
-              {usesRemaining} uses remaining
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {hasEnhancedContext && (
+              <Badge variant="default" className="text-xs">
+                Enhanced AI
+              </Badge>
+            )}
+            {!usageLoading && (
+              <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
+                {usesRemaining} uses remaining
+              </Badge>
+            )}
+          </div>
         </div>
         <p className="text-gray-600">
           Generate comprehensive insights and analysis of your data with AI-powered reporting.
