@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContext';
 import { exportAIChatToPDF } from '@/utils/pdfExport';
+import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
+import { AIResponseDisclaimer } from '@/components/transparency/AIResponseDisclaimer';
 
 interface Message {
   id: string;
@@ -213,6 +215,12 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
                 Enhanced AI
               </Badge>
             )}
+            <DataSamplingInfo 
+              totalRows={data.length} 
+              sampleSize={10} 
+              columns={columns}
+              analysisType="chat"
+            />
             {!usageLoading && (
               <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
                 {usesRemaining} uses remaining
@@ -220,9 +228,17 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
             )}
           </div>
         </div>
-        <p className="text-gray-600">
-          Ask questions about your data and get intelligent insights and visualization suggestions.
-        </p>
+        <div className="space-y-2">
+          <p className="text-gray-600">
+            Ask questions about your data and get intelligent insights and visualization suggestions.
+          </p>
+          <AIResponseDisclaimer 
+            sampleSize={10} 
+            totalRows={data.length} 
+            confidenceLevel={data.length > 1000 ? 'low' : data.length > 100 ? 'medium' : 'high'}
+            analysisType="chat"
+          />
+        </div>
       </div>
 
       <Card className="h-96 flex flex-col">

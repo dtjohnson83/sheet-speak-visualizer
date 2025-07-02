@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
 import { exportAIReportToPDF } from '@/utils/pdfExport';
+import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 
 interface AISummaryReportProps {
   data: DataRow[];
@@ -164,6 +165,12 @@ Report Metadata:
                 Enhanced AI
               </Badge>
             )}
+            <DataSamplingInfo 
+              totalRows={data.length} 
+              sampleSize={20} 
+              columns={columns}
+              analysisType="report"
+            />
             {!usageLoading && (
               <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
                 {usesRemaining} uses remaining
@@ -171,9 +178,18 @@ Report Metadata:
             )}
           </div>
         </div>
-        <p className="text-gray-600">
-          Generate comprehensive insights and analysis of your data with AI-powered reporting.
-        </p>
+        <div className="space-y-2">
+          <p className="text-gray-600">
+            Generate comprehensive insights and analysis of your data with AI-powered reporting.
+          </p>
+          <DataSamplingInfo 
+            totalRows={data.length} 
+            sampleSize={20} 
+            columns={columns}
+            analysisType="report"
+            showDetailedView={true}
+          />
+        </div>
       </div>
 
       <Card className="p-6">

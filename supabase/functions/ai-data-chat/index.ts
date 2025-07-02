@@ -61,10 +61,16 @@ serve(async (req) => {
     console.log('API key found and configured successfully');
 
     // Create enhanced system prompt with data context
+    const sampleSize = dataContext.sampleData.length;
+    const samplePercentage = ((sampleSize / dataContext.totalRows) * 100).toFixed(2);
+    
     let systemPrompt = `You are an expert data analyst assistant. You help users analyze their data and create visualizations.
+
+IMPORTANT: Always start your responses by acknowledging the data sampling scope and limitations.
 
 Current Dataset Context:
 - Total rows: ${dataContext.totalRows}
+- Sample analyzed: ${sampleSize} rows (${samplePercentage}% of dataset)
 - Columns: ${dataContext.columns.map(col => {
       let desc = `${col.name} (${col.type})`;
       if (col.description) desc += ` - ${col.description}`;
@@ -72,7 +78,13 @@ Current Dataset Context:
       if (col.unit) desc += ` (${col.unit})`;
       return desc;
     }).join(', ')}
-- Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 3))}`;
+- Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 3))}
+
+TRANSPARENCY REQUIREMENTS:
+- Always mention that analysis is based on ${sampleSize} sample rows from ${dataContext.totalRows} total rows
+- Include confidence level: ${sampleSize < 100 ? 'LOW' : sampleSize < 1000 ? 'MEDIUM' : 'HIGH'} confidence
+- Acknowledge limitations when sample is small (< 1% of data)
+- Suggest when user might need more comprehensive analysis`;
 
     // Add enhanced context if available
     if (dataContext.enhancedContext) {
