@@ -24,6 +24,7 @@ import { AIDataChat } from '@/components/AIDataChat';
 import { AISummaryReport } from '@/components/AISummaryReport';
 import { EnhancedDataContextManager, EnhancedDataContext } from '@/components/ai-context/EnhancedDataContextManager';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
+import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { Bot, Database, BarChart3, Layout, Settings, FileText } from 'lucide-react';
 
 export interface DataRow {
@@ -173,7 +174,7 @@ const Index = () => {
               <TabsList className={`w-full ${
                 isMobile 
                   ? 'flex overflow-x-auto justify-start gap-1 p-1' 
-                  : 'grid grid-cols-5'
+                  : 'grid grid-cols-6'
               }`}>
                 <TabsTrigger 
                   value="preview" 
@@ -195,6 +196,13 @@ const Index = () => {
                 >
                   <FileText className="h-4 w-4" />
                   <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="agents" 
+                  className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Agents' : 'AI Agents'}</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="charts" 
@@ -252,6 +260,12 @@ const Index = () => {
                   columns={columns}
                   fileName={displayFileName}
                 />
+              </TabsContent>
+              
+              <TabsContent value="agents" className="space-y-4">
+                <Card className="p-6">
+                  <AIAgentOrchestrator />
+                </Card>
               </TabsContent>
               
               <TabsContent value="charts" className="space-y-4">

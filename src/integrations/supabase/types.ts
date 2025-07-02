@@ -9,6 +9,222 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_activity_log: {
+        Row: {
+          activity_type: string
+          agent_id: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          activity_type: string
+          agent_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          activity_type?: string
+          agent_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_activity_log_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_insights: {
+        Row: {
+          agent_id: string
+          confidence_score: number
+          created_at: string
+          data: Json
+          dataset_id: string | null
+          description: string
+          id: string
+          insight_type: string
+          is_archived: boolean
+          is_read: boolean
+          priority: number
+          task_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          confidence_score?: number
+          created_at?: string
+          data?: Json
+          dataset_id?: string | null
+          description: string
+          id?: string
+          insight_type: string
+          is_archived?: boolean
+          is_read?: boolean
+          priority?: number
+          task_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          confidence_score?: number
+          created_at?: string
+          data?: Json
+          dataset_id?: string | null
+          description?: string
+          id?: string
+          insight_type?: string
+          is_archived?: boolean
+          is_read?: boolean
+          priority?: number
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_insights_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_insights_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "saved_datasets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_insights_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "agent_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_tasks: {
+        Row: {
+          agent_id: string
+          completed_at: string | null
+          created_at: string
+          dataset_id: string | null
+          error_message: string | null
+          id: string
+          parameters: Json
+          result: Json | null
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          completed_at?: string | null
+          created_at?: string
+          dataset_id?: string | null
+          error_message?: string | null
+          id?: string
+          parameters?: Json
+          result?: Json | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          completed_at?: string | null
+          created_at?: string
+          dataset_id?: string | null
+          error_message?: string | null
+          id?: string
+          parameters?: Json
+          result?: Json | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tasks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "saved_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          capabilities: Json
+          configuration: Json
+          created_at: string
+          description: string | null
+          id: string
+          last_active: string | null
+          name: string
+          priority: number
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capabilities?: Json
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_active?: string | null
+          name: string
+          priority?: number
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capabilities?: Json
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_active?: string | null
+          name?: string
+          priority?: number
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analysis_sessions: {
         Row: {
           created_at: string
@@ -484,24 +700,33 @@ export type Database = {
       }
       user_usage_tracking: {
         Row: {
+          active_agents: number
+          agents_enabled: boolean
           created_at: string
           id: string
+          max_agents: number
           total_uses: number
           updated_at: string
           user_id: string
           uses_remaining: number
         }
         Insert: {
+          active_agents?: number
+          agents_enabled?: boolean
           created_at?: string
           id?: string
+          max_agents?: number
           total_uses?: number
           updated_at?: string
           user_id: string
           uses_remaining?: number
         }
         Update: {
+          active_agents?: number
+          agents_enabled?: boolean
           created_at?: string
           id?: string
+          max_agents?: number
           total_uses?: number
           updated_at?: string
           user_id?: string
