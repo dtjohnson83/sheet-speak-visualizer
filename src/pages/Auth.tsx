@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -16,15 +15,31 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const { signUp, signIn, user } = useAuth();
+  const [resetEmail, setResetEmail] = useState('');
+  const [activeTab, setActiveTab] = useState('signin');
+  const { signUp, signIn, resetPassword, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Redirect if already authenticated
+  // Handle URL parameters and redirect logic
   useEffect(() => {
-    if (user) {
+    const confirmed = searchParams.get('confirmed');
+    const reset = searchParams.get('reset');
+    
+    if (confirmed === 'true') {
+      setMessage('Email confirmed! You can now sign in to your account.');
+      setActiveTab('signin');
+    }
+    
+    if (reset === 'true') {
+      setMessage('Password reset email sent! Check your email for the reset link.');
+      setActiveTab('signin');
+    }
+    
+    if (user && !confirmed && !reset) {
       navigate('/app');
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +54,14 @@ const Auth = () => {
     const { error } = await signUp(email, password, fullName);
     
     if (error) {
-      setError(error.message);
+      if (error.message.includes('already registered')) {
+        setError('An account with this email already exists. Please sign in instead.');
+      } else {
+        setError(error.message);
+      }
     } else {
       setMessage('Check your email for the confirmation link!');
+      setActiveTab('signin');
     }
     
     setLoading(false);
@@ -63,6 +83,28 @@ const Auth = () => {
       setError(error.message);
     } else {
       navigate('/app');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    const { error } = await resetPassword(resetEmail);
+    
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage('Password reset email sent! Check your email for the reset link.');
+      setActiveTab('signin');
     }
     
     setLoading(false);
@@ -94,10 +136,11 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="reset">Reset Password</TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin">
@@ -134,6 +177,16 @@ const Auth = () => {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
+                  
+                  <div className="text-center mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('reset')}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
               
@@ -188,6 +241,48 @@ const Auth = () => {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Creating account...' : 'Create Account'}
                   </Button>
+                </form>
+              </TabsContent>
+              
+              <TabsContent value="reset">
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="resetEmail">Email</Label>
+                    <Input
+                      id="resetEmail"
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {message && (
+                    <Alert>
+                      <AlertDescription>{message}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Sending reset email...' : 'Reset Password'}
+                  </Button>
+                  
+                  <div className="text-center mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('signin')}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Back to sign in
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>
