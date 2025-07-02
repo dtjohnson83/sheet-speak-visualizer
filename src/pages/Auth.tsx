@@ -117,7 +117,7 @@ const Auth = () => {
           <div className="flex items-center justify-center mb-4">
             <Link to="/">
               <img 
-                src="/lovable-uploads/a7a4a136-9773-4c6c-b3e7-97e3c66f0c08.png" 
+                src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
                 alt="Chartuvo Logo" 
                 className="h-16 w-auto md:h-20 lg:h-24 hover:opacity-80 transition-opacity cursor-pointer"
               />
