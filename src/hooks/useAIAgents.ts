@@ -207,6 +207,62 @@ export const useAIAgents = () => {
     },
   });
 
+  // Trigger processor mutation
+  const triggerProcessorMutation = useMutation({
+    mutationFn: async () => {
+      const response = await supabase.functions.invoke('ai-agent-processor', {
+        body: { manual_trigger: true }
+      });
+
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Refresh all related queries
+      queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-insights', user?.id] });
+      
+      toast({
+        title: "Agent processor triggered",
+        description: `Processed ${data?.processed || 0} tasks`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to trigger processor",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Auto-schedule tasks for new datasets
+  const scheduleTasksForDataset = async (datasetId: string) => {
+    const activeAgents = agents.filter(agent => agent.status === 'active');
+    
+    for (const agent of activeAgents) {
+      const taskType = agent.type === 'anomaly_detection' ? 'detect_anomalies' :
+                      agent.type === 'trend_analysis' ? 'analyze_trends' :
+                      agent.type === 'insight_generation' ? 'generate_insights' :
+                      agent.type === 'correlation_discovery' ? 'find_correlations' : 'analyze_data';
+      
+      try {
+        await supabase.from('agent_tasks').insert({
+          agent_id: agent.id,
+          dataset_id: datasetId,
+          task_type: taskType,
+          parameters: {
+            auto_scheduled: true,
+            scheduled_for: 'new_dataset',
+            timestamp: new Date().toISOString()
+          }
+        });
+      } catch (error) {
+        console.error('Failed to schedule task for agent:', agent.id, error);
+      }
+    }
+  };
+
   // Generate agent summary
   const getAgentSummary = (): AgentSummary => {
     const activeAgents = agents.filter(agent => agent.status === 'active');
@@ -238,7 +294,10 @@ export const useAIAgents = () => {
     createTask: createTaskMutation.mutate,
     updateAgentStatus: updateAgentStatusMutation.mutate,
     markInsightRead: markInsightReadMutation.mutate,
+    triggerProcessor: triggerProcessorMutation.mutate,
+    scheduleTasksForDataset,
     isCreatingAgent: createAgentMutation.isPending,
     isCreatingTask: createTaskMutation.isPending,
+    isTriggeringProcessor: triggerProcessorMutation.isPending,
   };
 };

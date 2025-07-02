@@ -6,10 +6,13 @@ import { Separator } from '@/components/ui/separator';
 import { Bot, Play, Pause, Settings, Activity, Brain, TrendingUp, Eye, AlertTriangle } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useScheduledAgentTasks } from '@/hooks/useScheduledAgentTasks';
 import { AIAgent, AgentSummary } from '@/types/agents';
 import { AgentInsightsList } from './AgentInsightsList';
 import { AgentTaskQueue } from './AgentTaskQueue';
 import { CreateAgentDialog } from './CreateAgentDialog';
+import { AgentTestingPanel } from './AgentTestingPanel';
+import { AgentMonitoringDashboard } from './AgentMonitoringDashboard';
 
 export const AIAgentOrchestrator = () => {
   const { 
@@ -21,6 +24,9 @@ export const AIAgentOrchestrator = () => {
     updateAgentStatus 
   } = useAIAgents();
   const { isAdmin } = useUsageTracking();
+  
+  // Enable automated task scheduling
+  useScheduledAgentTasks();
 
   const getAgentIcon = (type: string) => {
     switch (type) {
@@ -116,6 +122,12 @@ export const AIAgentOrchestrator = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Testing Panel */}
+      <AgentTestingPanel />
+
+      {/* Monitoring Dashboard */}
+      <AgentMonitoringDashboard />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Agents Management */}
