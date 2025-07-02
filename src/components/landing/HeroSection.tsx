@@ -14,8 +14,7 @@ export const HeroSection = ({ onWatchDemo }: HeroSectionProps) => {
     <section className="px-4 py-20 text-center">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-          Visualize Your Data
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Beautifully</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Transform Data into Decisions</span>
         </h1>
         
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
