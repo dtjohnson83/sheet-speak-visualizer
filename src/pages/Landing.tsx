@@ -27,7 +27,7 @@ const Landing = () => {
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
         videoUrl="https://vimeo.com/1097634521/90b5e70a7c?ts=0&share=copy"
-        title="Charta Demo"
+        title="Chartuvo Demo"
       />
     </div>
   );

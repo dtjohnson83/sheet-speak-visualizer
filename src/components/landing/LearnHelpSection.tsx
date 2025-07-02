@@ -15,7 +15,7 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
             Learn & Get Help
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Master Charta with comprehensive guides and tutorials
+            Master Chartuvo with comprehensive guides and tutorials
           </p>
         </div>
 

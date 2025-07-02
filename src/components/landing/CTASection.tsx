@@ -12,7 +12,7 @@ export const CTASection = () => {
           Ready to Transform Your Data?
         </h2>
         <p className="text-xl text-blue-100 mb-8">
-          Join thousands of users who trust Charta for their data visualization needs.
+          Join thousands of users who trust Chartuvo for their data visualization needs.
         </p>
         {user ? (
           <Link to="/app">

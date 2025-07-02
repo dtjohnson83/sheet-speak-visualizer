@@ -13,7 +13,7 @@ export const LandingFooter = () => {
           Making data visualization accessible to everyone.
         </p>
         <p className="text-gray-500 text-sm">
-          © 2024 Charta. Built with ❤️ for data enthusiasts.
+          © 2024 Chartuvo. Built with ❤️ for data enthusiasts.
         </p>
       </div>
     </footer>

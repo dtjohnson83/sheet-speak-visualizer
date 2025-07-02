@@ -31,7 +31,7 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="charta-ui-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="chartuvo-ui-theme">
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
