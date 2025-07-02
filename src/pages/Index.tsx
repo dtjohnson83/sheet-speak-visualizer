@@ -145,7 +145,7 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/b6f37075-7fc7-47ba-9704-f02449e75dfe.png" 
                 alt="Chartuvo Logo" 
-                className="h-24 w-auto md:h-32 hover:opacity-80 transition-opacity cursor-pointer"
+                className="h-16 w-auto md:h-20 lg:h-24 hover:opacity-80 transition-opacity cursor-pointer"
               />
             </Link>
           </div>

@@ -14,7 +14,7 @@ export const LandingHeader = () => {
           <img 
             src="/lovable-uploads/b6f37075-7fc7-47ba-9704-f02449e75dfe.png" 
             alt="Chartuvo Logo" 
-            className="h-20 w-auto md:h-24"
+            className="h-16 w-auto md:h-20 lg:h-24"
           />
         </div>
         <div className="flex items-center gap-4">
