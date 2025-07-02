@@ -9,6 +9,7 @@ import { useAIAgents } from '@/hooks/useAIAgents';
 import { useDatasets } from '@/hooks/useDatasets';
 import { AIAgent, TaskType } from '@/types/agents';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AgentTestingPanel = () => {
   const { agents, createTask, isCreatingTask } = useAIAgents();
@@ -56,28 +57,23 @@ export const AgentTestingPanel = () => {
   const handleTriggerProcessor = async () => {
     setIsProcessing(true);
     try {
-      const response = await fetch('https://b8123346-b6e7-46d2-b88e-d40ef36ae898.supabase.co/functions/v1/ai-agent-processor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({})
+      const { data, error } = await supabase.functions.invoke('ai-agent-processor', {
+        body: { manual_trigger: true }
       });
 
-      const result = await response.json();
-      
-      if (response.ok) {
-        toast({
-          title: "Processor triggered",
-          description: `Processed ${result.processed} tasks successfully`,
-        });
-      } else {
-        throw new Error(result.error || 'Failed to trigger processor');
+      if (error) {
+        throw new Error(error.message || 'Failed to trigger processor');
       }
+      
+      toast({
+        title: "Processor triggered",
+        description: `Processed ${data?.processed || 0} tasks successfully`,
+      });
     } catch (error) {
+      console.error('Processor trigger error:', error);
       toast({
         title: "Failed to trigger processor",
-        description: error.message,
+        description: error.message || 'Unknown error occurred',
         variant: "destructive"
       });
     } finally {
