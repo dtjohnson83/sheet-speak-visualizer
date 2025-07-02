@@ -61,7 +61,7 @@ const Auth = () => {
       }
     } else {
       setMessage('Check your email for the confirmation link!');
-      setActiveTab('signin');
+      // Don't switch tabs immediately - keep user on signup tab to see the message
     }
     
     setLoading(false);
@@ -136,6 +136,12 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {message && (
+              <Alert className="mb-4">
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
+            
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -226,19 +232,13 @@ const Auth = () => {
                     />
                   </div>
                   
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  {message && (
-                    <Alert>
-                      <AlertDescription>{message}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <Button type="submit" className="w-full" disabled={loading}>
+                   {error && (
+                     <Alert variant="destructive">
+                       <AlertDescription>{error}</AlertDescription>
+                     </Alert>
+                   )}
+                   
+                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Creating account...' : 'Create Account'}
                   </Button>
                 </form>
