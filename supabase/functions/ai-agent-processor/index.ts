@@ -85,6 +85,7 @@ serve(async (req) => {
         switch (task.task_type) {
           case 'analyze_data':
             result = await processDataAnalysis(task, supabase);
+            insights = await generateInsightsFromAnalysis(result, task, supabase);
             break;
           case 'generate_insights':
             insights = await generateInsights(task, supabase);
@@ -216,6 +217,87 @@ async function processDataAnalysis(task: AgentTask, supabase: any) {
   }
 
   return { analysis_type: 'statistical_summary', statistics: stats };
+}
+
+async function generateInsightsFromAnalysis(analysisResult: any, task: AgentTask, supabase: any) {
+  // Convert statistical analysis results into insights
+  if (!analysisResult || !analysisResult.statistics) return [];
+  
+  const insights = [];
+  const stats = analysisResult.statistics;
+  
+  // Generate insights from statistical analysis
+  for (const [columnName, columnStats] of Object.entries(stats)) {
+    const stat = columnStats as any;
+    
+    // Insight about data distribution
+    if (stat.std && stat.mean) {
+      const variabilityRatio = stat.std / stat.mean;
+      if (variabilityRatio > 0.5) {
+        insights.push({
+          insight_type: 'summary',
+          title: `High Variability in ${columnName}`,
+          description: `${columnName} shows high variability with a standard deviation of ${stat.std.toFixed(2)}, indicating diverse data points ranging from ${stat.min} to ${stat.max}.`,
+          confidence_score: 0.8,
+          priority: 6,
+          data: { 
+            column: columnName, 
+            variability_ratio: variabilityRatio,
+            statistics: stat
+          }
+        });
+      } else if (variabilityRatio < 0.1) {
+        insights.push({
+          insight_type: 'summary',
+          title: `Low Variability in ${columnName}`,
+          description: `${columnName} shows consistent values with low variability (std: ${stat.std.toFixed(2)}), indicating stable data around the mean of ${stat.mean.toFixed(2)}.`,
+          confidence_score: 0.8,
+          priority: 4,
+          data: { 
+            column: columnName, 
+            variability_ratio: variabilityRatio,
+            statistics: stat
+          }
+        });
+      }
+    }
+    
+    // Insight about data range
+    if (stat.max && stat.min) {
+      const range = stat.max - stat.min;
+      insights.push({
+        insight_type: 'summary',
+        title: `Data Range Analysis for ${columnName}`,
+        description: `${columnName} spans a range of ${range.toFixed(2)} units, from ${stat.min} to ${stat.max}, with an average of ${stat.mean.toFixed(2)}.`,
+        confidence_score: 0.9,
+        priority: 5,
+        data: {
+          column: columnName,
+          range: range,
+          statistics: stat
+        }
+      });
+    }
+  }
+  
+  // Overall dataset insight
+  const columnCount = Object.keys(stats).length;
+  if (columnCount > 0) {
+    insights.push({
+      insight_type: 'summary',
+      title: `Statistical Analysis Complete`,
+      description: `Analyzed ${columnCount} numeric columns in your dataset. The analysis reveals patterns in data distribution, variability, and ranges across all measured variables.`,
+      confidence_score: 1.0,
+      priority: 3,
+      data: {
+        analyzed_columns: columnCount,
+        analysis_type: 'statistical_summary',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+  
+  return insights;
 }
 
 async function generateInsights(task: AgentTask, supabase: any) {
