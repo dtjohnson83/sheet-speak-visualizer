@@ -5,12 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useUserRole } from '@/hooks/useUserRole';
 import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
 import { exportAIReportToPDF } from '@/utils/pdfExport';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
+import { DateRangeFilter } from '@/components/ui/date-range-filter';
 
 interface AISummaryReportProps {
   data: DataRow[];
@@ -43,8 +45,11 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState('general');
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [filteredData, setFilteredData] = useState<DataRow[]>(data);
+  const [filterSummary, setFilterSummary] = useState<string>(`All ${data.length.toLocaleString()} rows`);
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
+  const { isAdmin } = useUserRole();
   const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
 
   const generateReport = async () => {
@@ -64,8 +69,9 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     setIsGenerating(true);
 
     try {
-      // Prepare enhanced data context for AI
-      const dataContext = buildAIContext(data, columns, fileName, 20);
+      // Prepare enhanced data context for AI (use filtered data and admin status)
+      const sampleSize = isAdmin ? 200 : 20;
+      const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
 
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
         body: {
@@ -153,11 +159,26 @@ Report Metadata:
 
   return (
     <div className="space-y-6">
+      {/* Date Range Filter */}
+      <DateRangeFilter
+        data={data}
+        columns={columns}
+        onFilteredDataChange={(filtered, summary) => {
+          setFilteredData(filtered);
+          setFilterSummary(summary);
+        }}
+      />
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
             AI Summary Report
+            {isAdmin && (
+              <Badge variant="default" className="text-xs bg-purple-500">
+                Admin Mode - Unlimited
+              </Badge>
+            )}
           </h3>
           <div className="flex items-center gap-2">
             {hasEnhancedContext && (
@@ -166,12 +187,12 @@ Report Metadata:
               </Badge>
             )}
             <DataSamplingInfo 
-              totalRows={data.length} 
-              sampleSize={20} 
+              totalRows={filteredData.length} 
+              sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 20} 
               columns={columns}
               analysisType="report"
             />
-            {!usageLoading && (
+            {!usageLoading && !isAdmin && (
               <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
                 {usesRemaining} uses remaining
               </Badge>
@@ -181,10 +202,13 @@ Report Metadata:
         <div className="space-y-2">
           <p className="text-gray-600">
             Generate comprehensive insights and analysis of your data with AI-powered reporting.
+            {filteredData.length !== data.length && (
+              <span className="font-medium"> Currently analyzing: {filterSummary}</span>
+            )}
           </p>
           <DataSamplingInfo 
-            totalRows={data.length} 
-            sampleSize={20} 
+            totalRows={filteredData.length} 
+            sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 20} 
             columns={columns}
             analysisType="report"
             showDetailedView={true}
@@ -221,7 +245,7 @@ Report Metadata:
 
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Ready to analyze {data.length.toLocaleString()} rows and {columns.length} columns
+              Ready to analyze {filteredData.length.toLocaleString()} rows and {columns.length} columns
             </div>
             <Button 
               onClick={generateReport} 

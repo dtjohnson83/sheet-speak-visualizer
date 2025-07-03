@@ -16,11 +16,13 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
+import { useUserRole } from '@/hooks/useUserRole';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
 export const AgentMonitoringDashboard = () => {
   const { agents, tasks, insights, agentSummary } = useAIAgents();
+  const { isAdmin } = useUserRole();
   const [realtimeStatus, setRealtimeStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
@@ -86,8 +88,8 @@ export const AgentMonitoringDashboard = () => {
     }
   };
 
-  const recentTasks = tasks.slice(0, 5);
-  const recentInsights = insights.slice(0, 3);
+  const recentTasks = isAdmin ? tasks.slice(0, 20) : tasks.slice(0, 5);
+  const recentInsights = isAdmin ? insights.slice(0, 10) : insights.slice(0, 3);
 
   const tasksByStatus = {
     pending: tasks.filter(t => t.status === 'pending').length,

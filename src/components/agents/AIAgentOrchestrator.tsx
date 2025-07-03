@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Bot, Play, Pause, Settings, Activity, Brain, TrendingUp, Eye, AlertTriangle } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useScheduledAgentTasks } from '@/hooks/useScheduledAgentTasks';
 import { AIAgent, AgentSummary } from '@/types/agents';
 import { AgentInsightsList } from './AgentInsightsList';
@@ -23,7 +24,7 @@ export const AIAgentOrchestrator = () => {
     isLoading, 
     updateAgentStatus 
   } = useAIAgents();
-  const { isAdmin } = useUsageTracking();
+  const { isAdmin } = useUserRole();
   
   // Enable automated task scheduling
   useScheduledAgentTasks();
@@ -193,11 +194,11 @@ export const AIAgentOrchestrator = () => {
         </Card>
 
         {/* Agent Insights */}
-        <AgentInsightsList insights={insights.slice(0, 5)} />
+        <AgentInsightsList insights={isAdmin ? insights : insights.slice(0, 5)} />
       </div>
 
       {/* Task Queue */}
-      <AgentTaskQueue tasks={tasks.slice(0, 10)} />
+      <AgentTaskQueue tasks={isAdmin ? tasks : tasks.slice(0, 10)} />
     </div>
   );
 };

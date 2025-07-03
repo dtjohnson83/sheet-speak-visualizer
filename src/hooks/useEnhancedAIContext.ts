@@ -54,16 +54,21 @@ export const useEnhancedAIContext = () => {
     data: DataRow[], 
     columns: ColumnInfo[], 
     fileName?: string,
-    sampleSize: number = 10
+    sampleSize: number = 10,
+    isAdmin: boolean = false
   ): AIContextData => {
+    // For admins: use full dataset (up to reasonable limits), for regular users: use sample
+    const maxRows = isAdmin ? Math.min(data.length, 50000) : Math.min(sampleSize, data.length);
+    const maxColumnValues = isAdmin ? Math.min(columns[0]?.values.length || 0, 1000) : sampleSize;
+    
     // Build basic context
     const basicContext: AIContextData = {
       columns: columns.map(col => ({
         name: col.name,
         type: col.type,
-        values: col.values.slice(0, sampleSize)
+        values: col.values.slice(0, maxColumnValues)
       })),
-      sampleData: data.slice(0, Math.min(sampleSize, data.length)),
+      sampleData: data.slice(0, maxRows),
       totalRows: data.length,
       fileName
     };

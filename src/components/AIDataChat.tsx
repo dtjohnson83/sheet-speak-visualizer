@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Send, Bot, User, Sparkles, BarChart3, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -14,6 +15,7 @@ import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContex
 import { exportAIChatToPDF } from '@/utils/pdfExport';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { AIResponseDisclaimer } from '@/components/transparency/AIResponseDisclaimer';
+import { DateRangeFilter } from '@/components/ui/date-range-filter';
 
 interface Message {
   id: string;
@@ -39,8 +41,11 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [filteredData, setFilteredData] = useState<DataRow[]>(data);
+  const [filterSummary, setFilterSummary] = useState<string>(`All ${data.length.toLocaleString()} rows`);
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
+  const { isAdmin } = useUserRole();
   const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,11 +65,17 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
       setMessages([{
         id: 'welcome',
         role: 'assistant',
-        content: `Hi! I'm your AI data analyst. I can see you have ${data.length} rows of data with ${columns.length} columns. What would you like to explore or visualize?`,
+        content: `Hi! I'm your AI data analyst. I can see you have ${data.length} rows of data with ${columns.length} columns.${isAdmin ? ' As an admin, you have unlimited processing power for comprehensive analysis.' : ''} What would you like to explore or visualize?`,
         timestamp: new Date()
       }]);
     }
-  }, [data.length, columns.length, messages.length]);
+  }, [data.length, columns.length, messages.length, isAdmin]);
+
+  // Update filtered data when source data changes
+  useEffect(() => {
+    setFilteredData(data);
+    setFilterSummary(`All ${data.length.toLocaleString()} rows`);
+  }, [data]);
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages are added
@@ -95,8 +106,9 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
     setIsLoading(true);
 
     try {
-      // Prepare enhanced data context for AI
-      const dataContext = buildAIContext(data, columns, fileName, 10);
+      // Prepare enhanced data context for AI (use filtered data and admin status)
+      const sampleSize = isAdmin ? 100 : 10;
+      const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
 
       // Prepare messages for AI (exclude welcome message)
       const chatMessages = messages
@@ -192,11 +204,26 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
 
   return (
     <div className="space-y-4">
+      {/* Date Range Filter */}
+      <DateRangeFilter
+        data={data}
+        columns={columns}
+        onFilteredDataChange={(filtered, summary) => {
+          setFilteredData(filtered);
+          setFilterSummary(summary);
+        }}
+      />
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-500" />
             AI Data Chat
+            {isAdmin && (
+              <Badge variant="default" className="text-xs bg-purple-500">
+                Admin Mode - Unlimited
+              </Badge>
+            )}
           </h3>
           <div className="flex items-center gap-2">
             {messages.length > 1 && (
@@ -216,12 +243,12 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
               </Badge>
             )}
             <DataSamplingInfo 
-              totalRows={data.length} 
-              sampleSize={10} 
+              totalRows={filteredData.length} 
+              sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 10} 
               columns={columns}
               analysisType="chat"
             />
-            {!usageLoading && (
+            {!usageLoading && !isAdmin && (
               <Badge variant={usesRemaining > 0 ? "secondary" : "destructive"}>
                 {usesRemaining} uses remaining
               </Badge>
@@ -231,11 +258,14 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
         <div className="space-y-2">
           <p className="text-gray-600">
             Ask questions about your data and get intelligent insights and visualization suggestions.
+            {filteredData.length !== data.length && (
+              <span className="font-medium"> Currently analyzing: {filterSummary}</span>
+            )}
           </p>
           <AIResponseDisclaimer 
-            sampleSize={10} 
-            totalRows={data.length} 
-            confidenceLevel={data.length > 1000 ? 'low' : data.length > 100 ? 'medium' : 'high'}
+            sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 10} 
+            totalRows={filteredData.length} 
+            confidenceLevel={filteredData.length > 1000 ? 'low' : filteredData.length > 100 ? 'medium' : 'high'}
             analysisType="chat"
           />
         </div>
