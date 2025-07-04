@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { BookOpen, Brain, Users, ArrowLeft } from 'lucide-react';
+import { BookOpen, Brain, Users, ArrowLeft, GitBranch, Bot } from 'lucide-react';
 
 const GuidesHub = () => {
   return (
@@ -25,7 +25,7 @@ const GuidesHub = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           <Link to="/guides/quick-start">
             <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
               <CardHeader className="text-center">
@@ -53,6 +53,38 @@ const GuidesHub = () => {
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
                   Master AI chat, agents, and business context to get deeper insights from your data.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/guides/data-flow">
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <GitBranch className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <CardTitle className="text-lg">Data Flow Guide</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Understand how your data moves through Chartuvo from upload to AI insights.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/guides/agents-deep-dive">
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <CardTitle className="text-lg">Agents Deep Dive</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Master AI agents for automated monitoring, quality checks, and intelligent alerts.
                 </p>
               </CardContent>
             </Card>

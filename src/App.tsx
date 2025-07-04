@@ -16,6 +16,8 @@ import GuidesHub from "./pages/guides/GuidesHub";
 import QuickStartGuide from "./pages/guides/QuickStartGuide";
 import AIFeaturesGuide from "./pages/guides/AIFeaturesGuide";
 import BestPracticesGuide from "./pages/guides/BestPracticesGuide";
+import DataFlowGuide from "./pages/guides/DataFlowGuide";
+import AgentsDeepDiveGuide from "./pages/guides/AgentsDeepDiveGuide";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +49,8 @@ const App = () => (
                 <Route path="/guides" element={<GuidesHub />} />
                 <Route path="/guides/quick-start" element={<QuickStartGuide />} />
                 <Route path="/guides/ai-features" element={<AIFeaturesGuide />} />
+                <Route path="/guides/data-flow" element={<DataFlowGuide />} />
+                <Route path="/guides/agents-deep-dive" element={<AgentsDeepDiveGuide />} />
                 <Route path="/guides/best-practices" element={<BestPracticesGuide />} />
                 <Route 
                   path="/app" 

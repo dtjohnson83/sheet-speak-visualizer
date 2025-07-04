@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Brain, Play, Users } from 'lucide-react';
+import { BookOpen, Brain, Play, Users, GitBranch, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface LearnHelpSectionProps {
@@ -20,7 +20,7 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           <Link to="/guides/quick-start">
             <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
               <CardHeader className="text-center">
@@ -47,22 +47,54 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Master AI chat, agents, and business context to get deeper insights from your data.
+                  Master AI chat, intelligent agents, chatbot tones, and automated data quality monitoring.
                 </p>
               </CardContent>
             </Card>
           </Link>
 
-          <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+          <Link to="/guides/data-flow">
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <GitBranch className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <CardTitle className="text-lg">Data Flow Guide</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Understand how your data moves through Chartuvo from upload to AI insights.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/guides/agents-deep-dive">
+            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <CardTitle className="text-lg">Agents Deep Dive</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Master AI agents for automated monitoring, quality checks, and intelligent alerts.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={onWatchDemo}>
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Play className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
-              <CardTitle className="text-lg">Video Tutorials</CardTitle>
+              <CardTitle className="text-lg">Demo Video</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Watch step-by-step tutorials covering advanced features and best practices.
+                Watch a complete walkthrough of Chartuvo's features and capabilities.
               </p>
             </CardContent>
           </Card>
@@ -85,15 +117,23 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
         </div>
 
         <div className="text-center mt-12">
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="text-lg px-8 py-3"
-            onClick={onWatchDemo}
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Watch Demo Video
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
+            <Link to="/guides">
+              <Button variant="outline" size="lg" className="w-full">
+                <BookOpen className="w-5 h-5 mr-2" />
+                All Guides
+              </Button>
+            </Link>
+            <Button 
+              variant="default" 
+              size="lg" 
+              className="w-full"
+              onClick={onWatchDemo}
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Watch Demo
+            </Button>
+          </div>
         </div>
       </div>
     </section>
