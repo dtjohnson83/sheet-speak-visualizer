@@ -85,31 +85,43 @@ export const DataQualityAgentDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 bg-muted dark:bg-muted">
-          <TabsTrigger value="advanced" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
-            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Advanced Checks</span>
-            <span className="sm:hidden">Advanced</span>
+        <TabsList className={`w-full bg-muted/50 p-1 ${
+          'flex overflow-x-auto justify-start gap-1 sm:grid sm:grid-cols-5'
+        }`}>
+          <TabsTrigger 
+            value="advanced" 
+            className="flex-shrink-0 min-w-[90px] sm:min-w-0 flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Advanced</span>
           </TabsTrigger>
-          <TabsTrigger value="monitor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
-            <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Core Monitor</span>
-            <span className="sm:hidden">Monitor</span>
+          <TabsTrigger 
+            value="monitor" 
+            className="flex-shrink-0 min-w-[80px] sm:min-w-0 flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+          >
+            <Activity className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Monitor</span>
           </TabsTrigger>
-          <TabsTrigger value="report" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
-            <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Quality Report</span>
-            <span className="sm:hidden">Report</span>
+          <TabsTrigger 
+            value="report" 
+            className="flex-shrink-0 min-w-[70px] sm:min-w-0 flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+          >
+            <FileText className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Report</span>
           </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
-            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Trends</span>
-            <span className="sm:hidden">📊</span>
+          <TabsTrigger 
+            value="trends" 
+            className="flex-shrink-0 min-w-[70px] sm:min-w-0 flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+          >
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Trends</span>
           </TabsTrigger>
-          <TabsTrigger value="alerts" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
-            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Alerts</span>
-            <span className="sm:hidden">🔔</span>
+          <TabsTrigger 
+            value="alerts" 
+            className="flex-shrink-0 min-w-[70px] sm:min-w-0 flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+          >
+            <Bell className="h-4 w-4" />
+            <span className="text-xs sm:text-sm">Alerts</span>
           </TabsTrigger>
         </TabsList>
 
