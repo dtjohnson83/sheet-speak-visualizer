@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +15,18 @@ interface AdvancedChecksTabProps {
 }
 
 export const AdvancedChecksTab = ({ data, columns }: AdvancedChecksTabProps) => {
-  const refreshAllChecks = () => {
-    window.location.reload();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshAllChecks = async () => {
+    setIsRefreshing(true);
+    // Force re-render of all check components by changing the key
+    setRefreshKey(prev => prev + 1);
+    
+    // Add a small delay to show the refreshing state
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
   };
 
   return (
@@ -37,9 +48,10 @@ export const AdvancedChecksTab = ({ data, columns }: AdvancedChecksTabProps) => 
               variant="outline" 
               size="sm"
               onClick={refreshAllChecks}
+              disabled={isRefreshing}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh All
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh All'}
             </Button>
           </div>
         </CardHeader>
@@ -47,10 +59,10 @@ export const AdvancedChecksTab = ({ data, columns }: AdvancedChecksTabProps) => 
 
       {/* Advanced Quality Checks Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ValidityCheck data={data} columns={columns} />
-        <ConformityCheck data={data} columns={columns} />
-        <AnomalyDetectionCheck data={data} columns={columns} />
-        <FreshnessCheck data={data} columns={columns} />
+        <ValidityCheck key={`validity-${refreshKey}`} data={data} columns={columns} />
+        <ConformityCheck key={`conformity-${refreshKey}`} data={data} columns={columns} />
+        <AnomalyDetectionCheck key={`anomaly-${refreshKey}`} data={data} columns={columns} />
+        <FreshnessCheck key={`freshness-${refreshKey}`} data={data} columns={columns} />
       </div>
     </div>
   );
