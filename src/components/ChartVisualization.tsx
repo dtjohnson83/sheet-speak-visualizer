@@ -5,9 +5,12 @@ import { SeriesManager } from './chart/SeriesManager';
 import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
+import { AIChartGenerator } from './chart/AIChartGenerator';
+import { SmartChartDefaults } from './chart/SmartChartDefaults';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
 import { useState, useEffect } from 'react';
+import { useAIChartGeneration, AIChartSuggestion } from '@/hooks/useAIChartGeneration';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -100,10 +103,55 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
     onSaveTile(tileData);
   };
 
+  // Handle smart defaults application
+  const handleApplySmartDefaults = (config: {
+    chartType: string;
+    xColumn: string;
+    yColumn: string;
+    aggregationMethod: string;
+    reasoning: string;
+  }) => {
+    setChartType(config.chartType as any);
+    setXColumn(config.xColumn);
+    setYColumn(config.yColumn);
+    setAggregationMethod(config.aggregationMethod as any);
+    
+    console.log('Applied smart defaults:', config);
+  };
+
+  // Handle AI suggestion application
+  const handleApplyAISuggestion = (suggestion: AIChartSuggestion) => {
+    setChartType(suggestion.chartType as any);
+    setXColumn(suggestion.xColumn);
+    setYColumn(suggestion.yColumn);
+    setValueColumn(suggestion.valueColumn || '');
+    setStackColumn(suggestion.stackColumn || '');
+    setAggregationMethod(suggestion.aggregationMethod);
+    setSeries(suggestion.series);
+    setCustomTitle(suggestion.title);
+    
+    console.log('Applied AI suggestion:', suggestion);
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-4">Data Visualization</h3>
+        
+        {/* Smart Chart Defaults */}
+        <SmartChartDefaults
+          data={data}
+          columns={columns}
+          currentChartType={chartType}
+          onApplyDefaults={handleApplySmartDefaults}
+        />
+
+        {/* AI Chart Generator */}
+        <AIChartGenerator 
+          data={data}
+          columns={columns}
+          onApplySuggestion={handleApplyAISuggestion}
+        />
         
         <ChartConfiguration
           chartType={chartType}
