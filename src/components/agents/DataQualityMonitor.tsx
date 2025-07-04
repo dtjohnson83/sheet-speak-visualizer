@@ -9,6 +9,7 @@ import { QualityHeatmap } from './data-quality/QualityHeatmap';
 import { DataQualityReport, DataQualityScore } from './data-quality/types';
 import { QualityReportExporter } from './data-quality/QualityReportExporter';
 import { QualityReportScheduler } from './data-quality/QualityReportScheduler';
+import { RealTimeMonitor } from './data-quality/RealTimeMonitor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DataQualityMonitorProps {
@@ -54,8 +55,9 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
       
       {data.length > 0 && (
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="realtime">Real-time</TabsTrigger>
             <TabsTrigger value="heatmap">Issues Heatmap</TabsTrigger>
             <TabsTrigger value="trends">Quality Trends</TabsTrigger>
             <TabsTrigger value="details">Issue Details</TabsTrigger>
@@ -75,6 +77,16 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
             {qualityScore && issues.length === 0 && (
               <QualityEmptyState hasData={true} hasIssues={false} />
             )}
+          </TabsContent>
+          
+          <TabsContent value="realtime" className="space-y-6">
+            <RealTimeMonitor 
+              onQualityUpdate={(score, issues) => {
+                // Update the main quality score when real-time data comes in
+                // This allows the real-time monitor to feed back to the main system
+              }}
+              isAnalyzing={isAnalyzing}
+            />
           </TabsContent>
           
           <TabsContent value="heatmap" className="space-y-6">
