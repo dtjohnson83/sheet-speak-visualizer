@@ -61,7 +61,8 @@ export type AgentType =
   | 'visualization'
   | 'anomaly_detection'
   | 'trend_analysis'
-  | 'correlation_discovery';
+  | 'correlation_discovery'
+  | 'data_quality';
 
 export type AgentCapability = 
   | 'data_analysis'
@@ -71,7 +72,13 @@ export type AgentCapability =
   | 'anomaly_detection'
   | 'trend_forecasting'
   | 'correlation_analysis'
-  | 'automated_insights';
+  | 'automated_insights'
+  | 'data_quality_assessment'
+  | 'completeness_validation'
+  | 'consistency_checks'
+  | 'accuracy_validation'
+  | 'uniqueness_validation'
+  | 'timeliness_checks';
 
 export type AgentStatus = 'active' | 'paused' | 'error' | 'disabled';
 
@@ -81,7 +88,9 @@ export type TaskType =
   | 'create_visualization'
   | 'detect_anomalies'
   | 'analyze_trends'
-  | 'find_correlations';
+  | 'find_correlations'
+  | 'assess_data_quality'
+  | 'generate_quality_report';
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -91,7 +100,9 @@ export type InsightType =
   | 'correlation'
   | 'recommendation'
   | 'summary'
-  | 'alert';
+  | 'alert'
+  | 'data_quality_issue'
+  | 'data_quality_summary';
 
 export type ActivityType = 
   | 'started'

@@ -7,8 +7,9 @@ import { DashboardManager } from '@/components/dashboard/DashboardManager';
 import { AIDataChat } from '@/components/AIDataChat';
 import { AISummaryReport } from '@/components/AISummaryReport';
 import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
+import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentDashboard';
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
-import { Bot, Database, BarChart3, Layout, Settings, FileText } from 'lucide-react';
+import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -52,7 +53,7 @@ export const DataTabsSection = ({
       <TabsList className={`w-full ${
         isMobile 
           ? 'flex overflow-x-auto justify-start gap-1 p-1' 
-          : 'grid grid-cols-6'
+          : 'grid grid-cols-7'
       }`}>
         <TabsTrigger 
           value="preview" 
@@ -74,6 +75,13 @@ export const DataTabsSection = ({
         >
           <FileText className="h-4 w-4" />
           <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
+        </TabsTrigger>
+        <TabsTrigger 
+          value="data-quality" 
+          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+        >
+          <Shield className="h-4 w-4" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Quality' : 'Data Quality'}</span>
         </TabsTrigger>
         <TabsTrigger 
           value="agents" 
@@ -132,6 +140,14 @@ export const DataTabsSection = ({
         <AISummaryReport 
           data={data} 
           columns={columns}
+          fileName={fileName}
+        />
+      </TabsContent>
+      
+      <TabsContent value="data-quality" className="space-y-4">
+        <DataQualityAgentDashboard 
+          data={data} 
+          columns={columns} 
           fileName={fileName}
         />
       </TabsContent>

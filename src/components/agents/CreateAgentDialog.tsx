@@ -53,6 +53,11 @@ const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = 
     value: 'correlation_discovery',
     label: 'Correlation Discovery',
     description: 'Finds relationships and correlations between variables'
+  },
+  {
+    value: 'data_quality',
+    label: 'Data Quality Monitor',
+    description: 'Monitors data quality issues and generates quality reports'
   }
 ];
 
@@ -64,7 +69,13 @@ const CAPABILITIES: { value: AgentCapability; label: string }[] = [
   { value: 'anomaly_detection', label: 'Anomaly Detection' },
   { value: 'trend_forecasting', label: 'Trend Forecasting' },
   { value: 'correlation_analysis', label: 'Correlation Analysis' },
-  { value: 'automated_insights', label: 'Automated Insights' }
+  { value: 'automated_insights', label: 'Automated Insights' },
+  { value: 'data_quality_assessment', label: 'Data Quality Assessment' },
+  { value: 'completeness_validation', label: 'Completeness Validation' },
+  { value: 'consistency_checks', label: 'Consistency Checks' },
+  { value: 'accuracy_validation', label: 'Accuracy Validation' },
+  { value: 'uniqueness_validation', label: 'Uniqueness Validation' },
+  { value: 'timeliness_checks', label: 'Timeliness Checks' }
 ];
 
 export const CreateAgentDialog = () => {
