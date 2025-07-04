@@ -6,7 +6,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Shield, 
   Activity, 
-  FileText, 
   TrendingUp,
   AlertTriangle,
   Database,
@@ -17,7 +16,6 @@ import { useDataQualityAgent } from '@/hooks/useDataQualityAgent';
 import { AgentStatusHeader } from './dashboard/AgentStatusHeader';
 import { AdvancedChecksTab } from './dashboard/AdvancedChecksTab';
 import { CoreMonitorTab } from './dashboard/CoreMonitorTab';
-import { ReportTab } from './dashboard/ReportTab';
 import { QualityTrendsTab } from './dashboard/QualityTrendsTab';
 
 interface DataQualityAgentDashboardProps {
@@ -32,7 +30,6 @@ export const DataQualityAgentDashboard = ({
   fileName = "dataset" 
 }: DataQualityAgentDashboardProps) => {
   const [activeTab, setActiveTab] = useState('advanced');
-  const [reportData, setReportData] = useState<any>(null);
   
   const {
     agent,
@@ -44,8 +41,7 @@ export const DataQualityAgentDashboard = ({
   } = useDataQualityAgent(fileName);
 
   const onReportGenerated = async (report: any) => {
-    const processedReport = await handleReportGenerated(report);
-    setReportData(processedReport);
+    await handleReportGenerated(report);
   };
 
   if (data.length === 0) {
@@ -85,7 +81,7 @@ export const DataQualityAgentDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="advanced" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Advanced Checks
@@ -93,10 +89,6 @@ export const DataQualityAgentDashboard = ({
           <TabsTrigger value="monitor" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Core Monitor
-          </TabsTrigger>
-          <TabsTrigger value="report" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Report
           </TabsTrigger>
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -116,39 +108,19 @@ export const DataQualityAgentDashboard = ({
           />
         </TabsContent>
 
-        <TabsContent value="report" className="space-y-6">
-          <ReportTab 
-            reportData={reportData}
-            fileName={fileName}
-            onGoToMonitor={() => setActiveTab('monitor')}
-          />
-        </TabsContent>
-
         <TabsContent value="trends" className="space-y-6">
           <QualityTrendsTab qualityTrends={qualityTrends} />
         </TabsContent>
       </Tabs>
 
-      {/* Quick Actions */}
-      {agent && reportData && (
+      {/* Quick Actions Alert - simplified without report reference */}
+      {agent && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="flex justify-between items-center">
+          <AlertDescription>
             <span>
-              Latest analysis found {reportData.summary.totalIssues} issues. 
-              {reportData.summary.highSeverityIssues > 0 && (
-                <span className="text-red-600 font-medium">
-                  {' '}{reportData.summary.highSeverityIssues} require immediate attention.
-                </span>
-              )}
+              Data quality monitoring is active. Use the tabs above to view advanced checks, core metrics, and quality trends.
             </span>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setActiveTab('report')}
-            >
-              View Details
-            </Button>
           </AlertDescription>
         </Alert>
       )}
