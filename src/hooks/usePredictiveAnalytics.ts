@@ -218,6 +218,7 @@ export const usePredictiveAnalytics = () => {
     data: DataRow[],
     columns: ColumnInfo[]
   ): Promise<PredictiveAnalyticsResult> => {
+    console.log('Starting predictive analysis with:', { dataRows: data.length, columns: columns.length });
     setIsAnalyzing(true);
     setAnalysisProgress(0);
     setError(null);
@@ -225,21 +226,28 @@ export const usePredictiveAnalytics = () => {
     try {
       // Step 1: Generate business predictions (40%)
       setAnalysisProgress(20);
+      console.log('Generating business predictions...');
       const predictions = await generateBusinessPredictions(data, columns);
+      console.log('Generated predictions:', predictions.length);
       
       setAnalysisProgress(40);
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Step 2: Create business scenarios (70%)
+      console.log('Creating business scenarios...');
       const scenarios = generateBusinessScenarios(predictions);
+      console.log('Generated scenarios:', scenarios.length);
       setAnalysisProgress(70);
 
       // Step 3: Generate actionable insights (100%)
+      console.log('Generating actionable insights...');
       const insights = generateActionableInsights(predictions, scenarios);
+      console.log('Generated insights:', insights.length);
       setAnalysisProgress(100);
 
       setLastAnalysis(new Date());
 
+      console.log('Predictive analysis completed successfully');
       return {
         predictions,
         scenarios,
@@ -247,6 +255,7 @@ export const usePredictiveAnalytics = () => {
       };
 
     } catch (err) {
+      console.error('Predictive analysis error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Predictive analysis failed';
       setError(errorMessage);
       throw new Error(errorMessage);

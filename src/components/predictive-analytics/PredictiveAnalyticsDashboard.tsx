@@ -36,8 +36,13 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
   const { toast } = useToast();
 
   const handleRunAnalysis = async () => {
+    console.log('Generate predictions button clicked!');
+    console.log('Data available:', { dataRows: data.length, columns: columns.length });
+    
     try {
       const result = await runPredictiveAnalysis(data, columns);
+      console.log('Analysis result:', result);
+      
       setPredictions(result.predictions);
       setScenarios(result.scenarios);
       setInsights(result.insights);
@@ -47,6 +52,7 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
         description: `Generated ${result.predictions.length} predictions and ${result.scenarios.length} scenarios.`,
       });
     } catch (error) {
+      console.error('Analysis failed:', error);
       toast({
         title: "Analysis Failed",
         description: "Unable to complete predictive analysis. Please try again.",
