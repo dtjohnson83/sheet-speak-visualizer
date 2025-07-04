@@ -16,15 +16,9 @@ const features = [
     color: "text-indigo-500"
   },
   {
-    icon: Zap,
-    title: "AI-Powered Agents",
-    description: "Deploy autonomous AI agents for continuous data monitoring, anomaly detection, trend analysis, and automated insight generation.",
-    color: "text-purple-600"
-  },
-  {
     icon: BarChart3,
     title: "Rich Visualizations",
-    description: "Create stunning charts with multiple types: bar, line, pie, scatter, heatmaps, and more. Customize colors and styles effortlessly.",
+    description: "Create stunning charts with multiple types: bar, line, pie, scatter, heatmaps, treemaps, and histograms. Customize colors and styles effortlessly.",
     color: "text-green-500"
   },
   {
@@ -34,10 +28,16 @@ const features = [
     color: "text-cyan-500"
   },
   {
+    icon: Zap,
+    title: "Predictive Analytics",
+    description: "Leverage machine learning for forecasting, trend prediction, and scenario modeling. Generate business insights with confidence intervals.",
+    color: "text-purple-600"
+  },
+  {
     icon: Shield,
-    title: "Business Context Integration",
-    description: "Enhance AI accuracy with domain-specific understanding. Input business rules, industry context, and organizational knowledge.",
-    color: "text-amber-600"
+    title: "Data Quality Monitoring",
+    description: "Automated data quality checks with anomaly detection, completeness validation, and real-time monitoring with intelligent alerts.",
+    color: "text-red-500"
   }
 ];
 
