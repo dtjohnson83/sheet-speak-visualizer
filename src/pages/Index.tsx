@@ -6,6 +6,8 @@ import { useDataManagement } from '@/hooks/useDataManagement';
 import { DataManagementSection } from '@/components/data-management/DataManagementSection';
 import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
+import { RealtimeDashboardControls } from '@/components/realtime/RealtimeDashboardControls';
 
 export interface DataRow {
   [key: string]: any;
@@ -38,7 +40,7 @@ const Index = () => {
     setShowDataSourceDialog,
   } = useDataManagement();
 
-  const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
+  const { tiles, addTile, removeTile, updateTile, filters, setFilters, enableRealtime, disableRealtime, realtimeEnabled } = useDashboard();
   const { isAdmin, usesRemaining } = useUsageTracking();
   
   // Initialize session monitoring
@@ -103,6 +105,9 @@ const Index = () => {
 
           {data.length > 0 && (
             <>
+              {/* Real-time Dashboard Controls */}
+              <RealtimeDashboardControls />
+
               {/* Data Context Status Bar */}
               <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between">
@@ -110,6 +115,12 @@ const Index = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium">Dataset Active</span>
+                      {realtimeEnabled && (
+                        <div className="flex items-center gap-1 ml-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-blue-600">Real-time</span>
+                        </div>
+                      )}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {displayFileName} • {data.length.toLocaleString()} rows • {columns.length} columns

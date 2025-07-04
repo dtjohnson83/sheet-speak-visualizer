@@ -1,11 +1,34 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 import { FilterCondition } from '@/components/dashboard/DashboardFilters';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useDashboard = () => {
   const [tiles, setTiles] = useState<DashboardTileData[]>([]);
   const [filters, setFilters] = useState<FilterCondition[]>([]);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
+
+  // Enable real-time updates for dashboard tiles
+  useEffect(() => {
+    if (!realtimeEnabled) return;
+
+    const channel = supabase
+      .channel('dashboard-updates')
+      .on('broadcast', { event: 'tile-update' }, (payload: any) => {
+        console.log('Received tile update:', payload);
+        // Handle real-time tile updates
+        if (payload.type === 'refresh') {
+          // Trigger tile refresh
+          setTiles(prev => prev.map(tile => ({ ...tile, lastUpdated: new Date() })));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [realtimeEnabled]);
 
   const addTile = (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => {
     console.log('useDashboard - addTile - Received tile data:', {
@@ -61,12 +84,30 @@ export const useDashboard = () => {
     ));
   };
 
+  const enableRealtime = () => setRealtimeEnabled(true);
+  const disableRealtime = () => setRealtimeEnabled(false);
+
+  const broadcastUpdate = (event: string, data: any) => {
+    if (realtimeEnabled) {
+      const channel = supabase.channel('dashboard-updates');
+      channel.send({
+        type: 'broadcast',
+        event: 'tile-update',
+        payload: { type: event, data }
+      });
+    }
+  };
+
   return {
     tiles,
     addTile,
     removeTile,
     updateTile,
     filters,
-    setFilters
+    setFilters,
+    realtimeEnabled,
+    enableRealtime,
+    disableRealtime,
+    broadcastUpdate
   };
 };

@@ -12,7 +12,8 @@ import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentD
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
 import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
 import { TabNavigationEnhancer } from './TabNavigationEnhancer';
-import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target } from 'lucide-react';
+import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
+import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Wifi } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -52,7 +53,7 @@ export const DataTabsSection = ({
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("preview");
 
-  const tabOrder = ["preview", "charts", "dashboard", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
+  const tabOrder = ["preview", "charts", "dashboard", "realtime", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -64,7 +65,7 @@ export const DataTabsSection = ({
       <TabsList className={`w-full bg-muted/50 p-1 ${
         isMobile 
           ? 'flex overflow-x-auto justify-start gap-1' 
-          : 'grid grid-cols-8 gap-1'
+          : 'grid grid-cols-9 gap-1'
       }`}>
         {/* Core Data Tools */}
         <TabsTrigger 
@@ -99,6 +100,14 @@ export const DataTabsSection = ({
               {tiles.length}
             </span>
           )}
+        </TabsTrigger>
+
+        <TabsTrigger 
+          value="realtime" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Wifi className="h-4 w-4" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Live' : 'Real-time'}</span>
         </TabsTrigger>
 
         {/* Separator */}
@@ -216,6 +225,12 @@ export const DataTabsSection = ({
           data={data} 
           columns={columns}
         />
+      </TabsContent>
+      
+      <TabsContent value="realtime" className="space-y-4">
+        <Card className="p-6">
+          <RealtimeDataConfig />
+        </Card>
       </TabsContent>
       
       <TabsContent value="dashboard" className="space-y-4">
