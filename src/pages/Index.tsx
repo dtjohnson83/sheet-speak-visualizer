@@ -5,6 +5,8 @@ import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
+import { DataSourceSelector } from '@/components/data-sources/DataSourceSelector';
+import { DataSourceConnectionDialog } from '@/components/data-sources/DataSourceConnectionDialog';
 
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,6 +46,8 @@ const Index = () => {
   const [worksheetName, setWorksheetName] = useState<string>('');
   const [currentDatasetId, setCurrentDatasetId] = useState<string>('');
   const [showContextSetup, setShowContextSetup] = useState(false);
+  const [selectedDataSource, setSelectedDataSource] = useState<string>('');
+  const [showDataSourceDialog, setShowDataSourceDialog] = useState(false);
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
   const { isAdmin, usesRemaining } = useUsageTracking();
   const { setContext, clearContext } = useEnhancedAIContext();
@@ -166,7 +170,27 @@ const Index = () => {
                 onLoadDataset={handleLoadDataset}
               />
             </div>
-            <FileUpload onDataLoaded={handleDataLoaded} />
+            <div className="space-y-4">
+              <FileUpload onDataLoaded={handleDataLoaded} />
+              
+              <div className="border-t pt-4">
+                <h4 className="text-md font-medium mb-3">Connect to Data Sources</h4>
+                <DataSourceSelector 
+                  onSelect={(type) => {
+                    setSelectedDataSource(type);
+                    setShowDataSourceDialog(true);
+                  }}
+                  selectedType={selectedDataSource}
+                />
+              </div>
+            </div>
+            
+            <DataSourceConnectionDialog
+              open={showDataSourceDialog}
+              onOpenChange={setShowDataSourceDialog}
+              sourceType={selectedDataSource}
+              onSuccess={handleDataLoaded}
+            />
           </Card>
 
           {data.length > 0 && (
