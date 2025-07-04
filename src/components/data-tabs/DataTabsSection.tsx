@@ -63,6 +63,13 @@ export const DataTabsSection = ({
           <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Data' : 'Data Preview'}</span>
         </TabsTrigger>
         <TabsTrigger 
+          value="data-quality" 
+          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+        >
+          <Shield className="h-4 w-4" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Quality' : 'Data Quality'}</span>
+        </TabsTrigger>
+        <TabsTrigger 
           value="ai-chat" 
           className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
         >
@@ -75,13 +82,6 @@ export const DataTabsSection = ({
         >
           <FileText className="h-4 w-4" />
           <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="data-quality" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-        >
-          <Shield className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Quality' : 'Data Quality'}</span>
         </TabsTrigger>
         <TabsTrigger 
           value="agents" 
