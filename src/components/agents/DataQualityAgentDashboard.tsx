@@ -62,8 +62,8 @@ export const DataQualityAgentDashboard = ({
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">
+            <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
               No data available for quality analysis
             </p>
           </div>
@@ -85,26 +85,31 @@ export const DataQualityAgentDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="advanced" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Advanced Checks
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 gap-1 bg-muted dark:bg-muted">
+          <TabsTrigger value="advanced" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Advanced Checks</span>
+            <span className="sm:hidden">Advanced</span>
           </TabsTrigger>
-          <TabsTrigger value="monitor" className="flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Core Monitor
+          <TabsTrigger value="monitor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Core Monitor</span>
+            <span className="sm:hidden">Monitor</span>
           </TabsTrigger>
-          <TabsTrigger value="report" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Quality Report
+          <TabsTrigger value="report" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Quality Report</span>
+            <span className="sm:hidden">Report</span>
           </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Trends
+          <TabsTrigger value="trends" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden lg:inline">Trends</span>
+            <span className="lg:hidden">📈</span>
           </TabsTrigger>
-          <TabsTrigger value="alerts" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            Alerts
+          <TabsTrigger value="alerts" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden lg:inline">Alerts</span>
+            <span className="lg:hidden">🔔</span>
           </TabsTrigger>
         </TabsList>
 

@@ -128,22 +128,26 @@ NEXT STEPS
 
       {/* Report Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="summary" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Summary
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 bg-muted dark:bg-muted">
+          <TabsTrigger value="summary" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Summary</span>
+            <span className="sm:hidden">📊</span>
           </TabsTrigger>
-          <TabsTrigger value="priority" className="flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Priority Actions
+          <TabsTrigger value="priority" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Priority Actions</span>
+            <span className="sm:hidden">Priority</span>
           </TabsTrigger>
-          <TabsTrigger value="detailed" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            All Issues
+          <TabsTrigger value="detailed" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <List className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">All Issues</span>
+            <span className="sm:hidden">Issues</span>
           </TabsTrigger>
-          <TabsTrigger value="recommendations" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Recommendations
+          <TabsTrigger value="recommendations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Recommendations</span>
+            <span className="sm:hidden">Tips</span>
           </TabsTrigger>
         </TabsList>
 
