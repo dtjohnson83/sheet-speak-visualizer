@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Shield, 
   Activity, 
+  FileText,
   TrendingUp,
   AlertTriangle,
   Database,
@@ -17,6 +18,7 @@ import { AgentStatusHeader } from './dashboard/AgentStatusHeader';
 import { AdvancedChecksTab } from './dashboard/AdvancedChecksTab';
 import { CoreMonitorTab } from './dashboard/CoreMonitorTab';
 import { QualityTrendsTab } from './dashboard/QualityTrendsTab';
+import { QualityReport } from './quality-report/QualityReport';
 
 interface DataQualityAgentDashboardProps {
   data: DataRow[];
@@ -81,7 +83,7 @@ export const DataQualityAgentDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="advanced" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Advanced Checks
@@ -89,6 +91,10 @@ export const DataQualityAgentDashboard = ({
           <TabsTrigger value="monitor" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Core Monitor
+          </TabsTrigger>
+          <TabsTrigger value="report" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Quality Report
           </TabsTrigger>
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -108,18 +114,26 @@ export const DataQualityAgentDashboard = ({
           />
         </TabsContent>
 
+        <TabsContent value="report" className="space-y-6">
+          <QualityReport 
+            data={data} 
+            columns={columns} 
+            fileName={fileName}
+          />
+        </TabsContent>
+
         <TabsContent value="trends" className="space-y-6">
           <QualityTrendsTab qualityTrends={qualityTrends} />
         </TabsContent>
       </Tabs>
 
-      {/* Quick Actions Alert - simplified without report reference */}
+      {/* Quick Actions Alert */}
       {agent && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             <span>
-              Data quality monitoring is active. Use the tabs above to view advanced checks, core metrics, and quality trends.
+              Data quality monitoring is active. Check the Quality Report tab for detailed analysis and actionable recommendations.
             </span>
           </AlertDescription>
         </Alert>
