@@ -50,16 +50,28 @@ export const usePredictiveAnalytics = () => {
   ): Promise<BusinessPrediction[]> => {
     const predictions: BusinessPrediction[] = [];
     
+    console.log('=== Predictive Analysis Debug ===');
+    console.log('Available columns:', columns.map(c => ({ name: c.name, type: c.type })));
+    console.log('Data sample:', data.slice(0, 3));
+    
     // Revenue forecasting
     const revenueColumns = columns.filter(col => 
       col.name.toLowerCase().includes('revenue') ||
       col.name.toLowerCase().includes('sales') ||
-      col.name.toLowerCase().includes('income')
+      col.name.toLowerCase().includes('income') ||
+      col.name.toLowerCase().includes('price') ||
+      col.name.toLowerCase().includes('amount') ||
+      col.name.toLowerCase().includes('cost') ||
+      col.name.toLowerCase().includes('total')
     );
+    
+    console.log('Revenue columns found:', revenueColumns.map(c => c.name));
 
     for (const column of revenueColumns) {
+      console.log(`Checking revenue column: ${column.name} (type: ${column.type})`);
       if (column.type === 'numeric') {
         const values = data.map(row => Number(row[column.name])).filter(val => !isNaN(val));
+        console.log(`  - Valid numeric values: ${values.length} out of ${data.length} rows`);
         if (values.length > 5) {
           const trend = calculateTrend(values);
           const forecast = forecastValue(values, 30); // 30-day forecast

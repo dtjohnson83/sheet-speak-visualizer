@@ -20,6 +20,7 @@ import { usePredictiveAnalytics, BusinessPrediction, BusinessScenario } from '@/
 import { BusinessForecastChart } from './BusinessForecastChart';
 import { ScenarioComparison } from './ScenarioComparison';
 import { PredictiveInsights } from './PredictiveInsights';
+import { DataSuitabilityGuide } from './DataSuitabilityGuide';
 import { useToast } from '@/hooks/use-toast';
 
 interface PredictiveAnalyticsDashboardProps {
@@ -234,19 +235,7 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
       )}
 
       {predictions.length === 0 && !isAnalyzing && data.length > 0 && (
-        <Card>
-          <CardContent className="py-8">
-            <div className="text-center space-y-4">
-              <Target className="h-12 w-12 mx-auto text-muted-foreground" />
-              <div>
-                <h3 className="text-lg font-medium">Ready for Predictive Analysis</h3>
-                <p className="text-muted-foreground">
-                  Click "Generate Predictions" to start AI-powered business intelligence analysis
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DataSuitabilityGuide data={data} columns={columns} />
       )}
     </div>
   );
