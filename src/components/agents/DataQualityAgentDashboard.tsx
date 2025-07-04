@@ -85,7 +85,7 @@ export const DataQualityAgentDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 gap-1 bg-muted dark:bg-muted">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 bg-muted dark:bg-muted">
           <TabsTrigger value="advanced" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
             <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Advanced Checks</span>
@@ -103,13 +103,13 @@ export const DataQualityAgentDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="trends" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
             <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden lg:inline">Trends</span>
-            <span className="lg:hidden">📈</span>
+            <span className="hidden sm:inline">Trends</span>
+            <span className="sm:hidden">📊</span>
           </TabsTrigger>
           <TabsTrigger value="alerts" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground">
             <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden lg:inline">Alerts</span>
-            <span className="lg:hidden">🔔</span>
+            <span className="hidden sm:inline">Alerts</span>
+            <span className="sm:hidden">🔔</span>
           </TabsTrigger>
         </TabsList>
 
