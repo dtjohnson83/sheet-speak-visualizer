@@ -7,6 +7,8 @@ import { QualityEmptyState } from './data-quality/QualityEmptyState';
 import { QualityTrendsChart } from './data-quality/QualityTrendsChart';
 import { QualityHeatmap } from './data-quality/QualityHeatmap';
 import { DataQualityReport, DataQualityScore } from './data-quality/types';
+import { QualityReportExporter } from './data-quality/QualityReportExporter';
+import { QualityReportScheduler } from './data-quality/QualityReportScheduler';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DataQualityMonitorProps {
@@ -17,6 +19,7 @@ interface DataQualityMonitorProps {
 
 export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQualityMonitorProps) => {
   const [selectedTrendMetric, setSelectedTrendMetric] = useState<keyof DataQualityScore>('overall');
+  const [currentReport, setCurrentReport] = useState<DataQualityReport | null>(null);
   
   const {
     isAnalyzing,
@@ -31,12 +34,18 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
 
   useEffect(() => {
     if (data.length > 0 && columns.length > 0) {
-      analyzeDataQuality(onReportGenerated);
+      analyzeDataQuality((report) => {
+        setCurrentReport(report);
+        onReportGenerated?.(report);
+      });
     }
   }, [data, columns, analyzeDataQuality, onReportGenerated]);
 
   const handleRefresh = () => {
-    analyzeDataQuality(onReportGenerated);
+    analyzeDataQuality((report) => {
+      setCurrentReport(report);
+      onReportGenerated?.(report);
+    });
   };
 
   return (
@@ -45,11 +54,12 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
       
       {data.length > 0 && (
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="heatmap">Issues Heatmap</TabsTrigger>
             <TabsTrigger value="trends">Quality Trends</TabsTrigger>
             <TabsTrigger value="details">Issue Details</TabsTrigger>
+            <TabsTrigger value="reports">Reports & Export</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview" className="space-y-6">
@@ -85,6 +95,16 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
             {qualityScore && issues.length === 0 && (
               <QualityEmptyState hasData={true} hasIssues={false} />
             )}
+          </TabsContent>
+          
+          <TabsContent value="reports" className="space-y-6">
+            <div className="grid gap-6">
+              <QualityReportExporter 
+                report={currentReport}
+                isAnalyzing={isAnalyzing}
+              />
+              <QualityReportScheduler />
+            </div>
           </TabsContent>
         </Tabs>
       )}
