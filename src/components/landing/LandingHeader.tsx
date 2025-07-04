@@ -17,22 +17,26 @@ export const LandingHeader = () => {
             className="h-12 w-auto min-w-0 sm:h-16 md:h-20 lg:h-24"
           />
         </div>
-        <div className="flex items-center gap-4">
-          <FeedbackButton />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:block">
+            <FeedbackButton />
+          </div>
           {user ? (
             <Link to="/app">
-              <Button variant="outline">
-                Go to Dashboard
+              <Button variant="outline" size="sm" className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base">
+                Dashboard
               </Button>
             </Link>
           ) : (
             <Link to="/auth">
-              <Button variant="outline">
+              <Button variant="outline" size="sm" className="text-sm px-3 py-2 sm:px-4 sm:py-2 sm:text-base">
                 Sign In
               </Button>
             </Link>
           )}
-          <ThemeToggle />
+          <div className="flex-shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>
