@@ -86,26 +86,26 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-green-600 dark:text-green-400';
+    if (score >= 70) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 90) return 'bg-green-50 border-green-200';
-    if (score >= 70) return 'bg-yellow-50 border-yellow-200';
-    return 'bg-red-50 border-red-200';
+    if (score >= 90) return 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800';
+    if (score >= 70) return 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800';
+    return 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800';
   };
 
   const getStatusIcon = () => {
-    if (score === null) return <Clock className="h-5 w-5 text-gray-400" />;
-    if (score >= 90) return <CheckCircle className="h-5 w-5 text-green-600" />;
-    return <XCircle className="h-5 w-5 text-red-600" />;
+    if (score === null) return <Clock className="h-5 w-5 text-muted-foreground" />;
+    if (score >= 90) return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
+    return <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />;
   };
 
   const getStatusBadge = () => {
     if (score === null) return <Badge variant="secondary">Not Checked</Badge>;
-    if (score >= 90) return <Badge className="bg-green-100 text-green-800">Fresh</Badge>;
+    if (score >= 90) return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Fresh</Badge>;
     return <Badge variant="destructive">Stale Data</Badge>;
   };
 
@@ -161,7 +161,7 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
         </div>
 
         {showSettings && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mb-4 p-3 bg-muted/50 rounded-lg">
             <div className="space-y-2">
               <Label htmlFor="threshold">Freshness Threshold (days)</Label>
               <Input
@@ -173,7 +173,7 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
                 max="365"
                 className="w-32"
               />
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 Records older than {thresholdDays} days will be flagged as stale
               </p>
             </div>
@@ -182,8 +182,8 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
 
         {score !== null && issues.length === 0 && (
           <div className="text-center py-4">
-            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">All records are within the freshness threshold</p>
+            <CheckCircle className="h-8 w-8 text-green-500 dark:text-green-400 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">All records are within the freshness threshold</p>
           </div>
         )}
 
@@ -197,10 +197,10 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
                       <span className="font-medium">{issue.column}</span>
                       <Badge variant="outline">{issue.staleRecords} stale records</Badge>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Records older than {issue.thresholdDays} days
                     </p>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground/80">
                       Oldest record: {issue.oldestRecord}
                     </div>
                   </div>
@@ -211,7 +211,7 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
         )}
 
         {lastCheck && (
-          <div className="text-xs text-gray-500 mt-4">
+          <div className="text-xs text-muted-foreground/80 mt-4">
             Last checked: {lastCheck.toLocaleString()}
           </div>
         )}

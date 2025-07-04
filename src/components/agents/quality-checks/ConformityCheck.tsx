@@ -168,26 +168,26 @@ export const ConformityCheck = ({ data, columns }: ConformityCheckProps) => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 95) return 'text-green-600';
-    if (score >= 80) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 95) return 'text-green-600 dark:text-green-400';
+    if (score >= 80) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 95) return 'bg-green-50 border-green-200';
-    if (score >= 80) return 'bg-yellow-50 border-yellow-200';
-    return 'bg-red-50 border-red-200';
+    if (score >= 95) return 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800';
+    if (score >= 80) return 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800';
+    return 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800';
   };
 
   const getStatusIcon = () => {
-    if (score === null) return <FileCheck className="h-5 w-5 text-gray-400" />;
-    if (score >= 95) return <CheckCircle className="h-5 w-5 text-green-600" />;
-    return <XCircle className="h-5 w-5 text-red-600" />;
+    if (score === null) return <FileCheck className="h-5 w-5 text-muted-foreground" />;
+    if (score >= 95) return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
+    return <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />;
   };
 
   const getStatusBadge = () => {
     if (score === null) return <Badge variant="secondary">Not Checked</Badge>;
-    if (score >= 95) return <Badge className="bg-green-100 text-green-800">Pass</Badge>;
+    if (score >= 95) return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Pass</Badge>;
     return <Badge variant="destructive">Fail</Badge>;
   };
 
@@ -235,8 +235,8 @@ export const ConformityCheck = ({ data, columns }: ConformityCheckProps) => {
 
         {score !== null && issues.length === 0 && (
           <div className="text-center py-4">
-            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">All fields follow expected formats</p>
+            <CheckCircle className="h-8 w-8 text-green-500 dark:text-green-400 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">All fields follow expected formats</p>
           </div>
         )}
 
@@ -250,9 +250,9 @@ export const ConformityCheck = ({ data, columns }: ConformityCheckProps) => {
                       <span className="font-medium">{issue.column}</span>
                       <Badge variant="outline">{issue.violations} violations</Badge>
                     </div>
-                    <p className="text-sm text-gray-600">{issue.rule}</p>
+                    <p className="text-sm text-muted-foreground">{issue.rule}</p>
                     {issue.examples.length > 0 && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground/80">
                         Examples: {issue.examples.join(', ')}
                       </div>
                     )}
@@ -264,7 +264,7 @@ export const ConformityCheck = ({ data, columns }: ConformityCheckProps) => {
         )}
 
         {lastCheck && (
-          <div className="text-xs text-gray-500 mt-4">
+          <div className="text-xs text-muted-foreground/80 mt-4">
             Last checked: {lastCheck.toLocaleString()}
           </div>
         )}

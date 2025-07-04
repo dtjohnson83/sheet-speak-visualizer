@@ -32,7 +32,7 @@ export const QualityTrendsTab = ({ qualityTrends }: QualityTrendsTabProps) => {
                 <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
                   <div>
                     <div className="font-medium">{new Date(trend.date).toLocaleDateString()}</div>
-                    <div className="text-sm text-gray-600">{trend.issues} issues found</div>
+                    <div className="text-sm text-muted-foreground">{trend.issues} issues found</div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold">{trend.score.toFixed(1)}%</div>
@@ -44,12 +44,12 @@ export const QualityTrendsTab = ({ qualityTrends }: QualityTrendsTabProps) => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">
-                No historical data available. Run quality checks to build trends.
-              </p>
-            </div>
+          <div className="text-center py-8">
+            <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              No historical data available. Run quality checks to build trends.
+            </p>
+          </div>
           )}
         </CardContent>
       </Card>
