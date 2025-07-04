@@ -334,33 +334,33 @@ export const SimpleFileUpload = ({ onDataLoaded }: SimpleFileUploadProps) => {
 
       {/* Upload Area */}
       <Card 
-        className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
+        className="p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onClick={() => document.getElementById('file-input')?.click()}
       >
-        <div className="flex flex-col items-center space-y-4 text-center">
-          <FileSpreadsheet className="h-12 w-12 text-gray-400" />
+        <div className="flex flex-col items-center space-y-3 text-center">
+          <FileSpreadsheet className="h-8 w-8 text-gray-400" />
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Upload Excel or CSV File
+            <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100">
+              Drop Excel or CSV File
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Drag and drop your file here, or click to browse
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Drag & drop or click to browse
             </p>
           </div>
           <Button 
             disabled={isLoading}
-            className="mt-4"
+            size="sm"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-3 w-3 mr-1" />
                 Choose File
               </>
             )}

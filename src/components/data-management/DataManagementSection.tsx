@@ -34,29 +34,38 @@ export const DataManagementSection = ({
   return (
     <>
       <Card className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Data Management</h3>
-          <DatasetManager
-            currentData={data}
-            currentColumns={columns}
-            currentFileName={fileName}
-            currentWorksheetName={worksheetName}
-            onLoadDataset={onLoadDataset}
-          />
-        </div>
-        
-        <div className="space-y-4">
-          <SimpleFileUpload onDataLoaded={onDataLoaded} />
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* File Upload Section */}
+          <div className="lg:col-span-2">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Upload Data</h3>
+            </div>
+            <SimpleFileUpload onDataLoaded={onDataLoaded} />
+          </div>
           
-          <div className="border-t pt-4">
-            <h4 className="text-md font-medium mb-3">Connect to Data Sources</h4>
-            <DataSourceSelector 
-              onSelect={(type) => {
-                onDataSourceSelect(type);
-                onDataSourceDialogChange(true);
-              }}
-              selectedType={selectedDataSource}
-            />
+          {/* Management Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Data Management</h3>
+              <DatasetManager
+                currentData={data}
+                currentColumns={columns}
+                currentFileName={fileName}
+                currentWorksheetName={worksheetName}
+                onLoadDataset={onLoadDataset}
+              />
+            </div>
+            
+            <div className="border-t pt-4">
+              <h4 className="text-md font-medium mb-3">Data Sources</h4>
+              <DataSourceSelector 
+                onSelect={(type) => {
+                  onDataSourceSelect(type);
+                  onDataSourceDialogChange(true);
+                }}
+                selectedType={selectedDataSource}
+              />
+            </div>
           </div>
         </div>
       </Card>
