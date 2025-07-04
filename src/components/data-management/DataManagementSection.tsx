@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import { FileUpload } from '@/components/FileUpload';
+import { SimpleFileUpload } from '@/components/SimpleFileUpload';
 import { DatasetManager } from '@/components/data/DatasetManager';
 import { DataSourceSelector } from '@/components/data-sources/DataSourceSelector';
 import { DataSourceConnectionDialog } from '@/components/data-sources/DataSourceConnectionDialog';
@@ -46,7 +46,7 @@ export const DataManagementSection = ({
         </div>
         
         <div className="space-y-4">
-          <FileUpload onDataLoaded={onDataLoaded} />
+          <SimpleFileUpload onDataLoaded={onDataLoaded} />
           
           <div className="border-t pt-4">
             <h4 className="text-md font-medium mb-3">Connect to Data Sources</h4>
