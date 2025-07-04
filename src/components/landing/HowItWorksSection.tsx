@@ -19,7 +19,7 @@ export const HowItWorksSection = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Upload & Prepare</h3>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Upload Excel files with automatic data structure detection and business context setup.
+              Upload data files or connect data sources with automatic data structure detection and business context setup.
             </p>
           </div>
 

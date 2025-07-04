@@ -18,7 +18,7 @@ export const HeroSection = ({ onWatchDemo }: HeroSectionProps) => {
         </h1>
         
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-          Upload Excel files, create stunning visualizations, and build interactive dashboards with comprehensive AI analysis. 
+          Connect your data sources, create stunning visualizations, and build interactive dashboards with comprehensive AI analysis. 
           Get predictive insights, data quality monitoring, and automated reporting – all powered by intelligent agents.
         </p>
         

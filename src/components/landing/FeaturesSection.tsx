@@ -5,8 +5,8 @@ import { Upload, BarChart3, Layout, Zap, Shield, Brain } from 'lucide-react';
 const features = [
   {
     icon: Upload,
-    title: "Easy File Upload",
-    description: "Simply drag and drop your Excel files or browse to upload. Support for multiple worksheets and formats.",
+    title: "Easy Data Connection",
+    description: "Simply drag and drop your data files or connect to your data sources. Support for Excel, CSV, JSON, databases, Google Sheets, and more.",
     color: "text-blue-500"
   },
   {
