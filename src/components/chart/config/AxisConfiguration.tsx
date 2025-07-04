@@ -32,10 +32,10 @@ export const AxisConfiguration = ({
           {chartType === 'sankey' ? 'Source' : isHistogram ? 'Column to Analyze' : 'X-Axis'}
         </label>
         <Select value={xColumn} onValueChange={setXColumn}>
-          <SelectTrigger className="bg-white dark:bg-gray-800">
+          <SelectTrigger>
             <SelectValue placeholder="Select column" />
           </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
+          <SelectContent className="max-h-60 overflow-y-auto">
             {(isHistogram ? numericColumns : chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
               <SelectItem key={col.name} value={col.name}>
                 {col.name} ({col.type})
@@ -51,10 +51,10 @@ export const AxisConfiguration = ({
             {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
           </label>
           <Select value={yColumn} onValueChange={setYColumn}>
-            <SelectTrigger className="bg-white dark:bg-gray-800">
+            <SelectTrigger>
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
+            <SelectContent className="max-h-60 overflow-y-auto">
               {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
