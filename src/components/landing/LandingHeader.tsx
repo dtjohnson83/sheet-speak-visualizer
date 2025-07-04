@@ -18,6 +18,11 @@ export const LandingHeader = () => {
           />
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
+          <Link to="/about" className="hidden sm:block">
+            <Button variant="ghost" size="sm" className="text-sm px-3 py-2">
+              About
+            </Button>
+          </Link>
           <div className="hidden sm:block">
             <FeedbackButton />
           </div>

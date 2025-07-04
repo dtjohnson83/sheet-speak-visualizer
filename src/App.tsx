@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/security/ErrorBoundary";
 import Landing from "./pages/Landing";
+import About from "./pages/About";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,7 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/guides" element={<GuidesHub />} />
                 <Route path="/guides/quick-start" element={<QuickStartGuide />} />
