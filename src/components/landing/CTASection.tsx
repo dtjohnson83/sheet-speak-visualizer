@@ -17,7 +17,7 @@ export const CTASection = () => {
         {user ? (
           <Link to="/app">
             <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-              Go to Dashboard
+              Launch Intelligence Hub
             </Button>
           </Link>
         ) : (
