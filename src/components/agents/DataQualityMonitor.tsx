@@ -199,23 +199,23 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
   }, [data, columns]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600 dark:text-green-400';
-    if (score >= 70) return 'text-orange-600 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 90) return 'text-green-700 dark:text-green-300';
+    if (score >= 70) return 'text-orange-700 dark:text-orange-300';
+    return 'text-red-700 dark:text-red-300';
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 90) return 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800';
-    if (score >= 70) return 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800';
-    return 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800';
+    if (score >= 90) return 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700';
+    if (score >= 70) return 'bg-orange-100 border-orange-300 dark:bg-orange-900/30 dark:border-orange-700';
+    return 'bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700';
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'high': return <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />;
-      case 'medium': return <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
-      case 'low': return <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
-      default: return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'high': return <XCircle className="h-4 w-4 text-red-700 dark:text-red-300" />;
+      case 'medium': return <AlertTriangle className="h-4 w-4 text-orange-700 dark:text-orange-300" />;
+      case 'low': return <AlertTriangle className="h-4 w-4 text-blue-700 dark:text-blue-300" />;
+      default: return <CheckCircle className="h-4 w-4 text-green-700 dark:text-green-300" />;
     }
   };
 
@@ -380,7 +380,7 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
         <Card>
           <CardContent className="py-8">
           <div className="text-center">
-            <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
+            <CheckCircle className="h-12 w-12 text-green-700 dark:text-green-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">Excellent Data Quality!</h3>
             <p className="text-muted-foreground">
               No significant data quality issues were detected in your dataset.
