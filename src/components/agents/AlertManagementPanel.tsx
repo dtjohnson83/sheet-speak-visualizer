@@ -16,6 +16,7 @@ interface AlertConfig {
   severity_threshold: string;
   cooldown_minutes: number;
   email_enabled: boolean;
+  email_address?: string;
   webhook_enabled: boolean;
   webhook_url?: string;
   thresholds: Record<string, number>;

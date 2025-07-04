@@ -50,6 +50,7 @@ export type Database = {
           alert_type: string
           cooldown_minutes: number
           created_at: string
+          email_address: string | null
           email_enabled: boolean
           id: string
           is_enabled: boolean
@@ -64,6 +65,7 @@ export type Database = {
           alert_type: string
           cooldown_minutes?: number
           created_at?: string
+          email_address?: string | null
           email_enabled?: boolean
           id?: string
           is_enabled?: boolean
@@ -78,6 +80,7 @@ export type Database = {
           alert_type?: string
           cooldown_minutes?: number
           created_at?: string
+          email_address?: string | null
           email_enabled?: boolean
           id?: string
           is_enabled?: boolean
