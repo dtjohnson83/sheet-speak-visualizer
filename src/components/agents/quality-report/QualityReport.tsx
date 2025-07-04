@@ -309,28 +309,28 @@ NEXT STEPS
               <div className="text-2xl font-bold">{issues.length}</div>
             </Card>
             
-            <Card className="p-4 bg-red-50 border-red-200">
+            <Card className="p-4 bg-destructive/10 border-destructive/20">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+                <AlertTriangle className="h-5 w-5 text-destructive" />
                 <span className="font-medium">High Priority</span>
               </div>
-              <div className="text-2xl font-bold text-red-600">{highPriorityIssues.length}</div>
+              <div className="text-2xl font-bold text-destructive">{highPriorityIssues.length}</div>
             </Card>
             
-            <Card className="p-4 bg-yellow-50 border-yellow-200">
+            <Card className="p-4 bg-orange-500/10 border-orange-500/20">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <AlertCircle className="h-5 w-5 text-orange-500" />
                 <span className="font-medium">Medium Priority</span>
               </div>
-              <div className="text-2xl font-bold text-yellow-600">{mediumPriorityIssues.length}</div>
+              <div className="text-2xl font-bold text-orange-500">{mediumPriorityIssues.length}</div>
             </Card>
             
-            <Card className="p-4 bg-blue-50 border-blue-200">
+            <Card className="p-4 bg-blue-500/10 border-blue-500/20">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-5 w-5 text-blue-600" />
+                <AlertCircle className="h-5 w-5 text-blue-500" />
                 <span className="font-medium">Low Priority</span>
               </div>
-              <div className="text-2xl font-bold text-blue-600">{lowPriorityIssues.length}</div>
+              <div className="text-2xl font-bold text-blue-500">{lowPriorityIssues.length}</div>
             </Card>
           </div>
 
@@ -361,7 +361,7 @@ NEXT STEPS
               </Alert>
               
               {highPriorityIssues.map((issue, index) => (
-                <Card key={index} className="border-red-200 bg-red-50">
+                <Card key={index} className="border-destructive/20 bg-destructive/10">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2">
