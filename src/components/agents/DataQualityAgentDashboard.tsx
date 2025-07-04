@@ -14,10 +14,16 @@ import {
   AlertTriangle,
   CheckCircle,
   Database,
-  Bell
+  Bell,
+  RefreshCw,
+  BarChart3
 } from 'lucide-react';
 import { DataQualityMonitor } from './DataQualityMonitor';
 import { DataQualityReport } from './DataQualityReport';
+import { ValidityCheck } from './quality-checks/ValidityCheck';
+import { ConformityCheck } from './quality-checks/ConformityCheck';
+import { AnomalyDetectionCheck } from './quality-checks/AnomalyDetectionCheck';
+import { FreshnessCheck } from './quality-checks/FreshnessCheck';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { supabase } from '@/integrations/supabase/client';
@@ -279,11 +285,15 @@ export const DataQualityAgentDashboard = ({
       </Card>
 
       {/* Main Dashboard */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="advanced" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Advanced Checks
+          </TabsTrigger>
           <TabsTrigger value="monitor" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Monitor
+            Core Monitor
           </TabsTrigger>
           <TabsTrigger value="report" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -295,12 +305,57 @@ export const DataQualityAgentDashboard = ({
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="advanced" className="space-y-6">
+          {/* Advanced Quality Checks Dashboard */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-6 w-6" />
+                    Advanced Quality Checks
+                  </CardTitle>
+                  <CardDescription>
+                    7 comprehensive quality dimensions beyond traditional metrics
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh All
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Advanced Quality Checks Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ValidityCheck data={data} columns={columns} />
+            <ConformityCheck data={data} columns={columns} />
+            <AnomalyDetectionCheck data={data} columns={columns} />
+            <FreshnessCheck data={data} columns={columns} />
+          </div>
+        </TabsContent>
+
         <TabsContent value="monitor" className="space-y-6">
-          <DataQualityMonitor 
-            data={data} 
-            columns={columns} 
-            onReportGenerated={handleReportGenerated}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Core Quality Metrics</CardTitle>
+              <CardDescription>
+                Traditional quality dimensions (completeness, consistency, accuracy, uniqueness, timeliness)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DataQualityMonitor 
+                data={data} 
+                columns={columns} 
+                onReportGenerated={handleReportGenerated}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="report" className="space-y-6">
