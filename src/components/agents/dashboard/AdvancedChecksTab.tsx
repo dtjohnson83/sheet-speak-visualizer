@@ -19,14 +19,23 @@ export const AdvancedChecksTab = ({ data, columns }: AdvancedChecksTabProps) => 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const refreshAllChecks = async () => {
+    console.log('Refresh All button clicked');
     setIsRefreshing(true);
-    // Force re-render of all check components by changing the key
-    setRefreshKey(prev => prev + 1);
     
-    // Add a small delay to show the refreshing state
-    setTimeout(() => {
+    try {
+      // Force re-render of all check components by changing the key
+      setRefreshKey(prev => prev + 1);
+      console.log('Refresh key updated');
+      
+      // Add a small delay to show the refreshing state
+      setTimeout(() => {
+        setIsRefreshing(false);
+        console.log('Refresh completed');
+      }, 500);
+    } catch (error) {
+      console.error('Error during refresh:', error);
       setIsRefreshing(false);
-    }, 500);
+    }
   };
 
   return (
