@@ -18,8 +18,8 @@ export const HeroSection = ({ onWatchDemo }: HeroSectionProps) => {
         </h1>
         
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-          Connect your data sources, create stunning visualizations, and build interactive dashboards with comprehensive AI analysis. 
-          Get predictive insights, data quality monitoring, and automated reporting – all powered by intelligent agents.
+          Connect your data sources and unlock intelligent insights with AI-powered analysis. Get predictive forecasting, 
+          automated data quality monitoring, and comprehensive reporting – all supported by interactive visualizations and dashboards.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

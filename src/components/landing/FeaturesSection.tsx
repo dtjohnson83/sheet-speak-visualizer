@@ -4,28 +4,10 @@ import { Upload, BarChart3, Layout, Zap, Shield, Brain } from 'lucide-react';
 
 const features = [
   {
-    icon: Upload,
-    title: "Easy Data Connection",
-    description: "Simply drag and drop your data files or connect to your data sources. Support for Excel, CSV, JSON, databases, Google Sheets, and more.",
-    color: "text-blue-500"
-  },
-  {
     icon: Brain,
     title: "Enhanced AI Analysis",
     description: "Get comprehensive AI insights with interactive chat, expert reports from multiple personas, and business context integration for domain-specific analysis.",
     color: "text-indigo-500"
-  },
-  {
-    icon: BarChart3,
-    title: "Rich Visualizations",
-    description: "Create stunning charts with multiple types: bar, line, pie, scatter, heatmaps, treemaps, and histograms. Customize colors and styles effortlessly.",
-    color: "text-green-500"
-  },
-  {
-    icon: Layout,
-    title: "Interactive Dashboards",
-    description: "Build comprehensive dashboards with drag-and-drop tiles. Filter and analyze your data in real-time with advanced business context.",
-    color: "text-cyan-500"
   },
   {
     icon: Zap,
@@ -38,6 +20,24 @@ const features = [
     title: "Data Quality Monitoring",
     description: "Automated data quality checks with anomaly detection, completeness validation, and real-time monitoring with intelligent alerts.",
     color: "text-red-500"
+  },
+  {
+    icon: Upload,
+    title: "Easy Data Connection",
+    description: "Simply drag and drop your data files or connect to your data sources. Support for Excel, CSV, JSON, databases, Google Sheets, and more.",
+    color: "text-blue-500"
+  },
+  {
+    icon: BarChart3,
+    title: "Rich Visualizations",
+    description: "Support your analysis with interactive charts: bar, line, pie, scatter, heatmaps, treemaps, and histograms to communicate insights effectively.",
+    color: "text-green-500"
+  },
+  {
+    icon: Layout,
+    title: "Interactive Dashboards",
+    description: "Present your AI-driven insights through customizable dashboards with drag-and-drop tiles and real-time filtering capabilities.",
+    color: "text-cyan-500"
   }
 ];
 
@@ -52,7 +52,7 @@ export const FeaturesSection = () => {
             Everything You Need
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Powerful features designed for effortless data visualization
+            Powerful AI capabilities designed for intelligent data analysis
           </p>
         </div>
 
