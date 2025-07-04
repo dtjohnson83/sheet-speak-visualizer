@@ -146,10 +146,10 @@ export const AlertManagementPanel = ({ agentId }: AlertManagementPanelProps) => 
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'bg-destructive';
-      case 'medium': return 'bg-orange-500';
-      case 'low': return 'bg-blue-500';
-      default: return 'bg-muted';
+      case 'high': return 'bg-destructive text-destructive-foreground';
+      case 'medium': return 'bg-orange-500 text-white dark:bg-orange-600';
+      case 'low': return 'bg-blue-500 text-white dark:bg-blue-600';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -196,9 +196,9 @@ export const AlertManagementPanel = ({ agentId }: AlertManagementPanelProps) => 
       </div>
 
       <Tabs defaultValue="configurations" className="w-full">
-        <TabsList>
-          <TabsTrigger value="configurations">Configurations</TabsTrigger>
-          <TabsTrigger value="notifications">Recent Alerts</TabsTrigger>
+        <TabsList className="bg-muted dark:bg-muted">
+          <TabsTrigger value="configurations" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Configurations</TabsTrigger>
+          <TabsTrigger value="notifications" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Recent Alerts</TabsTrigger>
         </TabsList>
 
         <TabsContent value="configurations" className="space-y-4">
@@ -250,6 +250,7 @@ export const AlertManagementPanel = ({ agentId }: AlertManagementPanelProps) => 
                             setEditingConfig(config);
                             setConfigDialogOpen(true);
                           }}
+                          className="text-muted-foreground hover:text-foreground"
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
@@ -257,6 +258,7 @@ export const AlertManagementPanel = ({ agentId }: AlertManagementPanelProps) => 
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteConfig(config.id)}
+                          className="text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -277,7 +279,7 @@ export const AlertManagementPanel = ({ agentId }: AlertManagementPanelProps) => 
                           Webhook
                         </Badge>
                       )}
-                      <Badge variant="outline" className={`${getSeverityColor(config.severity_threshold)} text-white`}>
+                      <Badge variant="outline" className={getSeverityColor(config.severity_threshold)}>
                         {config.severity_threshold}
                       </Badge>
                     </div>

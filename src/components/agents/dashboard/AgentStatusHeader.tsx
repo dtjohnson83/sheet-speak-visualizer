@@ -76,14 +76,14 @@ export const AgentStatusHeader = ({
               <Activity className="h-4 w-4 text-green-500" />
               <div>
                 <div className="text-sm font-medium">Status</div>
-                <div className="text-xs text-gray-600 capitalize">{agent.status}</div>
+                <div className="text-xs text-muted-foreground capitalize">{agent.status}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-blue-500" />
               <div>
                 <div className="text-sm font-medium">Frequency</div>
-                <div className="text-xs text-gray-600 capitalize">
+                <div className="text-xs text-muted-foreground capitalize">
                   {agent.configuration?.analysis_frequency || 'Daily'}
                 </div>
               </div>
@@ -92,7 +92,7 @@ export const AgentStatusHeader = ({
               <TrendingUp className="h-4 w-4 text-purple-500" />
               <div>
                 <div className="text-sm font-medium">Last Check</div>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-muted-foreground">
                   {agent.last_active ? new Date(agent.last_active).toLocaleDateString() : 'Never'}
                 </div>
               </div>
@@ -101,7 +101,7 @@ export const AgentStatusHeader = ({
               <Bell className="h-4 w-4 text-orange-500" />
               <div>
                 <div className="text-sm font-medium">Alerts</div>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-muted-foreground">
                   {agent.configuration?.notification_preferences?.in_app ? 'Enabled' : 'Disabled'}
                 </div>
               </div>

@@ -126,7 +126,7 @@ export const AlertConfigurationDialog = ({
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-popover border border-border shadow-lg z-50">
                       <SelectItem value="all">All Insights</SelectItem>
                       <SelectItem value="anomaly">Anomalies Only</SelectItem>
                       <SelectItem value="trend">Trends Only</SelectItem>
@@ -145,7 +145,7 @@ export const AlertConfigurationDialog = ({
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-popover border border-border shadow-lg z-50">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
