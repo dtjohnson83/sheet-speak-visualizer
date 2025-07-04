@@ -500,6 +500,90 @@ export type Database = {
           },
         ]
       }
+      oauth_provider_configs: {
+        Row: {
+          auth_url: string
+          client_id: string
+          client_secret: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          provider: string
+          redirect_uri: string
+          scope: string
+          token_url: string
+          updated_at: string
+        }
+        Insert: {
+          auth_url: string
+          client_id: string
+          client_secret: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          provider: string
+          redirect_uri: string
+          scope: string
+          token_url: string
+          updated_at?: string
+        }
+        Update: {
+          auth_url?: string
+          client_id?: string
+          client_secret?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          provider?: string
+          redirect_uri?: string
+          scope?: string
+          token_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      oauth_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          provider: string
+          provider_user_id: string | null
+          refresh_token: string | null
+          scope: string | null
+          token_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider: string
+          provider_user_id?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string
+          provider_user_id?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

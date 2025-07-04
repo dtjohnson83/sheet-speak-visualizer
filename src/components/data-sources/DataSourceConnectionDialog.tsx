@@ -8,6 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { dataSourceManager } from '@/lib/dataSources/DataSourceManager';
 import { RESTAPIConnectionDialog } from './RESTAPIConnectionDialog';
 import { RESTAPIConfig } from '@/types/restAPI';
+import { OAuthConnectionDialog } from '@/components/oauth/OAuthConnectionDialog';
+import { OAuthProviderType } from '@/types/oauth';
 
 interface DataSourceConnectionDialogProps {
   open: boolean;
@@ -22,6 +24,36 @@ export const DataSourceConnectionDialog = ({
   sourceType, 
   onSuccess 
 }: DataSourceConnectionDialogProps) => {
+  // Handle OAuth-based connections with specialized dialog
+  if (sourceType === 'google_sheets') {
+    return (
+      <OAuthConnectionDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Connect to Google Sheets"
+        description="Connect your Google account to access Google Sheets data."
+        providers={['google']}
+        onSuccess={async (provider) => {
+          try {
+            const connectionId = `conn_${Date.now()}`;
+            const success = await dataSourceManager.connect(connectionId, sourceType, { provider });
+            
+            if (success) {
+              const adapter = dataSourceManager.getConnection(connectionId);
+              if (adapter) {
+                // For Google Sheets, we need the spreadsheet URL
+                // This will be handled in a follow-up dialog
+                onSuccess([], [], adapter.getName());
+              }
+            }
+          } catch (error) {
+            console.error('Google Sheets connection failed:', error);
+          }
+        }}
+      />
+    );
+  }
+
   // Handle REST API connections with specialized dialog
   if (sourceType === 'rest_api') {
     return (
@@ -148,6 +180,29 @@ export const DataSourceConnectionDialog = ({
                 onChange={(e) => setCredentials(prev => ({ ...prev, data: e.target.value }))}
                 placeholder="Paste your JSON data here..."
                 rows={10}
+              />
+            </div>
+          </div>
+        );
+      case 'google_sheets':
+        return (
+          <div className="grid gap-4">
+            <div>
+              <Label htmlFor="spreadsheetUrl">Google Sheets URL</Label>
+              <Input
+                id="spreadsheetUrl"
+                value={credentials.spreadsheetUrl || ''}
+                onChange={(e) => setCredentials(prev => ({ ...prev, spreadsheetUrl: e.target.value }))}
+                placeholder="https://docs.google.com/spreadsheets/d/..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="sheetName">Sheet Name (optional)</Label>
+              <Input
+                id="sheetName"
+                value={credentials.sheetName || ''}
+                onChange={(e) => setCredentials(prev => ({ ...prev, sheetName: e.target.value }))}
+                placeholder="Sheet1"
               />
             </div>
           </div>

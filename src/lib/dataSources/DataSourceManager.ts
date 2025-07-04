@@ -2,6 +2,7 @@ import { DataSourceAdapter } from '@/types/dataSources';
 import { PostgreSQLAdapter } from './PostgreSQLAdapter';
 import { JSONAdapter } from './JSONAdapter';
 import { RESTAPIAdapter } from './RESTAPIAdapter';
+import { GoogleSheetsAdapter } from './GoogleSheetsAdapter';
 
 export class DataSourceManager {
   private adapters: Map<string, DataSourceAdapter> = new Map();
@@ -15,6 +16,7 @@ export class DataSourceManager {
     this.registerAdapter('postgresql', new PostgreSQLAdapter());
     this.registerAdapter('json', new JSONAdapter());
     this.registerAdapter('rest_api', new RESTAPIAdapter());
+    this.registerAdapter('google_sheets', new GoogleSheetsAdapter());
   }
 
   registerAdapter(type: string, adapter: DataSourceAdapter) {
