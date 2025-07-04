@@ -15,9 +15,11 @@ interface DataQualityMonitorProps {
 export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQualityMonitorProps) => {
   const {
     isAnalyzing,
+    analysisProgress,
     qualityScore,
     issues,
     lastAnalysis,
+    autoFixSuggestions,
     analyzeDataQuality
   } = useDataQualityAnalysis(data, columns);
 
@@ -40,7 +42,9 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
           <QualityScoreCard 
             qualityScore={qualityScore}
             isAnalyzing={isAnalyzing}
+            analysisProgress={analysisProgress}
             lastAnalysis={lastAnalysis}
+            autoFixSuggestions={autoFixSuggestions}
             onRefresh={handleRefresh}
           />
           
