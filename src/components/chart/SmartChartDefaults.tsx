@@ -82,7 +82,7 @@ export const SmartChartDefaults = ({
           chartType: 'scatter',
           xColumn: numericCols[0].name,
           yColumn: numericCols[1].name,
-          aggregationMethod: 'none',
+          aggregationMethod: 'average',
           reasoning: 'Multiple numeric columns - scatter plot reveals correlations',
           icon: ScatterChart,
           confidence: 0.8
@@ -95,13 +95,23 @@ export const SmartChartDefaults = ({
   const suggestions = analyzeDataForDefaults();
   const topSuggestion = suggestions[0];
 
-  // Auto-apply best suggestion if no chart is configured
+  // More intelligent auto-application with opt-in behavior
   useEffect(() => {
-    if (topSuggestion && (!currentChartType || currentChartType === 'bar') && data.length > 0) {
-      // Auto-apply after a short delay to allow other components to load
+    // Only auto-apply if:
+    // 1. There's a high-confidence suggestion (>0.85)
+    // 2. No chart type is set or it's the default 'bar'
+    // 3. There's sufficient data
+    // 4. The suggestion makes sense for the data structure
+    if (topSuggestion && 
+        topSuggestion.confidence > 0.85 && 
+        (!currentChartType || currentChartType === 'bar') && 
+        data.length >= 10) {
+      
+      // Add a delay to prevent interference with other loading processes
       const timer = setTimeout(() => {
+        console.log('SmartChartDefaults: Auto-applying high-confidence suggestion:', topSuggestion);
         onApplyDefaults(topSuggestion);
-      }, 500);
+      }, 1000);
       
       return () => clearTimeout(timer);
     }
