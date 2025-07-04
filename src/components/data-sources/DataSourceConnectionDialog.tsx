@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { dataSourceManager } from '@/lib/dataSources/DataSourceManager';
+import { RESTAPIConnectionDialog } from './RESTAPIConnectionDialog';
+import { RESTAPIConfig } from '@/types/restAPI';
 
 interface DataSourceConnectionDialogProps {
   open: boolean;
@@ -20,6 +22,33 @@ export const DataSourceConnectionDialog = ({
   sourceType, 
   onSuccess 
 }: DataSourceConnectionDialogProps) => {
+  // Handle REST API connections with specialized dialog
+  if (sourceType === 'rest_api') {
+    return (
+      <RESTAPIConnectionDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        onConnect={async (config: RESTAPIConfig) => {
+          try {
+            const connectionId = `conn_${Date.now()}`;
+            const success = await dataSourceManager.connect(connectionId, sourceType, config);
+            
+            if (success) {
+              const adapter = dataSourceManager.getConnection(connectionId);
+              if (adapter) {
+                const data = await adapter.fetchData();
+                const columns = await adapter.discoverSchema();
+                
+                onSuccess(data, columns, adapter.getName());
+              }
+            }
+          } catch (error) {
+            console.error('REST API connection failed:', error);
+          }
+        }}
+      />
+    );
+  }
   const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState<Record<string, any>>({});
   const { toast } = useToast();

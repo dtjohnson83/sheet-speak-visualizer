@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database, FileText, Cloud, Zap, HardDrive } from 'lucide-react';
+import { Database, FileText, Cloud, Zap, HardDrive, Globe } from 'lucide-react';
 import { DataSourceType } from '@/types/dataSources';
 
 interface DataSourceOption {
@@ -27,6 +27,14 @@ const dataSourceOptions: DataSourceOption[] = [
     description: 'Excel, CSV, and other file formats',
     category: 'file',
     icon: <FileText className="h-4 w-4" />,
+    status: 'available'
+  },
+  {
+    type: 'rest_api',
+    name: 'REST API',
+    description: 'Connect to any REST API endpoint',
+    category: 'api',
+    icon: <Globe className="h-4 w-4" />,
     status: 'available'
   },
   {
