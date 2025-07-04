@@ -10,7 +10,8 @@ import {
   TrendingUp,
   AlertTriangle,
   Database,
-  BarChart3
+  BarChart3,
+  Bell
 } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useDataQualityAgent } from '@/hooks/useDataQualityAgent';
@@ -19,6 +20,7 @@ import { AdvancedChecksTab } from './dashboard/AdvancedChecksTab';
 import { CoreMonitorTab } from './dashboard/CoreMonitorTab';
 import { QualityTrendsTab } from './dashboard/QualityTrendsTab';
 import { QualityReport } from './quality-report/QualityReport';
+import { AlertManagementPanel } from './AlertManagementPanel';
 
 interface DataQualityAgentDashboardProps {
   data: DataRow[];
@@ -83,7 +85,7 @@ export const DataQualityAgentDashboard = ({
 
       {/* Main Dashboard */}
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="advanced">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="advanced" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Advanced Checks
@@ -99,6 +101,10 @@ export const DataQualityAgentDashboard = ({
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Trends
+          </TabsTrigger>
+          <TabsTrigger value="alerts" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Alerts
           </TabsTrigger>
         </TabsList>
 
@@ -124,6 +130,24 @@ export const DataQualityAgentDashboard = ({
 
         <TabsContent value="trends" className="space-y-6">
           <QualityTrendsTab qualityTrends={qualityTrends} />
+        </TabsContent>
+
+        <TabsContent value="alerts" className="space-y-6">
+          {agent ? (
+            <AlertManagementPanel agentId={agent.id} />
+          ) : (
+            <Card>
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-medium">Create Agent First</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create a data quality agent to configure automated alerts
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

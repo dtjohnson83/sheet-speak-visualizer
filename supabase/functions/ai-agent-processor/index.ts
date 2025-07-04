@@ -103,14 +103,21 @@ serve(async (req) => {
         // Save insights if generated
         if (insights.length > 0) {
           for (const insight of insights) {
-            await supabase
+            const { data: savedInsight } = await supabase
               .from('agent_insights')
               .insert({
                 agent_id: task.agent_id,
                 dataset_id: task.dataset_id,
                 task_id: task.id,
                 ...insight
-              });
+              })
+              .select()
+              .single();
+
+            // Evaluate and send alerts for this insight
+            if (savedInsight) {
+              await evaluateAndSendAlert(savedInsight, task, supabase);
+            }
           }
         }
 
@@ -446,6 +453,123 @@ async function analyzeTrends(task: AgentTask, supabase: any) {
   }
 
   return insights;
+}
+
+async function evaluateAndSendAlert(insight: any, task: AgentTask, supabase: any) {
+  try {
+    // Get alert configurations for this agent
+    const { data: alertConfigs } = await supabase
+      .from('agent_alert_configs')
+      .select('*')
+      .eq('agent_id', task.agent_id)
+      .eq('is_enabled', true);
+
+    if (!alertConfigs || alertConfigs.length === 0) {
+      return; // No alert configurations
+    }
+
+    // Check cooldown period for recent alerts
+    const cooldownTime = new Date(Date.now() - 60 * 60 * 1000); // 1 hour default
+    const { data: recentAlerts } = await supabase
+      .from('alert_notifications')
+      .select('created_at')
+      .eq('agent_id', task.agent_id)
+      .eq('alert_type', insight.insight_type)
+      .gte('created_at', cooldownTime.toISOString())
+      .limit(1);
+
+    if (recentAlerts && recentAlerts.length > 0) {
+      console.log(`Alert cooldown active for agent ${task.agent_id}, insight type ${insight.insight_type}`);
+      return;
+    }
+
+    // Evaluate each alert configuration
+    for (const config of alertConfigs) {
+      if (shouldTriggerAlert(insight, config)) {
+        const channels = [];
+        
+        if (config.email_enabled) channels.push('email');
+        if (config.webhook_enabled && config.webhook_url) channels.push('webhook');
+
+        if (channels.length === 0) continue;
+
+        // Send alert notification
+        const alertPayload = {
+          agentId: task.agent_id,
+          insightId: insight.id,
+          alertType: insight.insight_type,
+          severity: mapPriorityToSeverity(insight.priority),
+          title: insight.title,
+          message: insight.description,
+          channels,
+          webhookUrl: config.webhook_url
+        };
+
+        try {
+          const response = await supabase.functions.invoke('send-alert-notification', {
+            body: alertPayload
+          });
+
+          if (response.error) {
+            console.error('Failed to send alert:', response.error);
+          } else {
+            console.log(`Alert sent for insight ${insight.id}`);
+          }
+        } catch (error) {
+          console.error('Error invoking alert function:', error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in evaluateAndSendAlert:', error);
+  }
+}
+
+function shouldTriggerAlert(insight: any, config: any): boolean {
+  // Map priority to severity
+  const severity = mapPriorityToSeverity(insight.priority);
+  
+  // Check if insight type matches config
+  if (config.alert_type !== 'all' && config.alert_type !== insight.insight_type) {
+    return false;
+  }
+
+  // Check severity threshold
+  const severityOrder = { 'low': 1, 'medium': 2, 'high': 3 };
+  const insightSeverityLevel = severityOrder[severity] || 1;
+  const thresholdLevel = severityOrder[config.severity_threshold] || 2;
+
+  if (insightSeverityLevel < thresholdLevel) {
+    return false;
+  }
+
+  // Check specific thresholds based on insight type
+  const thresholds = config.thresholds || {};
+  
+  switch (insight.insight_type) {
+    case 'anomaly':
+      const anomalyCount = insight.data?.anomaly_count || 0;
+      return anomalyCount >= (thresholds.min_anomalies || 1);
+      
+    case 'trend':
+      const percentChange = Math.abs(insight.data?.percent_change || 0);
+      return percentChange >= (thresholds.min_trend_change || 10);
+      
+    case 'data_quality_issue':
+      const affectedRows = insight.data?.affected_rows || 0;
+      const totalRows = insight.data?.total_rows || 1;
+      const affectedPercentage = (affectedRows / totalRows) * 100;
+      return affectedPercentage >= (thresholds.min_affected_percentage || 5);
+      
+    default:
+      return true; // Default: trigger for all insights if severity matches
+  }
+}
+
+function mapPriorityToSeverity(priority: number): string {
+  if (priority >= 8) return 'high';
+  if (priority >= 6) return 'medium';
+  return 'low';
 }
 
 function calculateStandardDeviation(values: number[]): number {

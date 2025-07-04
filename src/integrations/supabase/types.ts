@@ -44,6 +44,59 @@ export type Database = {
           },
         ]
       }
+      agent_alert_configs: {
+        Row: {
+          agent_id: string
+          alert_type: string
+          cooldown_minutes: number
+          created_at: string
+          email_enabled: boolean
+          id: string
+          is_enabled: boolean
+          severity_threshold: string
+          thresholds: Json
+          updated_at: string
+          webhook_enabled: boolean
+          webhook_url: string | null
+        }
+        Insert: {
+          agent_id: string
+          alert_type: string
+          cooldown_minutes?: number
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          is_enabled?: boolean
+          severity_threshold?: string
+          thresholds?: Json
+          updated_at?: string
+          webhook_enabled?: boolean
+          webhook_url?: string | null
+        }
+        Update: {
+          agent_id?: string
+          alert_type?: string
+          cooldown_minutes?: number
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          is_enabled?: boolean
+          severity_threshold?: string
+          thresholds?: Json
+          updated_at?: string
+          webhook_enabled?: boolean
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_alert_configs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_insights: {
         Row: {
           agent_id: string
@@ -224,6 +277,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      alert_notifications: {
+        Row: {
+          agent_id: string
+          alert_type: string
+          created_at: string
+          delivered_at: string | null
+          delivery_status: Json
+          id: string
+          insight_id: string | null
+          message: string
+          notification_channels: Json
+          severity: string
+          title: string
+        }
+        Insert: {
+          agent_id: string
+          alert_type: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: Json
+          id?: string
+          insight_id?: string | null
+          message: string
+          notification_channels?: Json
+          severity: string
+          title: string
+        }
+        Update: {
+          agent_id?: string
+          alert_type?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: Json
+          id?: string
+          insight_id?: string | null
+          message?: string
+          notification_channels?: Json
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_notifications_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_notifications_insight_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "agent_insights"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       analysis_sessions: {
         Row: {
@@ -671,6 +781,42 @@ export type Database = {
           id?: string
           user_id?: string
           would_pay?: boolean
+        }
+        Relationships: []
+      }
+      user_alert_preferences: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          email_frequency: string
+          id: string
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: string
+          id?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: string
+          id?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
