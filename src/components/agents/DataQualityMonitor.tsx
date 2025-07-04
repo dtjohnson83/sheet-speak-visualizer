@@ -40,7 +40,7 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
         onReportGenerated?.(report);
       });
     }
-  }, [data, columns, analyzeDataQuality, onReportGenerated]);
+  }, [data, columns]); // Removed analyzeDataQuality and onReportGenerated to prevent infinite loop
 
   const handleRefresh = () => {
     analyzeDataQuality((report) => {
