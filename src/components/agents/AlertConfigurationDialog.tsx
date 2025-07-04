@@ -17,6 +17,7 @@ interface AlertConfig {
   severity_threshold: string;
   cooldown_minutes: number;
   email_enabled: boolean;
+  email_address?: string;
   webhook_enabled: boolean;
   webhook_url?: string;
   thresholds: Record<string, number>;
@@ -46,6 +47,7 @@ export const AlertConfigurationDialog = ({
     severity_threshold: config?.severity_threshold || 'medium',
     cooldown_minutes: config?.cooldown_minutes || 60,
     email_enabled: config?.email_enabled ?? true,
+    email_address: config?.email_address || '',
     webhook_enabled: config?.webhook_enabled ?? false,
     webhook_url: config?.webhook_url || '',
     thresholds: config?.thresholds || {
@@ -186,13 +188,28 @@ export const AlertConfigurationDialog = ({
               <CardDescription>Choose how you want to receive alerts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="email_enabled"
-                  checked={formData.email_enabled}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, email_enabled: checked }))}
-                />
-                <Label htmlFor="email_enabled">Email notifications</Label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="email_enabled"
+                    checked={formData.email_enabled}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, email_enabled: checked }))}
+                  />
+                  <Label htmlFor="email_enabled">Email notifications</Label>
+                </div>
+
+                {formData.email_enabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="email_address">Email Address</Label>
+                    <Input
+                      id="email_address"
+                      type="email"
+                      placeholder="your-email@example.com"
+                      value={formData.email_address}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email_address: e.target.value }))}
+                    />
+                  </div>
+                )}
               </div>
 
               <Separator />
