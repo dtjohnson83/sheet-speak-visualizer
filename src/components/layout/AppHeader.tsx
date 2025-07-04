@@ -26,7 +26,7 @@ export const AppHeader = ({ isAdmin, usesRemaining }: AppHeaderProps) => {
           <div className="hidden md:block w-px h-6 bg-border"></div>
           <div className="hidden md:block">
             <p className="text-sm text-muted-foreground">
-              Excel Analysis & Visualization Platform
+              AI-Powered Data Analysis & Visualization Platform
             </p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export const AppHeader = ({ isAdmin, usesRemaining }: AppHeaderProps) => {
           Data Analysis & Visualization
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Upload Excel files, analyze data with AI, create stunning visualizations, and build interactive dashboards
+          Connect multiple data sources, unlock AI-powered insights with predictive analytics, automate data quality monitoring, and create interactive dashboards with rich visualizations
         </p>
       </div>
     </div>
