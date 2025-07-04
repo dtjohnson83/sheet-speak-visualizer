@@ -199,23 +199,23 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
   }, [data, columns]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-green-600 dark:text-green-400';
+    if (score >= 70) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 90) return 'bg-green-100';
-    if (score >= 70) return 'bg-yellow-100';
-    return 'bg-red-100';
+    if (score >= 90) return 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800';
+    if (score >= 70) return 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800';
+    return 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800';
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'high': return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'medium': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'low': return <AlertTriangle className="h-4 w-4 text-blue-500" />;
-      default: return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'high': return <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />;
+      case 'medium': return <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      case 'low': return <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      default: return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
     }
   };
 
@@ -280,7 +280,7 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
           {qualityScore ? (
             <div className="space-y-4">
               {/* Overall Score */}
-              <div className={`p-4 rounded-lg ${getScoreBgColor(qualityScore.overall)}`}>
+              <div className={`p-4 rounded-lg border ${getScoreBgColor(qualityScore.overall)}`}>
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium">Overall Quality Score</span>
                   <span className={`text-2xl font-bold ${getScoreColor(qualityScore.overall)}`}>
@@ -319,7 +319,7 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
           )}
           
           {lastAnalysis && (
-            <div className="text-sm text-gray-500 mt-4">
+            <div className="text-sm text-muted-foreground mt-4">
               Last analyzed: {lastAnalysis.toLocaleString()}
             </div>
           )}
@@ -363,7 +363,7 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
                       <AlertDescription>
                         {issue.description}
                       </AlertDescription>
-                      <div className="text-sm text-gray-500 mt-1">
+                      <div className="text-sm text-muted-foreground mt-1">
                         Affects {issue.affectedRows} rows ({issue.percentage.toFixed(1)}% of data)
                       </div>
                     </div>
@@ -379,13 +379,13 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
       {qualityScore && issues.length === 0 && (
         <Card>
           <CardContent className="py-8">
-            <div className="text-center">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Excellent Data Quality!</h3>
-              <p className="text-gray-600">
-                No significant data quality issues were detected in your dataset.
-              </p>
-            </div>
+          <div className="text-center">
+            <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Excellent Data Quality!</h3>
+            <p className="text-muted-foreground">
+              No significant data quality issues were detected in your dataset.
+            </p>
+          </div>
           </CardContent>
         </Card>
       )}
