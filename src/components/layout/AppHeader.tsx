@@ -11,33 +11,60 @@ interface AppHeaderProps {
 
 export const AppHeader = ({ isAdmin, usesRemaining }: AppHeaderProps) => {
   return (
-    <div className="text-center mb-8 relative">
-      <div className="absolute top-0 right-0 flex items-center gap-2">
-        {isAdmin ? (
-          <Badge variant="secondary" className="text-xs">
-            Admin - Unlimited AI
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="text-xs">
-            {usesRemaining} AI uses left
-          </Badge>
-        )}
-        <FeedbackButton />
-        <UserMenu />
-        <ThemeToggle />
+    <div className="mb-8">
+      {/* Top status bar */}
+      <div className="flex justify-between items-center mb-6 p-4 bg-background/50 backdrop-blur-sm border border-border/50 rounded-lg shadow-sm">
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img 
+              src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
+              alt="Chartuvo Logo" 
+              className="h-8 w-auto"
+            />
+            <span className="font-semibold text-lg">Chartuvo</span>
+          </Link>
+          <div className="hidden md:block w-px h-6 bg-border"></div>
+          <div className="hidden md:block">
+            <p className="text-sm text-muted-foreground">
+              Excel Analysis & Visualization Platform
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {isAdmin ? (
+            <Badge variant="secondary" className="text-xs font-medium">
+              Admin - Unlimited AI
+            </Badge>
+          ) : (
+            <Badge variant={usesRemaining > 10 ? "default" : usesRemaining > 5 ? "secondary" : "destructive"} className="text-xs font-medium">
+              {usesRemaining} AI uses left
+            </Badge>
+          )}
+          <FeedbackButton />
+          <UserMenu />
+          <ThemeToggle />
+        </div>
       </div>
-      <div className="flex justify-center mb-4">
-        <Link to="/">
-          <img 
-            src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
-            alt="Chartuvo Logo" 
-            className="h-16 w-auto md:h-20 lg:h-24 hover:opacity-80 transition-opacity cursor-pointer"
-          />
-        </Link>
+
+      {/* Main header content */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <Link to="/">
+            <img 
+              src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
+              alt="Chartuvo Logo" 
+              className="h-16 w-auto md:h-20 lg:h-24 hover:opacity-80 transition-opacity cursor-pointer"
+            />
+          </Link>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          Data Analysis & Visualization
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Upload Excel files, analyze data with AI, create stunning visualizations, and build interactive dashboards
+        </p>
       </div>
-      <p className="text-lg text-gray-600 dark:text-gray-300">
-        Upload Excel files, visualize data, and build dashboards
-      </p>
     </div>
   );
 };

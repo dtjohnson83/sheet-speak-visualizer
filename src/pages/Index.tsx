@@ -102,22 +102,42 @@ const Index = () => {
           />
 
           {data.length > 0 && (
-            <DataTabsSection
-              data={data}
-              columns={columns}
-              fileName={displayFileName}
-              tiles={tiles}
-              filters={filters}
-              currentDatasetId={currentDatasetId}
-              showContextSetup={showContextSetup}
-              onAddTile={addTile}
-              onRemoveTile={removeTile}
-              onUpdateTile={updateTile}
-              onFiltersChange={setFilters}
-              onLoadDashboard={handleLoadDashboard}
-              onContextReady={handleContextReady}
-              onSkipContext={handleSkipContext}
-            />
+            <>
+              {/* Data Context Status Bar */}
+              <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium">Dataset Active</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {displayFileName} • {data.length.toLocaleString()} rows • {columns.length} columns
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Use Ctrl+1-8 for quick tab navigation</span>
+                  </div>
+                </div>
+              </div>
+
+              <DataTabsSection
+                data={data}
+                columns={columns}
+                fileName={displayFileName}
+                tiles={tiles}
+                filters={filters}
+                currentDatasetId={currentDatasetId}
+                showContextSetup={showContextSetup}
+                onAddTile={addTile}
+                onRemoveTile={removeTile}
+                onUpdateTile={updateTile}
+                onFiltersChange={setFilters}
+                onLoadDashboard={handleLoadDashboard}
+                onContextReady={handleContextReady}
+                onSkipContext={handleSkipContext}
+              />
+            </>
           )}
         </div>
       </div>

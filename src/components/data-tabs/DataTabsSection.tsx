@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataPreview } from '@/components/DataPreview';
@@ -10,6 +11,7 @@ import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentDashboard';
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
 import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
+import { TabNavigationEnhancer } from './TabNavigationEnhancer';
 import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -48,69 +50,102 @@ export const DataTabsSection = ({
   onSkipContext,
 }: DataTabsSectionProps) => {
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState("preview");
+
+  const tabOrder = ["preview", "charts", "dashboard", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
 
   return (
-    <Tabs defaultValue="preview" className="w-full">
-      <TabsList className={`w-full ${
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <TabNavigationEnhancer onTabChange={handleTabChange} tabs={tabOrder} />
+      <TabsList className={`w-full bg-muted/50 p-1 ${
         isMobile 
-          ? 'flex overflow-x-auto justify-start gap-1 p-1' 
-          : 'grid grid-cols-8'
+          ? 'flex overflow-x-auto justify-start gap-1' 
+          : 'grid grid-cols-8 gap-1'
       }`}>
+        {/* Core Data Tools */}
         <TabsTrigger 
           value="preview" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
         >
           <Database className="h-4 w-4" />
           <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Data' : 'Data Preview'}</span>
+          {data.length > 0 && (
+            <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+              {data.length}
+            </span>
+          )}
         </TabsTrigger>
-        <TabsTrigger 
-          value="data-quality" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-        >
-          <Shield className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Quality' : 'Data Quality'}</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="ai-chat" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-        >
-          <Bot className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'AI' : 'AI Chat'}</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="ai-report" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-        >
-          <FileText className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="agents" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-        >
-          <Settings className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Agents' : 'AI Agents'}</span>
-        </TabsTrigger>
+        
         <TabsTrigger 
           value="charts" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
         >
           <BarChart3 className="h-4 w-4" />
           <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Charts' : 'Visualizations'}</span>
         </TabsTrigger>
-        <TabsTrigger 
-          value="predictive" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
-        >
-          <Target className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Predict' : 'Predictive AI'}</span>
-        </TabsTrigger>
+        
         <TabsTrigger 
           value="dashboard" 
-          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+          className={`${isMobile ? 'flex-shrink-0 min-w-[90px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
         >
           <Layout className="h-4 w-4" />
           <span className={isMobile ? 'text-xs' : ''}>Dashboard</span>
+          {tiles.length > 0 && (
+            <span className="ml-1 text-xs bg-blue-500/10 text-blue-600 px-1.5 py-0.5 rounded-full">
+              {tiles.length}
+            </span>
+          )}
+        </TabsTrigger>
+
+        {/* Separator */}
+        <div className={`${isMobile ? 'hidden' : 'flex items-center justify-center'}`}>
+          <div className="w-px h-6 bg-border"></div>
+        </div>
+
+        {/* AI Tools */}
+        <TabsTrigger 
+          value="ai-chat" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[70px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Bot className="h-4 w-4 text-green-600" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'AI' : 'AI Chat'}</span>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="ai-report" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <FileText className="h-4 w-4 text-green-600" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="predictive" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Target className="h-4 w-4 text-green-600" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Predict' : 'Predictive AI'}</span>
+        </TabsTrigger>
+
+        {/* Advanced Tools */}
+        <TabsTrigger 
+          value="data-quality" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Shield className="h-4 w-4 text-orange-600" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Quality' : 'Data Quality'}</span>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="agents" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Settings className="h-4 w-4 text-orange-600" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Agents' : 'AI Agents'}</span>
         </TabsTrigger>
       </TabsList>
       
