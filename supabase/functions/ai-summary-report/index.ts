@@ -27,47 +27,60 @@ interface ReportRequest {
 }
 
 const personaPrompts = {
-  executive: `You are a C-level executive assistant providing strategic insights. Focus on:
-- High-level business implications and trends
-- Key performance indicators and metrics
-- Strategic recommendations for decision-making
-- Executive summary style with actionable insights
-- Risk assessment and opportunities`,
+  executive: `You are a C-level executive assistant providing strategic insights for busy executives. Your response must be:
+- CONCISE and HIGH-LEVEL only (maximum 400 words total)
+- Focus on STRATEGIC IMPLICATIONS and BOTTOM-LINE IMPACT
+- Lead with 3-4 KEY BUSINESS INSIGHTS in bullet points
+- Include only the most CRITICAL metrics and trends
+- Provide ACTIONABLE RECOMMENDATIONS for leadership decisions
+- Avoid technical details, statistical jargon, or granular analysis
+- Use executive language: ROI, market opportunities, competitive advantage, risk mitigation
+STRUCTURE: Executive Summary (2-3 sentences) → Key Business Insights (3-4 bullets) → Strategic Recommendations (2-3 bullets)`,
 
-  marketing: `You are a marketing analyst providing campaign and customer insights. Focus on:
-- Customer segmentation and behavior patterns
-- Marketing performance metrics and conversion rates
-- Audience analysis and targeting opportunities
-- Campaign effectiveness and optimization suggestions
-- Growth and engagement metrics`,
+  marketing: `You are a marketing strategist providing campaign and customer insights. Focus on:
+- Customer segmentation and behavior patterns with actionable targeting strategies
+- Marketing performance metrics: conversion rates, CAC, LTV, funnel analysis
+- Audience analysis with specific demographic and psychographic insights
+- Campaign effectiveness with optimization recommendations
+- Growth opportunities and engagement strategies
+- Competitive positioning and market penetration insights
+STRUCTURE: Customer Insights → Performance Metrics → Growth Opportunities → Actionable Recommendations`,
 
-  finance: `You are a financial analyst providing fiscal insights. Focus on:
-- Revenue trends and financial performance
-- Cost analysis and budget implications
-- Profitability metrics and financial ratios
-- Risk assessment from a financial perspective
-- Investment and resource allocation recommendations`,
+  finance: `You are a CFO advisor providing fiscal insights and financial intelligence. Focus on:
+- Revenue trends, profit margins, and financial performance indicators
+- Cost structure analysis and budget optimization opportunities
+- Cash flow patterns and working capital implications
+- ROI analysis and resource allocation efficiency
+- Financial risks and mitigation strategies
+- Investment recommendations and capital allocation insights
+STRUCTURE: Financial Performance Summary → Cost & Profitability Analysis → Risk Assessment → Investment Recommendations`,
 
-  operations: `You are an operations analyst providing efficiency insights. Focus on:
-- Process efficiency and operational metrics
-- Resource utilization and capacity analysis
-- Quality metrics and performance indicators
-- Bottlenecks and optimization opportunities
-- Workflow and process improvement suggestions`,
+  operations: `You are an operations consultant providing efficiency and process insights. Focus on:
+- Operational efficiency metrics and performance indicators
+- Resource utilization patterns and capacity optimization
+- Process bottlenecks and workflow improvement opportunities
+- Quality metrics and operational excellence indicators
+- Supply chain and logistics optimization potential
+- Scalability assessment and operational recommendations
+STRUCTURE: Efficiency Overview → Resource Utilization → Process Optimization → Scalability Recommendations`,
 
-  data_scientist: `You are a senior data scientist providing technical insights. Focus on:
-- Statistical analysis and data quality assessment
-- Correlation patterns and anomaly detection
-- Predictive modeling opportunities
-- Data preprocessing and cleaning recommendations
-- Advanced analytics and machine learning potential`,
+  data_scientist: `You are a senior data scientist providing technical and statistical insights. Focus on:
+- Statistical analysis: distributions, correlations, statistical significance
+- Data quality assessment: completeness, consistency, outliers, anomalies
+- Pattern recognition and trend analysis with confidence intervals
+- Predictive modeling opportunities and feature engineering potential
+- Advanced analytics recommendations: clustering, forecasting, ML applications
+- Data preprocessing needs and technical recommendations
+STRUCTURE: Statistical Summary → Data Quality Analysis → Pattern Analysis → Predictive Opportunities → Technical Recommendations`,
 
   general: `You are a business intelligence analyst providing comprehensive insights. Focus on:
-- Overall data patterns and trends
-- Key findings and notable observations
-- Data quality and completeness assessment
-- Visualization recommendations
-- General business insights and recommendations`
+- Balanced overview of data patterns and business trends
+- Key performance indicators and notable observations
+- Data quality assessment with business impact
+- Visualization recommendations for stakeholder communication
+- Cross-functional insights relevant to multiple departments
+- Practical business applications and next steps
+STRUCTURE: Overview → Key Findings → Data Quality → Visualization Suggestions → Business Applications`
 };
 
 serve(async (req) => {
@@ -121,10 +134,8 @@ serve(async (req) => {
     // Get persona-specific prompt
     const personaPrompt = personaPrompts[persona as keyof typeof personaPrompts] || personaPrompts.general;
 
-    // Create comprehensive system prompt
-    const systemPrompt = `${personaPrompt}
-
-You are analyzing a dataset with the following characteristics:
+    // Create persona-specific system prompt with tailored structure
+    const basePrompt = `You are analyzing a dataset with the following characteristics:
 - Dataset: ${dataContext.fileName || 'Uploaded Data'}
 - Total rows: ${totalRows.toLocaleString()}
 - Total columns: ${totalColumns}
@@ -132,7 +143,26 @@ You are analyzing a dataset with the following characteristics:
 - Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 2))}
 
 Data Completeness Summary:
-${dataCompleteness.map(dc => `- ${dc.column}: ${dc.completeness}% complete`).join('\n')}
+${dataCompleteness.map(dc => `- ${dc.column}: ${dc.completeness}% complete`).join('\n')}`;
+
+    let systemPrompt = '';
+    
+    if (persona === 'executive') {
+      systemPrompt = `${personaPrompt}
+
+${basePrompt}
+
+Generate a brief executive report focusing on strategic business implications. Keep it under 400 words and focus on actionable insights for leadership.`;
+    } else if (persona === 'data_scientist') {
+      systemPrompt = `${personaPrompt}
+
+${basePrompt}
+
+Provide a detailed technical analysis including statistical insights, data quality assessment, and advanced analytics recommendations. Include specific metrics and technical details.`;
+    } else {
+      systemPrompt = `${personaPrompt}
+
+${basePrompt}
 
 Please provide a comprehensive analysis report with the following structure:
 
@@ -164,7 +194,8 @@ Brief overview of the dataset and key insights (2-3 sentences)
 - Suggested follow-up questions or investigations
 - Potential business applications
 
-Keep the report concise but comprehensive, using bullet points and clear sections. Focus on actionable insights rather than technical jargon.`;
+Keep the report concise but comprehensive, using bullet points and clear sections. Focus on actionable insights.`;
+    }
 
     const userPrompt = `Please analyze this dataset and provide a comprehensive report based on the data characteristics provided above.`;
 
