@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,13 @@ export const FreshnessCheck = ({ data, columns }: FreshnessCheckProps) => {
   const [score, setScore] = useState<number | null>(null);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [thresholdDays, setThresholdDays] = useState(30);
+
+  // Auto-run the check when component mounts or data changes
+  useEffect(() => {
+    if (data.length > 0 && columns.length > 0) {
+      runFreshnessCheck();
+    }
+  }, [data, columns]);
 
   const runFreshnessCheck = () => {
     const freshnessIssues: FreshnessIssue[] = [];
