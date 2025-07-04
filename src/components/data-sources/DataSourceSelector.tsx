@@ -157,31 +157,6 @@ export const DataSourceSelector = ({ onSelect, selectedType }: DataSourceSelecto
         </div>
       )}
 
-      {comingSoonOptions.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-muted-foreground">Coming Soon</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {comingSoonOptions.map((option) => (
-              <Card key={option.type} className="opacity-60">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {option.icon}
-                      <CardTitle className="text-base">{option.name}</CardTitle>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      Coming Soon
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{option.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
