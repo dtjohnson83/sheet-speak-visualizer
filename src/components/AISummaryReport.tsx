@@ -10,7 +10,7 @@ import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, 
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
-import { exportAIReportToPDF } from '@/utils/pdfExport';
+import { exportAIReportToPDF } from '@/utils/pdf';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
 

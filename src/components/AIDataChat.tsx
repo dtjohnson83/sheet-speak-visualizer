@@ -12,7 +12,7 @@ import { Send, Bot, User, Sparkles, BarChart3, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContext';
-import { exportAIChatToPDF } from '@/utils/pdfExport';
+import { exportAIChatToPDF } from '@/utils/pdf';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { AIResponseDisclaimer } from '@/components/transparency/AIResponseDisclaimer';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
