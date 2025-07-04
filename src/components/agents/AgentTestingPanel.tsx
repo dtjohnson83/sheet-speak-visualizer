@@ -163,11 +163,17 @@ export const AgentTestingPanel = () => {
                   <SelectValue placeholder="Select agent" />
                 </SelectTrigger>
                 <SelectContent>
-                  {activeAgents.map(agent => (
+                  {agents.map(agent => (
                     <SelectItem key={agent.id} value={agent.id}>
                       <div className="flex items-center gap-2">
                         <span>{agent.name}</span>
-                        <Badge variant="secondary" className="bg-success text-xs">
+                        <Badge 
+                          variant={agent.status === 'active' ? 'default' : 'secondary'} 
+                          className={`text-xs ${
+                            agent.status === 'active' ? 'bg-success' : 
+                            agent.status === 'paused' ? 'bg-warning' : 'bg-muted'
+                          }`}
+                        >
                           {agent.status}
                         </Badge>
                       </div>
