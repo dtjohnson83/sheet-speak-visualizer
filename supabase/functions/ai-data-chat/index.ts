@@ -27,13 +27,85 @@ interface DataContext {
   totalRows: number;
 }
 
+interface RequestBody {
+  messages: ChatMessage[];
+  dataContext: DataContext;
+  toneId?: string;
+}
+
+// Tone definitions
+const TONE_MODIFIERS: Record<string, string> = {
+  'direct-efficient': `
+Tone: Direct & Efficient
+- Be concise and to the point
+- Skip pleasantries and get straight to the answer
+- Assume user competence and technical understanding
+- Use bullet points and clear action items
+- Avoid verbose explanations unless specifically requested
+- Focus on actionable insights and next steps`,
+  
+  'professional-formal': `
+Tone: Professional & Formal
+- Use formal language and complete sentences
+- Avoid contractions (use "do not" instead of "don't")
+- Maintain respectful and professional tone
+- Use industry-appropriate terminology
+- Provide thorough and precise explanations
+- Structure responses clearly with proper formatting`,
+  
+  'conversational-friendly': `
+Tone: Conversational & Friendly
+- Use warm and approachable language
+- Feel free to use contractions ("you're", "don't", "we'll")
+- Be personable and engaging
+- Show enthusiasm for helping
+- Use casual but professional language
+- Make complex topics feel accessible`,
+  
+  'consultative-expert': `
+Tone: Consultative & Expert
+- Speak with authority and expertise
+- Use sophisticated business terminology
+- Provide strategic context and implications
+- Offer expert recommendations and insights
+- Consider broader business impact
+- Frame responses from a consultative perspective`,
+  
+  'supportive-educational': `
+Tone: Supportive & Educational
+- Be encouraging and patient
+- Explain concepts clearly with examples
+- Acknowledge user progress and achievements
+- Break down complex topics into digestible steps
+- Offer positive reinforcement
+- Focus on learning and growth`,
+  
+  'urgent-alert': `
+Tone: Urgent & Alert-Focused
+- Communicate with appropriate urgency
+- Prioritize critical information first
+- Use clear, immediate language
+- Focus on immediate actions required
+- Highlight important alerts and warnings
+- Be direct about risks and time-sensitive issues`,
+  
+  'analytical-neutral': `
+Tone: Analytical & Neutral
+- Maintain objectivity and neutrality
+- Focus strictly on facts and data
+- Avoid subjective opinions or interpretations
+- Use precise, scientific language
+- Present information without bias
+- Emphasize statistical significance and data quality`
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, dataContext }: { messages: ChatMessage[], dataContext: DataContext } = await req.json();
+    const { messages, dataContext, toneId = 'direct-efficient' }: RequestBody = await req.json();
 
     // Determine which API to use based on available keys
     let apiUrl = '';
@@ -110,7 +182,11 @@ ANALYSIS GUIDELINES:
 - Apply domain knowledge for ${ctx.industry} industry`;
     }
 
+    // Add tone modifier to system prompt
+    const toneModifier = TONE_MODIFIERS[toneId] || TONE_MODIFIERS['direct-efficient'];
     systemPrompt += `
+
+${toneModifier}
 
 Your capabilities:
 1. Analyze data patterns and provide business-relevant insights

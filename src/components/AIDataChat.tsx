@@ -16,6 +16,7 @@ import { exportAIChatToPDF } from '@/utils/pdfExport';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { AIResponseDisclaimer } from '@/components/transparency/AIResponseDisclaimer';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
+import { ChatbotToneSelector } from '@/components/ai-chat/ChatbotToneSelector';
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
   const [isLoading, setIsLoading] = useState(false);
   const [filteredData, setFilteredData] = useState<DataRow[]>(data);
   const [filterSummary, setFilterSummary] = useState<string>(`All ${data.length.toLocaleString()} rows`);
+  const [selectedToneId, setSelectedToneId] = useState('direct-efficient');
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
   const { isAdmin } = useUserRole();
@@ -126,7 +128,8 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
       const { data: response, error } = await supabase.functions.invoke('ai-data-chat', {
         body: {
           messages: chatMessages,
-          dataContext
+          dataContext,
+          toneId: selectedToneId
         }
       });
 
@@ -226,6 +229,10 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
             )}
           </h3>
           <div className="flex items-center gap-2">
+            <ChatbotToneSelector 
+              selectedToneId={selectedToneId}
+              onToneChange={setSelectedToneId}
+            />
             {messages.length > 1 && (
               <Button
                 onClick={handleExportToPDF}
