@@ -9,7 +9,8 @@ import { AISummaryReport } from '@/components/AISummaryReport';
 import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentDashboard';
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
-import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield } from 'lucide-react';
+import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
+import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -53,7 +54,7 @@ export const DataTabsSection = ({
       <TabsList className={`w-full ${
         isMobile 
           ? 'flex overflow-x-auto justify-start gap-1 p-1' 
-          : 'grid grid-cols-7'
+          : 'grid grid-cols-8'
       }`}>
         <TabsTrigger 
           value="preview" 
@@ -96,6 +97,13 @@ export const DataTabsSection = ({
         >
           <BarChart3 className="h-4 w-4" />
           <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Charts' : 'Visualizations'}</span>
+        </TabsTrigger>
+        <TabsTrigger 
+          value="predictive" 
+          className={`${isMobile ? 'flex-shrink-0' : ''} flex items-center gap-2`}
+        >
+          <Target className="h-4 w-4" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Predict' : 'Predictive AI'}</span>
         </TabsTrigger>
         <TabsTrigger 
           value="dashboard" 
@@ -166,6 +174,13 @@ export const DataTabsSection = ({
             onSaveTile={onAddTile}
           />
         </Card>
+      </TabsContent>
+      
+      <TabsContent value="predictive" className="space-y-4">
+        <PredictiveAnalyticsDashboard 
+          data={data} 
+          columns={columns}
+        />
       </TabsContent>
       
       <TabsContent value="dashboard" className="space-y-4">
