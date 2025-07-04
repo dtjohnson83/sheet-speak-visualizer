@@ -33,7 +33,9 @@ export const QualityReport = ({ data, columns, fileName }: QualityReportProps) =
   const lowPriorityIssues = issues.filter(issue => issue.severity === 'low');
 
 
-  const downloadReport = () => {
+  const downloadReport = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsGenerating(true);
     
     const reportContent = `
@@ -112,6 +114,7 @@ NEXT STEPS
               </CardDescription>
             </div>
             <Button 
+              type="button"
               variant="outline" 
               onClick={downloadReport}
               disabled={isGenerating}
