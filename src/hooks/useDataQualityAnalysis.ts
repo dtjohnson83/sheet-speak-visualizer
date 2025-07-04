@@ -2,12 +2,24 @@ import { useState, useCallback } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { DataQualityIssue, DataQualityScore, DataQualityReport } from '@/components/agents/data-quality/types';
 
+interface QualityTrend {
+  date: string;
+  overall: number;
+  completeness: number;
+  consistency: number;
+  accuracy: number;
+  uniqueness: number;
+  timeliness: number;
+  issues: number;
+}
+
 export const useDataQualityAnalysis = (data: DataRow[], columns: ColumnInfo[]) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [qualityScore, setQualityScore] = useState<DataQualityScore | null>(null);
   const [issues, setIssues] = useState<DataQualityIssue[]>([]);
   const [lastAnalysis, setLastAnalysis] = useState<Date | null>(null);
+  const [qualityTrends, setQualityTrends] = useState<QualityTrend[]>([]);
   const [autoFixSuggestions, setAutoFixSuggestions] = useState<Array<{
     issueIndex: number;
     fixType: 'remove_duplicates' | 'fill_missing' | 'standardize_format';
@@ -239,6 +251,24 @@ export const useDataQualityAnalysis = (data: DataRow[], columns: ColumnInfo[]) =
       setLastAnalysis(new Date());
       setAnalysisProgress(100); // Complete
       
+      // Update quality trends
+      const newTrend: QualityTrend = {
+        date: new Date().toISOString(),
+        overall: overallScore,
+        completeness: avgCompleteness,
+        consistency: avgConsistency,
+        accuracy: avgAccuracy,
+        uniqueness: avgUniqueness,
+        timeliness: avgTimeliness,
+        issues: sortedIssues.length
+      };
+      
+      setQualityTrends(prev => {
+        const updated = [...prev, newTrend];
+        // Keep only last 30 days of trends
+        return updated.slice(-30);
+      });
+      
       // Generate report for parent component
       if (onReportGenerated) {
         onReportGenerated({
@@ -271,6 +301,7 @@ export const useDataQualityAnalysis = (data: DataRow[], columns: ColumnInfo[]) =
     qualityScore,
     issues,
     lastAnalysis,
+    qualityTrends,
     autoFixSuggestions,
     analyzeDataQuality
   };

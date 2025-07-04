@@ -1,10 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useDataQualityAnalysis } from '@/hooks/useDataQualityAnalysis';
 import { QualityScoreCard } from './data-quality/QualityScoreCard';
 import { QualityIssuesList } from './data-quality/QualityIssuesList';
 import { QualityEmptyState } from './data-quality/QualityEmptyState';
-import { DataQualityReport } from './data-quality/types';
+import { QualityTrendsChart } from './data-quality/QualityTrendsChart';
+import { QualityHeatmap } from './data-quality/QualityHeatmap';
+import { DataQualityReport, DataQualityScore } from './data-quality/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DataQualityMonitorProps {
   data: DataRow[];
@@ -13,12 +16,15 @@ interface DataQualityMonitorProps {
 }
 
 export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQualityMonitorProps) => {
+  const [selectedTrendMetric, setSelectedTrendMetric] = useState<keyof DataQualityScore>('overall');
+  
   const {
     isAnalyzing,
     analysisProgress,
     qualityScore,
     issues,
     lastAnalysis,
+    qualityTrends,
     autoFixSuggestions,
     analyzeDataQuality
   } = useDataQualityAnalysis(data, columns);
@@ -38,22 +44,49 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
       <QualityEmptyState hasData={data.length > 0} hasIssues={issues.length > 0} />
       
       {data.length > 0 && (
-        <>
-          <QualityScoreCard 
-            qualityScore={qualityScore}
-            isAnalyzing={isAnalyzing}
-            analysisProgress={analysisProgress}
-            lastAnalysis={lastAnalysis}
-            autoFixSuggestions={autoFixSuggestions}
-            onRefresh={handleRefresh}
-          />
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="heatmap">Issues Heatmap</TabsTrigger>
+            <TabsTrigger value="trends">Quality Trends</TabsTrigger>
+            <TabsTrigger value="details">Issue Details</TabsTrigger>
+          </TabsList>
           
-          <QualityIssuesList issues={issues} />
+          <TabsContent value="overview" className="space-y-6">
+            <QualityScoreCard 
+              qualityScore={qualityScore}
+              isAnalyzing={isAnalyzing}
+              analysisProgress={analysisProgress}
+              lastAnalysis={lastAnalysis}
+              autoFixSuggestions={autoFixSuggestions}
+              onRefresh={handleRefresh}
+            />
+            
+            {qualityScore && issues.length === 0 && (
+              <QualityEmptyState hasData={true} hasIssues={false} />
+            )}
+          </TabsContent>
           
-          {qualityScore && issues.length === 0 && (
-            <QualityEmptyState hasData={true} hasIssues={false} />
-          )}
-        </>
+          <TabsContent value="heatmap" className="space-y-6">
+            <QualityHeatmap columns={columns} issues={issues} />
+          </TabsContent>
+          
+          <TabsContent value="trends" className="space-y-6">
+            <QualityTrendsChart
+              trends={qualityTrends}
+              selectedMetric={selectedTrendMetric}
+              onMetricSelect={setSelectedTrendMetric}
+            />
+          </TabsContent>
+          
+          <TabsContent value="details" className="space-y-6">
+            <QualityIssuesList issues={issues} />
+            
+            {qualityScore && issues.length === 0 && (
+              <QualityEmptyState hasData={true} hasIssues={false} />
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
