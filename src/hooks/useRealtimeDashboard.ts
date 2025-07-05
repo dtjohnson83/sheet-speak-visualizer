@@ -12,7 +12,7 @@ export interface RealtimeDashboardConfig {
 
 export const useRealtimeDashboard = () => {
   const { tiles, addTile, removeTile, updateTile, filters, setFilters } = useDashboard();
-  const { sources, latestUpdates, isConnected } = useRealtimeData();
+  const { sources, latestUpdates, isSupabaseConnected } = useRealtimeData();
   const [config, setConfig] = useState<RealtimeDashboardConfig>({
     autoRefresh: true,
     refreshInterval: 30000,
@@ -102,7 +102,7 @@ export const useRealtimeDashboard = () => {
     // Real-time configuration
     config,
     updateConfig,
-    isConnected,
+    isConnected: isSupabaseConnected,
     
     // Data source management
     availableSources: sources,

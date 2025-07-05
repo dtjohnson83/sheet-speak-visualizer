@@ -16,7 +16,7 @@ interface RealtimeDataConfigProps {
 }
 
 export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfigProps = {}) => {
-  const { sources, isConnected, addRealtimeSource, removeRealtimeSource, latestUpdates } = useRealtimeData();
+  const { sources, isSupabaseConnected, addRealtimeSource, removeRealtimeSource, latestUpdates, testConnection } = useRealtimeData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sourceType, setSourceType] = useState<'external_api' | 'websocket'>('external_api');
   const [sourceName, setSourceName] = useState('');
@@ -65,10 +65,10 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Real-time Data Sources</h3>
           <div className="flex items-center gap-1">
-            {isConnected ? (
-              <><Wifi className="h-4 w-4 text-green-500" /><Badge variant="secondary">Connected</Badge></>
+            {isSupabaseConnected ? (
+              <><Wifi className="h-4 w-4 text-green-500" /><Badge variant="secondary">Supabase Connected</Badge></>
             ) : (
-              <><WifiOff className="h-4 w-4 text-red-500" /><Badge variant="destructive">Disconnected</Badge></>
+              <><WifiOff className="h-4 w-4 text-red-500" /><Badge variant="destructive">Supabase Disconnected</Badge></>
             )}
           </div>
         </div>
@@ -203,6 +203,15 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{source.name}</CardTitle>
                 <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => testConnection(source.id)}
+                    disabled={source.connectionStatus === 'testing'}
+                    className="h-8 px-2"
+                  >
+                    {source.connectionStatus === 'testing' ? 'Testing...' : 'Test'}
+                  </Button>
                   {latestUpdates[source.id] && onUseForVisualization && (
                     <Button
                       variant="default"
@@ -239,6 +248,22 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                       {source.refreshInterval / 1000}s
                     </Badge>
                   )}
+                  <Badge 
+                    variant={
+                      source.connectionStatus === 'connected' ? 'default' :
+                      source.connectionStatus === 'testing' ? 'secondary' :
+                      source.connectionStatus === 'error' ? 'destructive' : 'outline'
+                    }
+                    className={
+                      source.connectionStatus === 'connected' ? 'bg-green-500' :
+                      source.connectionStatus === 'testing' ? 'bg-blue-500' : ''
+                    }
+                  >
+                    {source.connectionStatus === 'connected' && 'Connected'}
+                    {source.connectionStatus === 'testing' && 'Testing...'}
+                    {source.connectionStatus === 'error' && 'Error'}
+                    {source.connectionStatus === 'disconnected' && 'Not Tested'}
+                  </Badge>
                   {latestUpdates[source.id] && (
                     <Badge variant="default" className="bg-green-500">
                       Data Available
@@ -248,6 +273,11 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                 <p className="text-xs text-gray-500 truncate">
                   {source.config.url}
                 </p>
+                {source.errorMessage && (
+                  <p className="text-xs text-destructive mt-1">
+                    {source.errorMessage}
+                  </p>
+                )}
                 {latestUpdates[source.id] && (
                   <p className="text-xs text-gray-400 mt-1">
                     Last updated: {latestUpdates[source.id].timestamp.toLocaleTimeString()}
@@ -256,6 +286,11 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                         • {latestUpdates[source.id].data.length} records
                       </span>
                     )}
+                  </p>
+                )}
+                {source.lastUpdated && !latestUpdates[source.id] && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Last attempt: {source.lastUpdated.toLocaleTimeString()}
                   </p>
                 )}
               </CardContent>

@@ -10,6 +10,8 @@ export interface RealtimeDataSource {
   config: any;
   refreshInterval?: number; // in milliseconds
   lastUpdated?: Date;
+  connectionStatus: 'connected' | 'disconnected' | 'testing' | 'error';
+  errorMessage?: string;
 }
 
 export interface RealtimeDataUpdate {
@@ -19,13 +21,39 @@ export interface RealtimeDataUpdate {
   timestamp: Date;
 }
 
+const STORAGE_KEY = 'lovable-realtime-sources';
+
 export const useRealtimeData = () => {
   const [sources, setSources] = useState<RealtimeDataSource[]>([]);
   const [activeConnections, setActiveConnections] = useState<Map<string, any>>(new Map());
   const [latestUpdates, setLatestUpdates] = useState<Map<string, RealtimeDataUpdate>>(new Map());
-  const [isConnected, setIsConnected] = useState(false);
+  const [isSupabaseConnected, setIsSupabaseConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const intervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Load sources from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsedSources = JSON.parse(stored).map((source: any) => ({
+          ...source,
+          connectionStatus: 'disconnected' as const,
+          lastUpdated: source.lastUpdated ? new Date(source.lastUpdated) : undefined
+        }));
+        setSources(parsedSources);
+      } catch (error) {
+        console.error('Failed to load stored realtime sources:', error);
+      }
+    }
+  }, []);
+
+  // Save sources to localStorage whenever sources change
+  useEffect(() => {
+    if (sources.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sources));
+    }
+  }, [sources]);
 
   // Subscribe to dataset changes in Supabase
   useEffect(() => {
@@ -71,7 +99,7 @@ export const useRealtimeData = () => {
       )
       .subscribe((status) => {
         console.log('Realtime connection status:', status);
-        setIsConnected(status === 'SUBSCRIBED');
+        setIsSupabaseConnected(status === 'SUBSCRIBED');
       });
 
     channelRef.current = channel;
@@ -82,17 +110,64 @@ export const useRealtimeData = () => {
     };
   }, []);
 
+  // Test connection to an API source
+  const testConnection = useCallback(async (sourceId: string): Promise<boolean> => {
+    const source = sources.find(s => s.id === sourceId);
+    if (!source) return false;
+
+    // Update status to testing
+    setSources(prev => prev.map(s => 
+      s.id === sourceId 
+        ? { ...s, connectionStatus: 'testing', errorMessage: undefined }
+        : s
+    ));
+
+    try {
+      const response = await fetch(source.config.url, {
+        method: source.config.method || 'GET',
+        headers: source.config.headers || {},
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+
+      const success = response.ok;
+      
+      setSources(prev => prev.map(s => 
+        s.id === sourceId 
+          ? { 
+              ...s, 
+              connectionStatus: success ? 'connected' : 'error',
+              errorMessage: success ? undefined : `HTTP ${response.status}: ${response.statusText}`
+            }
+          : s
+      ));
+
+      return success;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
+      setSources(prev => prev.map(s => 
+        s.id === sourceId 
+          ? { ...s, connectionStatus: 'error', errorMessage }
+          : s
+      ));
+      return false;
+    }
+  }, [sources]);
+
   // Add a new realtime data source
-  const addRealtimeSource = useCallback((source: Omit<RealtimeDataSource, 'id'>) => {
+  const addRealtimeSource = useCallback(async (source: Omit<RealtimeDataSource, 'id' | 'connectionStatus'>) => {
     const newSource: RealtimeDataSource = {
       ...source,
-      id: Math.random().toString(36).substr(2, 9)
+      id: Math.random().toString(36).substr(2, 9),
+      connectionStatus: 'testing'
     };
 
     setSources(prev => [...prev, newSource]);
 
-    // Set up polling for external APIs
-    if (source.type === 'external_api' && source.refreshInterval) {
+    // Test connection immediately
+    const connectionSuccessful = await testConnection(newSource.id);
+
+    // Set up polling for external APIs only if connection was successful  
+    if (source.type === 'external_api' && source.refreshInterval && connectionSuccessful) {
       const interval = setInterval(async () => {
         try {
           // Fetch data from external API
@@ -110,9 +185,21 @@ export const useRealtimeData = () => {
             };
             
             setLatestUpdates(prev => new Map(prev.set(newSource.id, update)));
+            
+            // Update last updated time
+            setSources(prev => prev.map(s => 
+              s.id === newSource.id 
+                ? { ...s, lastUpdated: new Date(), connectionStatus: 'connected' }
+                : s
+            ));
           }
         } catch (error) {
           console.error('Failed to fetch realtime data:', error);
+          setSources(prev => prev.map(s => 
+            s.id === newSource.id 
+              ? { ...s, connectionStatus: 'error', errorMessage: 'Fetch failed' }
+              : s
+          ));
         }
       }, source.refreshInterval);
 
@@ -150,7 +237,7 @@ export const useRealtimeData = () => {
     }
 
     return newSource.id;
-  }, []);
+  }, [testConnection]);
 
   // Remove a realtime data source
   const removeRealtimeSource = useCallback((sourceId: string) => {
@@ -205,10 +292,11 @@ export const useRealtimeData = () => {
 
   return {
     sources,
-    isConnected,
+    isSupabaseConnected,
     latestUpdates: Object.fromEntries(latestUpdates),
     addRealtimeSource,
     removeRealtimeSource,
-    getLatestData
+    getLatestData,
+    testConnection
   };
 };
