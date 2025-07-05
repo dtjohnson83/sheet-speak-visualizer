@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
@@ -166,22 +167,22 @@ export const DataTabsSection = ({
           const isExpanded = expandedTiers[tierKey as keyof typeof expandedTiers];
           const progress = getTierProgress(tierKey);
           const progressIcon = progress === 'complete' ? CheckCircle2 : progress === 'active' ? ArrowRight : ChevronRight;
-          const progressColor = progress === 'complete' ? 'text-green-600' : progress === 'active' ? 'text-blue-600' : 'text-muted-foreground';
+          const progressColor = progress === 'complete' ? 'text-green-600 dark:text-green-400' : progress === 'active' ? 'text-primary' : 'text-muted-foreground';
           
           return (
             <Collapsible key={tierKey} open={isExpanded} onOpenChange={() => toggleTier(tierKey)}>
               <CollapsibleTrigger className="w-full">
                 <Card className={`p-4 hover:shadow-md transition-all duration-200 ${
-                  progress === 'active' ? 'ring-2 ring-blue-200 bg-blue-50/50' :
-                  progress === 'complete' ? 'ring-2 ring-green-200 bg-green-50/50' : ''
+                  progress === 'active' ? 'ring-2 ring-primary/30 bg-accent/50' :
+                  progress === 'complete' ? 'ring-2 ring-green-500/30 bg-green-500/10 dark:bg-green-500/5' : ''
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${
-                        tier.color === 'blue' ? 'bg-blue-100 text-blue-600' :
-                        tier.color === 'green' ? 'bg-green-100 text-green-600' :
-                        tier.color === 'purple' ? 'bg-purple-100 text-purple-600' :
-                        'bg-orange-100 text-orange-600'
+                        tier.color === 'blue' ? 'bg-primary/10 text-primary' :
+                        tier.color === 'green' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
+                        tier.color === 'purple' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' :
+                        'bg-orange-500/10 text-orange-600 dark:text-orange-400'
                       }`}>
                         <tier.icon className="h-5 w-5" />
                       </div>
@@ -208,25 +209,22 @@ export const DataTabsSection = ({
                   <div className={`grid gap-2 ${
                     isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
                   }`}>
-                    {tier.tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleTabChange(tab.id)}
-                        className={`w-full justify-start p-3 h-auto flex items-center gap-3 transition-all rounded-md ${
-                          activeTab === tab.id 
-                            ? 'bg-background shadow-sm ring-2 ring-primary text-foreground' 
-                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        <tab.icon className="h-4 w-4" />
-                        <span className="font-medium">{tab.label}</span>
-                        {tab.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs">
-                            {tab.badge}
-                          </Badge>
-                        )}
-                      </button>
-                    ))}
+                     {tier.tabs.map((tab) => (
+                       <Button
+                         key={tab.id}
+                         variant={activeTab === tab.id ? "default" : "ghost"}
+                         onClick={() => handleTabChange(tab.id)}
+                         className="w-full justify-start p-3 h-auto flex items-center gap-3"
+                       >
+                         <tab.icon className="h-4 w-4" />
+                         <span className="font-medium">{tab.label}</span>
+                         {tab.badge && (
+                           <Badge variant="secondary" className="ml-auto text-xs">
+                             {tab.badge}
+                           </Badge>
+                         )}
+                       </Button>
+                     ))}
                   </div>
                 </div>
               </CollapsibleContent>
@@ -238,17 +236,17 @@ export const DataTabsSection = ({
         <Card className="p-4 bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${hasData ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <div className={`h-3 w-3 rounded-full ${hasData ? 'bg-green-500 dark:bg-green-400' : 'bg-muted-foreground/30'}`} />
               <span className="text-sm font-medium">Data Connected</span>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${hasCharts ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <div className={`h-3 w-3 rounded-full ${hasCharts ? 'bg-green-500 dark:bg-green-400' : 'bg-muted-foreground/30'}`} />
               <span className="text-sm font-medium">Charts Created</span>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${hasAIContext ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <div className={`h-3 w-3 rounded-full ${hasAIContext ? 'bg-green-500 dark:bg-green-400' : 'bg-muted-foreground/30'}`} />
               <span className="text-sm font-medium">AI Ready</span>
             </div>
           </div>
@@ -343,7 +341,7 @@ export const DataTabsSection = ({
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="text-lg font-semibold">Dashboard</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {tiles.length === 0 
                   ? "Save visualizations as tiles to build your dashboard" 
                   : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard`
