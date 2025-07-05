@@ -37,6 +37,7 @@ export interface DataTabsSectionProps {
   onDataSourceSelect: (type: string) => void;
   onDataSourceDialogChange: (open: boolean) => void;
   onDataLoaded: (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => void;
+  onAIUsed?: () => void;
 }
 
 export type ProgressStatus = 'complete' | 'active' | 'pending';

@@ -3,11 +3,14 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useSessionMonitor } from '@/hooks/useSessionMonitor';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useDataManagement } from '@/hooks/useDataManagement';
+import { useTutorialProgress } from '@/hooks/useTutorialProgress';
 import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
 import { RealtimeDashboardControls } from '@/components/realtime/RealtimeDashboardControls';
 import { ActiveSourceIndicator } from '@/components/realtime/ActiveSourceIndicator';
+import { TutorialOverlay } from '@/components/onboarding/TutorialOverlay';
+import { GettingStartedChecklist } from '@/components/onboarding/GettingStartedChecklist';
 import { useRealtimeData } from '@/contexts/RealtimeDataContext';
 
 export interface DataRow {
@@ -45,6 +48,20 @@ const Index = () => {
   const { tiles, addTile, removeTile, updateTile, filters, setFilters, enableRealtime, disableRealtime, realtimeEnabled } = useDashboard();
   const { isAdmin, usesRemaining } = useUsageTracking();
   const { getLatestData, sources } = useRealtimeData();
+  
+  // Tutorial progress tracking
+  const {
+    shouldShowTutorial,
+    shouldShowChecklist,
+    markTutorialSeen,
+    markTutorialCompleted,
+    markDataUploaded,
+    markChartCreated,
+    markDashboardBuilt,
+    markAIUsed,
+    setActiveTab,
+    progress
+  } = useTutorialProgress();
   
   // Initialize session monitoring
   useSessionMonitor();
@@ -103,12 +120,50 @@ const Index = () => {
     }
   };
 
+  // Enhanced data loading handler with tutorial progress tracking
+  const handleEnhancedDataLoaded = (loadedData: any[], loadedColumns: any[], fileName: string, source?: string) => {
+    handleDataLoaded(loadedData, loadedColumns, fileName, source);
+    if (loadedData.length > 0) {
+      markDataUploaded();
+    }
+  };
+
+  // Enhanced tile addition with tutorial progress tracking
+  const handleEnhancedAddTile = (tileData: any) => {
+    addTile(tileData);
+    markChartCreated();
+    if (tiles.length === 0) { // First tile being added
+      markDashboardBuilt();
+    }
+  };
+
+  // Handle tutorial actions
+  const handleTutorialActionClick = (targetTab: string) => {
+    setActiveTab(targetTab);
+    // Scroll to tabs section
+    const tabsSection = document.querySelector('[data-tabs-section]');
+    if (tabsSection) {
+      tabsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-7xl mx-auto">
         <AppHeader isAdmin={isAdmin} usesRemaining={usesRemaining} />
 
         <div className="space-y-6">
+          {/* Getting Started Checklist */}
+          {shouldShowChecklist && (
+            <GettingStartedChecklist
+              hasData={data.length > 0}
+              hasCharts={tiles.length > 0}
+              hasDashboard={tiles.length > 0}
+              hasUsedAI={progress.hasUsedAI}
+              onActionClick={handleTutorialActionClick}
+            />
+          )}
+
           {/* Active Source Indicator - shows when using real-time data */}
           <ActiveSourceIndicator 
             currentDatasetName={displayFileName}
@@ -145,30 +200,40 @@ const Index = () => {
           )}
 
           {/* Always show DataTabsSection - users can access all features */}
-          <DataTabsSection
-            data={data}
-            columns={columns}
-            fileName={displayFileName}
-            tiles={tiles}
-            filters={filters}
-            currentDatasetId={currentDatasetId}
-            showContextSetup={showContextSetup}
-            selectedDataSource={selectedDataSource}
-            showDataSourceDialog={showDataSourceDialog}
-            onAddTile={addTile}
-            onRemoveTile={removeTile}
-            onUpdateTile={updateTile}
-            onFiltersChange={setFilters}
-            onLoadDashboard={handleLoadDashboard}
-            onContextReady={handleContextReady}
-            onSkipContext={handleSkipContext}
-            onColumnTypeChange={handleColumnTypeChange}
-            onDataSourceSelect={setSelectedDataSource}
-            onDataSourceDialogChange={setShowDataSourceDialog}
-            onDataLoaded={handleDataLoaded}
-          />
+          <div data-tabs-section>
+            <DataTabsSection
+              data={data}
+              columns={columns}
+              fileName={displayFileName}
+              tiles={tiles}
+              filters={filters}
+              currentDatasetId={currentDatasetId}
+              showContextSetup={showContextSetup}
+              selectedDataSource={selectedDataSource}
+              showDataSourceDialog={showDataSourceDialog}
+              onAddTile={handleEnhancedAddTile}
+              onRemoveTile={removeTile}
+              onUpdateTile={updateTile}
+              onFiltersChange={setFilters}
+              onLoadDashboard={handleLoadDashboard}
+              onContextReady={handleContextReady}
+              onSkipContext={handleSkipContext}
+              onColumnTypeChange={handleColumnTypeChange}
+              onDataSourceSelect={setSelectedDataSource}
+              onDataSourceDialogChange={setShowDataSourceDialog}
+              onDataLoaded={handleEnhancedDataLoaded}
+              onAIUsed={markAIUsed}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay
+        isOpen={shouldShowTutorial}
+        onClose={markTutorialSeen}
+        onComplete={markTutorialCompleted}
+      />
     </div>
   );
 };

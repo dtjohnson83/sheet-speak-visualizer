@@ -39,6 +39,7 @@ export const DataTabsSection = ({
   onDataSourceSelect,
   onDataSourceDialogChange,
   onDataLoaded,
+  onAIUsed,
 }: DataTabsSectionProps) => {
   const [activeTab, setActiveTab] = useState("data-sources");
   
@@ -134,7 +135,7 @@ export const DataTabsSection = ({
             onSkip={onSkipContext}
           />
         ) : (
-          <Card className="p-6">
+          <Card className="p-6" onClick={onAIUsed}>
             <AIDataChat 
               data={data} 
               columns={columns}
@@ -145,19 +146,23 @@ export const DataTabsSection = ({
       </TabsContent>
       
       <TabsContent value="ai-report" className="space-y-4">
-        <AISummaryReport 
-          data={data} 
-          columns={columns}
-          fileName={fileName}
-        />
+        <div onClick={onAIUsed}>
+          <AISummaryReport 
+            data={data} 
+            columns={columns}
+            fileName={fileName}
+          />
+        </div>
       </TabsContent>
       
       <TabsContent value="data-quality" className="space-y-4">
-        <DataQualityAgentDashboard 
-          data={data} 
-          columns={columns} 
-          fileName={fileName}
-        />
+        <div onClick={onAIUsed}>
+          <DataQualityAgentDashboard 
+            data={data} 
+            columns={columns} 
+            fileName={fileName}
+          />
+        </div>
       </TabsContent>
       
       <TabsContent value="agents" className="space-y-4">
