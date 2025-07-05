@@ -104,7 +104,7 @@ export const ChartContainer = ({
   });
 
   return (
-    <Card className="p-6 group">
+    <Card className="p-6 group chart-container">
       <ChartHeader
         chartType={chartType}
         xColumn={xColumn}

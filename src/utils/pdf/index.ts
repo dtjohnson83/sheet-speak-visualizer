@@ -2,4 +2,5 @@
 export { exportDashboardToPDF } from './dashboardExport';
 export { exportAIChatToPDF } from './chatExport';
 export { exportAIReportToPDF } from './reportExport';
+export { exportChartToPNG, exportChartToSVG, exportChartToPDF } from './chartExport';
 export * from './pdfUtils';

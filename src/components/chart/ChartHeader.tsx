@@ -6,6 +6,7 @@ import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { useState } from 'react';
+import { ChartExportButton } from './ChartExportButton';
 
 interface ChartHeaderProps {
   chartType: string;
@@ -153,16 +154,24 @@ export const ChartHeader = ({
         )}
       </div>
       
-      {xColumn && yColumn && onSaveTile && (
-        <Button
-          onClick={onSaveTile}
-          className="flex items-center gap-2"
-          variant="outline"
-        >
-          <Save className="h-4 w-4" />
-          Save as Tile
-        </Button>
-      )}
+      <div className="flex items-center gap-2">
+        {xColumn && yColumn && (
+          <ChartExportButton 
+            chartTitle={customTitle || getDefaultTitle()}
+          />
+        )}
+        
+        {xColumn && yColumn && onSaveTile && (
+          <Button
+            onClick={onSaveTile}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Save className="h-4 w-4" />
+            Save as Tile
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
