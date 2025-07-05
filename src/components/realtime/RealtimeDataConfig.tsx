@@ -224,14 +224,20 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                       <RefreshCw className="h-3 w-3" />
                     </Button>
                   )}
-                  {latestUpdates[source.id] && (
+                   {latestUpdates[source.id] && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPreviewData(prev => ({
-                        ...prev,
-                        [source.id]: prev[source.id] ? null : latestUpdates[source.id]?.data?.slice(0, 5)
-                      }))}
+                      onClick={() => {
+                        console.log('👁️ Preview button clicked for source:', source.id, {
+                          currentPreview: !!previewData[source.id],
+                          availableData: latestUpdates[source.id]?.data?.length || 0
+                        });
+                        setPreviewData(prev => ({
+                          ...prev,
+                          [source.id]: prev[source.id] ? null : latestUpdates[source.id]?.data?.slice(0, 5)
+                        }));
+                      }}
                       className="h-8 px-2"
                     >
                       <Eye className="h-3 w-3" />

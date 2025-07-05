@@ -320,7 +320,14 @@ export const useRealtimeData = () => {
 
   // Get latest data for a source
   const getLatestData = useCallback((sourceId: string) => {
-    return latestUpdates.get(sourceId);
+    const data = latestUpdates.get(sourceId);
+    console.log('🔍 getLatestData called for source:', sourceId, {
+      hasData: !!data,
+      dataLength: data?.data?.length || 0,
+      mapSize: latestUpdates.size,
+      availableKeys: Array.from(latestUpdates.keys())
+    });
+    return data;
   }, [latestUpdates]);
 
   // Manual refresh for a specific source
