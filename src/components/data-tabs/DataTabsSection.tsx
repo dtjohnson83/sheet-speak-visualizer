@@ -209,11 +209,13 @@ export const DataTabsSection = ({
                     isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
                   }`}>
                     {tier.tabs.map((tab) => (
-                      <TabsTrigger
+                      <button
                         key={tab.id}
-                        value={tab.id}
-                        className={`w-full justify-start p-3 h-auto flex items-center gap-3 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all ${
-                          activeTab === tab.id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
+                        onClick={() => handleTabChange(tab.id)}
+                        className={`w-full justify-start p-3 h-auto flex items-center gap-3 transition-all rounded-md ${
+                          activeTab === tab.id 
+                            ? 'bg-background shadow-sm ring-2 ring-primary text-foreground' 
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
                         }`}
                       >
                         <tab.icon className="h-4 w-4" />
@@ -223,7 +225,7 @@ export const DataTabsSection = ({
                             {tab.badge}
                           </Badge>
                         )}
-                      </TabsTrigger>
+                      </button>
                     ))}
                   </div>
                 </div>
