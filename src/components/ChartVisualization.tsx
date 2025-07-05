@@ -1,6 +1,5 @@
 
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { useChartState } from '@/hooks/useChartState';
 import { SeriesManager } from './chart/SeriesManager';
 import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
@@ -9,8 +8,8 @@ import { AIChartGenerator } from './chart/AIChartGenerator';
 import { SmartChartDefaults } from './chart/SmartChartDefaults';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
-import { useState, useEffect } from 'react';
-import { useAIChartGeneration, AIChartSuggestion } from '@/hooks/useAIChartGeneration';
+import { useEffect } from 'react';
+import { useChartConfiguration } from './chart/hooks/useChartConfiguration';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -20,39 +19,48 @@ interface ChartVisualizationProps {
 }
 
 export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }: ChartVisualizationProps) => {
-  const [customTitle, setCustomTitle] = useState<string>('');
-  const [valueColumn, setValueColumn] = useState<string>('');
-  const [hasUserInteracted, setHasUserInteracted] = useState<boolean>(false);
-
   const {
+    // State
+    customTitle,
+    valueColumn,
+    hasUserInteracted,
     chartType,
-    setChartType,
     xColumn,
-    setXColumn,
     yColumn,
-    setYColumn,
     stackColumn,
-    setStackColumn,
     sankeyTargetColumn,
-    setSankeyTargetColumn,
     sortColumn,
-    setSortColumn,
     sortDirection,
-    setSortDirection,
     series,
-    setSeries,
     aggregationMethod,
-    setAggregationMethod,
     showDataLabels,
-    setShowDataLabels,
     selectedPalette,
-    setSelectedPalette,
     histogramBins,
-    setHistogramBins,
     chartColors,
     supportsMultipleSeries,
-    supportsDataLabels
-  } = useChartState();
+    supportsDataLabels,
+    
+    // Setters
+    setCustomTitle,
+    setValueColumn,
+    setXColumn,
+    setYColumn,
+    setStackColumn,
+    setSankeyTargetColumn,
+    setSortColumn,
+    setSortDirection,
+    setSeries,
+    setAggregationMethod,
+    setShowDataLabels,
+    setSelectedPalette,
+    setHistogramBins,
+    
+    // Handlers
+    handleChartTypeChange,
+    handleApplySmartDefaults,
+    handleApplyAISuggestion,
+    handleSaveTile
+  } = useChartConfiguration();
 
   const numericColumns = columns.filter(col => col.type === 'numeric');
   const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
@@ -75,79 +83,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
       series: series.map(s => ({ id: s.id, column: s.column, type: s.type }))
     });
   }, [chartType, supportsMultipleSeries, xColumn, yColumn, sankeyTargetColumn, valueColumn, numericColumns, categoricalColumns, dateColumns, series]);
-
-  // Wrapper to track user interactions with chart type
-  const handleChartTypeChange = (newChartType: any) => {
-    console.log('ChartVisualization - User manually changed chart type to:', newChartType);
-    setHasUserInteracted(true);
-    setChartType(newChartType);
-  };
-
-  const handleSaveTile = () => {
-    if (!xColumn || (!yColumn && chartType !== 'histogram') || !onSaveTile) return;
-    
-    const defaultTitle = `${chartType.charAt(0).toUpperCase() + chartType.slice(1).replace('-', ' ')} - ${xColumn}${yColumn ? ` vs ${yColumn}` : ''}`;
-    const title = customTitle || defaultTitle;
-    
-    const tileData = {
-      title,
-      chartType,
-      xColumn,
-      yColumn,
-      stackColumn,
-      sankeyTargetColumn,
-      valueColumn,
-      sortColumn,
-      sortDirection,
-      series,
-      showDataLabels
-    };
-
-    console.log('ChartVisualization - handleSaveTile - Preparing tile data:', {
-      chartType,
-      sankeyTargetColumn,
-      valueColumn,
-      fullTileData: tileData
-    });
-    
-    onSaveTile(tileData);
-  };
-
-  // Handle smart defaults application
-  const handleApplySmartDefaults = (config: {
-    chartType: string;
-    xColumn: string;
-    yColumn: string;
-    aggregationMethod: string;
-    reasoning: string;
-  }) => {
-    console.log('Applied smart defaults:', config);
-    setHasUserInteracted(true); // Mark as user interaction when manually applying suggestions
-    setChartType(config.chartType as any);
-    setXColumn(config.xColumn);
-    setYColumn(config.yColumn);
-    setAggregationMethod(config.aggregationMethod as any);
-  };
-
-  // Handle AI suggestion application
-  const handleApplyAISuggestion = (suggestion: AIChartSuggestion) => {
-    console.log('ChartVisualization - Applying AI suggestion:', {
-      currentChartType: chartType,
-      suggestedChartType: suggestion.chartType,
-      suggestion
-    });
-    
-    setChartType(suggestion.chartType as any);
-    setXColumn(suggestion.xColumn);
-    setYColumn(suggestion.yColumn);
-    setValueColumn(suggestion.valueColumn || '');
-    setStackColumn(suggestion.stackColumn || '');
-    setAggregationMethod(suggestion.aggregationMethod);
-    setSeries(suggestion.series);
-    setCustomTitle(suggestion.title);
-    
-    console.log('ChartVisualization - AI suggestion applied, new chartType should be:', suggestion.chartType);
-  };
 
   return (
     <div className="space-y-6">
@@ -240,7 +175,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
         showDataLabels={showDataLabels}
         supportsMultipleSeries={supportsMultipleSeries}
         chartColors={chartColors}
-        onSaveTile={handleSaveTile}
+        onSaveTile={() => handleSaveTile(onSaveTile)}
         customTitle={customTitle}
         onTitleChange={setCustomTitle}
         columnFormats={columnFormats}
