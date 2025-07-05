@@ -26,14 +26,28 @@ const chartTypes = [
 ];
 
 export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, yColumn, dataLength }: ChartTypeSelectorProps) => {
-  console.log('ChartTypeSelector - Current chartType:', chartType);
+  console.log('ChartTypeSelector - Render with chartType:', chartType);
+  
+  const handleChartTypeChange = (newChartType: string) => {
+    console.log('ChartTypeSelector - handleChartTypeChange called:', {
+      from: chartType,
+      to: newChartType,
+      setChartTypeFunction: typeof setChartType
+    });
+    setChartType(newChartType);
+    console.log('ChartTypeSelector - setChartType called with:', newChartType);
+  };
   
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
         Chart Type
       </label>
-      <Select onValueChange={setChartType} value={chartType}>
+      <Select 
+        onValueChange={handleChartTypeChange} 
+        value={chartType}
+        key={`chart-type-${chartType}`}
+      >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select chart type" />
         </SelectTrigger>
