@@ -5,8 +5,16 @@ export const exportChartToPNG = async (chartContainer: HTMLElement, fileName?: s
   try {
     const html2canvas = (await import('html2canvas')).default;
     
-    // Wait for chart to be ready
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for chart to be ready and ensure it has content
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if the container has actual content
+    const rect = chartContainer.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      throw new Error('Chart container has zero dimensions');
+    }
+    
+    console.log('Exporting chart with dimensions:', { width: rect.width, height: rect.height });
     
     const canvas = await html2canvas(chartContainer, {
       scale: 2,
@@ -14,33 +22,59 @@ export const exportChartToPNG = async (chartContainer: HTMLElement, fileName?: s
       allowTaint: true,
       foreignObjectRendering: true,
       backgroundColor: '#ffffff',
-      logging: false,
+      logging: true, // Enable logging for debugging
+      width: rect.width,
+      height: rect.height,
       onclone: (clonedDoc) => {
-        // Ensure all SVG elements are visible
+        // Ensure all SVG elements are visible and properly styled
         const svgElements = clonedDoc.querySelectorAll('svg');
         svgElements.forEach(svg => {
           svg.style.visibility = 'visible';
           svg.style.display = 'block';
+          svg.style.backgroundColor = '#ffffff';
+          // Ensure SVG has explicit dimensions
+          if (!svg.getAttribute('width')) {
+            svg.setAttribute('width', rect.width.toString());
+          }
+          if (!svg.getAttribute('height')) {
+            svg.setAttribute('height', rect.height.toString());
+          }
         });
         
         // Ensure chart containers are visible
-        const chartContainers = clonedDoc.querySelectorAll('.recharts-wrapper');
+        const chartContainers = clonedDoc.querySelectorAll('.recharts-wrapper, .recharts-surface');
         chartContainers.forEach(container => {
           const element = container as HTMLElement;
           element.style.visibility = 'visible';
           element.style.display = 'block';
+          element.style.backgroundColor = '#ffffff';
+        });
+        
+        // Make sure text elements are visible
+        const textElements = clonedDoc.querySelectorAll('text');
+        textElements.forEach(text => {
+          const element = text as SVGTextElement;
+          element.style.visibility = 'visible';
+          element.style.fill = element.style.fill || '#000000';
         });
       },
       ignoreElements: (element) => {
-        // Filter out interactive elements
+        // Filter out interactive elements but keep chart content
         const isButton = element.tagName === 'BUTTON';
         const hasExportExclude = element.hasAttribute('data-export-exclude');
-        const isHoverElement = element.classList.contains('opacity-0') || 
-                              element.classList.contains('group-hover:opacity-100');
+        const isHoverElement = element.classList.contains('opacity-0') && 
+                              !element.closest('.recharts-wrapper');
         
-        return hasExportExclude || isHoverElement || isButton;
+        return hasExportExclude || isButton || isHoverElement;
       }
     });
+    
+    // Check if canvas has content
+    if (canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Generated canvas has zero dimensions');
+    }
+    
+    console.log('Canvas generated with dimensions:', { width: canvas.width, height: canvas.height });
     
     // Convert canvas to blob and download
     canvas.toBlob((blob) => {

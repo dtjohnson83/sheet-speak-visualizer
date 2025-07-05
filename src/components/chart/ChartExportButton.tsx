@@ -21,13 +21,34 @@ export const ChartExportButton = ({
     setIsExporting(true);
     
     try {
-      // Find the chart container - look within the current chart component
-      const chartElement = document.querySelector('.chart-container ' + containerSelector) as HTMLElement ||
-                          document.querySelector(containerSelector) as HTMLElement;
+      // Find the chart container - be more specific about targeting the right chart
+      let chartElement: HTMLElement | null = null;
+      
+      // Try multiple strategies to find the chart
+      const selectors = [
+        '.chart-container .recharts-wrapper',
+        '.recharts-wrapper',
+        '.chart-container svg',
+        'svg'
+      ];
+      
+      for (const selector of selectors) {
+        chartElement = document.querySelector(selector) as HTMLElement;
+        if (chartElement && chartElement.getBoundingClientRect().width > 0) {
+          console.log('Found chart element using selector:', selector);
+          break;
+        }
+      }
       
       if (!chartElement) {
-        throw new Error('Chart container not found');
+        throw new Error('Chart container not found or has zero dimensions');
       }
+      
+      console.log('Chart element dimensions:', {
+        width: chartElement.getBoundingClientRect().width,
+        height: chartElement.getBoundingClientRect().height,
+        tagName: chartElement.tagName
+      });
 
       const timestamp = new Date().toISOString().split('T')[0];
       const safeTitle = chartTitle.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
