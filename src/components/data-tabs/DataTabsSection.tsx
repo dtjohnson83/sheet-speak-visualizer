@@ -13,7 +13,8 @@ import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedData
 import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
 import { TabNavigationEnhancer } from './TabNavigationEnhancer';
 import { DataSourcesTab } from '@/components/data-sources/DataSourcesTab';
-import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Wifi } from 'lucide-react';
+import { SmartDataIntegration } from '@/components/semantic/SmartDataIntegration';
+import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Wifi, Brain } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
