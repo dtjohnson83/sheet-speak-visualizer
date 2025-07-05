@@ -57,7 +57,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
   const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
   const dateColumns = columns.filter(col => col.type === 'date');
 
-  // Debug logging for series management
+  // Debug logging for series management and column types
   useEffect(() => {
     console.log('ChartVisualization - State update:', {
       chartType,
@@ -67,11 +67,13 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
       sankeyTargetColumn,
       valueColumn,
       numericColumnsCount: numericColumns.length,
-      numericColumns: numericColumns.map(c => c.name),
+      numericColumns: numericColumns.map(c => ({ name: c.name, type: c.type })),
+      categoricalColumns: categoricalColumns.map(c => ({ name: c.name, type: c.type })),
+      dateColumns: dateColumns.map(c => ({ name: c.name, type: c.type })),
       seriesCount: series.length,
-      series: series.map(s => ({ id: s.id, column: s.column }))
+      series: series.map(s => ({ id: s.id, column: s.column, type: s.type }))
     });
-  }, [chartType, supportsMultipleSeries, xColumn, yColumn, sankeyTargetColumn, valueColumn, numericColumns, series]);
+  }, [chartType, supportsMultipleSeries, xColumn, yColumn, sankeyTargetColumn, valueColumn, numericColumns, categoricalColumns, dateColumns, series]);
 
   const handleSaveTile = () => {
     if (!xColumn || (!yColumn && chartType !== 'histogram') || !onSaveTile) return;

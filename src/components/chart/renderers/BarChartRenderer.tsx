@@ -18,14 +18,17 @@ export const BarChartRenderer = ({
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'bar' as const, yAxisId: 'left' }] : [];
   
-  // Combine base series with additional series
-  const allSeries = [...baseSeries, ...series];
+  // For bar charts, force all series to be bar type to prevent mixed rendering
+  const forcedBarSeries = series.map(s => ({ ...s, type: 'bar' as const }));
+  
+  // Combine base series with forced bar series
+  const allSeries = [...baseSeries, ...forcedBarSeries];
   
   // Check if we need a right Y-axis
   const needsRightYAxis = series.some(s => s.yAxisId === 'right');
   
-  // Check if we have mixed chart types (bar + line)
-  const hasMixedTypes = allSeries.some(s => s.type === 'line');
+  // Since this is BarChartRenderer, we never have mixed types - force pure bar chart
+  const hasMixedTypes = false;
   
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -78,33 +81,16 @@ export const BarChartRenderer = ({
         )}
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />
-        {allSeries.map((s, index) => {
-          if (s.type === 'line') {
-            return (
-              <Line 
-                key={s.column} 
-                type="monotone"
-                dataKey={s.column} 
-                stroke={chartColors[index % chartColors.length]}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                yAxisId={s.yAxisId || 'left'}
-                label={showDataLabels ? renderLineDataLabel : false}
-              />
-            );
-          } else {
-            return (
-              <Bar 
-                key={s.column} 
-                dataKey={s.column} 
-                fill={chartColors[index % chartColors.length]} 
-                stackId={stackColumn ? 'stack' : undefined}
-                yAxisId={s.yAxisId || 'left'}
-                label={showDataLabels ? renderDataLabel : false}
-              />
-            );
-          }
-        })}
+        {allSeries.map((s, index) => (
+          <Bar 
+            key={s.column} 
+            dataKey={s.column} 
+            fill={chartColors[index % chartColors.length]} 
+            stackId={stackColumn ? 'stack' : undefined}
+            yAxisId={s.yAxisId || 'left'}
+            label={showDataLabels ? renderDataLabel : false}
+          />
+        ))}
       </ComposedChart>
     </ResponsiveContainer>
   );

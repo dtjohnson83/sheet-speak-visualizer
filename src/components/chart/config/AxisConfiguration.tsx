@@ -24,6 +24,17 @@ export const AxisConfiguration = ({
   dateColumns
 }: AxisConfigurationProps) => {
   const isHistogram = chartType === 'histogram';
+  console.log('AxisConfiguration - Column filtering:', {
+    chartType,
+    numericCount: numericColumns.length,
+    categoricalCount: categoricalColumns.length,
+    dateCount: dateColumns.length,
+    numericColumns: numericColumns.map(c => ({ name: c.name, type: c.type })),
+    categoricalColumns: categoricalColumns.map(c => ({ name: c.name, type: c.type })),
+    dateColumns: dateColumns.map(c => ({ name: c.name, type: c.type })),
+    xColumn,
+    yColumn
+  });
 
   return (
     <>
@@ -36,7 +47,7 @@ export const AxisConfiguration = ({
             <SelectValue placeholder="Select column" />
           </SelectTrigger>
           <SelectContent className="max-h-60 overflow-y-auto">
-            {(isHistogram ? numericColumns : chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns]).map((col) => (
+            {(isHistogram ? numericColumns : chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns, ...numericColumns]).map((col) => (
               <SelectItem key={col.name} value={col.name}>
                 {col.name} ({col.type})
               </SelectItem>
