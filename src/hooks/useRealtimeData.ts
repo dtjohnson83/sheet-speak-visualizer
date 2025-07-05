@@ -31,8 +31,21 @@ export const useRealtimeData = () => {
     supabaseUpdates 
   } = useSupabaseRealtimeSync();
 
+  // Debug the data before merging
+  console.log('🔍 Data before merge:', {
+    latestUpdatesSize: latestUpdates.size,
+    latestUpdatesKeys: Array.from(latestUpdates.keys()),
+    supabaseUpdatesSize: supabaseUpdates.size,
+    supabaseUpdatesKeys: Array.from(supabaseUpdates.keys())
+  });
+
   // Merge API/WebSocket updates with Supabase updates
   const allUpdates = new Map([...latestUpdates.entries(), ...supabaseUpdates.entries()]);
+  
+  console.log('🔍 Data after merge:', {
+    allUpdatesSize: allUpdates.size,
+    allUpdatesKeys: Array.from(allUpdates.keys())
+  });
 
   // Add a new realtime data source
   const addRealtimeSource = useCallback(async (sourceData: Omit<RealtimeDataSource, 'id' | 'connectionStatus'>) => {
