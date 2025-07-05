@@ -63,9 +63,9 @@ export const DataTabsSection = ({
   onDataLoaded,
 }: DataTabsSectionProps) => {
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState("preview");
+  const [activeTab, setActiveTab] = useState("data-sources");
 
-  const tabOrder = ["preview", "charts", "dashboard", "data-sources", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
+  const tabOrder = ["data-sources", "preview", "charts", "dashboard", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -79,6 +79,15 @@ export const DataTabsSection = ({
           ? 'flex overflow-x-auto justify-start gap-1' 
           : 'grid grid-cols-9 gap-1'
       }`}>
+        {/* Data Sources - Primary Tab */}
+        <TabsTrigger 
+          value="data-sources" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Database className="h-4 w-4" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Sources' : 'Data Sources'}</span>
+        </TabsTrigger>
+
         {/* Core Data Tools */}
         <TabsTrigger 
           value="preview" 
@@ -112,14 +121,6 @@ export const DataTabsSection = ({
               {tiles.length}
             </span>
           )}
-        </TabsTrigger>
-
-        <TabsTrigger 
-          value="data-sources" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Database className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Sources' : 'Data Sources'}</span>
         </TabsTrigger>
 
         {/* Separator */}
