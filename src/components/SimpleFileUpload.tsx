@@ -9,6 +9,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { WorksheetSelector } from './WorksheetSelector';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { FileErrorMessage } from '@/components/ui/error-message';
+import { detectColumnTypeWithName } from '@/lib/columnTypeDetection';
 
 interface SimpleFileUploadProps {
   onDataLoaded: (data: DataRow[], columns: ColumnInfo[], fileName: string, worksheetName?: string) => void;
@@ -41,77 +42,9 @@ export const SimpleFileUpload = ({ onDataLoaded }: SimpleFileUploadProps) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const detectColumnType = (values: any[]): 'numeric' | 'date' | 'categorical' | 'text' => {
-    const nonEmptyValues = values.filter(v => v !== null && v !== undefined && v !== '');
-    
-    if (nonEmptyValues.length === 0) return 'text';
-    
-    // Check for numeric values first
-    const numericValues = nonEmptyValues.filter(v => {
-      const num = Number(v);
-      return !isNaN(num) && isFinite(num) && String(v).trim() !== '';
-    });
-    
-    if (numericValues.length >= nonEmptyValues.length * 0.8) {
-      // Check if it's a year column
-      const yearValues = nonEmptyValues.filter(v => {
-        const str = String(v).trim();
-        if (!/^\d{4}$/.test(str)) return false;
-        const year = parseInt(str);
-        return year >= 1900 && year <= new Date().getFullYear() + 20;
-      });
-      
-      if (yearValues.length >= nonEmptyValues.length * 0.8) {
-        return 'numeric';
-      }
-      
-      return 'numeric';
-    }
-    
-    // Check for Excel date serials
-    const potentialDateSerials = nonEmptyValues.filter(v => {
-      const num = Number(v);
-      return !isNaN(num) && isExcelDateSerial(num);
-    });
-    
-    if (potentialDateSerials.length > nonEmptyValues.length * 0.5) {
-      return 'date';
-    }
-    
-    // Check for date string patterns
-    const datePatterns = [
-      /^\d{4}-\d{1,2}-\d{1,2}$/,
-      /^\d{1,2}\/\d{1,2}\/\d{4}$/,
-      /^\d{1,2}-\d{1,2}-\d{4}$/,
-      /^\d{4}\/\d{1,2}\/\d{1,2}$/,
-      /^\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}:\d{1,2}/,
-    ];
-    
-    const dateValues = nonEmptyValues.filter(v => {
-      const str = String(v).trim();
-      if (/^\d+$/.test(str)) return false;
-      
-      const matchesPattern = datePatterns.some(pattern => pattern.test(str));
-      if (!matchesPattern) return false;
-      
-      const date = new Date(str);
-      if (isNaN(date.getTime())) return false;
-      
-      const year = date.getFullYear();
-      return year >= 1900 && year <= 2100;
-    });
-    
-    if (dateValues.length > nonEmptyValues.length * 0.7) {
-      return 'date';
-    }
-    
-    // Check for categorical
-    const uniqueValues = new Set(nonEmptyValues.map(v => String(v).toLowerCase().trim()));
-    if (uniqueValues.size < nonEmptyValues.length * 0.5 && uniqueValues.size > 1 && uniqueValues.size <= 50) {
-      return 'categorical';
-    }
-    
-    return 'text';
+  // Using enhanced detection with column name consideration
+  const detectColumnType = (columnName: string, values: any[]): 'numeric' | 'date' | 'categorical' | 'text' => {
+    return detectColumnTypeWithName(columnName, values);
   };
 
   const processWorksheetData = useCallback((worksheetData: WorksheetInfo) => {
@@ -127,11 +60,11 @@ export const SimpleFileUpload = ({ onDataLoaded }: SimpleFileUploadProps) => {
 
     const columnNames = Object.keys(rawData[0]);
     
-    // Detect column types
+    // Detect column types using enhanced detection with column names
     const columnTypes: Record<string, 'numeric' | 'date' | 'categorical' | 'text'> = {};
     columnNames.forEach(name => {
       const values = rawData.map(row => row[name]);
-      columnTypes[name] = detectColumnType(values);
+      columnTypes[name] = detectColumnType(name, values);
     });
 
     // Process data based on detected types
