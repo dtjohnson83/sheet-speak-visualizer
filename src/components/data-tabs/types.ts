@@ -12,7 +12,7 @@ export interface TierInfo {
   title: string;
   description: string;
   icon: LucideIcon;
-  color: 'blue' | 'green' | 'purple' | 'orange';
+  color: 'slate' | 'emerald' | 'green' | 'amber';
   tabs: TabInfo[];
 }
 

@@ -27,21 +27,38 @@ export const TierSection = ({
 }: TierSectionProps) => {
   const isMobile = useIsMobile();
 
+  const getBorderStyling = (progress: ProgressStatus, tier: TierInfo) => {
+    if (progress === 'complete') {
+      return 'ring-2 ring-green-500/40 bg-green-500/5 border border-green-500/20';
+    }
+    if (progress === 'active') {
+      switch (tier.color) {
+        case 'slate':
+          return 'ring-2 ring-slate-500/40 bg-slate-500/5 border border-slate-500/20';
+        case 'emerald':
+          return 'ring-2 ring-emerald-500/40 bg-emerald-500/5 border border-emerald-500/20';
+        case 'green':
+          return 'ring-2 ring-green-500/40 bg-green-500/5 border border-green-500/20';
+        case 'amber':
+          return 'ring-2 ring-amber-500/40 bg-amber-500/5 border border-amber-500/20';
+        default:
+          return 'ring-2 ring-primary/40 bg-primary/5 border border-primary/20';
+      }
+    }
+    return 'hover:bg-accent/10 border border-border/50';
+  };
+
   return (
     <Collapsible key={tierKey} open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className="w-full">
-        <Card className={`p-4 hover:shadow-md transition-all duration-200 cursor-pointer ${
-          progress === 'active' ? 'ring-2 ring-primary/30 bg-accent/30' :
-          progress === 'complete' ? 'ring-2 ring-green-500/30 bg-green-500/5' : 
-          'hover:bg-accent/20'
-        }`}>
+        <Card className={`p-6 hover:shadow-lg transition-all duration-300 cursor-pointer ${getBorderStyling(progress, tier)}`}>
           <TierHeader tier={tier} progress={progress} isExpanded={isExpanded} />
         </Card>
       </CollapsibleTrigger>
       
       <CollapsibleContent>
-        <div className="mt-2 ml-4 border-l-2 border-muted pl-4">
-          <div className={`grid gap-2 ${
+        <div className="mt-4 ml-6 border-l-2 border-muted/30 pl-6">
+          <div className={`grid gap-3 ${
             isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
           }`}>
             {tier.tabs.map((tab) => (
