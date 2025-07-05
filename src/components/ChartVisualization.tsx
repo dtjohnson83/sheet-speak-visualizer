@@ -22,6 +22,7 @@ interface ChartVisualizationProps {
 export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }: ChartVisualizationProps) => {
   const [customTitle, setCustomTitle] = useState<string>('');
   const [valueColumn, setValueColumn] = useState<string>('');
+  const [hasUserInteracted, setHasUserInteracted] = useState<boolean>(false);
 
   const {
     chartType,
@@ -75,6 +76,13 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
     });
   }, [chartType, supportsMultipleSeries, xColumn, yColumn, sankeyTargetColumn, valueColumn, numericColumns, categoricalColumns, dateColumns, series]);
 
+  // Wrapper to track user interactions with chart type
+  const handleChartTypeChange = (newChartType: any) => {
+    console.log('ChartVisualization - User manually changed chart type to:', newChartType);
+    setHasUserInteracted(true);
+    setChartType(newChartType);
+  };
+
   const handleSaveTile = () => {
     if (!xColumn || (!yColumn && chartType !== 'histogram') || !onSaveTile) return;
     
@@ -113,12 +121,12 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
     aggregationMethod: string;
     reasoning: string;
   }) => {
+    console.log('Applied smart defaults:', config);
+    setHasUserInteracted(true); // Mark as user interaction when manually applying suggestions
     setChartType(config.chartType as any);
     setXColumn(config.xColumn);
     setYColumn(config.yColumn);
     setAggregationMethod(config.aggregationMethod as any);
-    
-    console.log('Applied smart defaults:', config);
   };
 
   // Handle AI suggestion application
@@ -151,6 +159,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
           data={data}
           columns={columns}
           currentChartType={chartType}
+          hasUserInteracted={hasUserInteracted}
           onApplyDefaults={handleApplySmartDefaults}
         />
 
@@ -163,7 +172,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
         
         <ChartConfiguration
           chartType={chartType}
-          setChartType={setChartType}
+          setChartType={handleChartTypeChange}
           xColumn={xColumn}
           setXColumn={setXColumn}
           yColumn={yColumn}

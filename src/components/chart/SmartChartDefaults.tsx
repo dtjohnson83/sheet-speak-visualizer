@@ -10,6 +10,7 @@ interface SmartChartDefaultsProps {
   data: DataRow[];
   columns: ColumnInfo[];
   currentChartType: string;
+  hasUserInteracted: boolean;
   onApplyDefaults: (config: {
     chartType: string;
     xColumn: string;
@@ -22,7 +23,8 @@ interface SmartChartDefaultsProps {
 export const SmartChartDefaults = ({ 
   data, 
   columns, 
-  currentChartType, 
+  currentChartType,
+  hasUserInteracted,
   onApplyDefaults 
 }: SmartChartDefaultsProps) => {
   
@@ -95,27 +97,24 @@ export const SmartChartDefaults = ({
   const suggestions = analyzeDataForDefaults();
   const topSuggestion = suggestions[0];
 
-  // More intelligent auto-application with opt-in behavior
+  // Smart auto-application that respects user choices
   useEffect(() => {
     // Only auto-apply if:
-    // 1. There's a high-confidence suggestion (>0.85)
-    // 2. No chart type is set or it's the default 'bar'
-    // 3. There's sufficient data
-    // 4. The suggestion makes sense for the data structure
-    if (topSuggestion && 
+    // 1. User hasn't manually interacted with chart type selection
+    // 2. There's a high-confidence suggestion (>0.85)
+    // 3. No chart type is set initially
+    // 4. There's sufficient data
+    // 5. The suggestion makes sense for the data structure
+    if (!hasUserInteracted &&
+        topSuggestion && 
         topSuggestion.confidence > 0.85 && 
-        (!currentChartType || currentChartType === 'bar') && 
+        !currentChartType && 
         data.length >= 10) {
       
-      // Add a delay to prevent interference with other loading processes
-      const timer = setTimeout(() => {
-        console.log('SmartChartDefaults: Auto-applying high-confidence suggestion:', topSuggestion);
-        onApplyDefaults(topSuggestion);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+      console.log('SmartChartDefaults: Auto-applying high-confidence suggestion (no user interaction detected):', topSuggestion);
+      onApplyDefaults(topSuggestion);
     }
-  }, [data, currentChartType, topSuggestion, onApplyDefaults]);
+  }, [data, currentChartType, topSuggestion, hasUserInteracted, onApplyDefaults]);
 
   if (suggestions.length === 0) return null;
 
