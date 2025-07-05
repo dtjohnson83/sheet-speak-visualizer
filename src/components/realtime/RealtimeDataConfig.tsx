@@ -26,6 +26,7 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
   const [refreshInterval, setRefreshInterval] = useState('30000');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [previewData, setPreviewData] = useState<{[sourceId: string]: any}>({});
+  const [loadingStates, setLoadingStates] = useState<{[sourceId: string]: boolean}>({});
 
   const handleAddSource = () => {
     if (!sourceName.trim() || !apiUrl.trim()) return;
@@ -245,17 +246,30 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                   )}
                   {latestUpdates[source.id] && onUseForVisualization && (
                     <Button
-                      variant="default"
+                      variant="outline"
                       size="sm"
-                      onClick={() => {
+                      onClick={async () => {
                         console.log('🎯 Use for Charts button clicked for source:', source.id);
                         console.log('📋 Available data:', latestUpdates[source.id]);
-                        onUseForVisualization(source.id);
+                        
+                        // Set loading state
+                        setLoadingStates(prev => ({ ...prev, [source.id]: true }));
+                        
+                        try {
+                          onUseForVisualization(source.id);
+                          // Brief success feedback
+                          setTimeout(() => {
+                            setLoadingStates(prev => ({ ...prev, [source.id]: false }));
+                          }, 1000);
+                        } catch (error) {
+                          setLoadingStates(prev => ({ ...prev, [source.id]: false }));
+                        }
                       }}
+                      disabled={loadingStates[source.id]}
                       className="h-8 px-2"
                     >
                       <Play className="h-3 w-3 mr-1" />
-                      Use for Charts
+                      {loadingStates[source.id] ? 'Loading...' : 'Use for Charts'}
                     </Button>
                   )}
                   <Button
