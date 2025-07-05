@@ -30,9 +30,10 @@ export const TierSection = ({
   return (
     <Collapsible key={tierKey} open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className="w-full">
-        <Card className={`p-4 hover:shadow-md transition-all duration-200 ${
-          progress === 'active' ? 'ring-2 ring-primary/30 bg-accent/50' :
-          progress === 'complete' ? 'ring-2 ring-green-500/30 bg-green-500/10 dark:bg-green-500/5' : ''
+        <Card className={`p-4 hover:shadow-md transition-all duration-200 cursor-pointer ${
+          progress === 'active' ? 'ring-2 ring-primary/30 bg-accent/30' :
+          progress === 'complete' ? 'ring-2 ring-green-500/30 bg-green-500/5' : 
+          'hover:bg-accent/20'
         }`}>
           <TierHeader tier={tier} progress={progress} isExpanded={isExpanded} />
         </Card>

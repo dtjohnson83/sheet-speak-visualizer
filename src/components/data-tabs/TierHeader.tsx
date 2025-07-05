@@ -17,9 +17,9 @@ export const TierHeader = ({ tier, progress, isExpanded }: TierHeaderProps) => {
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${
           tier.color === 'blue' ? 'bg-primary/10 text-primary' :
-          tier.color === 'green' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
-          tier.color === 'purple' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' :
-          'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+          tier.color === 'green' ? 'bg-green-500/10 text-green-700 dark:text-green-400' :
+          tier.color === 'purple' ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400' :
+          'bg-orange-500/10 text-orange-700 dark:text-orange-400'
         }`}>
           <tier.icon className="h-5 w-5" />
         </div>
