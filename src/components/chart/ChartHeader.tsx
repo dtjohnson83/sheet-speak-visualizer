@@ -6,8 +6,6 @@ import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { useState } from 'react';
-import { ChartExportButton } from './ChartExportButton';
-
 interface ChartHeaderProps {
   chartType: string;
   xColumn: string;
@@ -155,11 +153,6 @@ export const ChartHeader = ({
       </div>
       
       <div className="flex items-center gap-2">
-        {xColumn && yColumn && (
-          <ChartExportButton 
-            chartTitle={customTitle || getDefaultTitle()}
-          />
-        )}
         
         {xColumn && yColumn && onSaveTile && (
           <Button

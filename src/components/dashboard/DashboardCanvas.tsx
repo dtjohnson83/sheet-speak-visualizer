@@ -1,7 +1,6 @@
 
 import { Card } from '@/components/ui/card';
 import { DashboardTile, DashboardTileData } from './DashboardTile';
-import { DashboardHeader } from './DashboardHeader';
 import { EmptyDashboard } from './EmptyDashboard';
 import { DashboardFilters, FilterCondition } from './DashboardFilters';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -31,7 +30,6 @@ export const DashboardCanvas = ({
 
   return (
     <Card className="p-6 min-h-[600px] bg-gray-50 dark:bg-gray-900 relative overflow-auto" data-export-container>
-      <DashboardHeader tiles={tiles} />
       
       {data.length > 0 && (
         <DashboardFilters
