@@ -158,3 +158,24 @@ const hasDateLikeValues = (values: any[]): boolean => {
   
   return dateValues.length > values.length * 0.7;
 };
+
+/**
+ * Detect column types from data rows
+ */
+export const detectColumnTypes = (data: any[]): { name: string; type: 'numeric' | 'date' | 'categorical' | 'text'; values: any[] }[] => {
+  if (!data || data.length === 0) return [];
+  
+  const firstRow = data[0];
+  const columnNames = Object.keys(firstRow);
+  
+  return columnNames.map(columnName => {
+    const values = data.map(row => row[columnName]).filter(v => v !== null && v !== undefined);
+    const type = detectColumnTypeWithName(columnName, values);
+    
+    return {
+      name: columnName,
+      type,
+      values
+    };
+  });
+};

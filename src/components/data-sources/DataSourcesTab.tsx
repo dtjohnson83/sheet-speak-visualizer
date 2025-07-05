@@ -6,6 +6,8 @@ import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
 import { Database, Wifi, Globe, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { useRealtimeData } from '@/hooks/useRealtimeData';
+import { detectColumnTypes } from '@/lib/columnTypeDetection';
 
 interface DataSourcesTabProps {
   selectedDataSource: string;
@@ -23,6 +25,31 @@ export const DataSourcesTab = ({
   onDataLoaded,
 }: DataSourcesTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("static");
+  const { latestUpdates, getLatestData } = useRealtimeData();
+
+  const handleUseRealtimeDataForVisualization = (sourceId: string) => {
+    const realtimeUpdate = getLatestData(sourceId);
+    if (realtimeUpdate && realtimeUpdate.data.length > 0) {
+      // Transform realtime data to match our format
+      const transformedData = realtimeUpdate.data;
+      
+      // Detect column types automatically or use provided columns
+      let detectedColumns: ColumnInfo[];
+      if (realtimeUpdate.columns) {
+        detectedColumns = realtimeUpdate.columns;
+      } else {
+        detectedColumns = detectColumnTypes(transformedData);
+      }
+      
+      // Load the data into the main visualization system
+      onDataLoaded(
+        transformedData, 
+        detectedColumns, 
+        `Live API Data (${sourceId})`,
+        'realtime'
+      );
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -81,7 +108,7 @@ export const DataSourcesTab = ({
               </p>
             </CardHeader>
             <CardContent>
-              <RealtimeDataConfig />
+              <RealtimeDataConfig onUseForVisualization={handleUseRealtimeDataForVisualization} />
             </CardContent>
           </Card>
         </TabsContent>

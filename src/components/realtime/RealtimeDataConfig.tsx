@@ -8,11 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Plus, Wifi, WifiOff, Globe, Database } from 'lucide-react';
+import { Trash2, Plus, Wifi, WifiOff, Globe, Database, Play } from 'lucide-react';
 import { useRealtimeData, RealtimeDataSource } from '@/hooks/useRealtimeData';
 
-export const RealtimeDataConfig = () => {
-  const { sources, isConnected, addRealtimeSource, removeRealtimeSource } = useRealtimeData();
+interface RealtimeDataConfigProps {
+  onUseForVisualization?: (sourceId: string) => void;
+}
+
+export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfigProps = {}) => {
+  const { sources, isConnected, addRealtimeSource, removeRealtimeSource, latestUpdates } = useRealtimeData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sourceType, setSourceType] = useState<'external_api' | 'websocket'>('external_api');
   const [sourceName, setSourceName] = useState('');
@@ -198,14 +202,27 @@ export const RealtimeDataConfig = () => {
             <Card key={source.id}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{source.name}</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeRealtimeSource(source.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {latestUpdates[source.id] && onUseForVisualization && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => onUseForVisualization(source.id)}
+                      className="h-8 px-2"
+                    >
+                      <Play className="h-3 w-3 mr-1" />
+                      Use for Charts
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeRealtimeSource(source.id)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2 mb-2">
@@ -222,13 +239,23 @@ export const RealtimeDataConfig = () => {
                       {source.refreshInterval / 1000}s
                     </Badge>
                   )}
+                  {latestUpdates[source.id] && (
+                    <Badge variant="default" className="bg-green-500">
+                      Data Available
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 truncate">
                   {source.config.url}
                 </p>
-                {source.lastUpdated && (
+                {latestUpdates[source.id] && (
                   <p className="text-xs text-gray-400 mt-1">
-                    Last updated: {source.lastUpdated.toLocaleTimeString()}
+                    Last updated: {latestUpdates[source.id].timestamp.toLocaleTimeString()}
+                    {latestUpdates[source.id].data.length > 0 && (
+                      <span className="ml-2 text-green-600">
+                        • {latestUpdates[source.id].data.length} records
+                      </span>
+                    )}
                   </p>
                 )}
               </CardContent>
