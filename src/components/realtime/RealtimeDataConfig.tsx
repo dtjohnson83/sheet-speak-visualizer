@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Plus, Wifi, WifiOff, Globe, Database, Play } from 'lucide-react';
+import { Trash2, Plus, Wifi, WifiOff, Globe, Database, Play, RefreshCw, Eye } from 'lucide-react';
 import { useRealtimeData, RealtimeDataSource } from '@/hooks/useRealtimeData';
 
 interface RealtimeDataConfigProps {
@@ -16,7 +16,7 @@ interface RealtimeDataConfigProps {
 }
 
 export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfigProps = {}) => {
-  const { sources, isSupabaseConnected, addRealtimeSource, removeRealtimeSource, latestUpdates, testConnection } = useRealtimeData();
+  const { sources, isSupabaseConnected, addRealtimeSource, removeRealtimeSource, latestUpdates, testConnection, refreshSource } = useRealtimeData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sourceType, setSourceType] = useState<'external_api' | 'websocket'>('external_api');
   const [sourceName, setSourceName] = useState('');
@@ -25,6 +25,7 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
   const [apiHeaders, setApiHeaders] = useState('{}');
   const [refreshInterval, setRefreshInterval] = useState('30000');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [previewData, setPreviewData] = useState<{[sourceId: string]: any}>({});
 
   const handleAddSource = () => {
     if (!sourceName.trim() || !apiUrl.trim()) return;
@@ -122,7 +123,7 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                 <Input
                   value={apiUrl}
                   onChange={(e) => setApiUrl(e.target.value)}
-                  placeholder={sourceType === 'websocket' ? 'wss://api.example.com/ws' : 'https://api.example.com/data'}
+                  placeholder={sourceType === 'websocket' ? 'wss://api.example.com/ws' : 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd'}
                 />
               </div>
 
@@ -212,6 +213,30 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                   >
                     {source.connectionStatus === 'testing' ? 'Testing...' : 'Test'}
                   </Button>
+                  {source.type === 'external_api' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refreshSource(source.id)}
+                      disabled={source.connectionStatus === 'testing'}
+                      className="h-8 px-2"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {latestUpdates[source.id] && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPreviewData(prev => ({
+                        ...prev,
+                        [source.id]: prev[source.id] ? null : latestUpdates[source.id]?.data?.slice(0, 5)
+                      }))}
+                      className="h-8 px-2"
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                  )}
                   {latestUpdates[source.id] && onUseForVisualization && (
                     <Button
                       variant="default"
@@ -292,6 +317,14 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                   <p className="text-xs text-gray-400 mt-1">
                     Last attempt: {source.lastUpdated.toLocaleTimeString()}
                   </p>
+                )}
+                {previewData[source.id] && (
+                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                    <p className="font-medium mb-1">Data Preview:</p>
+                    <pre className="text-xs overflow-auto max-h-20">
+                      {JSON.stringify(previewData[source.id], null, 2)}
+                    </pre>
+                  </div>
                 )}
               </CardContent>
             </Card>

@@ -168,19 +168,54 @@ export const useRealtimeData = () => {
 
     // Set up polling for external APIs only if connection was successful  
     if (source.type === 'external_api' && source.refreshInterval && connectionSuccessful) {
-      const interval = setInterval(async () => {
+      const fetchData = async () => {
         try {
           // Fetch data from external API
           const response = await fetch(source.config.url, {
             method: source.config.method || 'GET',
-            headers: source.config.headers || {},
+            headers: {
+              'Accept': 'application/json',
+              ...source.config.headers
+            },
           });
           
           if (response.ok) {
-            const data = await response.json();
+            const rawData = await response.json();
+            
+            // Transform data based on API response format
+            let transformedData = [];
+            
+            // Handle World Bank API format
+            if (Array.isArray(rawData) && rawData.length > 1 && rawData[1] && Array.isArray(rawData[1])) {
+              transformedData = rawData[1].map((item: any) => ({
+                country: item.country?.value || 'Unknown',
+                indicator: item.indicator?.value || 'Unknown',
+                value: item.value,
+                date: item.date,
+                ...item
+              }));
+            }
+            // Handle CoinGecko and generic object responses
+            else if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+              // Convert object to array of key-value pairs
+              transformedData = Object.entries(rawData).map(([key, value]) => ({
+                key,
+                value,
+                ...typeof value === 'object' ? value as any : {}
+              }));
+            }
+            // Handle direct array responses
+            else if (Array.isArray(rawData)) {
+              transformedData = rawData;
+            }
+            // Handle single object responses
+            else {
+              transformedData = [rawData];
+            }
+
             const update: RealtimeDataUpdate = {
               sourceId: newSource.id,
-              data: Array.isArray(data) ? data : [data],
+              data: transformedData,
               timestamp: new Date()
             };
             
@@ -192,16 +227,24 @@ export const useRealtimeData = () => {
                 ? { ...s, lastUpdated: new Date(), connectionStatus: 'connected' }
                 : s
             ));
+          } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
         } catch (error) {
           console.error('Failed to fetch realtime data:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Fetch failed';
           setSources(prev => prev.map(s => 
             s.id === newSource.id 
-              ? { ...s, connectionStatus: 'error', errorMessage: 'Fetch failed' }
+              ? { ...s, connectionStatus: 'error', errorMessage }
               : s
           ));
         }
-      }, source.refreshInterval);
+      };
+
+      // Initial fetch
+      await fetchData();
+
+      const interval = setInterval(fetchData, source.refreshInterval);
 
       intervalsRef.current.set(newSource.id, interval);
     }
@@ -274,6 +317,78 @@ export const useRealtimeData = () => {
     return latestUpdates.get(sourceId);
   }, [latestUpdates]);
 
+  // Manual refresh for a specific source
+  const refreshSource = useCallback(async (sourceId: string) => {
+    const source = sources.find(s => s.id === sourceId);
+    if (!source || source.type !== 'external_api') return;
+
+    setSources(prev => prev.map(s => 
+      s.id === sourceId 
+        ? { ...s, connectionStatus: 'testing' }
+        : s
+    ));
+
+    try {
+      const response = await fetch(source.config.url, {
+        method: source.config.method || 'GET',
+        headers: {
+          'Accept': 'application/json',
+          ...source.config.headers
+        },
+      });
+      
+      if (response.ok) {
+        const rawData = await response.json();
+        
+        // Apply same transformation logic
+        let transformedData = [];
+        
+        if (Array.isArray(rawData) && rawData.length > 1 && rawData[1] && Array.isArray(rawData[1])) {
+          transformedData = rawData[1].map((item: any) => ({
+            country: item.country?.value || 'Unknown',
+            indicator: item.indicator?.value || 'Unknown',
+            value: item.value,
+            date: item.date,
+            ...item
+          }));
+        } else if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+          transformedData = Object.entries(rawData).map(([key, value]) => ({
+            key,
+            value,
+            ...typeof value === 'object' ? value as any : {}
+          }));
+        } else if (Array.isArray(rawData)) {
+          transformedData = rawData;
+        } else {
+          transformedData = [rawData];
+        }
+
+        const update: RealtimeDataUpdate = {
+          sourceId,
+          data: transformedData,
+          timestamp: new Date()
+        };
+        
+        setLatestUpdates(prev => new Map(prev.set(sourceId, update)));
+        
+        setSources(prev => prev.map(s => 
+          s.id === sourceId 
+            ? { ...s, lastUpdated: new Date(), connectionStatus: 'connected' }
+            : s
+        ));
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Refresh failed';
+      setSources(prev => prev.map(s => 
+        s.id === sourceId 
+          ? { ...s, connectionStatus: 'error', errorMessage }
+          : s
+      ));
+    }
+  }, [sources]);
+
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -297,6 +412,7 @@ export const useRealtimeData = () => {
     addRealtimeSource,
     removeRealtimeSource,
     getLatestData,
-    testConnection
+    testConnection,
+    refreshSource
   };
 };
