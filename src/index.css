@@ -53,11 +53,26 @@
 
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Tier colors for light mode */
+    /* Tier colors for light mode with opacity variants */
     --tier-blue: 217 91% 60%;
+    --tier-blue-bg: hsla(217, 91%, 60%, 0.08);
+    --tier-blue-border: hsla(217, 91%, 60%, 0.25);
+    --tier-blue-ring: hsla(217, 91%, 60%, 0.4);
+    
     --tier-teal: 173 80% 40%;
+    --tier-teal-bg: hsla(173, 80%, 40%, 0.08);
+    --tier-teal-border: hsla(173, 80%, 40%, 0.25);
+    --tier-teal-ring: hsla(173, 80%, 40%, 0.4);
+    
     --tier-green: 142 76% 36%;
+    --tier-green-bg: hsla(142, 76%, 36%, 0.08);
+    --tier-green-border: hsla(142, 76%, 36%, 0.25);
+    --tier-green-ring: hsla(142, 76%, 36%, 0.4);
+    
     --tier-amber: 43 96% 56%;
+    --tier-amber-bg: hsla(43, 96%, 56%, 0.08);
+    --tier-amber-border: hsla(43, 96%, 56%, 0.25);
+    --tier-amber-ring: hsla(43, 96%, 56%, 0.4);
   }
 
   .dark {
@@ -97,11 +112,26 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Tier colors for dark mode */
+    /* Tier colors for dark mode with opacity variants */
     --tier-blue: 217 91% 60%;
+    --tier-blue-bg: hsla(217, 91%, 60%, 0.08);
+    --tier-blue-border: hsla(217, 91%, 60%, 0.25);
+    --tier-blue-ring: hsla(217, 91%, 60%, 0.4);
+    
     --tier-teal: 173 80% 50%;
+    --tier-teal-bg: hsla(173, 80%, 50%, 0.08);
+    --tier-teal-border: hsla(173, 80%, 50%, 0.25);
+    --tier-teal-ring: hsla(173, 80%, 50%, 0.4);
+    
     --tier-green: 142 76% 50%;
+    --tier-green-bg: hsla(142, 76%, 50%, 0.08);
+    --tier-green-border: hsla(142, 76%, 50%, 0.25);
+    --tier-green-ring: hsla(142, 76%, 50%, 0.4);
+    
     --tier-amber: 43 96% 56%;
+    --tier-amber-bg: hsla(43, 96%, 56%, 0.08);
+    --tier-amber-border: hsla(43, 96%, 56%, 0.25);
+    --tier-amber-ring: hsla(43, 96%, 56%, 0.4);
   }
 }
 

@@ -31,13 +31,13 @@ export const TierSection = ({
     if (progress === 'complete') {
       switch (tier.color) {
         case 'blue':
-          return 'ring-2 ring-[hsl(var(--tier-blue)/0.4)] bg-[hsl(var(--tier-blue)/0.08)] border border-[hsl(var(--tier-blue)/0.25)]';
+          return 'ring-2 ring-[var(--tier-blue-ring)] bg-[var(--tier-blue-bg)] border border-[var(--tier-blue-border)]';
         case 'teal':
-          return 'ring-2 ring-[hsl(var(--tier-teal)/0.4)] bg-[hsl(var(--tier-teal)/0.08)] border border-[hsl(var(--tier-teal)/0.25)]';
+          return 'ring-2 ring-[var(--tier-teal-ring)] bg-[var(--tier-teal-bg)] border border-[var(--tier-teal-border)]';
         case 'green':
-          return 'ring-2 ring-[hsl(var(--tier-green)/0.4)] bg-[hsl(var(--tier-green)/0.08)] border border-[hsl(var(--tier-green)/0.25)]';
+          return 'ring-2 ring-[var(--tier-green-ring)] bg-[var(--tier-green-bg)] border border-[var(--tier-green-border)]';
         case 'amber':
-          return 'ring-2 ring-[hsl(var(--tier-amber)/0.4)] bg-[hsl(var(--tier-amber)/0.08)] border border-[hsl(var(--tier-amber)/0.25)]';
+          return 'ring-2 ring-[var(--tier-amber-ring)] bg-[var(--tier-amber-bg)] border border-[var(--tier-amber-border)]';
         default:
           return 'ring-2 ring-primary/40 bg-primary/8 border border-primary/25';
       }
@@ -45,13 +45,13 @@ export const TierSection = ({
     if (progress === 'active') {
       switch (tier.color) {
         case 'blue':
-          return 'ring-2 ring-[hsl(var(--tier-blue)/0.4)] bg-[hsl(var(--tier-blue)/0.08)] border border-[hsl(var(--tier-blue)/0.25)]';
+          return 'ring-2 ring-[var(--tier-blue-ring)] bg-[var(--tier-blue-bg)] border border-[var(--tier-blue-border)]';
         case 'teal':
-          return 'ring-2 ring-[hsl(var(--tier-teal)/0.4)] bg-[hsl(var(--tier-teal)/0.08)] border border-[hsl(var(--tier-teal)/0.25)]';
+          return 'ring-2 ring-[var(--tier-teal-ring)] bg-[var(--tier-teal-bg)] border border-[var(--tier-teal-border)]';
         case 'green':
-          return 'ring-2 ring-[hsl(var(--tier-green)/0.4)] bg-[hsl(var(--tier-green)/0.08)] border border-[hsl(var(--tier-green)/0.25)]';
+          return 'ring-2 ring-[var(--tier-green-ring)] bg-[var(--tier-green-bg)] border border-[var(--tier-green-border)]';
         case 'amber':
-          return 'ring-2 ring-[hsl(var(--tier-amber)/0.4)] bg-[hsl(var(--tier-amber)/0.08)] border border-[hsl(var(--tier-amber)/0.25)]';
+          return 'ring-2 ring-[var(--tier-amber-ring)] bg-[var(--tier-amber-bg)] border border-[var(--tier-amber-border)]';
         default:
           return 'ring-2 ring-primary/40 bg-primary/8 border border-primary/25';
       }
