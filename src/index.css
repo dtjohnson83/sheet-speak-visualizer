@@ -52,6 +52,12 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Tier colors for light mode */
+    --tier-blue: 217 91% 60%;
+    --tier-teal: 173 80% 40%;
+    --tier-green: 142 76% 36%;
+    --tier-amber: 43 96% 56%;
   }
 
   .dark {
@@ -90,6 +96,12 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Tier colors for dark mode */
+    --tier-blue: 217 91% 60%;
+    --tier-teal: 173 80% 50%;
+    --tier-green: 142 76% 50%;
+    --tier-amber: 43 96% 56%;
   }
 }
 
