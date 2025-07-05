@@ -84,7 +84,7 @@ export const DataTabsSection = ({
       case 'foundation': return hasData ? 'complete' : 'active';
       case 'analysis': return hasCharts ? 'complete' : hasData ? 'active' : 'pending';
       case 'ai': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
-      case 'advanced': return hasAIContext ? 'active' : 'pending';
+      case 'advanced': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
       default: return 'pending';
     }
   };
