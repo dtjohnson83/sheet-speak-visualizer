@@ -29,13 +29,27 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
   const [loadingStates, setLoadingStates] = useState<{[sourceId: string]: boolean}>({});
 
   const handleAddSource = () => {
-    if (!sourceName.trim() || !apiUrl.trim()) return;
+    console.log('📝 handleAddSource called with form data:', {
+      sourceName: sourceName.trim(),
+      apiUrl: apiUrl.trim(),
+      sourceType,
+      apiMethod,
+      apiHeaders,
+      refreshInterval,
+      autoRefresh
+    });
+
+    if (!sourceName.trim() || !apiUrl.trim()) {
+      console.log('❌ Form validation failed - missing required fields');
+      return;
+    }
 
     let headers = {};
     try {
       headers = JSON.parse(apiHeaders);
+      console.log('✅ Headers parsed successfully:', headers);
     } catch (error) {
-      console.error('Invalid JSON in headers:', error);
+      console.error('❌ Invalid JSON in headers:', error);
       return;
     }
 
@@ -45,12 +59,16 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
       headers
     };
 
-    addRealtimeSource({
+    const sourceData = {
       type: sourceType,
       name: sourceName,
       config,
       refreshInterval: autoRefresh ? parseInt(refreshInterval) : undefined
-    });
+    };
+
+    console.log('🚀 About to call addRealtimeSource with:', sourceData);
+
+    addRealtimeSource(sourceData);
 
     // Reset form
     setSourceName('');
@@ -59,6 +77,8 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
     setApiHeaders('{}');
     setRefreshInterval('30000');
     setIsDialogOpen(false);
+    
+    console.log('✅ Form reset and dialog closed');
   };
 
   return (

@@ -85,18 +85,40 @@ export const useRealtimeData = () => {
 
   // Add a new realtime data source
   const addRealtimeSource = useCallback(async (sourceData: Omit<RealtimeDataSource, 'id' | 'connectionStatus'>) => {
+    console.log('🎯 addRealtimeSource called with:', {
+      type: sourceData.type,
+      name: sourceData.name,
+      hasRefreshInterval: !!sourceData.refreshInterval,
+      refreshInterval: sourceData.refreshInterval,
+      url: sourceData.config?.url
+    });
+    
     const sourceId = addSource(sourceData);
+    console.log('✅ Source added with ID:', sourceId);
     
     // Test connection immediately
+    console.log('🔌 Testing connection for source:', sourceId);
     const connectionSuccessful = await testConnection(sourceId);
+    console.log('🔌 Connection test result:', { sourceId, connectionSuccessful });
 
     // Set up data fetching based on source type
     if (sourceData.type === 'external_api' && sourceData.refreshInterval && connectionSuccessful) {
+      console.log('🚀 Setting up API polling for source:', sourceId);
       const source = { ...sourceData, id: sourceId, connectionStatus: 'connected' as const };
       await setupApiPolling(source);
+      console.log('✅ API polling setup complete for source:', sourceId);
     } else if (sourceData.type === 'websocket') {
+      console.log('🔌 Setting up WebSocket for source:', sourceId);
       const source = { ...sourceData, id: sourceId, connectionStatus: 'testing' as const };
       setupWebSocketConnection(source);
+      console.log('✅ WebSocket setup complete for source:', sourceId);
+    } else {
+      console.log('❌ Skipping data fetching setup:', {
+        sourceId,
+        type: sourceData.type,
+        hasRefreshInterval: !!sourceData.refreshInterval,
+        connectionSuccessful
+      });
     }
 
     return sourceId;
