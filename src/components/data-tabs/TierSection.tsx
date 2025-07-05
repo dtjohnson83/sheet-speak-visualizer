@@ -29,7 +29,18 @@ export const TierSection = ({
 
   const getBorderStyling = (progress: ProgressStatus, tier: TierInfo) => {
     if (progress === 'complete') {
-      return 'ring-2 ring-green-500/40 bg-green-500/5 border border-green-500/20';
+      switch (tier.color) {
+        case 'blue':
+          return 'ring-2 ring-blue-500/40 bg-blue-500/8 border border-blue-500/25';
+        case 'teal':
+          return 'ring-2 ring-teal-500/40 bg-teal-500/8 border border-teal-500/25';
+        case 'green':
+          return 'ring-2 ring-green-500/40 bg-green-500/8 border border-green-500/25';
+        case 'amber':
+          return 'ring-2 ring-amber-500/40 bg-amber-500/8 border border-amber-500/25';
+        default:
+          return 'ring-2 ring-primary/40 bg-primary/8 border border-primary/25';
+      }
     }
     if (progress === 'active') {
       switch (tier.color) {
