@@ -6,7 +6,7 @@ export const getTierDefinitions = (data: any[], tiles: any[]): Record<string, Ti
     title: "Data Foundation",
     description: "Connect and prepare your data",
     icon: Database,
-    color: "slate",
+    color: "blue",
     tabs: [
       { id: "data-sources", label: "Data Sources", icon: Database, badge: null },
       { id: "preview", label: "Data Preview", icon: Database, badge: data.length > 0 ? data.length : null },
@@ -17,7 +17,7 @@ export const getTierDefinitions = (data: any[], tiles: any[]): Record<string, Ti
     title: "Analysis & Visualization", 
     description: "Create charts and dashboards",
     icon: BarChart3,
-    color: "emerald",
+    color: "teal",
     tabs: [
       { id: "charts", label: "Visualizations", icon: BarChart3, badge: null },
       { id: "dashboard", label: "Dashboard", icon: Layout, badge: tiles.length > 0 ? tiles.length : null }

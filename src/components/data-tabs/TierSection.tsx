@@ -33,16 +33,16 @@ export const TierSection = ({
     }
     if (progress === 'active') {
       switch (tier.color) {
-        case 'slate':
-          return 'ring-2 ring-slate-500/40 bg-slate-500/5 border border-slate-500/20';
-        case 'emerald':
-          return 'ring-2 ring-emerald-500/40 bg-emerald-500/5 border border-emerald-500/20';
+        case 'blue':
+          return 'ring-2 ring-blue-500/40 bg-blue-500/8 border border-blue-500/25';
+        case 'teal':
+          return 'ring-2 ring-teal-500/40 bg-teal-500/8 border border-teal-500/25';
         case 'green':
-          return 'ring-2 ring-green-500/40 bg-green-500/5 border border-green-500/20';
+          return 'ring-2 ring-green-500/40 bg-green-500/8 border border-green-500/25';
         case 'amber':
-          return 'ring-2 ring-amber-500/40 bg-amber-500/5 border border-amber-500/20';
+          return 'ring-2 ring-amber-500/40 bg-amber-500/8 border border-amber-500/25';
         default:
-          return 'ring-2 ring-primary/40 bg-primary/5 border border-primary/20';
+          return 'ring-2 ring-primary/40 bg-primary/8 border border-primary/25';
       }
     }
     return 'hover:bg-accent/10 border border-border/50';

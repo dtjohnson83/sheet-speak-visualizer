@@ -14,16 +14,16 @@ export const TierHeader = ({ tier, progress, isExpanded }: TierHeaderProps) => {
 
   const getIconStyling = (color: string) => {
     switch (color) {
-      case 'slate':
-        return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700';
-      case 'emerald':
-        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700';
+      case 'blue':
+        return 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700';
+      case 'teal':
+        return 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-700';
       case 'green':
-        return 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-700';
+        return 'bg-green-500/15 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-700';
       case 'amber':
-        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700';
+        return 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700';
       default:
-        return 'bg-primary/10 text-primary border border-primary/20';
+        return 'bg-primary/15 text-primary border border-primary/20';
     }
   };
 
