@@ -24,30 +24,52 @@ export const ChartExportButton = ({
       // Find the chart container - be more specific about targeting the right chart
       let chartElement: HTMLElement | null = null;
       
-      // Try multiple strategies to find the chart
+      console.log('Starting export process for format:', format);
+      console.log('Available elements:', {
+        chartContainers: document.querySelectorAll('.chart-container').length,
+        rechartsWrappers: document.querySelectorAll('.recharts-wrapper').length,
+        svgElements: document.querySelectorAll('svg').length
+      });
+      
+      // Try multiple strategies to find the chart - focus on the closest chart container
       const selectors = [
         '.chart-container .recharts-wrapper',
-        '.recharts-wrapper',
-        '.chart-container svg',
+        '.chart-container',
+        '.recharts-wrapper', 
         'svg'
       ];
       
       for (const selector of selectors) {
-        chartElement = document.querySelector(selector) as HTMLElement;
-        if (chartElement && chartElement.getBoundingClientRect().width > 0) {
-          console.log('Found chart element using selector:', selector);
-          break;
+        const elements = document.querySelectorAll(selector);
+        console.log(`Checking selector "${selector}": found ${elements.length} elements`);
+        
+        for (let i = 0; i < elements.length; i++) {
+          const element = elements[i] as HTMLElement;
+          const rect = element.getBoundingClientRect();
+          console.log(`Element ${i} dimensions:`, { width: rect.width, height: rect.height, visible: rect.width > 0 && rect.height > 0 });
+          
+          if (rect.width > 0 && rect.height > 0) {
+            chartElement = element;
+            console.log('Selected chart element using selector:', selector, 'index:', i);
+            break;
+          }
         }
+        
+        if (chartElement) break;
       }
       
       if (!chartElement) {
+        console.error('No valid chart element found');
         throw new Error('Chart container not found or has zero dimensions');
       }
       
-      console.log('Chart element dimensions:', {
-        width: chartElement.getBoundingClientRect().width,
-        height: chartElement.getBoundingClientRect().height,
-        tagName: chartElement.tagName
+      const rect = chartElement.getBoundingClientRect();
+      console.log('Final chart element details:', {
+        width: rect.width,
+        height: rect.height,
+        tagName: chartElement.tagName,
+        className: chartElement.className,
+        hasContent: chartElement.children.length > 0
       });
 
       const timestamp = new Date().toISOString().split('T')[0];

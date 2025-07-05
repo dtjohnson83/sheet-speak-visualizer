@@ -5,17 +5,34 @@ export const exportChartToPNG = async (chartContainer: HTMLElement, fileName?: s
   try {
     const html2canvas = (await import('html2canvas')).default;
     
+    console.log('PNG Export - Container details:', {
+      tagName: chartContainer.tagName,
+      className: chartContainer.className,
+      childrenCount: chartContainer.children.length,
+      innerHTML: chartContainer.innerHTML.substring(0, 200) + '...'
+    });
+    
     // Wait for chart to be ready and ensure it has content
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Check if the container has actual content
     const rect = chartContainer.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
+      console.error('Chart container has zero dimensions:', rect);
       throw new Error('Chart container has zero dimensions');
     }
     
-    console.log('Exporting chart with dimensions:', { width: rect.width, height: rect.height });
+    console.log('Exporting PNG with dimensions:', { width: rect.width, height: rect.height });
     
+    // Check for SVG content specifically
+    const svgElements = chartContainer.querySelectorAll('svg');
+    console.log('SVG elements found:', svgElements.length);
+    svgElements.forEach((svg, i) => {
+      const svgRect = svg.getBoundingClientRect();
+      console.log(`SVG ${i}:`, { width: svgRect.width, height: svgRect.height, children: svg.children.length });
+    });
+    
+    console.log('Starting html2canvas capture...');
     const canvas = await html2canvas(chartContainer, {
       scale: 2,
       useCORS: true,
@@ -71,10 +88,21 @@ export const exportChartToPNG = async (chartContainer: HTMLElement, fileName?: s
     
     // Check if canvas has content
     if (canvas.width === 0 || canvas.height === 0) {
+      console.error('Generated canvas has zero dimensions');
       throw new Error('Generated canvas has zero dimensions');
     }
     
-    console.log('Canvas generated with dimensions:', { width: canvas.width, height: canvas.height });
+    console.log('Canvas generated successfully:', { 
+      width: canvas.width, 
+      height: canvas.height,
+      hasImageData: canvas.getContext('2d') !== null
+    });
+    
+    // Check if canvas is blank by sampling pixels
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx?.getImageData(0, 0, Math.min(canvas.width, 100), Math.min(canvas.height, 100));
+    const isBlank = imageData ? Array.from(imageData.data).every((pixel, i) => i % 4 === 3 || pixel === 255) : true;
+    console.log('Canvas content check:', { isBlank, sampleSize: imageData?.data.length });
     
     // Convert canvas to blob and download
     canvas.toBlob((blob) => {
