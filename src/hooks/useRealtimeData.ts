@@ -32,7 +32,7 @@ export const useRealtimeData = () => {
   } = useSupabaseRealtimeSync();
 
   // Merge API/WebSocket updates with Supabase updates
-  const allUpdates = new Map([...latestUpdates, ...supabaseUpdates]);
+  const allUpdates = new Map([...latestUpdates.entries(), ...supabaseUpdates.entries()]);
 
   // Add a new realtime data source
   const addRealtimeSource = useCallback(async (sourceData: Omit<RealtimeDataSource, 'id' | 'connectionStatus'>) => {
