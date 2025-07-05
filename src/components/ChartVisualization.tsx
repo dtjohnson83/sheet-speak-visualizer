@@ -123,6 +123,12 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
 
   // Handle AI suggestion application
   const handleApplyAISuggestion = (suggestion: AIChartSuggestion) => {
+    console.log('ChartVisualization - Applying AI suggestion:', {
+      currentChartType: chartType,
+      suggestedChartType: suggestion.chartType,
+      suggestion
+    });
+    
     setChartType(suggestion.chartType as any);
     setXColumn(suggestion.xColumn);
     setYColumn(suggestion.yColumn);
@@ -132,7 +138,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
     setSeries(suggestion.series);
     setCustomTitle(suggestion.title);
     
-    console.log('Applied AI suggestion:', suggestion);
+    console.log('ChartVisualization - AI suggestion applied, new chartType should be:', suggestion.chartType);
   };
 
   return (
