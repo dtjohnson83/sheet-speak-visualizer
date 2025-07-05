@@ -130,16 +130,19 @@ export const useRealtimeData = () => {
     removeSource(sourceId);
   }, [cleanupSource, removeSource]);
 
-  // Get latest data for a source - Simplified access
+  // Get latest data for a source - Fixed access pattern
   const getLatestDataForSource = useCallback((sourceId: string) => {
-    const data = allUpdates.get(sourceId);
+    // Convert Map to object for consistent access
+    const updatesObject = Object.fromEntries(allUpdates);
+    const data = updatesObject[sourceId];
     
     console.log('🔍 getLatestData called for source:', sourceId, {
       hasData: !!data,
       dataLength: data?.data?.length || 0,
       allUpdatesSize: allUpdates.size,
-      availableKeys: Array.from(allUpdates.keys()),
-      requestedKey: sourceId
+      availableKeys: Object.keys(updatesObject),
+      requestedKey: sourceId,
+      foundData: !!data
     });
     
     return data;
