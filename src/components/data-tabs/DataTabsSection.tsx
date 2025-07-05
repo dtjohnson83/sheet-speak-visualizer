@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
@@ -14,7 +16,7 @@ import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/
 import { TabNavigationEnhancer } from './TabNavigationEnhancer';
 import { DataSourcesTab } from '@/components/data-sources/DataSourcesTab';
 import { SmartDataIntegration } from '@/components/semantic/SmartDataIntegration';
-import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Wifi, Brain } from 'lucide-react';
+import { ChevronDown, ChevronRight, ArrowRight, CheckCircle2, Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Brain } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -65,120 +67,191 @@ export const DataTabsSection = ({
 }: DataTabsSectionProps) => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("data-sources");
+  
+  // Tier management state
+  const [expandedTiers, setExpandedTiers] = useState({
+    foundation: true,
+    analysis: false,
+    ai: false,
+    advanced: false
+  });
 
-  const tabOrder = ["data-sources", "preview", "charts", "dashboard", "smart-integration", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
+  // Workflow progress tracking
+  const hasData = data.length > 0;
+  const hasCharts = tiles.length > 0;
+  const hasAIContext = !showContextSetup;
+
+  // Tab tier definitions
+  const tiers = {
+    foundation: {
+      title: "Data Foundation",
+      description: "Connect and prepare your data",
+      icon: Database,
+      color: "blue",
+      tabs: [
+        { id: "data-sources", label: "Data Sources", icon: Database, badge: null },
+        { id: "preview", label: "Data Preview", icon: Database, badge: hasData ? data.length : null },
+        { id: "smart-integration", label: "Smart Integration", icon: Brain, badge: null }
+      ]
+    },
+    analysis: {
+      title: "Analysis & Visualization", 
+      description: "Create charts and dashboards",
+      icon: BarChart3,
+      color: "green",
+      tabs: [
+        { id: "charts", label: "Visualizations", icon: BarChart3, badge: null },
+        { id: "dashboard", label: "Dashboard", icon: Layout, badge: tiles.length > 0 ? tiles.length : null }
+      ]
+    },
+    ai: {
+      title: "AI Intelligence",
+      description: "Chat, analyze, and predict", 
+      icon: Bot,
+      color: "purple",
+      tabs: [
+        { id: "ai-chat", label: "AI Chat", icon: Bot, badge: null },
+        { id: "ai-report", label: "AI Report", icon: FileText, badge: null },
+        { id: "predictive", label: "Predictive AI", icon: Target, badge: null }
+      ]
+    },
+    advanced: {
+      title: "Advanced Operations",
+      description: "Quality control and automation",
+      icon: Settings,
+      color: "orange",
+      tabs: [
+        { id: "data-quality", label: "Data Quality", icon: Shield, badge: null },
+        { id: "agents", label: "AI Agents", icon: Settings, badge: null }
+      ]
+    }
+  };
+
+  // Auto-expand tiers based on workflow progress
+  useEffect(() => {
+    setExpandedTiers(prev => ({
+      ...prev,
+      analysis: hasData || prev.analysis,
+      ai: (hasData && hasCharts) || prev.ai,
+      advanced: hasAIContext || prev.advanced
+    }));
+  }, [hasData, hasCharts, hasAIContext]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
+  const toggleTier = (tier: string) => {
+    setExpandedTiers(prev => ({
+      ...prev,
+      [tier]: !prev[tier]
+    }));
+  };
+
+  const getTierProgress = (tierKey: string) => {
+    switch (tierKey) {
+      case 'foundation': return hasData ? 'complete' : 'active';
+      case 'analysis': return hasCharts ? 'complete' : hasData ? 'active' : 'pending';
+      case 'ai': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
+      case 'advanced': return hasAIContext ? 'active' : 'pending';
+      default: return 'pending';
+    }
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <TabNavigationEnhancer onTabChange={handleTabChange} tabs={tabOrder} />
-      <TabsList className={`w-full bg-muted/50 p-1 ${
-        isMobile 
-          ? 'flex overflow-x-auto justify-start gap-1' 
-          : 'grid grid-cols-10 gap-1'
-      }`}>
-        {/* Data Sources - Primary Tab */}
-        <TabsTrigger 
-          value="data-sources" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Database className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Sources' : 'Data Sources'}</span>
-        </TabsTrigger>
-
-        {/* Core Data Tools */}
-        <TabsTrigger 
-          value="preview" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Database className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Data' : 'Data Preview'}</span>
-          {data.length > 0 && (
-            <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-              {data.length}
-            </span>
-          )}
-        </TabsTrigger>
+      {/* Cascading Tier Layout */}
+      <div className="w-full space-y-4 mb-6">
+        {Object.entries(tiers).map(([tierKey, tier]) => {
+          const isExpanded = expandedTiers[tierKey as keyof typeof expandedTiers];
+          const progress = getTierProgress(tierKey);
+          const progressIcon = progress === 'complete' ? CheckCircle2 : progress === 'active' ? ArrowRight : ChevronRight;
+          const progressColor = progress === 'complete' ? 'text-green-600' : progress === 'active' ? 'text-blue-600' : 'text-muted-foreground';
+          
+          return (
+            <Collapsible key={tierKey} open={isExpanded} onOpenChange={() => toggleTier(tierKey)}>
+              <CollapsibleTrigger className="w-full">
+                <Card className={`p-4 hover:shadow-md transition-all duration-200 ${
+                  progress === 'active' ? 'ring-2 ring-blue-200 bg-blue-50/50' :
+                  progress === 'complete' ? 'ring-2 ring-green-200 bg-green-50/50' : ''
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        tier.color === 'blue' ? 'bg-blue-100 text-blue-600' :
+                        tier.color === 'green' ? 'bg-green-100 text-green-600' :
+                        tier.color === 'purple' ? 'bg-purple-100 text-purple-600' :
+                        'bg-orange-100 text-orange-600'
+                      }`}>
+                        <tier.icon className="h-5 w-5" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-semibold text-lg">{tier.title}</h3>
+                        <p className="text-sm text-muted-foreground">{tier.description}</p>
+                      </div>
+                    </div>
+                     <div className="flex items-center gap-2">
+                       <div className={`${progressColor}`}>
+                         {React.createElement(progressIcon, { className: "h-5 w-5" })}
+                       </div>
+                      {isExpanded ? 
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      }
+                    </div>
+                  </div>
+                </Card>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="mt-2 ml-4 border-l-2 border-muted pl-4">
+                  <div className={`grid gap-2 ${
+                    isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
+                  }`}>
+                    {tier.tabs.map((tab) => (
+                      <TabsTrigger
+                        key={tab.id}
+                        value={tab.id}
+                        className={`w-full justify-start p-3 h-auto flex items-center gap-3 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all ${
+                          activeTab === tab.id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4" />
+                        <span className="font-medium">{tab.label}</span>
+                        {tab.badge && (
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {tab.badge}
+                          </Badge>
+                        )}
+                      </TabsTrigger>
+                    ))}
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
         
-        <TabsTrigger 
-          value="charts" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Charts' : 'Visualizations'}</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="dashboard" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[90px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Layout className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>Dashboard</span>
-          {tiles.length > 0 && (
-            <span className="ml-1 text-xs bg-blue-500/10 text-blue-600 px-1.5 py-0.5 rounded-full">
-              {tiles.length}
-            </span>
-          )}
-        </TabsTrigger>
-
-        <TabsTrigger 
-          value="smart-integration" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[90px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Brain className="h-4 w-4 text-purple-600" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Smart' : 'Smart Integration'}</span>
-        </TabsTrigger>
-
-        {/* Separator */}
-        <div className={`${isMobile ? 'hidden' : 'flex items-center justify-center'}`}>
-          <div className="w-px h-6 bg-border"></div>
-        </div>
-
-        {/* AI Tools */}
-        <TabsTrigger 
-          value="ai-chat" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[70px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Bot className="h-4 w-4 text-green-600" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'AI' : 'AI Chat'}</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="ai-report" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <FileText className="h-4 w-4 text-green-600" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Report' : 'AI Report'}</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="predictive" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Target className="h-4 w-4 text-green-600" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Predict' : 'Predictive AI'}</span>
-        </TabsTrigger>
-
-        {/* Advanced Tools */}
-        <TabsTrigger 
-          value="data-quality" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Shield className="h-4 w-4 text-orange-600" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Quality' : 'Data Quality'}</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="agents" 
-          className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
-        >
-          <Settings className="h-4 w-4 text-orange-600" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Agents' : 'AI Agents'}</span>
-        </TabsTrigger>
-      </TabsList>
+        {/* Workflow Progress Indicator */}
+        <Card className="p-4 bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${hasData ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <span className="text-sm font-medium">Data Connected</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${hasCharts ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <span className="text-sm font-medium">Charts Created</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${hasAIContext ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <span className="text-sm font-medium">AI Ready</span>
+            </div>
+          </div>
+        </Card>
+      </div>
       
       <TabsContent value="preview" className="space-y-4">
         <Card className="p-6">
