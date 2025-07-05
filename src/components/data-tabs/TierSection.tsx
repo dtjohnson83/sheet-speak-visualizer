@@ -28,35 +28,29 @@ export const TierSection = ({
   const isMobile = useIsMobile();
 
   const getBorderStyling = (progress: ProgressStatus, tier: TierInfo) => {
-    if (progress === 'complete') {
+    const getTierSpecificStyling = (baseClasses: string, hoverClass: string) => {
       switch (tier.color) {
         case 'blue':
-          return 'ring-2 ring-[var(--tier-blue-ring)] bg-[var(--tier-blue-bg)] border border-[var(--tier-blue-border)]';
+          return `${baseClasses} ring-[var(--tier-blue-ring)] bg-[var(--tier-blue-bg)] border-[var(--tier-blue-border)] hover:bg-[var(--tier-blue-hover)]`;
         case 'teal':
-          return 'ring-2 ring-[var(--tier-teal-ring)] bg-[var(--tier-teal-bg)] border border-[var(--tier-teal-border)]';
+          return `${baseClasses} ring-[var(--tier-teal-ring)] bg-[var(--tier-teal-bg)] border-[var(--tier-teal-border)] hover:bg-[var(--tier-teal-hover)]`;
         case 'green':
-          return 'ring-2 ring-[var(--tier-green-ring)] bg-[var(--tier-green-bg)] border border-[var(--tier-green-border)]';
+          return `${baseClasses} ring-[var(--tier-green-ring)] bg-[var(--tier-green-bg)] border-[var(--tier-green-border)] hover:bg-[var(--tier-green-hover)]`;
         case 'amber':
-          return 'ring-2 ring-[var(--tier-amber-ring)] bg-[var(--tier-amber-bg)] border border-[var(--tier-amber-border)]';
+          return `${baseClasses} ring-[var(--tier-amber-ring)] bg-[var(--tier-amber-bg)] border-[var(--tier-amber-border)] hover:bg-[var(--tier-amber-hover)]`;
         default:
-          return 'ring-2 ring-primary/40 bg-primary/8 border border-primary/25';
+          return `${baseClasses} ring-primary/40 bg-primary/8 border-primary/25 hover:bg-primary/12`;
       }
+    };
+
+    if (progress === 'complete') {
+      return getTierSpecificStyling('ring-2', 'complete');
     }
     if (progress === 'active') {
-      switch (tier.color) {
-        case 'blue':
-          return 'ring-2 ring-[var(--tier-blue-ring)] bg-[var(--tier-blue-bg)] border border-[var(--tier-blue-border)]';
-        case 'teal':
-          return 'ring-2 ring-[var(--tier-teal-ring)] bg-[var(--tier-teal-bg)] border border-[var(--tier-teal-border)]';
-        case 'green':
-          return 'ring-2 ring-[var(--tier-green-ring)] bg-[var(--tier-green-bg)] border border-[var(--tier-green-border)]';
-        case 'amber':
-          return 'ring-2 ring-[var(--tier-amber-ring)] bg-[var(--tier-amber-bg)] border border-[var(--tier-amber-border)]';
-        default:
-          return 'ring-2 ring-primary/40 bg-primary/8 border border-primary/25';
-      }
+      return getTierSpecificStyling('ring-2', 'active');
     }
-    return 'hover:bg-accent/10 border border-border/50';
+    // Pending state - use tier colors with hover effects instead of generic accent
+    return getTierSpecificStyling('border', 'pending');
   };
 
   return (

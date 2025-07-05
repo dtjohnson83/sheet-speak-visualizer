@@ -73,6 +73,12 @@
     --tier-amber-bg: rgba(245, 158, 11, 0.08);
     --tier-amber-border: rgba(245, 158, 11, 0.25);
     --tier-amber-ring: rgba(245, 158, 11, 0.4);
+    
+    /* Tier hover colors for light mode */
+    --tier-blue-hover: rgba(59, 130, 246, 0.12);
+    --tier-teal-hover: rgba(20, 184, 166, 0.12);
+    --tier-green-hover: rgba(34, 197, 94, 0.12);
+    --tier-amber-hover: rgba(245, 158, 11, 0.12);
   }
 
   .dark {
@@ -132,6 +138,12 @@
     --tier-amber-bg: rgba(245, 158, 11, 0.08);
     --tier-amber-border: rgba(245, 158, 11, 0.25);
     --tier-amber-ring: rgba(245, 158, 11, 0.4);
+    
+    /* Tier hover colors for dark mode */
+    --tier-blue-hover: rgba(59, 130, 246, 0.12);
+    --tier-teal-hover: rgba(20, 184, 166, 0.12);
+    --tier-green-hover: rgba(34, 197, 94, 0.12);
+    --tier-amber-hover: rgba(245, 158, 11, 0.12);
   }
 }
 
