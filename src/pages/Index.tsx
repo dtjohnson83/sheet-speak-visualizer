@@ -100,59 +100,58 @@ const Index = () => {
             onLoadDataset={handleLoadDataset}
           />
 
-          {data.length > 0 && (
-            <>
-              {/* Real-time Dashboard Controls */}
-              <RealtimeDashboardControls />
+          {/* Always show Real-time Dashboard Controls when data is available */}
+          {data.length > 0 && <RealtimeDashboardControls />}
 
-              {/* Data Context Status Bar */}
-              <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-lg p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium">Dataset Active</span>
-                      {realtimeEnabled && (
-                        <div className="flex items-center gap-1 ml-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-blue-600">Real-time</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {displayFileName} • {data.length.toLocaleString()} rows • {columns.length} columns
-                    </div>
+          {/* Data Context Status Bar - only when data is loaded */}
+          {data.length > 0 && (
+            <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium">Dataset Active</span>
+                    {realtimeEnabled && (
+                      <div className="flex items-center gap-1 ml-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-blue-600">Real-time</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Use Ctrl+1-8 for quick tab navigation</span>
+                  <div className="text-sm text-muted-foreground">
+                    {displayFileName} • {data.length.toLocaleString()} rows • {columns.length} columns
                   </div>
                 </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Use Ctrl+1-8 for quick tab navigation</span>
+                </div>
               </div>
-
-              <DataTabsSection
-                data={data}
-                columns={columns}
-                fileName={displayFileName}
-                tiles={tiles}
-                filters={filters}
-                currentDatasetId={currentDatasetId}
-                showContextSetup={showContextSetup}
-                selectedDataSource={selectedDataSource}
-                showDataSourceDialog={showDataSourceDialog}
-                onAddTile={addTile}
-                onRemoveTile={removeTile}
-                onUpdateTile={updateTile}
-                onFiltersChange={setFilters}
-                onLoadDashboard={handleLoadDashboard}
-                onContextReady={handleContextReady}
-                onSkipContext={handleSkipContext}
-                onColumnTypeChange={handleColumnTypeChange}
-                onDataSourceSelect={setSelectedDataSource}
-                onDataSourceDialogChange={setShowDataSourceDialog}
-                onDataLoaded={handleDataLoaded}
-              />
-            </>
+            </div>
           )}
+
+          {/* Always show DataTabsSection - users can access all features */}
+          <DataTabsSection
+            data={data}
+            columns={columns}
+            fileName={displayFileName}
+            tiles={tiles}
+            filters={filters}
+            currentDatasetId={currentDatasetId}
+            showContextSetup={showContextSetup}
+            selectedDataSource={selectedDataSource}
+            showDataSourceDialog={showDataSourceDialog}
+            onAddTile={addTile}
+            onRemoveTile={removeTile}
+            onUpdateTile={updateTile}
+            onFiltersChange={setFilters}
+            onLoadDashboard={handleLoadDashboard}
+            onContextReady={handleContextReady}
+            onSkipContext={handleSkipContext}
+            onColumnTypeChange={handleColumnTypeChange}
+            onDataSourceSelect={setSelectedDataSource}
+            onDataSourceDialogChange={setShowDataSourceDialog}
+            onDataLoaded={handleDataLoaded}
+          />
         </div>
       </div>
     </div>
