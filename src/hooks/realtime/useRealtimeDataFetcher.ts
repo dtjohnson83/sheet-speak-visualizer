@@ -12,9 +12,19 @@ export const useRealtimeDataFetcher = (
 
   // Set up API polling for a source
   const setupApiPolling = useCallback(async (source: RealtimeDataSource) => {
-    if (source.type !== 'external_api' || !source.refreshInterval) return;
+    console.log('🚀 Setting up API polling for source:', source.id, {
+      type: source.type,
+      hasRefreshInterval: !!source.refreshInterval,
+      url: source.config.url
+    });
+    
+    if (source.type !== 'external_api' || !source.refreshInterval) {
+      console.log('❌ Skipping API polling setup - wrong type or no interval');
+      return;
+    }
 
     const fetchData = async () => {
+      console.log('📡 Fetching data for source:', source.id, 'from:', source.config.url);
       try {
         // Fetch data from external API
         const response = await fetch(source.config.url, {
@@ -25,9 +35,27 @@ export const useRealtimeDataFetcher = (
           },
         });
         
+        console.log('📡 Response received:', {
+          sourceId: source.id,
+          ok: response.ok,
+          status: response.status,
+          statusText: response.statusText
+        });
+        
         if (response.ok) {
           const rawData = await response.json();
+          console.log('📡 Raw data received:', {
+            sourceId: source.id,
+            rawDataType: typeof rawData,
+            rawDataKeys: Array.isArray(rawData) ? 'array' : Object.keys(rawData || {})
+          });
+          
           const transformedData = transformApiResponseData(rawData);
+          console.log('🔄 Data transformed:', {
+            sourceId: source.id,
+            transformedLength: transformedData.length,
+            sampleTransformed: transformedData.slice(0, 2)
+          });
 
           const update: RealtimeDataUpdate = {
             sourceId: source.id,
@@ -35,13 +63,25 @@ export const useRealtimeDataFetcher = (
             timestamp: new Date()
           };
           
-          console.log('💾 Storing realtime update:', {
+          console.log('💾 About to store update in Map:', {
             sourceId: source.id,
-            dataLength: transformedData.length,
-            sampleData: transformedData.slice(0, 2)
+            updateHasData: !!update.data,
+            updateDataLength: update.data.length,
+            timestamp: update.timestamp
           });
           
-          setLatestUpdates(prev => new Map(prev.set(source.id, update)));
+          // Store the update and verify it was stored
+          setLatestUpdates(prev => {
+            const newMap = new Map(prev);
+            newMap.set(source.id, update);
+            console.log('💾 Update stored. New Map state:', {
+              mapSize: newMap.size,
+              keys: Array.from(newMap.keys()),
+              sourceExists: newMap.has(source.id),
+              sourceDataLength: newMap.get(source.id)?.data?.length || 0
+            });
+            return newMap;
+          });
           
           // Update last updated time
           updateSourceStatus(source.id, { 
@@ -52,7 +92,7 @@ export const useRealtimeDataFetcher = (
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (error) {
-        console.error('Failed to fetch realtime data:', error);
+        console.error('❌ Failed to fetch realtime data:', error);
         const errorMessage = error instanceof Error ? error.message : 'Fetch failed';
         updateSourceStatus(source.id, { 
           connectionStatus: 'error', 
@@ -62,8 +102,11 @@ export const useRealtimeDataFetcher = (
     };
 
     // Initial fetch
+    console.log('🎯 Starting initial fetch for source:', source.id);
     await fetchData();
 
+    // Set up interval
+    console.log('⏰ Setting up interval for source:', source.id, 'every', source.refreshInterval, 'ms');
     const interval = setInterval(fetchData, source.refreshInterval);
     intervalsRef.current.set(source.id, interval);
   }, [updateSourceStatus]);

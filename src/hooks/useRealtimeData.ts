@@ -35,16 +35,52 @@ export const useRealtimeData = () => {
   console.log('🔍 Data before merge:', {
     latestUpdatesSize: latestUpdates.size,
     latestUpdatesKeys: Array.from(latestUpdates.keys()),
+    latestUpdatesEntries: Array.from(latestUpdates.entries()).map(([key, value]) => ({
+      key,
+      hasData: !!value?.data,
+      dataLength: value?.data?.length || 0,
+      timestamp: value?.timestamp
+    })),
     supabaseUpdatesSize: supabaseUpdates.size,
-    supabaseUpdatesKeys: Array.from(supabaseUpdates.keys())
+    supabaseUpdatesKeys: Array.from(supabaseUpdates.keys()),
+    supabaseUpdatesEntries: Array.from(supabaseUpdates.entries()).map(([key, value]) => ({
+      key,
+      hasData: !!value?.data,
+      dataLength: value?.data?.length || 0,
+      timestamp: value?.timestamp
+    }))
   });
 
-  // Merge API/WebSocket updates with Supabase updates
-  const allUpdates = new Map([...latestUpdates.entries(), ...supabaseUpdates.entries()]);
+  // Merge API/WebSocket updates with Supabase updates - Create new Map properly
+  const allUpdates = new Map();
+  
+  // Add all entries from latestUpdates
+  for (const [key, value] of latestUpdates.entries()) {
+    console.log('🔄 Adding latestUpdate entry:', key, {
+      hasData: !!value?.data,
+      dataLength: value?.data?.length || 0
+    });
+    allUpdates.set(key, value);
+  }
+  
+  // Add all entries from supabaseUpdates (will overwrite if same key)
+  for (const [key, value] of supabaseUpdates.entries()) {
+    console.log('🔄 Adding supabaseUpdate entry:', key, {
+      hasData: !!value?.data,
+      dataLength: value?.data?.length || 0
+    });
+    allUpdates.set(key, value);
+  }
   
   console.log('🔍 Data after merge:', {
     allUpdatesSize: allUpdates.size,
-    allUpdatesKeys: Array.from(allUpdates.keys())
+    allUpdatesKeys: Array.from(allUpdates.keys()),
+    allUpdatesEntries: Array.from(allUpdates.entries()).map(([key, value]) => ({
+      key,
+      hasData: !!value?.data,
+      dataLength: value?.data?.length || 0,
+      timestamp: value?.timestamp
+    }))
   });
 
   // Add a new realtime data source
@@ -72,28 +108,18 @@ export const useRealtimeData = () => {
     removeSource(sourceId);
   }, [cleanupSource, removeSource]);
 
-  // Get latest data for a source - Updated to use merged data
+  // Get latest data for a source - Simplified access
   const getLatestDataForSource = useCallback((sourceId: string) => {
-    // First try the merged updates Map
-    let data = allUpdates.get(sourceId);
-    
-    // If not found, also check the object version for backward compatibility
-    if (!data) {
-      const updatesObject = Object.fromEntries(allUpdates);
-      data = updatesObject[sourceId];
-    }
+    const data = allUpdates.get(sourceId);
     
     console.log('🔍 getLatestData called for source:', sourceId, {
       hasData: !!data,
       dataLength: data?.data?.length || 0,
       allUpdatesSize: allUpdates.size,
       availableKeys: Array.from(allUpdates.keys()),
-      allUpdatesEntries: Array.from(allUpdates.entries()).map(([key, value]) => ({ 
-        key, 
-        hasData: !!value?.data, 
-        dataLength: value?.data?.length || 0 
-      }))
+      requestedKey: sourceId
     });
+    
     return data;
   }, [allUpdates]);
 
