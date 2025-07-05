@@ -74,12 +74,25 @@ export const useRealtimeData = () => {
 
   // Get latest data for a source - Updated to use merged data
   const getLatestDataForSource = useCallback((sourceId: string) => {
-    const data = allUpdates.get(sourceId);
+    // First try the merged updates Map
+    let data = allUpdates.get(sourceId);
+    
+    // If not found, also check the object version for backward compatibility
+    if (!data) {
+      const updatesObject = Object.fromEntries(allUpdates);
+      data = updatesObject[sourceId];
+    }
+    
     console.log('🔍 getLatestData called for source:', sourceId, {
       hasData: !!data,
       dataLength: data?.data?.length || 0,
       allUpdatesSize: allUpdates.size,
-      availableKeys: Array.from(allUpdates.keys())
+      availableKeys: Array.from(allUpdates.keys()),
+      allUpdatesEntries: Array.from(allUpdates.entries()).map(([key, value]) => ({ 
+        key, 
+        hasData: !!value?.data, 
+        dataLength: value?.data?.length || 0 
+      }))
     });
     return data;
   }, [allUpdates]);
