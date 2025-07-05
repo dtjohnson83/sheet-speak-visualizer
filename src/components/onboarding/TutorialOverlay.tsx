@@ -53,18 +53,30 @@ const tutorialSteps: TutorialStep[] = [
   },
   {
     id: 'upload',
-    title: 'Upload Your Data',
-    description: 'Start by uploading a CSV, Excel file, or connecting to data sources',
+    title: 'Get Your Data',
+    description: 'Start with demo data or upload your own files',
     icon: Upload,
     target: 'data-sources-tab',
     content: (
       <div className="space-y-4">
         <Upload className="h-12 w-12 text-blue-600 mb-4" />
-        <h3 className="text-xl font-bold">Upload Your Data</h3>
+        <h3 className="text-xl font-bold">Get Your Data Ready</h3>
         <p className="text-muted-foreground">
           Click on the "Data Sources" tab to upload your first dataset. We support:
         </p>
+        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+          <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+            🚀 New to data analysis?
+          </p>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            Try our <strong>Demo Data</strong> tab for instant exploration with sample business datasets!
+          </p>
+        </div>
         <ul className="space-y-2 text-sm">
+          <li className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+            Sample datasets (Sales, E-commerce, Finance, Marketing)
+          </li>
           <li className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             CSV and Excel files (.xlsx, .xls)
@@ -75,11 +87,7 @@ const tutorialSteps: TutorialStep[] = [
           </li>
           <li className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
-            Database connections
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full" />
-            REST API endpoints
+            Database connections & REST APIs
           </li>
         </ul>
       </div>

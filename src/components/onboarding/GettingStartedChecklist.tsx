@@ -60,7 +60,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
       description: 'Connect a data source or upload a CSV/Excel file to get started',
       icon: Upload,
       completed: hasData,
-      actionText: 'Upload Data',
+      actionText: 'Get Data',
       targetTab: 'data-sources'
     },
     {
