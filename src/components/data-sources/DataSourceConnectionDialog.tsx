@@ -10,6 +10,7 @@ import { RESTAPIConnectionDialog } from './RESTAPIConnectionDialog';
 import { RESTAPIConfig } from '@/types/restAPI';
 import { OAuthConnectionDialog } from '@/components/oauth/OAuthConnectionDialog';
 import { OAuthProviderType } from '@/types/oauth';
+import { SimpleFileUpload } from '@/components/SimpleFileUpload';
 
 interface DataSourceConnectionDialogProps {
   open: boolean;
@@ -24,6 +25,23 @@ export const DataSourceConnectionDialog = ({
   sourceType, 
   onSuccess 
 }: DataSourceConnectionDialogProps) => {
+  // Handle file uploads with specialized component
+  if (sourceType === 'file') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload File</DialogTitle>
+            <DialogDescription>
+              Upload Excel, CSV, or other data files to analyze.
+            </DialogDescription>
+          </DialogHeader>
+          <SimpleFileUpload onDataLoaded={onSuccess} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Handle OAuth-based connections with specialized dialog
   if (sourceType === 'google_sheets') {
     return (
