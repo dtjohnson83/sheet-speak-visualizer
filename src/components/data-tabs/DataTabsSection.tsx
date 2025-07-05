@@ -32,6 +32,7 @@ interface DataTabsSectionProps {
   onLoadDashboard: (tiles: any[], filters: any[], data?: DataRow[], columns?: ColumnInfo[]) => void;
   onContextReady: (context: any) => void;
   onSkipContext: () => void;
+  onColumnTypeChange: (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => void;
 }
 
 export const DataTabsSection = ({
@@ -49,6 +50,7 @@ export const DataTabsSection = ({
   onLoadDashboard,
   onContextReady,
   onSkipContext,
+  onColumnTypeChange,
 }: DataTabsSectionProps) => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("preview");
@@ -164,6 +166,7 @@ export const DataTabsSection = ({
             data={data} 
             columns={columns} 
             fileName={fileName}
+            onColumnTypeChange={onColumnTypeChange}
           />
         </Card>
       </TabsContent>

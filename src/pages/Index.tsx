@@ -33,6 +33,7 @@ const Index = () => {
     setData,
     setColumns,
     handleDataLoaded,
+    handleColumnTypeChange,
     handleLoadDataset,
     handleContextReady,
     handleSkipContext,
@@ -144,9 +145,10 @@ const Index = () => {
                 onRemoveTile={removeTile}
                 onUpdateTile={updateTile}
                 onFiltersChange={setFilters}
-                onLoadDashboard={handleLoadDashboard}
-                onContextReady={handleContextReady}
-                onSkipContext={handleSkipContext}
+              onLoadDashboard={handleLoadDashboard}
+              onContextReady={handleContextReady}
+              onSkipContext={handleSkipContext}
+              onColumnTypeChange={handleColumnTypeChange}
               />
             </>
           )}

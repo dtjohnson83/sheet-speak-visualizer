@@ -14,6 +14,7 @@ interface DataPreviewContainerProps {
   data: DataRow[];
   columns: ColumnInfo[];
   fileName: string;
+  onColumnTypeChange: (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => void;
 }
 
 interface SortConfig {
@@ -21,13 +22,12 @@ interface SortConfig {
   direction: 'asc' | 'desc';
 }
 
-export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewContainerProps) => {
+export const DataPreviewContainer = ({ data, columns, fileName, onColumnTypeChange }: DataPreviewContainerProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [showHierarchies, setShowHierarchies] = useState(false);
   const [columnFormats, setColumnFormats] = useState<ColumnFormat[]>([]);
-  const [columnsInfo, setColumnsInfo] = useState<ColumnInfo[]>(columns);
 
   // Detect hierarchies when data changes
   const hierarchies = detectHierarchies(data, columns);
@@ -49,10 +49,7 @@ export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewCon
   };
 
   const handleColumnTypeChange = (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => {
-    const updatedColumns = columnsInfo.map(col => 
-      col.name === columnName ? { ...col, type: newType } : col
-    );
-    setColumnsInfo(updatedColumns);
+    onColumnTypeChange(columnName, newType);
     
     // If changing to date type, we might need to reprocess the data values
     // This is especially important for Excel date serials that were detected as numeric
@@ -79,7 +76,7 @@ export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewCon
         <DataPreviewHeader
           fileName={fileName}
           data={data}
-          columns={columnsInfo}
+          columns={columns}
           sortConfig={sortConfig}
           hierarchiesCount={hierarchies.length}
           showHierarchies={showHierarchies}
@@ -90,13 +87,13 @@ export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewCon
         
         <div className="flex items-center gap-2">
           <ColumnFormatting
-            columns={columnsInfo}
+            columns={columns}
             formats={columnFormats}
             onFormatsChange={setColumnFormats}
           />
           <DataExportButton
             data={sortedData}
-            columns={columnsInfo}
+            columns={columns}
             fileName={fileName}
           />
         </div>
@@ -110,13 +107,13 @@ export const DataPreviewContainer = ({ data, columns, fileName }: DataPreviewCon
 
       <div className="space-y-4">
         <ColumnTypeOverride 
-          columns={columnsInfo}
+          columns={columns}
           onColumnTypeChange={handleColumnTypeChange}
         />
 
         <DataTable
           data={currentData}
-          columns={columnsInfo}
+          columns={columns}
           onSort={handleSort}
           sortConfig={sortConfig}
           columnFormats={columnFormats}

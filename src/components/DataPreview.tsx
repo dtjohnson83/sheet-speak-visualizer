@@ -6,8 +6,9 @@ interface DataPreviewProps {
   data: DataRow[];
   columns: ColumnInfo[];
   fileName: string;
+  onColumnTypeChange: (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => void;
 }
 
-export const DataPreview = ({ data, columns, fileName }: DataPreviewProps) => {
-  return <DataPreviewContainer data={data} columns={columns} fileName={fileName} />;
+export const DataPreview = ({ data, columns, fileName, onColumnTypeChange }: DataPreviewProps) => {
+  return <DataPreviewContainer data={data} columns={columns} fileName={fileName} onColumnTypeChange={onColumnTypeChange} />;
 };
