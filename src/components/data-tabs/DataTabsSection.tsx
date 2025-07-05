@@ -66,7 +66,7 @@ export const DataTabsSection = ({
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("data-sources");
 
-  const tabOrder = ["data-sources", "preview", "charts", "dashboard", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
+  const tabOrder = ["data-sources", "preview", "charts", "dashboard", "smart-integration", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -78,7 +78,7 @@ export const DataTabsSection = ({
       <TabsList className={`w-full bg-muted/50 p-1 ${
         isMobile 
           ? 'flex overflow-x-auto justify-start gap-1' 
-          : 'grid grid-cols-9 gap-1'
+          : 'grid grid-cols-10 gap-1'
       }`}>
         {/* Data Sources - Primary Tab */}
         <TabsTrigger 
@@ -122,6 +122,14 @@ export const DataTabsSection = ({
               {tiles.length}
             </span>
           )}
+        </TabsTrigger>
+
+        <TabsTrigger 
+          value="smart-integration" 
+          className={`${isMobile ? 'flex-shrink-0 min-w-[90px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
+        >
+          <Brain className="h-4 w-4 text-purple-600" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Smart' : 'Smart Integration'}</span>
         </TabsTrigger>
 
         {/* Separator */}
@@ -285,6 +293,12 @@ export const DataTabsSection = ({
           filters={filters}
           onFiltersChange={onFiltersChange}
         />
+      </TabsContent>
+
+      <TabsContent value="smart-integration" className="space-y-4">
+        <Card className="p-6">
+          <SmartDataIntegration onDataLoaded={onDataLoaded} />
+        </Card>
       </TabsContent>
     </Tabs>
   );
