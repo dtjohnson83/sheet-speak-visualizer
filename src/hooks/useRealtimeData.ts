@@ -59,13 +59,25 @@ export const useRealtimeData = () => {
     removeSource(sourceId);
   }, [cleanupSource, removeSource]);
 
+  // Get latest data for a source - Updated to use merged data
+  const getLatestDataForSource = useCallback((sourceId: string) => {
+    const data = allUpdates.get(sourceId);
+    console.log('🔍 getLatestData called for source:', sourceId, {
+      hasData: !!data,
+      dataLength: data?.data?.length || 0,
+      allUpdatesSize: allUpdates.size,
+      availableKeys: Array.from(allUpdates.keys())
+    });
+    return data;
+  }, [allUpdates]);
+
   return {
     sources,
     isSupabaseConnected,
     latestUpdates: Object.fromEntries(allUpdates),
     addRealtimeSource,
     removeRealtimeSource,
-    getLatestData,
+    getLatestData: getLatestDataForSource,
     testConnection,
     refreshSource
   };
