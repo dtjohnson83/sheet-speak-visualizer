@@ -6,7 +6,7 @@ import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
 import { Database, Wifi, Globe, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { useRealtimeData } from '@/hooks/useRealtimeData';
+import { useRealtimeData } from '@/contexts/RealtimeDataContext';
 import { detectColumnTypes } from '@/lib/columnTypeDetection';
 
 interface DataSourcesTabProps {

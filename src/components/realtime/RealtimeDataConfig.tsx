@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Trash2, Plus, Wifi, WifiOff, Globe, Database, Play, RefreshCw, Eye } from 'lucide-react';
-import { useRealtimeData, RealtimeDataSource } from '@/hooks/useRealtimeData';
+import { useRealtimeData } from '@/contexts/RealtimeDataContext';
+import { RealtimeDataSource } from '@/hooks/useRealtimeData';
 
 interface RealtimeDataConfigProps {
   onUseForVisualization?: (sourceId: string) => void;

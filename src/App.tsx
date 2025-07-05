@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { RealtimeDataProvider } from "@/contexts/RealtimeDataContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/security/ErrorBoundary";
 import Landing from "./pages/Landing";
@@ -40,7 +41,8 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="chartuvo-ui-theme">
         <AuthProvider>
-          <TooltipProvider>
+          <RealtimeDataProvider>
+            <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -66,7 +68,8 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-          </TooltipProvider>
+            </TooltipProvider>
+          </RealtimeDataProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
