@@ -20,16 +20,22 @@ export const getEffectiveSeries = (
     }
   };
 
-  // Always include the base yColumn as the primary series with the correct type
-  const baseSeries = yColumn ? [{
-    id: 'base',
-    column: yColumn,
-    color: chartColors[0],
-    type: getSeriesType(chartType),
-    aggregationMethod: 'sum' as const,
-    yAxisId: 'left'
-  }] : [];
+  // Only add base series if no series are explicitly provided (maintains backward compatibility)
+  // If series are provided (e.g., from AI suggestions), use them as-is
+  if (series.length === 0 && yColumn) {
+    console.log('SeriesUtils - Adding base series for yColumn:', yColumn);
+    const baseSeries = [{
+      id: 'base',
+      column: yColumn,
+      color: chartColors[0],
+      type: getSeriesType(chartType),
+      aggregationMethod: 'sum' as const,
+      yAxisId: 'left'
+    }];
+    return baseSeries;
+  }
   
-  // Combine base series with additional series
-  return [...baseSeries, ...series];
+  // Use provided series as-is (respects AI suggestions and manual configurations)
+  console.log('SeriesUtils - Using provided series:', series.length > 0 ? series.map(s => s.column) : 'none');
+  return series;
 };
