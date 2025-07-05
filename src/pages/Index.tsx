@@ -96,12 +96,8 @@ const Index = () => {
             columns={columns}
             fileName={fileName}
             worksheetName={worksheetName}
-            selectedDataSource={selectedDataSource}
-            showDataSourceDialog={showDataSourceDialog}
             onDataLoaded={handleDataLoaded}
             onLoadDataset={handleLoadDataset}
-            onDataSourceSelect={setSelectedDataSource}
-            onDataSourceDialogChange={setShowDataSourceDialog}
           />
 
           {data.length > 0 && (
@@ -141,14 +137,19 @@ const Index = () => {
                 filters={filters}
                 currentDatasetId={currentDatasetId}
                 showContextSetup={showContextSetup}
+                selectedDataSource={selectedDataSource}
+                showDataSourceDialog={showDataSourceDialog}
                 onAddTile={addTile}
                 onRemoveTile={removeTile}
                 onUpdateTile={updateTile}
                 onFiltersChange={setFilters}
-              onLoadDashboard={handleLoadDashboard}
-              onContextReady={handleContextReady}
-              onSkipContext={handleSkipContext}
-              onColumnTypeChange={handleColumnTypeChange}
+                onLoadDashboard={handleLoadDashboard}
+                onContextReady={handleContextReady}
+                onSkipContext={handleSkipContext}
+                onColumnTypeChange={handleColumnTypeChange}
+                onDataSourceSelect={setSelectedDataSource}
+                onDataSourceDialogChange={setShowDataSourceDialog}
+                onDataLoaded={handleDataLoaded}
               />
             </>
           )}

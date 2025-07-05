@@ -1,8 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { SimpleFileUpload } from '@/components/SimpleFileUpload';
 import { DatasetManager } from '@/components/data/DatasetManager';
-import { DataSourceSelector } from '@/components/data-sources/DataSourceSelector';
-import { DataSourceConnectionDialog } from '@/components/data-sources/DataSourceConnectionDialog';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SavedDataset } from '@/hooks/useDatasets';
 
@@ -11,12 +9,8 @@ interface DataManagementSectionProps {
   columns: ColumnInfo[];
   fileName: string;
   worksheetName: string;
-  selectedDataSource: string;
-  showDataSourceDialog: boolean;
   onDataLoaded: (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => void;
   onLoadDataset: (dataset: SavedDataset) => void;
-  onDataSourceSelect: (type: string) => void;
-  onDataSourceDialogChange: (open: boolean) => void;
 }
 
 export const DataManagementSection = ({
@@ -24,58 +18,34 @@ export const DataManagementSection = ({
   columns,
   fileName,
   worksheetName,
-  selectedDataSource,
-  showDataSourceDialog,
   onDataLoaded,
   onLoadDataset,
-  onDataSourceSelect,
-  onDataSourceDialogChange,
 }: DataManagementSectionProps) => {
   return (
     <>
       <Card className="p-6">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* File Upload Section */}
-          <div className="lg:col-span-2">
+          <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Upload Data</h3>
             </div>
             <SimpleFileUpload onDataLoaded={onDataLoaded} />
           </div>
           
-          {/* Management Section */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Data Management</h3>
-              <DatasetManager
-                currentData={data}
-                currentColumns={columns}
-                currentFileName={fileName}
-                currentWorksheetName={worksheetName}
-                onLoadDataset={onLoadDataset}
-              />
-            </div>
-            
-            <div className="border-t pt-4">
-              <h4 className="text-md font-medium mb-3">Data Sources</h4>
-              <DataSourceSelector 
-                onSelect={(type) => {
-                  onDataSourceSelect(type);
-                  onDataSourceDialogChange(true);
-                }}
-                selectedType={selectedDataSource}
-              />
-            </div>
+          {/* Dataset Management Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Saved Datasets</h3>
+            <DatasetManager
+              currentData={data}
+              currentColumns={columns}
+              currentFileName={fileName}
+              currentWorksheetName={worksheetName}
+              onLoadDataset={onLoadDataset}
+            />
           </div>
         </div>
       </Card>
-      
-      <DataSourceConnectionDialog
-        open={showDataSourceDialog}
-        onOpenChange={onDataSourceDialogChange}
-        sourceType={selectedDataSource}
-        onSuccess={onDataLoaded}
-      />
     </>
   );
 };

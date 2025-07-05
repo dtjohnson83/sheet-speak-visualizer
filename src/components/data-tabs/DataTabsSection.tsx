@@ -12,7 +12,7 @@ import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentD
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
 import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
 import { TabNavigationEnhancer } from './TabNavigationEnhancer';
-import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
+import { DataSourcesTab } from '@/components/data-sources/DataSourcesTab';
 import { Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Wifi } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -25,6 +25,8 @@ interface DataTabsSectionProps {
   filters: any[];
   currentDatasetId: string;
   showContextSetup: boolean;
+  selectedDataSource: string;
+  showDataSourceDialog: boolean;
   onAddTile: (tile: any) => void;
   onRemoveTile: (id: string) => void;
   onUpdateTile: (id: string, updates: any) => void;
@@ -33,6 +35,9 @@ interface DataTabsSectionProps {
   onContextReady: (context: any) => void;
   onSkipContext: () => void;
   onColumnTypeChange: (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => void;
+  onDataSourceSelect: (type: string) => void;
+  onDataSourceDialogChange: (open: boolean) => void;
+  onDataLoaded: (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => void;
 }
 
 export const DataTabsSection = ({
@@ -43,6 +48,8 @@ export const DataTabsSection = ({
   filters,
   currentDatasetId,
   showContextSetup,
+  selectedDataSource,
+  showDataSourceDialog,
   onAddTile,
   onRemoveTile,
   onUpdateTile,
@@ -51,11 +58,14 @@ export const DataTabsSection = ({
   onContextReady,
   onSkipContext,
   onColumnTypeChange,
+  onDataSourceSelect,
+  onDataSourceDialogChange,
+  onDataLoaded,
 }: DataTabsSectionProps) => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("preview");
 
-  const tabOrder = ["preview", "charts", "dashboard", "realtime", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
+  const tabOrder = ["preview", "charts", "dashboard", "data-sources", "ai-chat", "ai-report", "predictive", "data-quality", "agents"];
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -105,11 +115,11 @@ export const DataTabsSection = ({
         </TabsTrigger>
 
         <TabsTrigger 
-          value="realtime" 
+          value="data-sources" 
           className={`${isMobile ? 'flex-shrink-0 min-w-[80px]' : ''} flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all`}
         >
-          <Wifi className="h-4 w-4" />
-          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Live' : 'Real-time'}</span>
+          <Database className="h-4 w-4" />
+          <span className={isMobile ? 'text-xs' : ''}>{isMobile ? 'Sources' : 'Data Sources'}</span>
         </TabsTrigger>
 
         {/* Separator */}
@@ -230,9 +240,15 @@ export const DataTabsSection = ({
         />
       </TabsContent>
       
-      <TabsContent value="realtime" className="space-y-4">
+      <TabsContent value="data-sources" className="space-y-4">
         <Card className="p-6">
-          <RealtimeDataConfig />
+          <DataSourcesTab 
+            selectedDataSource={selectedDataSource}
+            showDataSourceDialog={showDataSourceDialog}
+            onDataSourceSelect={onDataSourceSelect}
+            onDataSourceDialogChange={onDataSourceDialogChange}
+            onDataLoaded={onDataLoaded}
+          />
         </Card>
       </TabsContent>
       
