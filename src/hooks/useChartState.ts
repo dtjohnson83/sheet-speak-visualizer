@@ -38,7 +38,7 @@ export const useChartState = () => {
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
 
   // Charts that support data labels
-  const dataLabelSupportedCharts = ['bar', 'line', 'area', 'pie', 'stacked-bar', 'histogram'];
+  const dataLabelSupportedCharts = ['bar', 'line', 'area', 'pie', 'stacked-bar', 'histogram', 'treemap'];
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {
