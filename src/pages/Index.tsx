@@ -7,6 +7,8 @@ import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
 import { RealtimeDashboardControls } from '@/components/realtime/RealtimeDashboardControls';
+import { ActiveSourceIndicator } from '@/components/realtime/ActiveSourceIndicator';
+import { useRealtimeData } from '@/contexts/RealtimeDataContext';
 
 export interface DataRow {
   [key: string]: any;
@@ -42,6 +44,7 @@ const Index = () => {
 
   const { tiles, addTile, removeTile, updateTile, filters, setFilters, enableRealtime, disableRealtime, realtimeEnabled } = useDashboard();
   const { isAdmin, usesRemaining } = useUsageTracking();
+  const { getLatestData, sources } = useRealtimeData();
   
   // Initialize session monitoring
   useSessionMonitor();
@@ -84,12 +87,34 @@ const Index = () => {
     }
   };
 
+  // Handle switching between real-time sources
+  const handleSourceSwitch = (sourceId: string) => {
+    const realtimeUpdate = getLatestData(sourceId);
+    const source = sources.find(s => s.id === sourceId);
+    
+    if (realtimeUpdate && source) {
+      console.log('🔄 Switching to source:', source.name);
+      handleDataLoaded(
+        realtimeUpdate.data,
+        realtimeUpdate.columns || [],
+        source.name,
+        'realtime'
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-7xl mx-auto">
         <AppHeader isAdmin={isAdmin} usesRemaining={usesRemaining} />
 
         <div className="space-y-6">
+          {/* Active Source Indicator - shows when using real-time data */}
+          <ActiveSourceIndicator 
+            currentDatasetName={displayFileName}
+            onSourceChange={handleSourceSwitch}
+          />
+          
           {/* Always show Real-time Dashboard Controls when data is available */}
           {data.length > 0 && <RealtimeDashboardControls />}
 

@@ -230,6 +230,7 @@ export const DataTabsSection = ({
             data={data} 
             columns={columns}
             onSaveTile={onAddTile}
+            dataSourceName={fileName}
           />
         </Card>
       </TabsContent>

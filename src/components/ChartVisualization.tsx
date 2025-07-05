@@ -10,15 +10,18 @@ import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
 import { useEffect } from 'react';
 import { useChartConfiguration } from './chart/hooks/useChartConfiguration';
+import { Badge } from '@/components/ui/badge';
+import { Zap } from 'lucide-react';
 
 interface ChartVisualizationProps {
   data: DataRow[];
   columns: ColumnInfo[];
   onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void;
   columnFormats?: ColumnFormat[];
+  dataSourceName?: string;
 }
 
-export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }: ChartVisualizationProps) => {
+export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName }: ChartVisualizationProps) => {
   const {
     // State
     customTitle,
@@ -87,7 +90,15 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats }:
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold mb-4">Data Visualization</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold">Data Visualization</h3>
+          {dataSourceName && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Zap className="h-3 w-3" />
+              {dataSourceName}
+            </Badge>
+          )}
+        </div>
         
         {/* Smart Chart Defaults */}
         <SmartChartDefaults

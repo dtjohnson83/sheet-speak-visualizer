@@ -25,7 +25,7 @@ export const DataSourcesTab = ({
   onDataLoaded,
 }: DataSourcesTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("static");
-  const { latestUpdates, getLatestData } = useRealtimeData();
+  const { latestUpdates, getLatestData, sources } = useRealtimeData();
 
   const handleUseRealtimeDataForVisualization = (sourceId: string) => {
     console.log('🚀 Use for Charts button clicked for source:', sourceId);
@@ -49,6 +49,10 @@ export const DataSourcesTab = ({
     }
     
     try {
+      // Find the source to get its name
+      const source = sources.find(s => s.id === sourceId);
+      const sourceName = source?.name || `Source ${sourceId}`;
+      
       // Transform realtime data to match our format
       const transformedData = realtimeUpdate.data;
       console.log('🔄 Transforming data:', {
@@ -69,14 +73,15 @@ export const DataSourcesTab = ({
       console.log('📈 Loading data into visualization system...', {
         dataRows: transformedData.length,
         columns: detectedColumns.length,
-        columnNames: detectedColumns.map(c => c.name)
+        columnNames: detectedColumns.map(c => c.name),
+        sourceName
       });
       
-      // Load the data into the main visualization system
+      // Load the data into the main visualization system with proper source name
       onDataLoaded(
         transformedData, 
         detectedColumns, 
-        `Live API Data (${sourceId})`,
+        sourceName,
         'realtime'
       );
       
