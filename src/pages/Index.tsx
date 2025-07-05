@@ -3,7 +3,6 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useSessionMonitor } from '@/hooks/useSessionMonitor';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useDataManagement } from '@/hooks/useDataManagement';
-import { DataManagementSection } from '@/components/data-management/DataManagementSection';
 import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
@@ -91,15 +90,6 @@ const Index = () => {
         <AppHeader isAdmin={isAdmin} usesRemaining={usesRemaining} />
 
         <div className="space-y-6">
-          <DataManagementSection
-            data={data}
-            columns={columns}
-            fileName={fileName}
-            worksheetName={worksheetName}
-            onDataLoaded={handleDataLoaded}
-            onLoadDataset={handleLoadDataset}
-          />
-
           {/* Always show Real-time Dashboard Controls when data is available */}
           {data.length > 0 && <RealtimeDashboardControls />}
 
