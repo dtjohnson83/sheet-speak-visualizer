@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { DataPreview } from '@/components/DataPreview';
 import { ChartVisualization } from '@/components/ChartVisualization';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
@@ -14,35 +11,12 @@ import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentDashboard';
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
 import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
-import { TabNavigationEnhancer } from './TabNavigationEnhancer';
 import { DataSourcesTab } from '@/components/data-sources/DataSourcesTab';
 import { SmartDataIntegration } from '@/components/semantic/SmartDataIntegration';
-import { ChevronDown, ChevronRight, ArrowRight, CheckCircle2, Bot, Database, BarChart3, Layout, Settings, FileText, Shield, Target, Brain } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { DataRow, ColumnInfo } from '@/pages/Index';
-
-interface DataTabsSectionProps {
-  data: DataRow[];
-  columns: ColumnInfo[];
-  fileName: string;
-  tiles: any[];
-  filters: any[];
-  currentDatasetId: string;
-  showContextSetup: boolean;
-  selectedDataSource: string;
-  showDataSourceDialog: boolean;
-  onAddTile: (tile: any) => void;
-  onRemoveTile: (id: string) => void;
-  onUpdateTile: (id: string, updates: any) => void;
-  onFiltersChange: (filters: any[]) => void;
-  onLoadDashboard: (tiles: any[], filters: any[], data?: DataRow[], columns?: ColumnInfo[]) => void;
-  onContextReady: (context: any) => void;
-  onSkipContext: () => void;
-  onColumnTypeChange: (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => void;
-  onDataSourceSelect: (type: string) => void;
-  onDataSourceDialogChange: (open: boolean) => void;
-  onDataLoaded: (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => void;
-}
+import { DataTabsSectionProps, ProgressStatus } from './types';
+import { getTierDefinitions } from './tierDefinitions';
+import { TierSection } from './TierSection';
+import { WorkflowProgressIndicator } from './WorkflowProgressIndicator';
 
 export const DataTabsSection = ({
   data,
@@ -66,7 +40,6 @@ export const DataTabsSection = ({
   onDataSourceDialogChange,
   onDataLoaded,
 }: DataTabsSectionProps) => {
-  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("data-sources");
   
   // Tier management state
@@ -82,51 +55,8 @@ export const DataTabsSection = ({
   const hasCharts = tiles.length > 0;
   const hasAIContext = !showContextSetup;
 
-  // Tab tier definitions
-  const tiers = {
-    foundation: {
-      title: "Data Foundation",
-      description: "Connect and prepare your data",
-      icon: Database,
-      color: "blue",
-      tabs: [
-        { id: "data-sources", label: "Data Sources", icon: Database, badge: null },
-        { id: "preview", label: "Data Preview", icon: Database, badge: hasData ? data.length : null },
-        { id: "smart-integration", label: "Smart Integration", icon: Brain, badge: null }
-      ]
-    },
-    analysis: {
-      title: "Analysis & Visualization", 
-      description: "Create charts and dashboards",
-      icon: BarChart3,
-      color: "green",
-      tabs: [
-        { id: "charts", label: "Visualizations", icon: BarChart3, badge: null },
-        { id: "dashboard", label: "Dashboard", icon: Layout, badge: tiles.length > 0 ? tiles.length : null }
-      ]
-    },
-    ai: {
-      title: "AI Intelligence",
-      description: "Chat, analyze, and predict", 
-      icon: Bot,
-      color: "purple",
-      tabs: [
-        { id: "ai-chat", label: "AI Chat", icon: Bot, badge: null },
-        { id: "ai-report", label: "AI Report", icon: FileText, badge: null },
-        { id: "predictive", label: "Predictive AI", icon: Target, badge: null }
-      ]
-    },
-    advanced: {
-      title: "Advanced Operations",
-      description: "Quality control and automation",
-      icon: Settings,
-      color: "orange",
-      tabs: [
-        { id: "data-quality", label: "Data Quality", icon: Shield, badge: null },
-        { id: "agents", label: "AI Agents", icon: Settings, badge: null }
-      ]
-    }
-  };
+  // Get tier definitions
+  const tiers = getTierDefinitions(data, tiles);
 
   // Auto-expand tiers based on workflow progress
   useEffect(() => {
@@ -149,7 +79,7 @@ export const DataTabsSection = ({
     }));
   };
 
-  const getTierProgress = (tierKey: string) => {
+  const getTierProgress = (tierKey: string): ProgressStatus => {
     switch (tierKey) {
       case 'foundation': return hasData ? 'complete' : 'active';
       case 'analysis': return hasCharts ? 'complete' : hasData ? 'active' : 'pending';
@@ -163,94 +93,24 @@ export const DataTabsSection = ({
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       {/* Cascading Tier Layout */}
       <div className="w-full space-y-4 mb-6">
-        {Object.entries(tiers).map(([tierKey, tier]) => {
-          const isExpanded = expandedTiers[tierKey as keyof typeof expandedTiers];
-          const progress = getTierProgress(tierKey);
-          const progressIcon = progress === 'complete' ? CheckCircle2 : progress === 'active' ? ArrowRight : ChevronRight;
-          const progressColor = progress === 'complete' ? 'text-green-600 dark:text-green-400' : progress === 'active' ? 'text-primary' : 'text-muted-foreground';
-          
-          return (
-            <Collapsible key={tierKey} open={isExpanded} onOpenChange={() => toggleTier(tierKey)}>
-              <CollapsibleTrigger className="w-full">
-                <Card className={`p-4 hover:shadow-md transition-all duration-200 ${
-                  progress === 'active' ? 'ring-2 ring-primary/30 bg-accent/50' :
-                  progress === 'complete' ? 'ring-2 ring-green-500/30 bg-green-500/10 dark:bg-green-500/5' : ''
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        tier.color === 'blue' ? 'bg-primary/10 text-primary' :
-                        tier.color === 'green' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
-                        tier.color === 'purple' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' :
-                        'bg-orange-500/10 text-orange-600 dark:text-orange-400'
-                      }`}>
-                        <tier.icon className="h-5 w-5" />
-                      </div>
-                      <div className="text-left">
-                        <h3 className="font-semibold text-lg">{tier.title}</h3>
-                        <p className="text-sm text-muted-foreground">{tier.description}</p>
-                      </div>
-                    </div>
-                     <div className="flex items-center gap-2">
-                       <div className={`${progressColor}`}>
-                         {React.createElement(progressIcon, { className: "h-5 w-5" })}
-                       </div>
-                      {isExpanded ? 
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      }
-                    </div>
-                  </div>
-                </Card>
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent>
-                <div className="mt-2 ml-4 border-l-2 border-muted pl-4">
-                  <div className={`grid gap-2 ${
-                    isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'
-                  }`}>
-                     {tier.tabs.map((tab) => (
-                       <Button
-                         key={tab.id}
-                         variant={activeTab === tab.id ? "default" : "ghost"}
-                         onClick={() => handleTabChange(tab.id)}
-                         className="w-full justify-start p-3 h-auto flex items-center gap-3"
-                       >
-                         <tab.icon className="h-4 w-4" />
-                         <span className="font-medium">{tab.label}</span>
-                         {tab.badge && (
-                           <Badge variant="secondary" className="ml-auto text-xs">
-                             {tab.badge}
-                           </Badge>
-                         )}
-                       </Button>
-                     ))}
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
+        {Object.entries(tiers).map(([tierKey, tier]) => (
+          <TierSection
+            key={tierKey}
+            tierKey={tierKey}
+            tier={tier}
+            progress={getTierProgress(tierKey)}
+            isExpanded={expandedTiers[tierKey as keyof typeof expandedTiers]}
+            activeTab={activeTab}
+            onToggle={() => toggleTier(tierKey)}
+            onTabChange={handleTabChange}
+          />
+        ))}
         
-        {/* Workflow Progress Indicator */}
-        <Card className="p-4 bg-muted/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${hasData ? 'bg-green-500 dark:bg-green-400' : 'bg-muted-foreground/30'}`} />
-              <span className="text-sm font-medium">Data Connected</span>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${hasCharts ? 'bg-green-500 dark:bg-green-400' : 'bg-muted-foreground/30'}`} />
-              <span className="text-sm font-medium">Charts Created</span>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${hasAIContext ? 'bg-green-500 dark:bg-green-400' : 'bg-muted-foreground/30'}`} />
-              <span className="text-sm font-medium">AI Ready</span>
-            </div>
-          </div>
-        </Card>
+        <WorkflowProgressIndicator
+          hasData={hasData}
+          hasCharts={hasCharts}
+          hasAIContext={hasAIContext}
+        />
       </div>
       
       <TabsContent value="preview" className="space-y-4">
