@@ -28,18 +28,49 @@ export const DataSourcesTab = ({
   const { latestUpdates, getLatestData } = useRealtimeData();
 
   const handleUseRealtimeDataForVisualization = (sourceId: string) => {
+    console.log('🚀 Use for Charts button clicked for source:', sourceId);
+    
     const realtimeUpdate = getLatestData(sourceId);
-    if (realtimeUpdate && realtimeUpdate.data.length > 0) {
+    console.log('📊 Retrieved realtime data:', {
+      hasUpdate: !!realtimeUpdate,
+      dataLength: realtimeUpdate?.data?.length || 0,
+      hasColumns: !!realtimeUpdate?.columns,
+      timestamp: realtimeUpdate?.timestamp
+    });
+    
+    if (!realtimeUpdate) {
+      console.error('❌ No realtime data found for source:', sourceId);
+      return;
+    }
+    
+    if (!realtimeUpdate.data || realtimeUpdate.data.length === 0) {
+      console.error('❌ Realtime data is empty for source:', sourceId);
+      return;
+    }
+    
+    try {
       // Transform realtime data to match our format
       const transformedData = realtimeUpdate.data;
+      console.log('🔄 Transforming data:', {
+        originalLength: transformedData.length,
+        sampleRow: transformedData[0]
+      });
       
       // Detect column types automatically or use provided columns
       let detectedColumns: ColumnInfo[];
-      if (realtimeUpdate.columns) {
+      if (realtimeUpdate.columns && realtimeUpdate.columns.length > 0) {
         detectedColumns = realtimeUpdate.columns;
+        console.log('✅ Using provided columns:', detectedColumns.length);
       } else {
         detectedColumns = detectColumnTypes(transformedData);
+        console.log('🔍 Auto-detected columns:', detectedColumns.length);
       }
+      
+      console.log('📈 Loading data into visualization system...', {
+        dataRows: transformedData.length,
+        columns: detectedColumns.length,
+        columnNames: detectedColumns.map(c => c.name)
+      });
       
       // Load the data into the main visualization system
       onDataLoaded(
@@ -48,6 +79,10 @@ export const DataSourcesTab = ({
         `Live API Data (${sourceId})`,
         'realtime'
       );
+      
+      console.log('✅ Successfully loaded realtime data for visualization');
+    } catch (error) {
+      console.error('❌ Error loading realtime data for visualization:', error);
     }
   };
 

@@ -241,7 +241,11 @@ export const RealtimeDataConfig = ({ onUseForVisualization }: RealtimeDataConfig
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => onUseForVisualization(source.id)}
+                      onClick={() => {
+                        console.log('🎯 Use for Charts button clicked for source:', source.id);
+                        console.log('📋 Available data:', latestUpdates[source.id]);
+                        onUseForVisualization(source.id);
+                      }}
                       className="h-8 px-2"
                     >
                       <Play className="h-3 w-3 mr-1" />

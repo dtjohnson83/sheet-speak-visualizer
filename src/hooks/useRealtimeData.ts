@@ -219,6 +219,12 @@ export const useRealtimeData = () => {
               timestamp: new Date()
             };
             
+            console.log('💾 Storing realtime update:', {
+              sourceId: newSource.id,
+              dataLength: transformedData.length,
+              sampleData: transformedData.slice(0, 2)
+            });
+            
             setLatestUpdates(prev => new Map(prev.set(newSource.id, update)));
             
             // Update last updated time
@@ -368,6 +374,12 @@ export const useRealtimeData = () => {
           data: transformedData,
           timestamp: new Date()
         };
+        
+        console.log('🔄 Manual refresh - storing update:', {
+          sourceId,
+          dataLength: transformedData.length,
+          sampleData: transformedData.slice(0, 2)
+        });
         
         setLatestUpdates(prev => new Map(prev.set(sourceId, update)));
         
