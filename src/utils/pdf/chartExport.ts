@@ -39,40 +39,59 @@ export const exportChartToPNG = async (chartContainer: HTMLElement, fileName?: s
       allowTaint: true,
       foreignObjectRendering: true,
       backgroundColor: '#ffffff',
-      logging: true, // Enable logging for debugging
+      logging: false,
       width: rect.width,
       height: rect.height,
       onclone: (clonedDoc) => {
-        // Ensure all SVG elements are visible and properly styled
+        // Enhanced SVG processing for better export
         const svgElements = clonedDoc.querySelectorAll('svg');
         svgElements.forEach(svg => {
           svg.style.visibility = 'visible';
           svg.style.display = 'block';
           svg.style.backgroundColor = '#ffffff';
-          // Ensure SVG has explicit dimensions
-          if (!svg.getAttribute('width')) {
-            svg.setAttribute('width', rect.width.toString());
-          }
-          if (!svg.getAttribute('height')) {
-            svg.setAttribute('height', rect.height.toString());
-          }
+          
+          // Set explicit dimensions
+          const svgRect = svg.getBoundingClientRect();
+          svg.setAttribute('width', (svgRect.width || rect.width).toString());
+          svg.setAttribute('height', (svgRect.height || rect.height).toString());
+          
+          // Add XML namespace
+          svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          
+          // Process all child elements
+          const allElements = svg.querySelectorAll('*');
+          allElements.forEach(el => {
+            const element = el as SVGElement;
+            element.style.visibility = 'visible';
+            
+            // Handle text elements specifically
+            if (element.tagName === 'text') {
+              element.style.fill = element.style.fill || '#374151';
+              element.style.fontSize = element.style.fontSize || '12px';
+              element.style.fontFamily = element.style.fontFamily || 'system-ui, sans-serif';
+            }
+            
+            // Handle path elements (chart lines, bars, etc.)
+            if (element.tagName === 'path') {
+              if (!element.style.fill || element.style.fill === 'none') {
+                element.style.stroke = element.style.stroke || '#374151';
+                element.style.strokeWidth = element.style.strokeWidth || '2';
+              }
+            }
+            
+            // Handle rect elements (bars, backgrounds)
+            if (element.tagName === 'rect') {
+              element.style.fill = element.style.fill || '#3b82f6';
+            }
+          });
         });
         
-        // Ensure chart containers are visible
-        const chartContainers = clonedDoc.querySelectorAll('.recharts-wrapper, .recharts-surface');
+        // Enhance chart containers
+        const chartContainers = clonedDoc.querySelectorAll('.recharts-wrapper, .recharts-surface, .recharts-layer');
         chartContainers.forEach(container => {
           const element = container as HTMLElement;
           element.style.visibility = 'visible';
           element.style.display = 'block';
-          element.style.backgroundColor = '#ffffff';
-        });
-        
-        // Make sure text elements are visible
-        const textElements = clonedDoc.querySelectorAll('text');
-        textElements.forEach(text => {
-          const element = text as SVGTextElement;
-          element.style.visibility = 'visible';
-          element.style.fill = element.style.fill || '#000000';
         });
       },
       ignoreElements: (element) => {
@@ -139,22 +158,61 @@ export const exportChartToSVG = async (chartContainer: HTMLElement, fileName?: s
     // Clone the SVG to avoid modifying the original
     const clonedSvg = svgElement.cloneNode(true) as SVGElement;
     
-    // Ensure the SVG has proper dimensions and styling
-    const computedStyle = window.getComputedStyle(svgElement);
-    clonedSvg.setAttribute('width', computedStyle.width || '800');
-    clonedSvg.setAttribute('height', computedStyle.height || '400');
+    // Get actual dimensions from the original SVG
+    const rect = svgElement.getBoundingClientRect();
+    const actualWidth = rect.width || 800;
+    const actualHeight = rect.height || 400;
     
-    // Add XML namespace if not present
-    if (!clonedSvg.getAttribute('xmlns')) {
-      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    // Set proper dimensions
+    clonedSvg.setAttribute('width', actualWidth.toString());
+    clonedSvg.setAttribute('height', actualHeight.toString());
+    clonedSvg.setAttribute('viewBox', `0 0 ${actualWidth} ${actualHeight}`);
+    
+    // Add XML namespace and other required attributes
+    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    
+    // Copy computed styles to inline styles for all elements
+    const copyComputedStylesToInline = (sourceElement: Element, targetElement: Element) => {
+      const computedStyle = window.getComputedStyle(sourceElement);
+      const targetSvgElement = targetElement as SVGElement;
+      
+      // Copy important style properties
+      const importantStyles = [
+        'fill', 'stroke', 'stroke-width', 'font-family', 'font-size', 'font-weight',
+        'color', 'opacity', 'visibility', 'display', 'text-anchor'
+      ];
+      
+      importantStyles.forEach(prop => {
+        const value = computedStyle.getPropertyValue(prop);
+        if (value && value !== 'none' && value !== '') {
+          targetSvgElement.style.setProperty(prop, value);
+        }  
+      });
+      
+      // Recursively process children
+      for (let i = 0; i < sourceElement.children.length; i++) {
+        copyComputedStylesToInline(sourceElement.children[i], targetElement.children[i]);
+      }
+    };
+    
+    // Apply computed styles to the cloned SVG
+    copyComputedStylesToInline(svgElement, clonedSvg);
+    
+    // Ensure background is white
+    clonedSvg.style.backgroundColor = '#ffffff';
+    
+    // Convert to string with proper XML declaration
+    const serializer = new XMLSerializer();
+    let svgString = serializer.serializeToString(clonedSvg);
+    
+    // Add XML declaration if not present
+    if (!svgString.startsWith('<?xml')) {
+      svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
     }
     
-    // Convert to string
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(clonedSvg);
-    
     // Create blob and download
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
