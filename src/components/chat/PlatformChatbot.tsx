@@ -162,8 +162,8 @@ What would you like to know?`,
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 max-h-[80vh] h-[min(500px,80vh)] shadow-xl z-50 flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+    <Card className="fixed bottom-6 right-6 w-96 h-[500px] max-h-[80vh] shadow-xl z-50 flex flex-col overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 flex-shrink-0">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-primary" />
           Platform Assistant
@@ -178,9 +178,9 @@ What would you like to know?`,
         </Button>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-4 pt-0">
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4">
+      <CardContent className="flex-1 flex flex-col p-4 pt-0 min-h-0">
+        <ScrollArea className="flex-1 pr-4 min-h-0 max-h-[calc(100vh-200px)]">
+          <div className="space-y-4 pb-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -236,7 +236,7 @@ What would you like to know?`,
           <div ref={messagesEndRef} />
         </ScrollArea>
 
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 pt-4 flex-shrink-0 border-t bg-background">
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
