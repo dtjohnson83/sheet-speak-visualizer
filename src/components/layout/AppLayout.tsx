@@ -156,6 +156,9 @@ export const AppLayout: React.FC = () => {
         onClose={markTutorialSeen}
         onComplete={markTutorialCompleted}
       />
+      
+      {/* Platform Chatbot */}
+      <PlatformChatbot />
     </div>
   );
 };
