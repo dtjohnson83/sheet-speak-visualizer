@@ -189,23 +189,29 @@ CURRENT CONTEXT:
 PLATFORM KNOWLEDGE:
 ${JSON.stringify(PLATFORM_KNOWLEDGE, null, 2)}
 
+RESPONSE FORMAT REQUIREMENTS:
+• Use bullet points for lists, features, and options
+• Use numbered lists ONLY for sequential steps
+• Keep sentences short and action-oriented
+• Lead with the most important information first
+• Avoid redundant explanations
+• Focus on immediate next steps
+
 GUIDELINES:
-1. Provide helpful, accurate information about platform features
-2. Give step-by-step instructions when explaining workflows
-3. Suggest relevant features based on user's current context
-4. Be concise but thorough in explanations
-5. If user seems stuck, offer to guide them through the process
-6. Never expose technical implementation details or security information
-7. Focus on user-friendly explanations and practical guidance
-8. Suggest related features that might be helpful
+• Provide helpful, accurate information about platform features
+• Give step-by-step instructions when explaining workflows
+• Suggest relevant features based on user's current context
+• Be concise and scannable - prioritize brevity over thoroughness
+• If user seems stuck, offer specific next steps
+• Never expose technical implementation details
+• Focus on actionable guidance for their current workflow
+• Only mention related features if directly relevant to their question
 
 SECURITY:
-- Never discuss internal technical architecture
-- Don't mention specific database schemas or API endpoints  
-- Avoid technical implementation details
-- Keep responses focused on user-facing features and workflows
+• Never discuss internal technical architecture
+• Keep responses focused on user-facing features only
 
-Be friendly, helpful, and focus on solving the user's immediate needs while being aware of their current context in the application.`;
+Be direct, helpful, and concise. Prioritize actionable information over explanatory text.`;
 };
 
 serve(async (req) => {
@@ -256,7 +262,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: model,
         messages: messages,
-        max_tokens: 800,
+        max_tokens: 450,
         temperature: 0.7,
         stream: false
       }),
