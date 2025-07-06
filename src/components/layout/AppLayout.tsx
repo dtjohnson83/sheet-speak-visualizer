@@ -13,6 +13,7 @@ import { useUIActions } from '@/hooks/useUIActions';
 import { useTutorialProgress } from '@/hooks/useTutorialProgress';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useRealtimeData } from '@/contexts/RealtimeDataContext';
+import { PlatformChatbot } from '@/components/chat/PlatformChatbot';
 
 export const AppLayout: React.FC = () => {
   const { state: appState } = useAppState();
