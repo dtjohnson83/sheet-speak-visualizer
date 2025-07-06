@@ -4,6 +4,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { KPIRenderer } from '../chart/KPIRenderer';
 import { getEffectiveSeries } from './utils/seriesUtils';
+import { logChartOperation } from '@/lib/logger';
 import { TileBarChartRenderer } from './renderers/TileBarChartRenderer';
 import { TileLineChartRenderer } from './renderers/TileLineChartRenderer';
 import { TileAreaChartRenderer } from './renderers/TileAreaChartRenderer';
@@ -29,7 +30,7 @@ interface TileChartRendererProps {
   chartColors: string[];
 }
 
-export const TileChartRenderer = ({ 
+export const TileChartRenderer = React.memo(({ 
   chartType, 
   xColumn, 
   yColumn, 
@@ -44,16 +45,17 @@ export const TileChartRenderer = ({
   columns, 
   chartColors 
 }: TileChartRendererProps) => {
-  const effectiveSeries = getEffectiveSeries(yColumn, series, chartColors, chartType);
+  const effectiveSeries = React.useMemo(() => 
+    getEffectiveSeries(yColumn, series, chartColors, chartType), 
+    [yColumn, series, chartColors, chartType]
+  );
 
-  console.log('TileChartRenderer - Rendering chart:', {
+  logChartOperation('tile chart render', {
     chartType,
-    xColumn,
-    yColumn,
     dataType: typeof data,
     isArray: Array.isArray(data),
     dataLength: Array.isArray(data) ? data.length : 'structured'
-  });
+  }, 'TileChartRenderer');
 
   if (chartType === 'bar') {
     return (
@@ -171,4 +173,4 @@ export const TileChartRenderer = ({
       No chart type selected.
     </div>
   );
-};
+});

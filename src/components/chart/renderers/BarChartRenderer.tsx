@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
@@ -6,7 +5,7 @@ import { ChartRenderersProps } from '@/types';
 
 interface BarChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {}
 
-export const BarChartRenderer = ({ 
+export const BarChartRenderer = React.memo(({ 
   data, 
   xColumn, 
   yColumn,
@@ -16,22 +15,34 @@ export const BarChartRenderer = ({
   showDataLabels
 }: BarChartRendererProps) => {
   // Always include the base yColumn as the primary series
-  const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'bar' as const, yAxisId: 'left' }] : [];
+  const baseSeries = React.useMemo(() => 
+    yColumn ? [{ id: 'base', column: yColumn, type: 'bar' as const, yAxisId: 'left' }] : [], 
+    [yColumn]
+  );
   
   // For bar charts, force all series to be bar type to prevent mixed rendering
-  const forcedBarSeries = series.map(s => ({ ...s, type: 'bar' as const }));
+  const forcedBarSeries = React.useMemo(() => 
+    series.map(s => ({ ...s, type: 'bar' as const })), 
+    [series]
+  );
   
   // Combine base series with forced bar series
-  const allSeries = [...baseSeries, ...forcedBarSeries];
+  const allSeries = React.useMemo(() => 
+    [...baseSeries, ...forcedBarSeries], 
+    [baseSeries, forcedBarSeries]
+  );
   
   // Check if we need a right Y-axis
-  const needsRightYAxis = series.some(s => s.yAxisId === 'right');
+  const needsRightYAxis = React.useMemo(() => 
+    series.some(s => s.yAxisId === 'right'), 
+    [series]
+  );
   
   // Since this is BarChartRenderer, we never have mixed types - force pure bar chart
   const hasMixedTypes = false;
   
   // Custom label component for data labels
-  const renderDataLabel = (props: any) => {
+  const renderDataLabel = React.useCallback((props: any) => {
     const { x, y, width, height, value } = props;
     return (
       <text 
@@ -45,9 +56,9 @@ export const BarChartRenderer = ({
         {formatTooltipValue(value)}
       </text>
     );
-  };
+  }, []);
 
-  const renderLineDataLabel = (props: any) => {
+  const renderLineDataLabel = React.useCallback((props: any) => {
     const { x, y, value } = props;
     return (
       <text 
@@ -60,11 +71,7 @@ export const BarChartRenderer = ({
         {formatTooltipValue(value)}
       </text>
     );
-  };
-  
-  // Use ComposedChart when we have mixed types, otherwise use BarChart
-  const ChartComponent = hasMixedTypes ? ComposedChart : 
-    React.lazy(() => import('recharts').then(module => ({ default: module.BarChart })));
+  }, []);
   
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -94,4 +101,4 @@ export const BarChartRenderer = ({
       </ComposedChart>
     </ResponsiveContainer>
   );
-};
+});

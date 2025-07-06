@@ -8,6 +8,7 @@ import { SeriesConfig } from '@/hooks/useChartState';
 import { TileControls } from './TileControls';
 import { ResizeHandle } from './ResizeHandle';
 import { prepareChartData } from '@/lib/chartDataProcessor';
+import { logChartOperation } from '@/lib/logger';
 
 export interface DashboardTileData {
   id: string;
@@ -34,11 +35,11 @@ interface DashboardTileProps {
   onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number }; title?: string }) => void;
 }
 
-export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: DashboardTileProps) => {
-  const chartColors = [
+export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpdate }: DashboardTileProps) => {
+  const chartColors = React.useMemo(() => [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
     '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#0000ff'
-  ];
+  ], []);
 
   const {
     tileRef,
@@ -53,24 +54,21 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
     onUpdate
   });
 
-  const handleTitleChange = (newTitle: string) => {
+  const handleTitleChange = React.useCallback((newTitle: string) => {
     if (onUpdate) {
       onUpdate(tile.id, { title: newTitle });
     }
-  };
+  }, [onUpdate, tile.id]);
 
   // Process the data using the same pipeline as the main visualization
   const processedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    console.log('DashboardTile - Processing data with configuration:', {
+    logChartOperation('tile data processing start', {
       tileId: tile.id,
       chartType: tile.chartType,
-      xColumn: tile.xColumn,
-      yColumn: tile.yColumn,
-      sankeyTargetColumn: tile.sankeyTargetColumn,
-      valueColumn: tile.valueColumn
-    });
+      dataLength: data.length
+    }, 'DashboardTile');
 
     const result = prepareChartData(
       data,
@@ -89,13 +87,12 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
       tile.valueColumn
     );
 
-    console.log('DashboardTile - Data processing result:', {
+    logChartOperation('tile data processing complete', {
       tileId: tile.id,
       chartType: tile.chartType,
       isArrayResult: Array.isArray(result),
-      resultLength: Array.isArray(result) ? result.length : 'structured',
-      resultSample: Array.isArray(result) ? result.slice(0, 2) : result
-    });
+      resultLength: Array.isArray(result) ? result.length : 'structured'
+    }, 'DashboardTile');
 
     return result;
   }, [data, columns, tile]);
@@ -110,15 +107,13 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
     return Array.isArray(processedData) ? processedData : [];
   }, [processedData, tile.chartType]);
 
-  console.log('DashboardTile - Final data for renderer:', {
+  logChartOperation('tile render data prepared', {
     tileId: tile.id,
     chartType: tile.chartType,
-    sankeyTargetColumn: tile.sankeyTargetColumn,
     dataType: typeof dataForRenderer,
     isArray: Array.isArray(dataForRenderer),
-    dataLength: Array.isArray(dataForRenderer) ? dataForRenderer.length : 'structured',
-    sample: Array.isArray(dataForRenderer) ? dataForRenderer.slice(0, 2) : dataForRenderer
-  });
+    dataLength: Array.isArray(dataForRenderer) ? dataForRenderer.length : 'structured'
+  }, 'DashboardTile');
 
   return (
     <Card 
@@ -161,4 +156,4 @@ export const DashboardTile = ({ tile, data, columns, onRemove, onUpdate }: Dashb
       <ResizeHandle onMouseDown={handleResizeMouseDown} />
     </Card>
   );
-};
+});

@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
@@ -7,6 +8,7 @@ import { SeriesManagerControls } from './series/SeriesManagerControls';
 import { SeriesManagerDebug } from './series/SeriesManagerDebug';
 import { SeriesManagerInfo } from './series/SeriesManagerInfo';
 import { getAvailableSeriesColumns, canAddNewSeries } from './series/SeriesManagerUtils';
+import { logUserInteraction, logger } from '@/lib/logger';
 
 interface SeriesManagerProps {
   series: SeriesConfig[];
@@ -16,7 +18,7 @@ interface SeriesManagerProps {
   chartColors: string[];
 }
 
-export const SeriesManager = ({ 
+export const SeriesManager = React.memo(({ 
   series, 
   setSeries, 
   numericColumns, 
@@ -24,18 +26,24 @@ export const SeriesManager = ({
   chartColors 
 }: SeriesManagerProps) => {
   
-  const availableColumns = getAvailableSeriesColumns(numericColumns, yColumn, series);
-  const canAddSeries = canAddNewSeries(availableColumns, series.length);
+  const availableColumns = React.useMemo(() => 
+    getAvailableSeriesColumns(numericColumns, yColumn, series), 
+    [numericColumns, yColumn, series]
+  );
+  const canAddSeries = React.useMemo(() => 
+    canAddNewSeries(availableColumns, series.length), 
+    [availableColumns, series.length]
+  );
 
-  const addSeries = () => {
-    console.log('SeriesManager - Add Series clicked:', {
+  const addSeries = React.useCallback(() => {
+    logUserInteraction('add series clicked', {
       canAddSeries,
       availableColumnsCount: availableColumns.length,
       currentSeriesCount: series.length
-    });
+    }, 'SeriesManager');
     
     if (!canAddSeries) {
-      console.warn('SeriesManager - Cannot add series: limit reached or no available columns');
+      logger.warn('Cannot add series: limit reached or no available columns', null, 'SeriesManager');
       return;
     }
     
@@ -48,34 +56,34 @@ export const SeriesManager = ({
       yAxisId: 'right'
     };
     
-    console.log('SeriesManager - Adding new series:', newSeries);
+    logUserInteraction('series added', newSeries, 'SeriesManager');
     setSeries([...series, newSeries]);
-  };
+  }, [canAddSeries, availableColumns, series, chartColors, setSeries]);
 
-  const removeSeries = (id: string) => {
-    console.log('SeriesManager - Removing series:', id);
+  const removeSeries = React.useCallback((id: string) => {
+    logUserInteraction('series removed', { id }, 'SeriesManager');
     setSeries(series.filter(s => s.id !== id));
-  };
+  }, [series, setSeries]);
 
-  const updateSeriesColumn = (id: string, column: string) => {
-    console.log('SeriesManager - Updating series column:', { id, column });
+  const updateSeriesColumn = React.useCallback((id: string, column: string) => {
+    logUserInteraction('series column updated', { id, column }, 'SeriesManager');
     setSeries(series.map(s => s.id === id ? { ...s, column } : s));
-  };
+  }, [series, setSeries]);
 
-  const updateSeriesType = (id: string, type: 'bar' | 'line') => {
-    console.log('SeriesManager - Updating series type:', { id, type });
+  const updateSeriesType = React.useCallback((id: string, type: 'bar' | 'line') => {
+    logUserInteraction('series type updated', { id, type }, 'SeriesManager');
     setSeries(series.map(s => s.id === id ? { ...s, type } : s));
-  };
+  }, [series, setSeries]);
 
-  const updateSeriesAggregation = (id: string, aggregationMethod: AggregationMethod) => {
-    console.log('SeriesManager - Updating series aggregation:', { id, aggregationMethod });
+  const updateSeriesAggregation = React.useCallback((id: string, aggregationMethod: AggregationMethod) => {
+    logUserInteraction('series aggregation updated', { id, aggregationMethod }, 'SeriesManager');
     setSeries(series.map(s => s.id === id ? { ...s, aggregationMethod } : s));
-  };
+  }, [series, setSeries]);
 
-  const updateSeriesYAxis = (id: string, yAxisId: string) => {
-    console.log('SeriesManager - Updating series Y-axis:', { id, yAxisId });
+  const updateSeriesYAxis = React.useCallback((id: string, yAxisId: string) => {
+    logUserInteraction('series Y-axis updated', { id, yAxisId }, 'SeriesManager');
     setSeries(series.map(s => s.id === id ? { ...s, yAxisId } : s));
-  };
+  }, [series, setSeries]);
 
   // Only render the container if there are series OR if we can add series
   if (series.length === 0 && !canAddSeries && numericColumns.length <= 1) {
@@ -127,4 +135,4 @@ export const SeriesManager = ({
       )}
     </div>
   );
-};
+});

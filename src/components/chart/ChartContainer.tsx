@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { ChartHeader } from './ChartHeader';
 import { ChartRenderer } from './ChartRenderer';
@@ -6,6 +7,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { ColumnFormat } from '@/lib/columnFormatting';
+import { logChartOperation } from '@/lib/logger';
 
 interface ChartContainerProps {
   data: DataRow[];
@@ -31,7 +33,7 @@ interface ChartContainerProps {
   histogramBins?: number;
 }
 
-export const ChartContainer = ({
+export const ChartContainer = React.memo(({
   data,
   columns,
   chartType,
@@ -54,20 +56,21 @@ export const ChartContainer = ({
   topXLimit,
   histogramBins
 }: ChartContainerProps) => {
-  const numericColumns = columns.filter(col => col.type === 'numeric');
+  const numericColumns = React.useMemo(() => 
+    columns.filter(col => col.type === 'numeric'), 
+    [columns]
+  );
 
-  // Debug logging for chart input
-  console.log('Chart input:', { 
+  logChartOperation('input', { 
     xColumn: xColumn?.trim(), 
     yColumn: yColumn?.trim(), 
-    dataSample: data.slice(0, 5),
     chartType,
-    series,
-    originalColumns: columns.map(c => c.name)
-  });
+    dataLength: data.length,
+    seriesCount: series.length
+  }, 'ChartContainer');
 
   // Prepare chart data for both header display and chart rendering
-  const chartData = prepareChartData(
+  const chartData = React.useMemo(() => prepareChartData(
     data,
     columns,
     chartType as any,
@@ -85,23 +88,24 @@ export const ChartContainer = ({
     columnFormats,
     topXLimit,
     histogramBins
-  );
+  ), [data, columns, chartType, xColumn, yColumn, series, sortColumn, sortDirection, stackColumn, sankeyTargetColumn, supportsMultipleSeries, numericColumns, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins]);
 
   // Handle different data types for different chart types
-  const structuredDataChartTypes = ['sankey', 'heatmap', 'treemap'];
-  const processedDataForChart = structuredDataChartTypes.includes(chartType) 
-    ? chartData  // Pass structured data directly for charts that need it
-    : (Array.isArray(chartData) ? chartData : []); // Convert to array for standard charts
-
-  console.log('ChartContainer - Processed data for chart:', {
-    chartType,
-    originalDataLength: data.length,
-    processedDataLength: Array.isArray(processedDataForChart) ? processedDataForChart.length : 'structured',
-    isStructuredData: structuredDataChartTypes.includes(chartType),
-    sample: Array.isArray(processedDataForChart) ? processedDataForChart.slice(0, 3) : processedDataForChart,
-    xColumn: xColumn?.trim(),
-    yColumn: yColumn?.trim()
-  });
+  const processedDataForChart = React.useMemo(() => {
+    const structuredDataChartTypes = ['sankey', 'heatmap', 'treemap'];
+    const result = structuredDataChartTypes.includes(chartType) 
+      ? chartData  // Pass structured data directly for charts that need it
+      : (Array.isArray(chartData) ? chartData : []); // Convert to array for standard charts
+    
+    logChartOperation('processed', {
+      chartType,
+      originalDataLength: data.length,
+      processedDataLength: Array.isArray(result) ? result.length : 'structured',
+      isStructuredData: structuredDataChartTypes.includes(chartType)
+    }, 'ChartContainer');
+    
+    return result;
+  }, [chartData, chartType, data.length]);
 
   return (
     <Card className="p-6 group chart-container">
@@ -146,4 +150,4 @@ export const ChartContainer = ({
       </div>
     </Card>
   );
-};
+});
