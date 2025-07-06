@@ -1,13 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Brain, Play, Users, GitBranch, Bot } from 'lucide-react';
+import { BookOpen, Brain, Users, GitBranch, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface LearnHelpSectionProps {
-  onWatchDemo: () => void;
-}
-
-export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
+export const LearnHelpSection = () => {
   return (
     <section className="px-4 py-20 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto">
@@ -85,19 +81,6 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
             </Card>
           </Link>
 
-          <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={onWatchDemo}>
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Play className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <CardTitle className="text-lg">Demo Video</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Watch a complete walkthrough of Chartuvo's features and capabilities.
-              </p>
-            </CardContent>
-          </Card>
 
           <Link to="/guides/best-practices">
             <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
@@ -117,23 +100,12 @@ export const LearnHelpSection = ({ onWatchDemo }: LearnHelpSectionProps) => {
         </div>
 
         <div className="text-center mt-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
-            <Link to="/guides">
-              <Button variant="outline" size="lg" className="w-full">
-                <BookOpen className="w-5 h-5 mr-2" />
-                All Guides
-              </Button>
-            </Link>
-            <Button 
-              variant="default" 
-              size="lg" 
-              className="w-full"
-              onClick={onWatchDemo}
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Watch Demo
+          <Link to="/guides">
+            <Button variant="outline" size="lg">
+              <BookOpen className="w-5 h-5 mr-2" />
+              All Guides
             </Button>
-          </div>
+          </Link>
         </div>
       </div>
     </section>
