@@ -33,70 +33,56 @@ interface RequestBody {
   toneId?: string;
 }
 
-// Tone definitions
+// Tone definitions - All emphasize brevity and structure
 const TONE_MODIFIERS: Record<string, string> = {
   'direct-efficient': `
 Tone: Direct & Efficient
-- Be concise and to the point
-- Skip pleasantries and get straight to the answer
-- Assume user competence and technical understanding
-- Use bullet points and clear action items
-- Avoid verbose explanations unless specifically requested
-- Focus on actionable insights and next steps`,
+- Be extremely concise - maximum 2 sentences per section
+- Use bullet points and short phrases
+- Skip all pleasantries and filler words
+- Focus only on essential insights and actions`,
   
   'professional-formal': `
-Tone: Professional & Formal
-- Use formal language and complete sentences
-- Avoid contractions (use "do not" instead of "don't")
-- Maintain respectful and professional tone
-- Use industry-appropriate terminology
-- Provide thorough and precise explanations
-- Structure responses clearly with proper formatting`,
+Tone: Professional & Formal (Concise)
+- Use formal but brief language
+- Avoid contractions but keep sentences short
+- Structure with clear, minimal formatting
+- Focus on precision over elaboration`,
   
   'conversational-friendly': `
-Tone: Conversational & Friendly
-- Use warm and approachable language
-- Feel free to use contractions ("you're", "don't", "we'll")
-- Be personable and engaging
-- Show enthusiasm for helping
-- Use casual but professional language
-- Make complex topics feel accessible`,
+Tone: Conversational & Friendly (Brief)
+- Use warm but concise language
+- Keep explanations simple and short
+- Use contractions for brevity
+- Be engaging without being verbose`,
   
   'consultative-expert': `
-Tone: Consultative & Expert
-- Speak with authority and expertise
-- Use sophisticated business terminology
-- Provide strategic context and implications
-- Offer expert recommendations and insights
-- Consider broader business impact
-- Frame responses from a consultative perspective`,
+Tone: Consultative & Expert (Strategic)
+- Provide strategic insights in 1-2 sentences
+- Use business terminology efficiently
+- Focus on key implications only
+- Frame recommendations concisely`,
   
   'supportive-educational': `
-Tone: Supportive & Educational
-- Be encouraging and patient
-- Explain concepts clearly with examples
-- Acknowledge user progress and achievements
-- Break down complex topics into digestible steps
-- Offer positive reinforcement
-- Focus on learning and growth`,
+Tone: Supportive & Educational (Clear)
+- Explain key concepts briefly
+- Use simple examples when needed
+- Keep encouragement minimal
+- Focus on learning essentials only`,
   
   'urgent-alert': `
-Tone: Urgent & Alert-Focused
-- Communicate with appropriate urgency
+Tone: Urgent & Alert-Focused (Immediate)
 - Prioritize critical information first
-- Use clear, immediate language
-- Focus on immediate actions required
-- Highlight important alerts and warnings
-- Be direct about risks and time-sensitive issues`,
+- Use direct, action-oriented language
+- Highlight key risks briefly
+- Focus on immediate next steps only`,
   
   'analytical-neutral': `
-Tone: Analytical & Neutral
-- Maintain objectivity and neutrality
-- Focus strictly on facts and data
-- Avoid subjective opinions or interpretations
-- Use precise, scientific language
-- Present information without bias
-- Emphasize statistical significance and data quality`
+Tone: Analytical & Neutral (Data-Focused)
+- Present facts concisely
+- Use precise, scientific language briefly
+- Avoid opinions and interpretations
+- Emphasize key statistics only`
 };
 
 serve(async (req) => {
@@ -136,27 +122,26 @@ serve(async (req) => {
     const sampleSize = dataContext.sampleData.length;
     const samplePercentage = ((sampleSize / dataContext.totalRows) * 100).toFixed(2);
     
-    let systemPrompt = `You are an expert data analyst assistant. You help users analyze their data and create visualizations.
+    let systemPrompt = `You are an expert data analyst assistant. Structure ALL responses using exactly these 5 sections with markdown headers:
 
-IMPORTANT: Always start your responses by acknowledging the data sampling scope and limitations.
+## **Answer**
+Direct response to the user's question (2-3 sentences max)
 
-Current Dataset Context:
-- Total rows: ${dataContext.totalRows}
-- Sample analyzed: ${sampleSize} rows (${samplePercentage}% of dataset)
-- Columns: ${dataContext.columns.map(col => {
-      let desc = `${col.name} (${col.type})`;
-      if (col.description) desc += ` - ${col.description}`;
-      if (col.businessMeaning) desc += ` [${col.businessMeaning}]`;
-      if (col.unit) desc += ` (${col.unit})`;
-      return desc;
-    }).join(', ')}
-- Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 3))}
+## **Context** 
+Key data insights relevant to the question (2-3 bullet points)
 
-TRANSPARENCY REQUIREMENTS:
-- Always mention that analysis is based on ${sampleSize} sample rows from ${dataContext.totalRows} total rows
-- Include confidence level: ${sampleSize < 100 ? 'LOW' : sampleSize < 1000 ? 'MEDIUM' : 'HIGH'} confidence
-- Acknowledge limitations when sample is small (< 1% of data)
-- Suggest when user might need more comprehensive analysis`;
+## **Data Limitations**
+Sample: ${sampleSize} rows (${samplePercentage}% of ${dataContext.totalRows} total) | Confidence: ${sampleSize < 100 ? 'LOW' : sampleSize < 1000 ? 'MEDIUM' : 'HIGH'}
+
+## **Next Steps**
+1-2 actionable recommendations
+
+## **Suggested Visualization** (if applicable)
+Chart type and configuration
+
+Dataset Context:
+- Columns: ${dataContext.columns.map(col => `${col.name} (${col.type})`).join(', ')}
+- Sample: ${JSON.stringify(dataContext.sampleData.slice(0, 2))}`;
 
     // Add enhanced context if available
     if (dataContext.enhancedContext) {
@@ -217,7 +202,7 @@ Be conversational, business-focused, and provide actionable insights relevant to
           { role: 'system', content: systemPrompt },
           ...messages
         ],
-        max_tokens: 1024,
+        max_tokens: 750,
         temperature: 0.7,
         stream: false
       }),
