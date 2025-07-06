@@ -1,22 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { DataPreview } from '@/components/DataPreview';
-import { ChartVisualization } from '@/components/ChartVisualization';
-import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
-import { DashboardManager } from '@/components/dashboard/DashboardManager';
-import { AIDataChat } from '@/components/AIDataChat';
-import { AISummaryReport } from '@/components/AISummaryReport';
-import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
-import { DataQualityAgentDashboard } from '@/components/agents/DataQualityAgentDashboard';
-import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
-import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
-import { DataSourcesTab } from '@/components/data-sources/DataSourcesTab';
-import { SmartDataIntegration } from '@/components/semantic/SmartDataIntegration';
-import { DataTabsSectionProps, ProgressStatus } from './types';
+import React from 'react';
+import { Tabs } from '@/components/ui/tabs';
 import { getTierDefinitions } from './tierDefinitions';
 import { TierSection } from './TierSection';
 import { WorkflowProgressIndicator } from './WorkflowProgressIndicator';
+import { useTabManagement } from './hooks/useTabManagement';
+import { TabContentPreview } from './components/TabContentPreview';
+import { TabContentAI } from './components/TabContentAI';
+import { TabContentCharts } from './components/TabContentCharts';
+import { TabContentDashboard } from './components/TabContentDashboard';
+import { TabContentSources } from './components/TabContentSources';
+import { TabContentAgents } from './components/TabContentAgents';
+import { DataTabsSectionProps } from './types';
 
 export const DataTabsSection = ({
   data,
@@ -41,54 +35,19 @@ export const DataTabsSection = ({
   onDataLoaded,
   onAIUsed,
 }: DataTabsSectionProps) => {
-  const [activeTab, setActiveTab] = useState("data-sources");
-  
-  // Tier management state
-  const [expandedTiers, setExpandedTiers] = useState({
-    foundation: true,
-    analysis: false,
-    ai: false,
-    advanced: false
-  });
-
-  // Workflow progress tracking
-  const hasData = data.length > 0;
-  const hasCharts = tiles.length > 0;
-  const hasAIContext = !showContextSetup;
+  const {
+    activeTab,
+    expandedTiers,
+    hasData,
+    hasCharts,
+    hasAIContext,
+    handleTabChange,
+    toggleTier,
+    getTierProgress
+  } = useTabManagement(data, tiles, showContextSetup);
 
   // Get tier definitions
   const tiers = getTierDefinitions(data, tiles);
-
-  // Auto-expand tiers based on workflow progress
-  useEffect(() => {
-    setExpandedTiers(prev => ({
-      ...prev,
-      analysis: hasData || prev.analysis,
-      ai: (hasData && hasCharts) || prev.ai,
-      advanced: hasAIContext || prev.advanced
-    }));
-  }, [hasData, hasCharts, hasAIContext]);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  const toggleTier = (tier: string) => {
-    setExpandedTiers(prev => ({
-      ...prev,
-      [tier]: !prev[tier]
-    }));
-  };
-
-  const getTierProgress = (tierKey: string): ProgressStatus => {
-    switch (tierKey) {
-      case 'foundation': return hasData ? 'complete' : 'active';
-      case 'analysis': return hasCharts ? 'complete' : hasData ? 'active' : 'pending';
-      case 'ai': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
-      case 'advanced': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
-      default: return 'pending';
-    }
-  };
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -114,130 +73,57 @@ export const DataTabsSection = ({
         />
       </div>
       
-      <TabsContent value="preview" className="space-y-4">
-        <Card className="p-6">
-          <DataPreview 
-            data={data} 
-            columns={columns} 
-            fileName={fileName}
-            onColumnTypeChange={onColumnTypeChange}
-          />
-        </Card>
-      </TabsContent>
+      {/* Tab Content Components */}
+      <TabContentPreview
+        data={data}
+        columns={columns}
+        fileName={fileName}
+        onColumnTypeChange={onColumnTypeChange}
+      />
       
-      <TabsContent value="ai-chat" className="space-y-4">
-        {showContextSetup ? (
-          <EnhancedDataContextManager
-            data={data}
-            columns={columns}
-            fileName={fileName}
-            onContextReady={onContextReady}
-            onSkip={onSkipContext}
-          />
-        ) : (
-          <Card className="p-6" onClick={onAIUsed}>
-            <AIDataChat 
-              data={data} 
-              columns={columns}
-              fileName={fileName}
-            />
-          </Card>
-        )}
-      </TabsContent>
+      <TabContentAI
+        data={data}
+        columns={columns}
+        fileName={fileName}
+        showContextSetup={showContextSetup}
+        onContextReady={onContextReady}
+        onSkipContext={onSkipContext}
+        onAIUsed={onAIUsed}
+      />
       
-      <TabsContent value="ai-report" className="space-y-4">
-        <div onClick={onAIUsed}>
-          <AISummaryReport 
-            data={data} 
-            columns={columns}
-            fileName={fileName}
-          />
-        </div>
-      </TabsContent>
+      <TabContentCharts
+        data={data}
+        columns={columns}
+        fileName={fileName}
+        onAddTile={onAddTile}
+      />
       
-      <TabsContent value="data-quality" className="space-y-4">
-        <div onClick={onAIUsed}>
-          <DataQualityAgentDashboard 
-            data={data} 
-            columns={columns} 
-            fileName={fileName}
-          />
-        </div>
-      </TabsContent>
+      <TabContentDashboard
+        data={data}
+        columns={columns}
+        tiles={tiles}
+        filters={filters}
+        currentDatasetId={currentDatasetId}
+        onRemoveTile={onRemoveTile}
+        onUpdateTile={onUpdateTile}
+        onFiltersChange={onFiltersChange}
+        onLoadDashboard={onLoadDashboard}
+      />
       
-      <TabsContent value="agents" className="space-y-4">
-        <Card className="p-6">
-          <AIAgentOrchestrator />
-        </Card>
-      </TabsContent>
+      <TabContentSources
+        selectedDataSource={selectedDataSource}
+        showDataSourceDialog={showDataSourceDialog}
+        onDataSourceSelect={onDataSourceSelect}
+        onDataSourceDialogChange={onDataSourceDialogChange}
+        onDataLoaded={onDataLoaded}
+      />
       
-      <TabsContent value="charts" className="space-y-4">
-        <Card className="p-6">
-          <ChartVisualization 
-            data={data} 
-            columns={columns}
-            onSaveTile={onAddTile}
-            dataSourceName={fileName}
-          />
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="predictive" className="space-y-4">
-        <PredictiveAnalyticsDashboard 
-          data={data} 
-          columns={columns}
-        />
-      </TabsContent>
-      
-      <TabsContent value="data-sources" className="space-y-4">
-        <Card className="p-6">
-          <DataSourcesTab 
-            selectedDataSource={selectedDataSource}
-            showDataSourceDialog={showDataSourceDialog}
-            onDataSourceSelect={onDataSourceSelect}
-            onDataSourceDialogChange={onDataSourceDialogChange}
-            onDataLoaded={onDataLoaded}
-          />
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="dashboard" className="space-y-4">
-        <Card className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Dashboard</h3>
-              <p className="text-sm text-muted-foreground">
-                {tiles.length === 0 
-                  ? "Save visualizations as tiles to build your dashboard" 
-                  : `${tiles.length} tile${tiles.length !== 1 ? 's' : ''} in dashboard`
-                }
-              </p>
-            </div>
-            <DashboardManager
-              tiles={tiles}
-              filters={filters}
-              currentDatasetId={currentDatasetId}
-              onLoadDashboard={onLoadDashboard}
-            />
-          </div>
-        </Card>
-        
-        <DashboardCanvas
-          tiles={tiles}
-          data={data}
-          columns={columns}
-          onRemoveTile={onRemoveTile}
-          onUpdateTile={onUpdateTile}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-        />
-      </TabsContent>
-
-      <TabsContent value="smart-integration" className="space-y-4">
-        <Card className="p-6">
-          <SmartDataIntegration onDataLoaded={onDataLoaded} />
-        </Card>
-      </TabsContent>
+      <TabContentAgents
+        data={data}
+        columns={columns}
+        fileName={fileName}
+        onAIUsed={onAIUsed}
+      />
     </Tabs>
   );
 };
