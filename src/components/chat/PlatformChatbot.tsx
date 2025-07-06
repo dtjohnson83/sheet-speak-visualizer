@@ -162,7 +162,7 @@ What would you like to know?`,
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl z-50 flex flex-col">
+    <Card className="fixed bottom-6 right-6 w-96 max-h-[80vh] h-[min(500px,80vh)] shadow-xl z-50 flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-primary" />

@@ -9,7 +9,7 @@ export interface TabManagementState {
 export const useTabManagement = (data: any[], tiles: any[], showContextSetup: boolean) => {
   const [activeTab, setActiveTab] = useState("data-sources");
   const [expandedTiers, setExpandedTiers] = useState({
-    foundation: true,
+    foundation: false,
     analysis: false,
     ai: false,
     advanced: false
