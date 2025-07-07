@@ -3,6 +3,8 @@ import { useSecureSessionManager } from '@/hooks/useSecureSessionManager';
 import { useSecureAuth } from '@/hooks/useSecureAuth';
 import { cleanupRateLimits } from '@/lib/security';
 import { logger } from '@/lib/logger';
+import { SecurityMonitor } from './SecurityMonitor';
+import { CSPProvider } from './CSPProvider';
 
 interface SecurityContextValue {
   sessionManager: ReturnType<typeof useSecureSessionManager>;
@@ -111,8 +113,11 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) 
   };
 
   return (
-    <SecurityContext.Provider value={value}>
-      {children}
-    </SecurityContext.Provider>
+    <CSPProvider>
+      <SecurityContext.Provider value={value}>
+        <SecurityMonitor />
+        {children}
+      </SecurityContext.Provider>
+    </CSPProvider>
   );
 };
