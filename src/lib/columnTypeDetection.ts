@@ -32,46 +32,58 @@ export const detectColumnTypeWithName = (
   
   if (nonEmptyValues.length === 0) return 'text';
   
-  // First, check if column name suggests it's a date
-  if (isDateColumnName(columnName)) {
-    // If name suggests date, be more lenient with date detection
-    if (hasAnyDateLikeValues(nonEmptyValues)) {
-      return 'date';
-    }
-  }
-  
-  // Existing numeric detection logic
+  // First, try strict data-based detection regardless of column name
+  // Check for numeric values (but exclude pure date patterns)
   const numericValues = nonEmptyValues.filter(v => {
+    const str = String(v).trim();
     const num = Number(v);
-    return !isNaN(num) && isFinite(num) && String(v).trim() !== '';
+    
+    // Skip if it looks like a date pattern
+    if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(str) || 
+        /^\d{4}-\d{1,2}-\d{1,2}/.test(str) ||
+        /^\d{1,2}-\d{1,2}-\d{4}$/.test(str)) {
+      return false;
+    }
+    
+    return !isNaN(num) && isFinite(num) && str !== '';
   });
   
+  // Strong numeric pattern (90% threshold to be more selective)
+  if (numericValues.length >= nonEmptyValues.length * 0.9) {
+    return 'numeric';
+  }
+  
+  // Check for date patterns in data first (more reliable than column names)
+  if (hasDateLikeValues(nonEmptyValues)) {
+    return 'date';
+  }
+  
+  // If column name suggests date and we have some date-like values, check with lenient detection
+  if (isDateColumnName(columnName) && hasAnyDateLikeValues(nonEmptyValues)) {
+    return 'date';
+  }
+  
+  // Lower threshold numeric detection for remaining cases
   if (numericValues.length >= nonEmptyValues.length * 0.8) {
-    // Check if it's a year column (but not if name suggests date)
-    if (!isDateColumnName(columnName)) {
-      const yearValues = nonEmptyValues.filter(v => {
-        const str = String(v).trim();
-        if (!/^\d{4}$/.test(str)) return false;
-        const year = parseInt(str);
-        return year >= 1900 && year <= new Date().getFullYear() + 20;
-      });
-      
-      if (yearValues.length >= nonEmptyValues.length * 0.8) {
-        return 'numeric';
-      }
+    // Special case: check if it's a year column 
+    const yearValues = nonEmptyValues.filter(v => {
+      const str = String(v).trim();
+      if (!/^\d{4}$/.test(str)) return false;
+      const year = parseInt(str);
+      return year >= 1900 && year <= new Date().getFullYear() + 20;
+    });
+    
+    // If most values are years, treat as numeric (not date)
+    if (yearValues.length >= nonEmptyValues.length * 0.8) {
+      return 'numeric';
     }
     
     return 'numeric';
   }
   
-  // Standard date detection (stricter when name doesn't suggest date)
-  if (hasDateLikeValues(nonEmptyValues)) {
-    return 'date';
-  }
-  
-  // Check for categorical
+  // Check for categorical (be more conservative)
   const uniqueValues = new Set(nonEmptyValues.map(v => String(v).toLowerCase().trim()));
-  if (uniqueValues.size < nonEmptyValues.length * 0.5 && uniqueValues.size > 1 && uniqueValues.size <= 50) {
+  if (uniqueValues.size < nonEmptyValues.length * 0.3 && uniqueValues.size > 1 && uniqueValues.size <= 20) {
     return 'categorical';
   }
   
