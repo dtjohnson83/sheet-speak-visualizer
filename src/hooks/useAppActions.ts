@@ -42,15 +42,16 @@ export const useAppActions = () => {
   const handleLoadDataset = useCallback((dataset: SavedDataset) => {
     console.log('Loading dataset:', dataset);
     dispatch({
-      type: 'SET_DATA',
+      type: 'LOAD_DATASET',
       payload: {
         data: dataset.data,
         columns: dataset.columns,
         fileName: dataset.file_name,
-        worksheetName: dataset.worksheet_name || ''
+        worksheetName: dataset.worksheet_name || '',
+        datasetId: dataset.id,
+        datasetName: dataset.name
       }
     });
-    dispatch({ type: 'SET_CURRENT_DATASET_ID', payload: dataset.id });
   }, [dispatch]);
 
   const addTile = useCallback((tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => {

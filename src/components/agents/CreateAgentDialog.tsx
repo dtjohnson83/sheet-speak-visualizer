@@ -22,6 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Bot } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { AgentType, AgentCapability } from '@/types/agents';
+import { DatasetSelector } from './DatasetSelector';
 
 const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = [
   {
@@ -84,6 +85,7 @@ export const CreateAgentDialog = () => {
   const [description, setDescription] = useState('');
   const [type, setType] = useState<AgentType>('monitoring');
   const [capabilities, setCapabilities] = useState<AgentCapability[]>([]);
+  const [selectedDataset, setSelectedDataset] = useState<string>('');
   
   const { createAgent, isCreatingAgent } = useAIAgents();
 
@@ -115,6 +117,7 @@ export const CreateAgentDialog = () => {
     setDescription('');
     setType('monitoring');
     setCapabilities([]);
+    setSelectedDataset('');
     setOpen(false);
   };
 
@@ -175,6 +178,15 @@ export const CreateAgentDialog = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Target Dataset</Label>
+            <DatasetSelector 
+              value={selectedDataset}
+              onValueChange={setSelectedDataset}
+              placeholder="Select dataset for this agent..."
+            />
           </div>
 
           <div className="space-y-2">

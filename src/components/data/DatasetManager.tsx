@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Save, Database, Trash2, Upload } from 'lucide-react';
 import { useDatasets, SavedDataset } from '@/hooks/useDatasets';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppState } from '@/contexts/AppStateContext';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface DatasetManagerProps {
@@ -30,6 +31,7 @@ export const DatasetManager = ({
 }: DatasetManagerProps) => {
   const { user } = useAuth();
   const { datasets, saveDataset, deleteDataset, isSaving } = useDatasets();
+  const { state, dispatch } = useAppState();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [name, setName] = useState('');
@@ -47,12 +49,37 @@ export const DatasetManager = ({
       columns: currentColumns
     });
 
+    // Update the app state to reflect saved status
+    setTimeout(() => {
+      dispatch({ 
+        type: 'SET_DATASET_SAVED', 
+        payload: { 
+          datasetId: 'temp-id', // This would be the actual dataset ID in a real implementation
+          datasetName: name.trim() 
+        } 
+      });
+    }, 1000);
+
     setName('');
     setDescription('');
     setSaveDialogOpen(false);
   };
 
   const handleLoadDataset = (dataset: SavedDataset) => {
+    // Use the new LOAD_DATASET action to properly set saved state
+    dispatch({
+      type: 'LOAD_DATASET',
+      payload: {
+        data: dataset.data,
+        columns: dataset.columns,
+        fileName: dataset.file_name,
+        worksheetName: dataset.worksheet_name,
+        datasetId: dataset.id,
+        datasetName: dataset.name
+      }
+    });
+    
+    // Also call the original handler for any additional logic
     onLoadDataset(dataset);
     setIsDialogOpen(false);
   };

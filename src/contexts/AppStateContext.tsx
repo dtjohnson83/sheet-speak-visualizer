@@ -10,6 +10,8 @@ export interface AppState {
   fileName: string;
   worksheetName: string;
   currentDatasetId: string;
+  isSaved: boolean;
+  currentDatasetName: string;
   
   // Dashboard state
   tiles: DashboardTileData[];
@@ -24,6 +26,7 @@ type AppAction =
   | { type: 'SET_DATA'; payload: { data: DataRow[]; columns: ColumnInfo[]; fileName: string; worksheetName?: string } }
   | { type: 'SET_COLUMN_TYPE'; payload: { columnName: string; newType: 'numeric' | 'date' | 'categorical' | 'text' } }
   | { type: 'SET_CURRENT_DATASET_ID'; payload: string }
+  | { type: 'SET_DATASET_SAVED'; payload: { datasetId: string; datasetName: string } }
   | { type: 'SET_SHOW_CONTEXT_SETUP'; payload: boolean }
   | { type: 'ADD_TILE'; payload: Omit<DashboardTileData, 'id' | 'position' | 'size'> }
   | { type: 'REMOVE_TILE'; payload: string }
@@ -31,6 +34,7 @@ type AppAction =
   | { type: 'SET_FILTERS'; payload: FilterCondition[] }
   | { type: 'SET_REALTIME_ENABLED'; payload: boolean }
   | { type: 'CLEAR_DATA' }
+  | { type: 'LOAD_DATASET'; payload: { data: DataRow[]; columns: ColumnInfo[]; fileName: string; worksheetName?: string; datasetId: string; datasetName: string } }
   | { type: 'LOAD_DASHBOARD'; payload: { tiles: DashboardTileData[]; filters: FilterCondition[]; data?: DataRow[]; columns?: ColumnInfo[] } };
 
 const initialState: AppState = {
@@ -39,6 +43,8 @@ const initialState: AppState = {
   fileName: '',
   worksheetName: '',
   currentDatasetId: '',
+  isSaved: false,
+  currentDatasetName: '',
   tiles: [],
   filters: [],
   realtimeEnabled: false,
@@ -54,6 +60,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         columns: action.payload.columns,
         fileName: action.payload.fileName,
         worksheetName: action.payload.worksheetName || '',
+        isSaved: false,
+        currentDatasetId: '',
+        currentDatasetName: '',
         showContextSetup: true,
       };
     
@@ -69,6 +78,27 @@ function appReducer(state: AppState, action: AppAction): AppState {
     
     case 'SET_CURRENT_DATASET_ID':
       return { ...state, currentDatasetId: action.payload };
+    
+    case 'SET_DATASET_SAVED':
+      return { 
+        ...state, 
+        currentDatasetId: action.payload.datasetId,
+        currentDatasetName: action.payload.datasetName,
+        isSaved: true 
+      };
+    
+    case 'LOAD_DATASET':
+      return {
+        ...state,
+        data: action.payload.data,
+        columns: action.payload.columns,
+        fileName: action.payload.fileName,
+        worksheetName: action.payload.worksheetName || '',
+        currentDatasetId: action.payload.datasetId,
+        currentDatasetName: action.payload.datasetName,
+        isSaved: true,
+        showContextSetup: true,
+      };
     
     case 'SET_SHOW_CONTEXT_SETUP':
       return { ...state, showContextSetup: action.payload };
@@ -122,6 +152,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         fileName: '',
         worksheetName: '',
         currentDatasetId: '',
+        currentDatasetName: '',
+        isSaved: false,
         showContextSetup: false,
       };
     
