@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, BarChart, Users } from 'lucide-react';
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, BarChart, Users, Trash2 } from 'lucide-react';
 import { AgentInsight } from '@/types/agents';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,7 +12,7 @@ interface AgentInsightsListProps {
 }
 
 export const AgentInsightsList = ({ insights }: AgentInsightsListProps) => {
-  const { markInsightRead } = useAIAgents();
+  const { markInsightRead, deleteInsight, isDeletingInsight } = useAIAgents();
 
   const getInsightIcon = (type: string) => {
     switch (type) {
@@ -44,6 +44,12 @@ export const AgentInsightsList = ({ insights }: AgentInsightsListProps) => {
 
   const handleMarkAsRead = (insightId: string) => {
     markInsightRead(insightId);
+  };
+
+  const handleDeleteInsight = (insightId: string) => {
+    if (confirm('Are you sure you want to delete this insight? This action cannot be undone.')) {
+      deleteInsight(insightId);
+    }
   };
 
   return (
@@ -112,15 +118,26 @@ export const AgentInsightsList = ({ insights }: AgentInsightsListProps) => {
                     </span>
                   </div>
                   
-                  {!insight.is_read && (
+                  <div className="flex items-center gap-2">
+                    {!insight.is_read && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleMarkAsRead(insight.id)}
+                      >
+                        Mark as Read
+                      </Button>
+                    )}
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => handleMarkAsRead(insight.id)}
+                      onClick={() => handleDeleteInsight(insight.id)}
+                      disabled={isDeletingInsight}
+                      className="text-destructive hover:text-destructive"
                     >
-                      Mark as Read
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))

@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Settings, Clock, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { Settings, Clock, CheckCircle, XCircle, Loader, Trash2 } from 'lucide-react';
 import { AgentTask } from '@/types/agents';
+import { useAIAgents } from '@/hooks/useAIAgents';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AgentTaskQueueProps {
@@ -11,6 +13,7 @@ interface AgentTaskQueueProps {
 }
 
 export const AgentTaskQueue = ({ tasks }: AgentTaskQueueProps) => {
+  const { deleteTask, isDeletingTask } = useAIAgents();
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="h-4 w-4 text-warning" />;
@@ -49,6 +52,12 @@ export const AgentTaskQueue = ({ tasks }: AgentTaskQueueProps) => {
   const runningTasks = tasks.filter(task => task.status === 'running').length;
   const completedTasks = tasks.filter(task => task.status === 'completed').length;
   const failedTasks = tasks.filter(task => task.status === 'failed').length;
+
+  const handleDeleteTask = (taskId: string) => {
+    if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      deleteTask(taskId);
+    }
+  };
 
   return (
     <Card>
@@ -104,11 +113,22 @@ export const AgentTaskQueue = ({ tasks }: AgentTaskQueueProps) => {
                       {task.status}
                     </Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {task.status === 'completed' && task.completed_at
-                      ? `Completed ${formatDistanceToNow(new Date(task.completed_at), { addSuffix: true })}`
-                      : `Scheduled ${formatDistanceToNow(new Date(task.scheduled_at), { addSuffix: true })}`
-                    }
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-muted-foreground">
+                      {task.status === 'completed' && task.completed_at
+                        ? `Completed ${formatDistanceToNow(new Date(task.completed_at), { addSuffix: true })}`
+                        : `Scheduled ${formatDistanceToNow(new Date(task.scheduled_at), { addSuffix: true })}`
+                      }
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDeleteTask(task.id)}
+                      disabled={isDeletingTask}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
                 

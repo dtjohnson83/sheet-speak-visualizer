@@ -207,6 +207,89 @@ export const useAIAgents = () => {
     },
   });
 
+  // Delete agent mutation
+  const deleteAgentMutation = useMutation({
+    mutationFn: async (agentId: string) => {
+      const { error } = await supabase
+        .from('ai_agents')
+        .delete()
+        .eq('id', agentId);
+
+      if (error) throw error;
+      return agentId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-agents', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-insights', user?.id] });
+      toast({
+        title: "Agent deleted",
+        description: "The agent and all related data have been removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete agent",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete task mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase
+        .from('agent_tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+      return taskId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      toast({
+        title: "Task deleted",
+        description: "The task has been removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete task",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete insight mutation
+  const deleteInsightMutation = useMutation({
+    mutationFn: async (insightId: string) => {
+      const { error } = await supabase
+        .from('agent_insights')
+        .delete()
+        .eq('id', insightId);
+
+      if (error) throw error;
+      return insightId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agent-insights', user?.id] });
+      toast({
+        title: "Insight deleted",
+        description: "The insight has been removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete insight",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Trigger processor mutation
   const triggerProcessorMutation = useMutation({
     mutationFn: async () => {
@@ -294,10 +377,16 @@ export const useAIAgents = () => {
     createTask: createTaskMutation.mutate,
     updateAgentStatus: updateAgentStatusMutation.mutate,
     markInsightRead: markInsightReadMutation.mutate,
+    deleteAgent: deleteAgentMutation.mutate,
+    deleteTask: deleteTaskMutation.mutate,
+    deleteInsight: deleteInsightMutation.mutate,
     triggerProcessor: triggerProcessorMutation.mutate,
     scheduleTasksForDataset,
     isCreatingAgent: createAgentMutation.isPending,
     isCreatingTask: createTaskMutation.isPending,
+    isDeletingAgent: deleteAgentMutation.isPending,
+    isDeletingTask: deleteTaskMutation.isPending,
+    isDeletingInsight: deleteInsightMutation.isPending,
     isTriggeringProcessor: triggerProcessorMutation.isPending,
   };
 };
