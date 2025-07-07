@@ -70,10 +70,34 @@ export const sanitizeText = (text: string): string => {
     .replace(/[<>\"'&`]/g, '') // Remove dangerous characters including backticks and ampersands
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers like onclick=
     .replace(/style\s*=/gi, '') // Remove style attributes
+    .replace(/expression\s*\(/gi, '') // Remove CSS expressions
+    .replace(/url\s*\(/gi, '') // Remove CSS url() calls
+    .replace(/import\s*['"]/gi, '') // Remove ES6 imports
+    .replace(/require\s*\(/gi, '') // Remove CommonJS requires
     .trim()
     .substring(0, 1000); // Limit length
+};
+
+// Sanitize user input for database queries (additional layer)
+export const sanitizeForDatabase = (input: string): string => {
+  if (!input) return '';
+  
+  return sanitizeText(input)
+    .replace(/['"\\]/g, '') // Remove quotes and backslashes
+    .replace(/--/g, '') // Remove SQL comment markers
+    .replace(/\/\*/g, '') // Remove block comment starts
+    .replace(/\*\//g, '') // Remove block comment ends
+    .replace(/;/g, '') // Remove semicolons
+    .replace(/\bUNION\b/gi, '') // Remove UNION keyword
+    .replace(/\bSELECT\b/gi, '') // Remove SELECT keyword
+    .replace(/\bINSERT\b/gi, '') // Remove INSERT keyword
+    .replace(/\bUPDATE\b/gi, '') // Remove UPDATE keyword
+    .replace(/\bDELETE\b/gi, '') // Remove DELETE keyword
+    .replace(/\bDROP\b/gi, '') // Remove DROP keyword
+    .substring(0, 500); // Shorter limit for DB inputs
 };
 
 // Enhanced HTML sanitization for content that might be rendered

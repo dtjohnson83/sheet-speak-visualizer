@@ -98,6 +98,52 @@ class Logger {
     }
   }
 
+  // Audit logging for compliance and monitoring
+  audit(message: string, data?: any, component?: string): void {
+    const sanitizedData = this.sanitizeData(data);
+    // Always log audit events regardless of environment
+    console.log(this.formatMessage('info', `[AUDIT] ${message}`, sanitizedData, component), sanitizedData || '');
+    
+    // In production, send to audit logging service
+    if (!this.isDevelopment) {
+      this.sendToAuditService(message, sanitizedData, component);
+    }
+  }
+
+  // Security logging for threats and violations
+  security(message: string, data?: any, component?: string): void {
+    const sanitizedData = this.sanitizeData(data);
+    // Always log security events
+    console.warn(this.formatMessage('warn', `[SECURITY] ${message}`, sanitizedData, component), sanitizedData || '');
+    
+    // In production, send to security monitoring service
+    if (!this.isDevelopment) {
+      this.sendToSecurityService(message, sanitizedData, component);
+    }
+  }
+
+  private sendToAuditService(message: string, data?: any, component?: string): void {
+    // Placeholder for audit service integration
+    // In a real implementation, this would send to a secure audit logging service
+    try {
+      // Example: POST to audit endpoint
+      // await fetch('/api/audit', { method: 'POST', body: JSON.stringify({ message, data, component }) });
+    } catch (error) {
+      console.error('Failed to send audit log', error);
+    }
+  }
+
+  private sendToSecurityService(message: string, data?: any, component?: string): void {
+    // Placeholder for security monitoring integration
+    // In a real implementation, this would send to a security monitoring service
+    try {
+      // Example: POST to security endpoint
+      // await fetch('/api/security', { method: 'POST', body: JSON.stringify({ message, data, component }) });
+    } catch (error) {
+      console.error('Failed to send security log', error);
+    }
+  }
+
   toggleDebugMode(): void {
     this.isDebugMode = !this.isDebugMode;
     localStorage.setItem('debug-mode', this.isDebugMode.toString());
