@@ -5,6 +5,13 @@ import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 import { FilterCondition } from '@/components/dashboard/DashboardFilters';
 import { SavedDataset } from '@/hooks/useDatasets';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
+import { logger } from '@/lib/logger';
+
+interface DataLoadState {
+  isLoading: boolean;
+  error: string | null;
+  lastLoadedId: string | null;
+}
 
 export const useAppActions = () => {
   const { dispatch } = useAppState();
@@ -16,17 +23,41 @@ export const useAppActions = () => {
     name: string, 
     worksheet?: string
   ) => {
-    console.log('Data loaded:', { loadedData, detectedColumns, name, worksheet });
-    dispatch({
-      type: 'SET_DATA',
-      payload: {
-        data: loadedData,
-        columns: detectedColumns,
-        fileName: name,
-        worksheetName: worksheet
+    try {
+      // Validate data integrity
+      if (!Array.isArray(loadedData) || !Array.isArray(detectedColumns)) {
+        throw new Error('Invalid data format provided');
       }
-    });
-    clearContext();
+
+      if (loadedData.length === 0) {
+        logger.warn('Empty dataset loaded', { name, worksheet });
+      }
+
+      logger.info('Data loaded successfully', { 
+        rowCount: loadedData.length, 
+        columnCount: detectedColumns.length, 
+        name, 
+        worksheet 
+      });
+
+      dispatch({
+        type: 'SET_DATA',
+        payload: {
+          data: loadedData,
+          columns: detectedColumns,
+          fileName: name,
+          worksheetName: worksheet
+        }
+      });
+      clearContext();
+    } catch (error) {
+      logger.error('Failed to load data', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        name,
+        worksheet
+      });
+      throw error;
+    }
   }, [dispatch, clearContext]);
 
   const handleColumnTypeChange = useCallback((
@@ -40,22 +71,42 @@ export const useAppActions = () => {
   }, [dispatch]);
 
   const handleLoadDataset = useCallback((dataset: SavedDataset) => {
-    console.log('Loading dataset:', dataset);
-    dispatch({
-      type: 'LOAD_DATASET',
-      payload: {
-        data: dataset.data,
-        columns: dataset.columns,
-        fileName: dataset.file_name,
-        worksheetName: dataset.worksheet_name || '',
+    try {
+      // Validate dataset integrity
+      if (!dataset.id || !dataset.data || !dataset.columns) {
+        throw new Error('Invalid dataset structure');
+      }
+
+      logger.info('Loading dataset', { 
+        datasetId: dataset.id, 
+        name: dataset.name,
+        rowCount: dataset.data.length,
+        columnCount: dataset.columns.length
+      });
+
+      dispatch({
+        type: 'LOAD_DATASET',
+        payload: {
+          data: dataset.data,
+          columns: dataset.columns,
+          fileName: dataset.file_name,
+          worksheetName: dataset.worksheet_name || '',
+          datasetId: dataset.id,
+          datasetName: dataset.name
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to load dataset', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
         datasetId: dataset.id,
         datasetName: dataset.name
-      }
-    });
+      });
+      throw error;
+    }
   }, [dispatch]);
 
   const addTile = useCallback((tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => {
-    console.log('Adding tile:', tileData);
+    logger.info('Adding dashboard tile', { title: tileData.title, type: tileData.chartType });
     dispatch({ type: 'ADD_TILE', payload: tileData });
   }, [dispatch]);
 
@@ -88,16 +139,34 @@ export const useAppActions = () => {
     loadedData?: DataRow[], 
     loadedColumns?: ColumnInfo[]
   ) => {
-    console.log('Loading dashboard with tiles:', loadedTiles);
-    dispatch({
-      type: 'LOAD_DASHBOARD',
-      payload: {
-        tiles: loadedTiles,
-        filters: loadedFilters,
-        data: loadedData,
-        columns: loadedColumns
+    try {
+      // Validate dashboard data
+      if (!Array.isArray(loadedTiles) || !Array.isArray(loadedFilters)) {
+        throw new Error('Invalid dashboard data format');
       }
-    });
+
+      logger.info('Loading dashboard', { 
+        tileCount: loadedTiles.length, 
+        filterCount: loadedFilters.length,
+        hasData: !!loadedData,
+        hasColumns: !!loadedColumns
+      });
+
+      dispatch({
+        type: 'LOAD_DASHBOARD',
+        payload: {
+          tiles: loadedTiles,
+          filters: loadedFilters,
+          data: loadedData,
+          columns: loadedColumns
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to load dashboard', { 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
   }, [dispatch]);
 
   const handleContextReady = useCallback((context: any) => {
