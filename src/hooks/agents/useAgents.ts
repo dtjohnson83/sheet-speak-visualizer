@@ -123,13 +123,46 @@ export const useAgents = () => {
     },
   });
 
+  // Delete all agents mutation
+  const deleteAllAgentsMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      const { error } = await supabase
+        .from('ai_agents')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-agents', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-insights', user?.id] });
+      toast({
+        title: "All agents deleted",
+        description: "All agents and related data have been removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete agents",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     agents,
     isLoading: agentsLoading,
     createAgent: createAgentMutation.mutate,
     updateAgentStatus: updateAgentStatusMutation.mutate,
     deleteAgent: deleteAgentMutation.mutate,
+    deleteAllAgents: deleteAllAgentsMutation.mutate,
     isCreatingAgent: createAgentMutation.isPending,
     isDeletingAgent: deleteAgentMutation.isPending,
+    isDeletingAllAgents: deleteAllAgentsMutation.isPending,
   };
 };

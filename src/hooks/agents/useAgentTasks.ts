@@ -104,12 +104,51 @@ export const useAgentTasks = () => {
     },
   });
 
+  // Clear all tasks mutation
+  const clearAllTasksMutation = useMutation({
+    mutationFn: async (status?: 'completed' | 'failed' | 'all') => {
+      if (!user?.id) return;
+      
+      let query = supabase
+        .from('agent_tasks')
+        .delete()
+        .in('agent_id', agents.map(agent => agent.id));
+
+      if (status && status !== 'all') {
+        query = query.eq('status', status);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      toast({
+        title: "Tasks cleared",
+        description: "Selected tasks have been removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to clear tasks",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Get agents from cache for bulk operations
+  const agents = queryClient.getQueryData(['ai-agents', user?.id]) as any[] || [];
+
   return {
     tasks,
     isLoading: tasksLoading,
     createTask: createTaskMutation.mutate,
     deleteTask: deleteTaskMutation.mutate,
+    clearAllTasks: clearAllTasksMutation.mutate,
     isCreatingTask: createTaskMutation.isPending,
     isDeletingTask: deleteTaskMutation.isPending,
+    isClearingAllTasks: clearAllTasksMutation.isPending,
   };
 };

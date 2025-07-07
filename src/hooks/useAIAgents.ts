@@ -31,19 +31,25 @@ export const useAIAgents = () => {
     createAgent: agentsHook.createAgent,
     updateAgentStatus: agentsHook.updateAgentStatus,
     deleteAgent: agentsHook.deleteAgent,
+    deleteAllAgents: agentsHook.deleteAllAgents,
     isCreatingAgent: agentsHook.isCreatingAgent,
     isDeletingAgent: agentsHook.isDeletingAgent,
+    isDeletingAllAgents: agentsHook.isDeletingAllAgents,
     
     // Task operations
     createTask: tasksHook.createTask,
     deleteTask: tasksHook.deleteTask,
+    clearAllTasks: tasksHook.clearAllTasks,
     isCreatingTask: tasksHook.isCreatingTask,
     isDeletingTask: tasksHook.isDeletingTask,
+    isClearingAllTasks: tasksHook.isClearingAllTasks,
     
     // Insight operations
     markInsightRead: insightsHook.markInsightRead,
     deleteInsight: insightsHook.deleteInsight,
+    clearAllInsights: insightsHook.clearAllInsights,
     isDeletingInsight: insightsHook.isDeletingInsight,
+    isClearingAllInsights: insightsHook.isClearingAllInsights,
     
     // Processor operations
     triggerProcessor: processorHook.triggerProcessor,

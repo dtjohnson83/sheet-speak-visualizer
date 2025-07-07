@@ -80,11 +80,50 @@ export const useAgentInsights = () => {
     },
   });
 
+  // Clear all insights mutation
+  const clearAllInsightsMutation = useMutation({
+    mutationFn: async (type?: 'read' | 'all') => {
+      if (!user?.id) return;
+      
+      let query = supabase
+        .from('agent_insights')
+        .delete()
+        .in('agent_id', agents.map(agent => agent.id));
+
+      if (type === 'read') {
+        query = query.eq('is_read', true);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agent-insights', user?.id] });
+      toast({
+        title: "Insights cleared",
+        description: "Selected insights have been removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to clear insights",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Get agents from cache for bulk operations
+  const agents = queryClient.getQueryData(['ai-agents', user?.id]) as any[] || [];
+
   return {
     insights,
     isLoading: insightsLoading,
     markInsightRead: markInsightReadMutation.mutate,
     deleteInsight: deleteInsightMutation.mutate,
+    clearAllInsights: clearAllInsightsMutation.mutate,
     isDeletingInsight: deleteInsightMutation.isPending,
+    isClearingAllInsights: clearAllInsightsMutation.isPending,
   };
 };
