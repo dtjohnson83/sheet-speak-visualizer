@@ -60,16 +60,41 @@ export const validateFile = (file: File): { isValid: boolean; error?: string } =
   return { isValid: true };
 };
 
-// Input sanitization utilities
+// Enhanced input sanitization utilities
 export const sanitizeText = (text: string): string => {
   if (!text) return '';
   
-  // Remove HTML tags and dangerous characters
+  // More comprehensive sanitization
   return text
     .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/[<>\"']/g, '') // Remove dangerous characters
+    .replace(/[<>\"'&`]/g, '') // Remove dangerous characters including backticks and ampersands
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers like onclick=
+    .replace(/style\s*=/gi, '') // Remove style attributes
     .trim()
     .substring(0, 1000); // Limit length
+};
+
+// Enhanced HTML sanitization for content that might be rendered
+export const sanitizeHTML = (html: string): string => {
+  if (!html) return '';
+  
+  // Comprehensive HTML sanitization
+  return html
+    .replace(/<script[^>]*>.*?<\/script>/gis, '') // Remove script tags
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '') // Remove iframe tags
+    .replace(/<object[^>]*>.*?<\/object>/gis, '') // Remove object tags
+    .replace(/<embed[^>]*>/gi, '') // Remove embed tags
+    .replace(/<link[^>]*>/gi, '') // Remove link tags
+    .replace(/<meta[^>]*>/gi, '') // Remove meta tags
+    .replace(/<form[^>]*>.*?<\/form>/gis, '') // Remove form tags
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
+    .trim()
+    .substring(0, 5000); // Limit length for HTML content
 };
 
 export const sanitizeChartTitle = (title: string): string => {
@@ -78,8 +103,9 @@ export const sanitizeChartTitle = (title: string): string => {
   return sanitizeText(title).substring(0, 100) || 'Untitled Chart';
 };
 
-// Rate limiting utilities
+// Enhanced rate limiting utilities with IP-based tracking
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
+const ipRequestCounts = new Map<string, { count: number; resetTime: number }>();
 
 export const checkRateLimit = (userId: string, maxRequests: number = 10, windowMs: number = 60000): boolean => {
   const now = Date.now();
@@ -96,6 +122,40 @@ export const checkRateLimit = (userId: string, maxRequests: number = 10, windowM
 
   userRequests.count++;
   return true;
+};
+
+export const checkIPRateLimit = (ip: string, maxRequests: number = 50, windowMs: number = 60000): boolean => {
+  const now = Date.now();
+  const ipRequests = ipRequestCounts.get(ip);
+
+  if (!ipRequests || now > ipRequests.resetTime) {
+    ipRequestCounts.set(ip, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+
+  if (ipRequests.count >= maxRequests) {
+    return false;
+  }
+
+  ipRequests.count++;
+  return true;
+};
+
+// Clear old rate limit entries periodically
+export const cleanupRateLimits = (): void => {
+  const now = Date.now();
+  
+  for (const [key, value] of requestCounts.entries()) {
+    if (now > value.resetTime) {
+      requestCounts.delete(key);
+    }
+  }
+  
+  for (const [key, value] of ipRequestCounts.entries()) {
+    if (now > value.resetTime) {
+      ipRequestCounts.delete(key);
+    }
+  }
 };
 
 // Error message sanitization

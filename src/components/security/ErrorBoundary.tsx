@@ -25,11 +25,14 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-    
-    // Log error securely (without sensitive data)
-    const sanitizedError = sanitizeError(error);
-    console.error('Sanitized error:', sanitizedError);
+    // Use secure logger instead of direct console.error
+    import('@/lib/logger').then(({ logger }) => {
+      logger.error('Error caught by boundary', { 
+        message: sanitizeError(error),
+        stack: errorInfo.componentStack?.substring(0, 500),
+        timestamp: new Date().toISOString()
+      });
+    });
   }
 
   private handleReset = () => {

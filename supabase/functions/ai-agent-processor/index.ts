@@ -7,10 +7,42 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 const xaiApiKey = Deno.env.get('XAI_API_KEY');
 
+// Enhanced security headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Security-Policy': "default-src 'self'",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
 };
+
+// Rate limiting
+const requestCounts = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(identifier: string, maxRequests: number = 50, windowMs: number = 60000): boolean {
+  const now = Date.now();
+  const userRequests = requestCounts.get(identifier);
+
+  if (!userRequests || now > userRequests.resetTime) {
+    requestCounts.set(identifier, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+
+  if (userRequests.count >= maxRequests) {
+    return false;
+  }
+
+  userRequests.count++;
+  return true;
+}
+
+function sanitizeError(error: any): string {
+  const message = error?.message || error?.toString() || 'Unknown error';
+  // Remove sensitive information
+  return message.replace(/key|token|secret|password/gi, '[REDACTED]').substring(0, 200);
+}
 
 interface AgentTask {
   id: string;
@@ -33,6 +65,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Rate limiting
+  const clientIP = req.headers.get('x-forwarded-for') || 'unknown';
+  if (!checkRateLimit(clientIP)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+      status: 429,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
     
@@ -48,8 +89,9 @@ serve(async (req) => {
       .limit(5);
 
     if (tasksError) {
-      console.error('Error fetching tasks:', tasksError);
-      throw tasksError;
+      const sanitizedError = sanitizeError(tasksError);
+      console.error('Error fetching tasks:', sanitizedError);
+      throw new Error(sanitizedError);
     }
 
     console.log(`Processing ${tasks?.length || 0} pending tasks`);
@@ -178,9 +220,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in ai-agent-processor:', error);
+    const sanitizedError = sanitizeError(error);
+    console.error('Error in ai-agent-processor:', sanitizedError);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: sanitizedError,
       details: 'Check function logs for more information'
     }), {
       status: 500,

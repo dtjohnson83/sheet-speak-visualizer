@@ -15,7 +15,52 @@ class Logger {
   private formatMessage(level: LogLevel, message: string, data?: any, component?: string): string {
     const timestamp = new Date().toISOString();
     const componentTag = component ? `[${component}]` : '';
-    return `${timestamp} ${level.toUpperCase()} ${componentTag} ${message}`;
+    // Sanitize message to prevent sensitive data leakage
+    const sanitizedMessage = this.sanitizeLogMessage(message);
+    return `${timestamp} ${level.toUpperCase()} ${componentTag} ${sanitizedMessage}`;
+  }
+
+  private sanitizeLogMessage(message: string): string {
+    if (!message) return '';
+    
+    // Remove sensitive patterns from log messages
+    const sensitivePatterns = [
+      /token[s]?[:\s]*[a-zA-Z0-9\-_\.]+/gi,
+      /key[s]?[:\s]*[a-zA-Z0-9\-_\.]+/gi,
+      /password[s]?[:\s]*[^\s]+/gi,
+      /secret[s]?[:\s]*[a-zA-Z0-9\-_\.]+/gi,
+      /authorization[:\s]*[^\s]+/gi,
+      /bearer\s+[a-zA-Z0-9\-_\.]+/gi,
+    ];
+    
+    let sanitized = message;
+    sensitivePatterns.forEach(pattern => {
+      sanitized = sanitized.replace(pattern, '[REDACTED]');
+    });
+    
+    return sanitized;
+  }
+
+  private sanitizeData(data: any): any {
+    if (!data) return data;
+    
+    // Only log data in development mode and sanitize sensitive fields
+    if (!this.isDevelopment) return '[DATA_REDACTED_IN_PRODUCTION]';
+    
+    if (typeof data === 'object') {
+      const sanitized = { ...data };
+      const sensitiveKeys = ['password', 'token', 'key', 'secret', 'authorization', 'bearer'];
+      
+      Object.keys(sanitized).forEach(key => {
+        if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+          sanitized[key] = '[REDACTED]';
+        }
+      });
+      
+      return sanitized;
+    }
+    
+    return data;
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -27,25 +72,29 @@ class Logger {
 
   error(message: string, data?: any, component?: string): void {
     if (this.shouldLog('error')) {
-      console.error(this.formatMessage('error', message, data, component), data || '');
+      const sanitizedData = this.sanitizeData(data);
+      console.error(this.formatMessage('error', message, sanitizedData, component), sanitizedData || '');
     }
   }
 
   warn(message: string, data?: any, component?: string): void {
     if (this.shouldLog('warn')) {
-      console.warn(this.formatMessage('warn', message, data, component), data || '');
+      const sanitizedData = this.sanitizeData(data);
+      console.warn(this.formatMessage('warn', message, sanitizedData, component), sanitizedData || '');
     }
   }
 
   info(message: string, data?: any, component?: string): void {
     if (this.shouldLog('info')) {
-      console.info(this.formatMessage('info', message, data, component), data || '');
+      const sanitizedData = this.sanitizeData(data);
+      console.info(this.formatMessage('info', message, sanitizedData, component), sanitizedData || '');
     }
   }
 
   debug(message: string, data?: any, component?: string): void {
     if (this.shouldLog('debug')) {
-      console.log(this.formatMessage('debug', message, data, component), data || '');
+      const sanitizedData = this.sanitizeData(data);
+      console.log(this.formatMessage('debug', message, sanitizedData, component), sanitizedData || '');
     }
   }
 

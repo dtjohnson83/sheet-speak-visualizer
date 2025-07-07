@@ -7,10 +7,41 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const xaiApiKey = Deno.env.get('XAI_API_KEY');
 const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
+// Enhanced security headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Security-Policy': "default-src 'self'",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
 };
+
+// Rate limiting
+const requestCounts = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(identifier: string, maxRequests: number = 30, windowMs: number = 60000): boolean {
+  const now = Date.now();
+  const userRequests = requestCounts.get(identifier);
+
+  if (!userRequests || now > userRequests.resetTime) {
+    requestCounts.set(identifier, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+
+  if (userRequests.count >= maxRequests) {
+    return false;
+  }
+
+  userRequests.count++;
+  return true;
+}
+
+function sanitizeError(error: any): string {
+  const message = error?.message || error?.toString() || 'Unknown error';
+  return message.replace(/key|token|secret|password|api/gi, '[REDACTED]').substring(0, 200);
+}
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -90,6 +121,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Rate limiting
+  const clientIP = req.headers.get('x-forwarded-for') || 'unknown';
+  if (!checkRateLimit(clientIP)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+      status: 429,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const { messages, dataContext, toneId = 'direct-efficient' }: RequestBody = await req.json();
 
@@ -110,9 +150,9 @@ serve(async (req) => {
       model = 'gpt-4o-mini';
       provider = 'OpenAI';
     } else {
-      console.error('No API key found. Checked: XAI_API_KEY, OPENAI_API_KEY');
-      console.error('Available environment variables:', Object.keys(Deno.env.toObject()).filter(key => key.includes('API')));
-      throw new Error('API key not configured. Please add XAI_API_KEY or OPENAI_API_KEY to your Supabase secrets.');
+      const sanitizedError = 'API key not configured. Please add XAI_API_KEY or OPENAI_API_KEY to your Supabase secrets.';
+      console.error(sanitizedError);
+      throw new Error(sanitizedError);
     }
 
     console.log(`Using ${provider} API with model ${model}`);
@@ -225,9 +265,10 @@ Be conversational, business-focused, and provide actionable insights relevant to
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in ai-data-chat function:', error);
+    const sanitizedError = sanitizeError(error);
+    console.error('Error in ai-data-chat function:', sanitizedError);
     return new Response(JSON.stringify({ 
-      error: error.message || 'An error occurred processing your request',
+      error: sanitizedError,
       details: 'Check the function logs for more information'
     }), {
       status: 500,
