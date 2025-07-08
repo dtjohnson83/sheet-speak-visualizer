@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
@@ -26,6 +27,15 @@ export const TabContentPreview: React.FC<TabContentPreviewProps> = ({
   // Get current dataset and quality profile from enhanced manager
   const currentDataset = enhancedManager.currentDataset;
   const qualityProfile = currentDataset ? enhancedManager.getQualityProfile(currentDataset.id) : null;
+
+  // Load enhanced dataset when data changes
+  useEffect(() => {
+    // Only load if we have valid data and it's not empty
+    if (data && data.length > 0 && columns && columns.length > 0 && fileName) {
+      console.log('Loading enhanced dataset for:', fileName, 'with', data.length, 'rows');
+      enhancedManager.loadEnhancedDataset(data, columns, fileName);
+    }
+  }, [data, columns, fileName, enhancedManager]);
 
   // Mark quality understood when quality profile is available
   useEffect(() => {
