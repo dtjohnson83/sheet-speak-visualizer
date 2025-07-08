@@ -233,15 +233,15 @@ export class RelationshipDiscoveryEngine {
     
     // Common ID relationship patterns
     const idPatterns = [
-      { pattern: /(.+)_id$/, target: /^\1$/ },
-      { pattern: /^id$/, target: /(.+)/ },
-      { pattern: /(.+)_key$/, target: /^\1$/ },
-      { pattern: /(.+)_ref$/, target: /^\1$/ }
+      { pattern: /(.+)_id$/, targetTest: (name: string, match: RegExpMatchArray) => name === match[1] },
+      { pattern: /^id$/, targetTest: (name: string) => name.length > 0 },
+      { pattern: /(.+)_key$/, targetTest: (name: string, match: RegExpMatchArray) => name === match[1] },
+      { pattern: /(.+)_ref$/, targetTest: (name: string, match: RegExpMatchArray) => name === match[1] }
     ];
     
-    for (const { pattern, target: targetPattern } of idPatterns) {
+    for (const { pattern, targetTest } of idPatterns) {
       const match = source.match(pattern);
-      if (match && targetPattern.test(target)) {
+      if (match && targetTest(target, match)) {
         return { description: 'Foreign key relationship pattern detected' };
       }
     }

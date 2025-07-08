@@ -457,6 +457,288 @@ export type Database = {
           },
         ]
       }
+      dataset_relationships: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          discovered: boolean | null
+          evidence: Json | null
+          evidence_type: string | null
+          id: string
+          relationship_type: string
+          source_column: string
+          source_dataset_id: string
+          target_column: string
+          target_dataset_id: string
+          updated_at: string | null
+          validated: boolean | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          discovered?: boolean | null
+          evidence?: Json | null
+          evidence_type?: string | null
+          id?: string
+          relationship_type: string
+          source_column: string
+          source_dataset_id: string
+          target_column: string
+          target_dataset_id: string
+          updated_at?: string | null
+          validated?: boolean | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          discovered?: boolean | null
+          evidence?: Json | null
+          evidence_type?: string | null
+          id?: string
+          relationship_type?: string
+          source_column?: string
+          source_dataset_id?: string
+          target_column?: string
+          target_dataset_id?: string
+          updated_at?: string | null
+          validated?: boolean | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataset_relationships_source_dataset_id_fkey"
+            columns: ["source_dataset_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_datasets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dataset_relationships_target_dataset_id_fkey"
+            columns: ["target_dataset_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dataset_versions: {
+        Row: {
+          changes: string[] | null
+          checksum: string
+          created_at: string | null
+          created_by: string
+          enhanced_dataset_id: string
+          id: string
+          row_count: number | null
+          schema_snapshot: Json
+          version_number: number
+        }
+        Insert: {
+          changes?: string[] | null
+          checksum: string
+          created_at?: string | null
+          created_by: string
+          enhanced_dataset_id: string
+          id?: string
+          row_count?: number | null
+          schema_snapshot: Json
+          version_number: number
+        }
+        Update: {
+          changes?: string[] | null
+          checksum?: string
+          created_at?: string | null
+          created_by?: string
+          enhanced_dataset_id?: string
+          id?: string
+          row_count?: number | null
+          schema_snapshot?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dataset_versions_enhanced_dataset_id_fkey"
+            columns: ["enhanced_dataset_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enhanced_columns: {
+        Row: {
+          column_name: string
+          column_version: number | null
+          constraints: Json | null
+          created_at: string | null
+          description: string | null
+          display_name: string | null
+          enhanced_dataset_id: string
+          format_pattern: string | null
+          id: string
+          last_modified: string | null
+          max_value: number | null
+          mean_value: number | null
+          median_value: number | null
+          min_value: number | null
+          mode_value: string | null
+          null_count: number | null
+          outlier_count: number | null
+          quality_issues: string[] | null
+          quality_score: number | null
+          semantic_type: Database["public"]["Enums"]["semantic_type"] | null
+          unique_count: number | null
+          unit: string | null
+          updated_at: string | null
+          value_distribution: Json | null
+        }
+        Insert: {
+          column_name: string
+          column_version?: number | null
+          constraints?: Json | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string | null
+          enhanced_dataset_id: string
+          format_pattern?: string | null
+          id?: string
+          last_modified?: string | null
+          max_value?: number | null
+          mean_value?: number | null
+          median_value?: number | null
+          min_value?: number | null
+          mode_value?: string | null
+          null_count?: number | null
+          outlier_count?: number | null
+          quality_issues?: string[] | null
+          quality_score?: number | null
+          semantic_type?: Database["public"]["Enums"]["semantic_type"] | null
+          unique_count?: number | null
+          unit?: string | null
+          updated_at?: string | null
+          value_distribution?: Json | null
+        }
+        Update: {
+          column_name?: string
+          column_version?: number | null
+          constraints?: Json | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string | null
+          enhanced_dataset_id?: string
+          format_pattern?: string | null
+          id?: string
+          last_modified?: string | null
+          max_value?: number | null
+          mean_value?: number | null
+          median_value?: number | null
+          min_value?: number | null
+          mode_value?: string | null
+          null_count?: number | null
+          outlier_count?: number | null
+          quality_issues?: string[] | null
+          quality_score?: number | null
+          semantic_type?: Database["public"]["Enums"]["semantic_type"] | null
+          unique_count?: number | null
+          unit?: string | null
+          updated_at?: string | null
+          value_distribution?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enhanced_columns_enhanced_dataset_id_fkey"
+            columns: ["enhanced_dataset_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enhanced_datasets: {
+        Row: {
+          access_count: number | null
+          access_pattern: Database["public"]["Enums"]["access_pattern"] | null
+          accuracy_score: number | null
+          base_dataset_id: string
+          completeness_score: number | null
+          compression_level: number | null
+          consistency_score: number | null
+          created_at: string | null
+          id: string
+          indexed_columns: string[] | null
+          last_accessed: string | null
+          last_quality_assessment: string | null
+          overall_quality_score: number | null
+          quality_issues: Json | null
+          quality_recommendations: Json | null
+          schema_checksum: string
+          schema_version: number | null
+          storage_type: Database["public"]["Enums"]["storage_type"] | null
+          updated_at: string | null
+          user_id: string
+          validity_score: number | null
+        }
+        Insert: {
+          access_count?: number | null
+          access_pattern?: Database["public"]["Enums"]["access_pattern"] | null
+          accuracy_score?: number | null
+          base_dataset_id: string
+          completeness_score?: number | null
+          compression_level?: number | null
+          consistency_score?: number | null
+          created_at?: string | null
+          id?: string
+          indexed_columns?: string[] | null
+          last_accessed?: string | null
+          last_quality_assessment?: string | null
+          overall_quality_score?: number | null
+          quality_issues?: Json | null
+          quality_recommendations?: Json | null
+          schema_checksum: string
+          schema_version?: number | null
+          storage_type?: Database["public"]["Enums"]["storage_type"] | null
+          updated_at?: string | null
+          user_id: string
+          validity_score?: number | null
+        }
+        Update: {
+          access_count?: number | null
+          access_pattern?: Database["public"]["Enums"]["access_pattern"] | null
+          accuracy_score?: number | null
+          base_dataset_id?: string
+          completeness_score?: number | null
+          compression_level?: number | null
+          consistency_score?: number | null
+          created_at?: string | null
+          id?: string
+          indexed_columns?: string[] | null
+          last_accessed?: string | null
+          last_quality_assessment?: string | null
+          overall_quality_score?: number | null
+          quality_issues?: Json | null
+          quality_recommendations?: Json | null
+          schema_checksum?: string
+          schema_version?: number | null
+          storage_type?: Database["public"]["Enums"]["storage_type"] | null
+          updated_at?: string | null
+          user_id?: string
+          validity_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enhanced_datasets_base_dataset_id_fkey"
+            columns: ["base_dataset_id"]
+            isOneToOne: false
+            referencedRelation: "saved_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       export_history: {
         Row: {
           confidence_threshold: number
@@ -990,7 +1272,15 @@ export type Database = {
       }
     }
     Enums: {
+      access_pattern: "hot" | "warm" | "cold"
       app_role: "user" | "admin"
+      semantic_type:
+        | "identifier"
+        | "measure"
+        | "dimension"
+        | "temporal"
+        | "geospatial"
+      storage_type: "jsonb" | "columnar" | "hybrid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1118,7 +1408,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_pattern: ["hot", "warm", "cold"],
       app_role: ["user", "admin"],
+      semantic_type: [
+        "identifier",
+        "measure",
+        "dimension",
+        "temporal",
+        "geospatial",
+      ],
+      storage_type: ["jsonb", "columnar", "hybrid"],
     },
   },
 } as const
