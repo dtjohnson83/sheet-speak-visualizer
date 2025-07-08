@@ -5,6 +5,8 @@ interface TutorialProgress {
   hasCompletedTutorial: boolean;
   completedSteps: string[];
   hasUploadedData: boolean;
+  hasUnderstoodQuality: boolean;
+  hasDiscoveredRelationships: boolean;
   hasCreatedChart: boolean;
   hasBuiltDashboard: boolean;
   hasUsedAI: boolean;
@@ -24,6 +26,8 @@ export const useTutorialProgress = () => {
       hasCompletedTutorial: false,
       completedSteps: [],
       hasUploadedData: false,
+      hasUnderstoodQuality: false,
+      hasDiscoveredRelationships: false,
       hasCreatedChart: false,
       hasBuiltDashboard: false,
       hasUsedAI: false,
@@ -63,6 +67,16 @@ export const useTutorialProgress = () => {
     markStepCompleted('upload-data');
   };
 
+  const markQualityUnderstood = () => {
+    updateProgress({ hasUnderstoodQuality: true });
+    markStepCompleted('understand-quality');
+  };
+
+  const markRelationshipsDiscovered = () => {
+    updateProgress({ hasDiscoveredRelationships: true });
+    markStepCompleted('discover-relationships');
+  };
+
   const markChartCreated = () => {
     updateProgress({ hasCreatedChart: true });
     markStepCompleted('create-chart');
@@ -89,6 +103,8 @@ export const useTutorialProgress = () => {
       hasCompletedTutorial: false,
       completedSteps: [],
       hasUploadedData: false,
+      hasUnderstoodQuality: false,
+      hasDiscoveredRelationships: false,
       hasCreatedChart: false,
       hasBuiltDashboard: false,
       hasUsedAI: false,
@@ -101,10 +117,12 @@ export const useTutorialProgress = () => {
   const shouldShowChecklist = progress.hasSeenTutorial && !progress.hasCompletedTutorial;
   const completionPercentage = [
     progress.hasUploadedData,
+    progress.hasUnderstoodQuality,
+    progress.hasDiscoveredRelationships,
     progress.hasCreatedChart,
     progress.hasBuiltDashboard,
     progress.hasUsedAI
-  ].filter(Boolean).length / 4 * 100;
+  ].filter(Boolean).length / 6 * 100;
 
   return {
     progress,
@@ -115,6 +133,8 @@ export const useTutorialProgress = () => {
     markTutorialCompleted,
     markStepCompleted,
     markDataUploaded,
+    markQualityUnderstood,
+    markRelationshipsDiscovered,
     markChartCreated,
     markDashboardBuilt,
     markAIUsed,

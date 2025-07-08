@@ -1,4 +1,5 @@
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { EnhancedColumnInfo } from '@/types/dataModel';
 
 export interface DemoDataset {
   id: string;
@@ -8,17 +9,35 @@ export interface DemoDataset {
   useCase: string;
   data: DataRow[];
   columns: ColumnInfo[];
+  enhancedColumns?: EnhancedColumnInfo[];
   suggestedCharts: string[];
   learningObjectives: string[];
   businessContext: string;
   icon: string;
+  qualityProfile?: {
+    completeness: number;
+    validity: number;
+    consistency: number;
+    accuracy: number;
+    overallScore: number;
+    issues: string[];
+    recommendations: string[];
+  };
+  relationships?: Array<{
+    targetDatasetId: string;
+    sourceColumn: string;
+    targetColumn: string;
+    type: string;
+    confidence: number;
+  }>;
+  enhancedFeatures?: string[];
 }
 
 export const demoDatasets: DemoDataset[] = [
   {
     id: 'sales-performance',
     name: 'Sales Performance Q1-Q4',
-    description: 'Quarterly sales data across regions and product categories',
+    description: 'Quarterly sales data across regions and product categories with enhanced quality profiling',
     category: 'Sales & Marketing',
     useCase: 'Sales Dashboard Creation',
     businessContext: 'Track quarterly performance, identify top-performing regions, and analyze product category trends.',
@@ -27,7 +46,23 @@ export const demoDatasets: DemoDataset[] = [
     learningObjectives: [
       'Create time-series visualizations',
       'Compare performance across categories',
-      'Build executive dashboards'
+      'Build executive dashboards',
+      'Experience enhanced data quality features'
+    ],
+    qualityProfile: {
+      completeness: 0.95,
+      validity: 0.98,
+      consistency: 0.92,
+      accuracy: 0.88,
+      overallScore: 0.93,
+      issues: ['Minor outliers in Q4 sales figures'],
+      recommendations: ['Review Q4 sales data for potential data entry errors', 'Consider seasonal adjustment factors']
+    },
+    enhancedFeatures: [
+      'High-quality sales data with 95% completeness',
+      'Semantic types: quarter (temporal), region (dimension), sales (measure)',
+      'Optimized for time-series analysis',
+      'Cross-dataset relationships available'
     ],
     data: [
       { quarter: 'Q1 2024', region: 'North America', product_category: 'Electronics', sales: 125000, target: 120000, rep_name: 'John Smith' },
@@ -54,12 +89,20 @@ export const demoDatasets: DemoDataset[] = [
       { name: 'sales', type: 'numeric', values: [] },
       { name: 'target', type: 'numeric', values: [] },
       { name: 'rep_name', type: 'categorical', values: ['John Smith', 'Sarah Johnson', 'Mike Wilson', 'Emma Davis'] }
+    ],
+    enhancedColumns: [
+      { name: 'quarter', type: 'categorical', semanticType: 'temporal', displayName: 'Quarter', description: 'Business quarter for performance tracking', values: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'] },
+      { name: 'region', type: 'categorical', semanticType: 'dimension', displayName: 'Sales Region', description: 'Geographic sales territory', values: ['North America', 'Europe'] },
+      { name: 'product_category', type: 'categorical', semanticType: 'dimension', displayName: 'Product Category', description: 'Product line classification', values: ['Electronics', 'Clothing'] },
+      { name: 'sales', type: 'numeric', semanticType: 'measure', displayName: 'Sales Amount', description: 'Actual sales revenue in USD', unit: 'USD', values: [] },
+      { name: 'target', type: 'numeric', semanticType: 'measure', displayName: 'Sales Target', description: 'Planned sales target in USD', unit: 'USD', values: [] },
+      { name: 'rep_name', type: 'categorical', semanticType: 'identifier', displayName: 'Sales Representative', description: 'Assigned sales representative', values: ['John Smith', 'Sarah Johnson', 'Mike Wilson', 'Emma Davis'] }
     ]
   },
   {
     id: 'ecommerce-analytics',
     name: 'E-commerce Customer Orders',
-    description: 'Customer order data with demographics and purchasing patterns',
+    description: 'Customer order data with demographics and purchasing patterns, enhanced with relationship discovery',
     category: 'E-commerce',
     useCase: 'Customer Analytics Dashboard',
     businessContext: 'Analyze customer behavior, seasonal trends, and product performance to optimize marketing and inventory.',
@@ -68,7 +111,32 @@ export const demoDatasets: DemoDataset[] = [
     learningObjectives: [
       'Analyze customer demographics',
       'Identify seasonal patterns',
-      'Create cohort analysis'
+      'Create cohort analysis',
+      'Discover cross-dataset relationships'
+    ],
+    qualityProfile: {
+      completeness: 0.92,
+      validity: 0.96,
+      consistency: 0.89,
+      accuracy: 0.91,
+      overallScore: 0.92,
+      issues: ['Some missing city data', 'Inconsistent payment method formatting'],
+      recommendations: ['Standardize payment method values', 'Implement city data validation']
+    },
+    relationships: [
+      {
+        targetDatasetId: 'sales-performance',
+        sourceColumn: 'category',
+        targetColumn: 'product_category',
+        type: 'many-to-many',
+        confidence: 0.85
+      }
+    ],
+    enhancedFeatures: [
+      'Customer behavior analysis with 92% data quality',
+      'Demographic segmentation with enhanced categorical types',
+      'Purchasing pattern discovery',
+      'Cross-dataset relationship with sales performance data'
     ],
     data: [
       { order_date: '2024-01-15', customer_age: 28, gender: 'Female', city: 'New York', order_value: 89.99, product_count: 3, category: 'Fashion', payment_method: 'Credit Card' },
