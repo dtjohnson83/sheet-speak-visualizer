@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
 import { DataPreview } from '@/components/DataPreview';
@@ -24,18 +24,51 @@ export const TabContentPreview: React.FC<TabContentPreviewProps> = ({
   const enhancedManager = useEnhancedDatasetManager();
   const { markQualityUnderstood, markRelationshipsDiscovered } = useTutorialProgress();
   
+  // Track loading state to prevent duplicate loads
+  const [isLoadingDataset, setIsLoadingDataset] = useState(false);
+  const lastLoadedDatasetRef = useRef<string>('');
+  
   // Get current dataset and quality profile from enhanced manager
   const currentDataset = enhancedManager.currentDataset;
   const qualityProfile = currentDataset ? enhancedManager.getQualityProfile(currentDataset.id) : null;
 
-  // Load enhanced dataset when data changes
+  // Load enhanced dataset when data changes - using stable dependencies only
   useEffect(() => {
-    // Only load if we have valid data and it's not empty
-    if (data && data.length > 0 && columns && columns.length > 0 && fileName) {
+    const loadDataset = async () => {
+      // Only load if we have valid data and it's not empty
+      if (!data || data.length === 0 || !columns || columns.length === 0 || !fileName) {
+        return;
+      }
+
+      // Create a unique identifier for this dataset to prevent duplicate loading
+      const datasetIdentifier = `${fileName}_${data.length}_${columns.length}`;
+      
+      // Prevent duplicate loading of the same dataset
+      if (isLoadingDataset || lastLoadedDatasetRef.current === datasetIdentifier) {
+        return;
+      }
+
       console.log('Loading enhanced dataset for:', fileName, 'with', data.length, 'rows');
-      enhancedManager.loadEnhancedDataset(data, columns, fileName);
-    }
-  }, [data, columns, fileName, enhancedManager]);
+      
+      setIsLoadingDataset(true);
+      lastLoadedDatasetRef.current = datasetIdentifier;
+
+      try {
+        await enhancedManager.loadEnhancedDataset(data, columns, fileName);
+      } catch (error) {
+        console.error('Failed to load enhanced dataset:', error);
+        // Reset on error so user can retry
+        lastLoadedDatasetRef.current = '';
+      } finally {
+        setIsLoadingDataset(false);
+      }
+    };
+
+    // Use setTimeout to make this non-blocking and prevent UI freeze
+    const timeoutId = setTimeout(loadDataset, 0);
+    
+    return () => clearTimeout(timeoutId);
+  }, [data, columns, fileName]); // Removed enhancedManager from dependencies
 
   // Mark quality understood when quality profile is available
   useEffect(() => {
@@ -72,7 +105,7 @@ export const TabContentPreview: React.FC<TabContentPreviewProps> = ({
           dataset={currentDataset}
           qualityProfile={qualityProfile}
           relationships={enhancedManager.discoveredRelationships}
-          isAnalyzing={enhancedManager.isAnalyzing}
+          isAnalyzing={enhancedManager.isAnalyzing || isLoadingDataset}
           analysisProgress={enhancedManager.analysisProgress}
           onDiscoverRelationships={handleDiscoverRelationships}
         />
