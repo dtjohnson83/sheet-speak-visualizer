@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react';  // If needed; not used but keep if original had it
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,9 @@ import {
   Clock,
   CheckCircle,
   TrendingUp,
-  Bell
+  Bell,
+  Play,  // For Run Now
+  Calendar  // Added for Schedule Daily
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAIAgents } from '@/hooks/useAIAgents';
@@ -18,7 +20,7 @@ interface AgentStatusHeaderProps {
   agent: any;
   isCreatingAgent: boolean;
   onCreateAgent: () => Promise<void>;
-  onScheduleCheck: () => Promise<void>;
+  onScheduleCheck: (scheduleTime: 'now' | string) => Promise<void>;  // Updated to accept scheduleTime
 }
 
 export const AgentStatusHeader = ({ 
@@ -51,10 +53,18 @@ export const AgentStatusHeader = ({
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={onScheduleCheck}
+                  onClick={() => onScheduleCheck('now')}
                 >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Schedule Check
+                  <Play className="h-4 w-4 mr-2" />
+                  Run Now
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onScheduleCheck(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule Daily
                 </Button>
               </div>
             ) : (
