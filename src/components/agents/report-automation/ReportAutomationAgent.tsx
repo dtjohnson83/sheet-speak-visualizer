@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,7 @@ import { ReportTemplateManager } from './ReportTemplateManager';
 import { ReportScheduler } from './ReportScheduler';
 import { ReportInsights } from './ReportInsights';
 import { useToast } from '@/hooks/use-toast';
+import { useAIAgents } from '@/hooks/useAIAgents';
 
 interface ReportTemplate {
   id: string;
@@ -42,6 +42,7 @@ interface ReportTemplate {
 
 export const ReportAutomationAgent = () => {
   const { toast } = useToast();
+  const { agents, createTask } = useAIAgents();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -100,17 +101,39 @@ export const ReportAutomationAgent = () => {
   const handleGenerateReport = async (templateId: string) => {
     setIsGenerating(true);
     try {
-      // Simulate report generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Example: Get dataset_id from somewhere (e.g., state, props, or assume a default)
+      const datasetId = 'your_dataset_id_here';  // Replace with actual (e.g., from useDataQualityAgent or props)
+      
+      // Find the report agent (assume one exists; adjust if multiple)
+      const reportAgent = agents.find(a => a.type === 'report_automation');
+      if (!reportAgent) throw new Error('No report agent found');
+      
+      // Queue the task
+      await createTask({
+        agentId: reportAgent.id,
+        datasetId,  // Optional if not tied to dataset
+        taskType: 'report_generation',  // Matches backend switch
+        parameters: {
+          templateId,  // From button click
+          includeCharts: true,  // From config or UI toggle
+          autoDistribute: false,  // Example; make dynamic
+          recipients: ['email@example.com'],  // From template or form
+          dataset_name: 'Dataset'  // If needed
+        }
+      });
+      
+      // Optionally trigger processor immediately if manual
+      // await triggerProcessor();  // If you want instant processing; import/use useAgentProcessor if needed
       
       toast({
-        title: "Report Generated",
-        description: "Excel report has been generated and is ready for download.",
+        title: "Report Queued",
+        description: "Report generation task has been scheduled. Check insights for the file once processed.",
       });
     } catch (error) {
+      console.error('Error queuing report:', error);
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate report. Please try again.",
+        title: "Queuing Failed",
+        description: "Failed to queue report generation. Please try again.",
         variant: "destructive",
       });
     } finally {
