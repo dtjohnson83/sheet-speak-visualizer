@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';  // Add for querying/mutating
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';  // Assume you have this for user_id
 
 interface QualityTrend {
   date: string;
@@ -11,12 +13,30 @@ interface QualityTrend {
 
 export const useDataQualityAgent = (fileName: string) => {
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-  const [qualityTrends, setQualityTrends] = useState<QualityTrend[]>([]);
   
   const { agents, createAgent } = useAIAgents();
   const { toast } = useToast();
+  const { user } = useAuth();  // For user-specific filtering
+  const queryClient = useQueryClient();
 
   const agent = agents.find(a => a.type === 'data_quality');
+
+  // Fetch quality trends from Supabase (last 7, ordered by date desc)
+  const { data: qualityTrends = [] } = useQuery<QualityTrend[]>({
+    queryKey: ['quality_trends', agent?.id],
+    queryFn: async () => {
+      if (!agent) return [];
+      const { data, error } = await supabase
+        .from('quality_trends')
+        .select('date, score, issues')
+        .eq('agent_id', agent.id)
+        .order('date', { ascending: false })
+        .limit(7);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!agent,
+  });
 
   const createDataQualityAgent = async () => {
     setIsCreatingAgent(true);
@@ -96,6 +116,25 @@ export const useDataQualityAgent = (fileName: string) => {
     }
   };
 
+  // Mutation for inserting new trend
+  const insertTrendMutation = useMutation({
+    mutationFn: async (newTrend: QualityTrend) => {
+      if (!agent) throw new Error('No agent');
+      await supabase.from('quality_trends').insert({
+        agent_id: agent.id,
+        date: newTrend.date,
+        score: newTrend.score,
+        issues: newTrend.issues
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quality_trends', agent?.id] });  // Refresh trends
+    },
+    onError: (error) => {
+      console.error('Error inserting trend:', error);
+    },
+  });
+
   const handleReportGenerated = async (report: any) => {
     if (agent) {
       try {
@@ -115,10 +154,7 @@ export const useDataQualityAgent = (fileName: string) => {
           issues: report.summary.totalIssues
         };
         
-        setQualityTrends(prev => {
-          const updated = [...prev, newTrend];
-          return updated.slice(-7);
-        });
+        await insertTrendMutation.mutateAsync(newTrend);
 
       } catch (error) {
         console.error('Error saving quality insight:', error);
