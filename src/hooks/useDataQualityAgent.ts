@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';  // Add for querying/mutating
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';  // Assume you have this for user_id
+import { useAuth } from '@/contexts/AuthContext';
 
 interface QualityTrend {
   date: string;
@@ -16,22 +16,27 @@ export const useDataQualityAgent = (fileName: string) => {
   
   const { agents, createAgent } = useAIAgents();
   const { toast } = useToast();
-  const { user } = useAuth();  // For user-specific filtering
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const agent = agents.find(a => a.type === 'data_quality');
 
   // Fetch quality trends from Supabase (last 7, ordered by date desc)
-  const { data: qualityTrends = [] } = useQuery<QualityTrend[]>({
+  const { data: qualityTrends = [], isLoading: trendsLoading, error: trendsError } = useQuery<QualityTrend[]>({
     queryKey: ['quality_trends', agent?.id],
     queryFn: async () => {
       if (!agent) return [];
-      const { data, error } = await supabase
+      let query = supabase
         .from('quality_trends')
         .select('date, score, issues')
         .eq('agent_id', agent.id)
         .order('date', { ascending: false })
         .limit(7);
+      
+      // Add user filter if RLS/user-specific
+      if (user?.id) query = query.eq('user_id', user.id);
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -120,18 +125,32 @@ export const useDataQualityAgent = (fileName: string) => {
   const insertTrendMutation = useMutation({
     mutationFn: async (newTrend: QualityTrend) => {
       if (!agent) throw new Error('No agent');
-      await supabase.from('quality_trends').insert({
+      let insertData = {
         agent_id: agent.id,
         date: newTrend.date,
         score: newTrend.score,
         issues: newTrend.issues
-      });
+      };
+      
+      // Add user_id if needed
+      if (user?.id) insertData = { ...insertData, user_id: user.id };
+      
+      await supabase.from('quality_trends').insert(insertData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quality_trends', agent?.id] });  // Refresh trends
+      queryClient.invalidateQueries({ queryKey: ['quality_trends', agent?.id] });
+      toast({
+        title: "Success",
+        description: "Quality trend updated",
+      });
     },
     onError: (error) => {
       console.error('Error inserting trend:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save quality trend",
+        variant: "destructive",
+      });
     },
   });
 
@@ -168,6 +187,8 @@ export const useDataQualityAgent = (fileName: string) => {
     agent,
     isCreatingAgent,
     qualityTrends,
+    trendsLoading,  // New: expose for UI spinner
+    trendsError,    // New: expose for error display
     createDataQualityAgent,
     scheduleQualityCheck,
     handleReportGenerated
