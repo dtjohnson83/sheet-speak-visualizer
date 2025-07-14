@@ -63,10 +63,10 @@ export const SmartDataIntegration = ({ onDataLoaded }: { onDataLoaded?: (data: a
           <Database className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">Smart Data Integration</h3>
           <p className="text-muted-foreground mb-4">
-            Connect multiple real-time data sources to enable AI-powered semantic data fusion
+            Connect multiple data sources (real-time or uploaded) to enable AI-powered semantic data fusion
           </p>
           <p className="text-sm text-muted-foreground">
-            Set up at least 2 real-time data sources in the Data Sources tab to get started
+            Set up at least 2 data sources in the Data Sources tab to get started
           </p>
         </CardContent>
       </Card>
