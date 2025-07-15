@@ -3,6 +3,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SavedDataset } from '@/hooks/useDatasets';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
 import { useEnhancedDatasetManager } from '@/hooks/useEnhancedDatasetManager';
+import { useMultiDatasetActions } from '@/hooks/useMultiDatasetActions';
 
 export const useDataManagement = () => {
   const [data, setData] = useState<DataRow[]>([]);
@@ -16,37 +17,31 @@ export const useDataManagement = () => {
   
   const { setContext, clearContext } = useEnhancedAIContext();
   const enhancedManager = useEnhancedDatasetManager();
+  const multiDatasetActions = useMultiDatasetActions();
 
   const handleDataLoaded = async (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => {
     console.log('Data loaded:', { loadedData, detectedColumns, name, worksheet });
+    
+    // Add to multi-dataset system
+    const datasetId = multiDatasetActions.addDataset(loadedData, detectedColumns, name, worksheet);
     
     // Load with enhanced data modeling
     const result = await enhancedManager.loadEnhancedDataset(
       loadedData, 
       detectedColumns, 
       name, 
-      worksheet
+      worksheet,
+      datasetId
     );
     
-    if (result.success && result.dataset) {
-      // Update local state for backward compatibility
-      setData(loadedData);
-      setColumns(detectedColumns);
-      setFileName(name);
-      setWorksheetName(worksheet || '');
-      setCurrentDatasetId(result.dataset.id);
-      setShowContextSetup(true);
-      clearContext();
-    } else {
-      console.error('Failed to load enhanced dataset:', result.error);
-      // Fallback to basic loading
-      setData(loadedData);
-      setColumns(detectedColumns);
-      setFileName(name);
-      setWorksheetName(worksheet || '');
-      setShowContextSetup(true);
-      clearContext();
-    }
+    // Update local state for backward compatibility
+    setData(loadedData);
+    setColumns(detectedColumns);
+    setFileName(name);
+    setWorksheetName(worksheet || '');
+    setCurrentDatasetId(datasetId);
+    setShowContextSetup(true);
+    clearContext();
   };
 
   const handleColumnTypeChange = async (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => {

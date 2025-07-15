@@ -3,8 +3,25 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 import { FilterCondition } from '@/components/dashboard/DashboardFilters';
 
+export interface DatasetInfo {
+  id: string;
+  name: string;
+  fileName: string;
+  worksheetName: string;
+  data: DataRow[];
+  columns: ColumnInfo[];
+  isSaved: boolean;
+  lastModified: Date;
+  rowCount: number;
+  columnCount: number;
+}
+
 export interface AppState {
-  // Data management state
+  // Multi-dataset management state
+  datasets: Map<string, DatasetInfo>;
+  activeDatasetId: string;
+  
+  // Legacy single dataset state (for backward compatibility)
   data: DataRow[];
   columns: ColumnInfo[];
   fileName: string;
@@ -35,9 +52,18 @@ type AppAction =
   | { type: 'SET_REALTIME_ENABLED'; payload: boolean }
   | { type: 'CLEAR_DATA' }
   | { type: 'LOAD_DATASET'; payload: { data: DataRow[]; columns: ColumnInfo[]; fileName: string; worksheetName?: string; datasetId: string; datasetName: string } }
-  | { type: 'LOAD_DASHBOARD'; payload: { tiles: DashboardTileData[]; filters: FilterCondition[]; data?: DataRow[]; columns?: ColumnInfo[] } };
+  | { type: 'LOAD_DASHBOARD'; payload: { tiles: DashboardTileData[]; filters: FilterCondition[]; data?: DataRow[]; columns?: ColumnInfo[] } }
+  | { type: 'ADD_DATASET'; payload: DatasetInfo }
+  | { type: 'REMOVE_DATASET'; payload: string }
+  | { type: 'SET_ACTIVE_DATASET'; payload: string }
+  | { type: 'UPDATE_DATASET'; payload: { id: string; updates: Partial<DatasetInfo> } };
 
 const initialState: AppState = {
+  // Multi-dataset state
+  datasets: new Map(),
+  activeDatasetId: '',
+  
+  // Legacy single dataset state (for backward compatibility)
   data: [],
   columns: [],
   fileName: '',
@@ -45,6 +71,8 @@ const initialState: AppState = {
   currentDatasetId: '',
   isSaved: false,
   currentDatasetName: '',
+  
+  // Dashboard state
   tiles: [],
   filters: [],
   realtimeEnabled: false,
@@ -165,6 +193,98 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...(action.payload.data && { data: action.payload.data }),
         ...(action.payload.columns && { columns: action.payload.columns }),
       };
+    
+    case 'ADD_DATASET': {
+      const newDatasets = new Map(state.datasets);
+      newDatasets.set(action.payload.id, action.payload);
+      
+      const newActiveId = state.activeDatasetId || action.payload.id;
+      const shouldUpdateLegacy = newActiveId === action.payload.id;
+      
+      return {
+        ...state,
+        datasets: newDatasets,
+        activeDatasetId: newActiveId,
+        // Update legacy state if this is the active dataset
+        ...(shouldUpdateLegacy && {
+          data: action.payload.data,
+          columns: action.payload.columns,
+          fileName: action.payload.fileName,
+          worksheetName: action.payload.worksheetName,
+          currentDatasetId: action.payload.id,
+          currentDatasetName: action.payload.name,
+          isSaved: action.payload.isSaved,
+        }),
+      };
+    }
+    
+    case 'REMOVE_DATASET': {
+      const newDatasets = new Map(state.datasets);
+      newDatasets.delete(action.payload);
+      
+      const remaining = Array.from(newDatasets.values());
+      const newActiveId = remaining.length > 0 ? remaining[0].id : '';
+      const activeDataset = remaining.find(d => d.id === newActiveId);
+      
+      return {
+        ...state,
+        datasets: newDatasets,
+        activeDatasetId: newActiveId,
+        // Update legacy state to the new active dataset
+        data: activeDataset?.data || [],
+        columns: activeDataset?.columns || [],
+        fileName: activeDataset?.fileName || '',
+        worksheetName: activeDataset?.worksheetName || '',
+        currentDatasetId: activeDataset?.id || '',
+        currentDatasetName: activeDataset?.name || '',
+        isSaved: activeDataset?.isSaved || false,
+        showContextSetup: !activeDataset,
+      };
+    }
+    
+    case 'SET_ACTIVE_DATASET': {
+      const activeDataset = state.datasets.get(action.payload);
+      
+      return {
+        ...state,
+        activeDatasetId: action.payload,
+        // Update legacy state to reflect the new active dataset
+        data: activeDataset?.data || [],
+        columns: activeDataset?.columns || [],
+        fileName: activeDataset?.fileName || '',
+        worksheetName: activeDataset?.worksheetName || '',
+        currentDatasetId: activeDataset?.id || '',
+        currentDatasetName: activeDataset?.name || '',
+        isSaved: activeDataset?.isSaved || false,
+      };
+    }
+    
+    case 'UPDATE_DATASET': {
+      const newDatasets = new Map(state.datasets);
+      const existingDataset = newDatasets.get(action.payload.id);
+      
+      if (existingDataset) {
+        const updatedDataset = { ...existingDataset, ...action.payload.updates };
+        newDatasets.set(action.payload.id, updatedDataset);
+        
+        return {
+          ...state,
+          datasets: newDatasets,
+          // Update legacy state if this is the active dataset
+          ...(state.activeDatasetId === action.payload.id && {
+            data: updatedDataset.data,
+            columns: updatedDataset.columns,
+            fileName: updatedDataset.fileName,
+            worksheetName: updatedDataset.worksheetName,
+            currentDatasetId: updatedDataset.id,
+            currentDatasetName: updatedDataset.name,
+            isSaved: updatedDataset.isSaved,
+          }),
+        };
+      }
+      
+      return state;
+    }
     
     default:
       return state;

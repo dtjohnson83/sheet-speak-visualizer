@@ -9,6 +9,8 @@ import { Save, Database, AlertCircle } from 'lucide-react';
 import { useDatasets } from '@/hooks/useDatasets';
 import { useAppState } from '@/contexts/AppStateContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { DatasetSwitcher } from '@/components/dataset/DatasetSwitcher';
+import { useMultiDatasetActions } from '@/hooks/useMultiDatasetActions';
 
 interface DataStatusBarProps {
   displayFileName: string;
@@ -26,9 +28,13 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
   const { user } = useAuth();
   const { state, dispatch } = useAppState();
   const { saveDataset, isSaving } = useDatasets();
+  const multiDatasetActions = useMultiDatasetActions();
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+
+  const datasets = Array.from(state.datasets.values());
+  const activeDataset = state.activeDatasetId ? state.datasets.get(state.activeDatasetId) : null;
 
   const handleQuickSave = () => {
     if (!name.trim()) return;
@@ -62,32 +68,58 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
     <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-lg p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium">Dataset Active</span>
-            {realtimeEnabled && (
-              <div className="flex items-center gap-1 ml-2">
-                <div className="w-2 h-2 bg-info rounded-full animate-pulse"></div>
-                <span className="text-xs text-info">Real-time</span>
-              </div>
-            )}
-          </div>
+          <DatasetSwitcher
+            datasets={datasets}
+            activeDatasetId={state.activeDatasetId}
+            onDatasetSelect={multiDatasetActions.selectDataset}
+            onDatasetRemove={multiDatasetActions.removeDataset}
+          />
+          
+          {realtimeEnabled && (
+            <div className="flex items-center gap-1 ml-2">
+              <div className="w-2 h-2 bg-info rounded-full animate-pulse"></div>
+              <span className="text-xs text-info">Real-time</span>
+            </div>
+          )}
+          
           <div className="text-sm text-muted-foreground">
-            {state.isSaved && state.currentDatasetName ? state.currentDatasetName : displayFileName} • {dataLength.toLocaleString()} rows • {columnsLength} columns
+            {activeDataset ? (
+              <>
+                {activeDataset.name} • {activeDataset.rowCount.toLocaleString()} rows • {activeDataset.columnCount} columns
+              </>
+            ) : (
+              <>
+                {state.isSaved && state.currentDatasetName ? state.currentDatasetName : displayFileName} • {dataLength.toLocaleString()} rows • {columnsLength} columns
+              </>
+            )}
           </div>
           
           {/* Save Status Badge */}
           <div className="flex items-center gap-2">
-            {state.isSaved ? (
-              <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
-                <Database className="h-3 w-3 mr-1" />
-                Saved
-              </Badge>
+            {activeDataset ? (
+              activeDataset.isSaved ? (
+                <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
+                  <Database className="h-3 w-3 mr-1" />
+                  Saved
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Unsaved
+                </Badge>
+              )
             ) : (
-              <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Unsaved
-              </Badge>
+              state.isSaved ? (
+                <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
+                  <Database className="h-3 w-3 mr-1" />
+                  Saved
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Unsaved
+                </Badge>
+              )
             )}
           </div>
         </div>
