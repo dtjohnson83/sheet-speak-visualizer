@@ -39,7 +39,11 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
       <TabsContent value="agents" className="space-y-4">
         <div className="grid gap-6">
           <Card className="p-6">
-            <AIAgentOrchestrator />
+        <AIAgentOrchestrator 
+          data={data} 
+          columns={columns} 
+          fileName={fileName} 
+        />
           </Card>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

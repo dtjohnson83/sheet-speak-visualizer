@@ -3,20 +3,43 @@ export type AgentType =
   | 'anomaly_detection' 
   | 'trend_analysis' 
   | 'predictive_analytics'
-  | 'report_automation';
+  | 'report_automation'
+  | 'monitoring'
+  | 'insight_generation'
+  | 'visualization'
+  | 'correlation_discovery';
 
-export interface Agent {
+export type TaskType = 'data_quality_check' | 'anomaly_detection' | 'trend_analysis' | 'report_generation' | 'data_validation';
+
+export type AgentCapability = 
+  | 'data_profiling'
+  | 'anomaly_detection'
+  | 'trend_analysis'
+  | 'predictive_modeling'
+  | 'report_generation'
+  | 'data_validation'
+  | 'correlation_analysis'
+  | 'outlier_detection'
+  | 'pattern_recognition'
+  | 'automated_insights'
+  | 'data_monitoring'
+  | 'quality_scoring'
+  | 'visualization_generation'
+  | 'alert_management';
+
+export interface AIAgent {
   id: string;
   name: string;
   type: AgentType;
-  description: string;
+  description: string | null;
   status: 'active' | 'inactive' | 'error';
-  lastRun?: Date;
-  configuration: AgentConfiguration;
-  capabilities: AgentCapability[];
+  last_active: string | null;
+  configuration: any;
+  capabilities: any;
   priority: number;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 export interface AgentConfiguration {
@@ -31,7 +54,6 @@ export interface AgentConfiguration {
     webhook?: string;
   };
   dataFilters?: Record<string, any>;
-  // Report automation specific config
   reportConfig?: {
     templateId?: string;
     outputFormat: 'excel' | 'pdf' | 'csv';
@@ -41,22 +63,20 @@ export interface AgentConfiguration {
   };
 }
 
-export interface AgentCapability {
-  name: string;
-  description: string;
-}
-
 export interface AgentTask {
   id: string;
   agent_id: string;
-  description: string;
+  task_type: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
-  priority: number;
-  created_at: Date;
-  updated_at: Date;
-  started_at?: Date;
-  completed_at?: Date;
-  error?: string;
+  parameters: any;
+  result: any | null;
+  error_message: string | null;
+  scheduled_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  dataset_id: string | null;
 }
 
 export interface AgentInsight {
@@ -64,7 +84,21 @@ export interface AgentInsight {
   agent_id: string;
   title: string;
   description: string;
-  severity: 'info' | 'warning' | 'error';
-  created_at: Date;
+  insight_type: string;
+  priority: number;
+  confidence_score: number;
+  data: any;
+  dataset_id: string | null;
+  task_id: string | null;
   is_read: boolean;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Legacy support
+export interface Agent extends AIAgent {}
+export interface AgentCapabilityItem {
+  name: string;
+  description: string;
 }
