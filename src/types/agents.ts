@@ -1,3 +1,4 @@
+
 export type AgentType = 
   | 'data_quality' 
   | 'anomaly_detection' 
@@ -9,7 +10,18 @@ export type AgentType =
   | 'visualization'
   | 'correlation_discovery';
 
-export type TaskType = 'data_quality_check' | 'anomaly_detection' | 'trend_analysis' | 'report_generation' | 'data_validation';
+export type TaskType = 
+  | 'data_quality_check' 
+  | 'anomaly_detection' 
+  | 'trend_analysis' 
+  | 'report_generation' 
+  | 'data_validation'
+  | 'analyze_data'
+  | 'generate_insights'
+  | 'detect_anomalies'
+  | 'analyze_trends'
+  | 'find_correlations'
+  | 'create_visualization';
 
 export type AgentCapability = 
   | 'data_profiling'
@@ -25,14 +37,25 @@ export type AgentCapability =
   | 'data_monitoring'
   | 'quality_scoring'
   | 'visualization_generation'
-  | 'alert_management';
+  | 'alert_management'
+  | 'data_analysis'
+  | 'statistical_analysis'
+  | 'trend_forecasting'
+  | 'data_quality_assessment'
+  | 'completeness_validation'
+  | 'consistency_checks'
+  | 'accuracy_validation'
+  | 'uniqueness_validation'
+  | 'timeliness_checks';
+
+export type AgentStatus = 'active' | 'inactive' | 'error' | 'paused';
 
 export interface AIAgent {
   id: string;
   name: string;
   type: AgentType;
   description: string | null;
-  status: 'active' | 'inactive' | 'error';
+  status: AgentStatus;
   last_active: string | null;
   configuration: any;
   capabilities: any;
@@ -40,6 +63,7 @@ export interface AIAgent {
   created_at: string;
   updated_at: string;
   user_id: string;
+  lastRun?: string;
 }
 
 export interface AgentConfiguration {
@@ -94,6 +118,13 @@ export interface AgentInsight {
   is_archived: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface AgentSummary {
+  totalAgents: number;
+  activeAgents: number;
+  recentTasks: number;
+  pendingInsights: number;
 }
 
 // Legacy support

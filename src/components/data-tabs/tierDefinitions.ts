@@ -1,47 +1,97 @@
-import { Database, BarChart3, Layout, Bot, FileText, Shield, Settings, Target, Brain } from 'lucide-react';
-import { TierInfo } from './types';
+import { Database, Eye, BarChart3, Layout, Brain, Bot, Layers } from 'lucide-react';
 
-export const getTierDefinitions = (data: any[], tiles: any[]): Record<string, TierInfo> => ({
-  foundation: {
-    title: "Data Foundation",
-    description: "Connect and prepare your data",
-    icon: Database,
-    color: "blue",
+export interface TierDefinition {
+  id: string;
+  name: string;
+  description: string;
+  tabs: TabDefinition[];
+}
+
+export interface TabDefinition {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  requiredData: boolean;
+  shortcut: string;
+}
+
+export const tierDefinitions: TierDefinition[] = [
+  {
+    id: 'essential',
+    name: 'Essential',
+    description: 'Core data analysis features',
     tabs: [
-      { id: "data-sources", label: "Data Sources", icon: Database, badge: null },
-      { id: "preview", label: "Data Preview", icon: Database, badge: data.length > 0 ? data.length : null },
-      { id: "smart-integration", label: "Smart Integration", icon: Brain, badge: null }
+      {
+        id: 'sources',
+        name: 'Sources',
+        description: 'Upload or connect data sources',
+        icon: 'Database',
+        requiredData: false,
+        shortcut: '1'
+      },
+      {
+        id: 'preview',
+        name: 'Preview',
+        description: 'View and configure your data',
+        icon: 'Eye',
+        requiredData: true,
+        shortcut: '2'
+      },
+      {
+        id: 'datasets',
+        name: 'Datasets',
+        description: 'Manage multiple datasets, merge, and compare',
+        icon: 'Layers',
+        requiredData: false,
+        shortcut: '3'
+      }
     ]
   },
-  analysis: {
-    title: "Analysis & Visualization", 
-    description: "Create charts and dashboards",
-    icon: BarChart3,
-    color: "teal",
+  {
+    id: 'analysis',
+    name: 'Analysis & Visualization',
+    description: 'Create charts and build dashboards',
     tabs: [
-      { id: "charts", label: "Visualizations", icon: BarChart3, badge: null },
-      { id: "dashboard", label: "Dashboard", icon: Layout, badge: tiles.length > 0 ? tiles.length : null }
+      {
+        id: 'charts',
+        name: 'Charts',
+        description: 'Create visualizations from your data',
+        icon: 'BarChart3',
+        requiredData: true,
+        shortcut: '4'
+      },
+      {
+        id: 'dashboard',
+        name: 'Dashboard',
+        description: 'Build interactive dashboards',
+        icon: 'Layout',
+        requiredData: true,
+        shortcut: '5'
+      }
     ]
   },
-  ai: {
-    title: "AI Intelligence",
-    description: "Chat, analyze, and predict", 
-    icon: Bot,
-    color: "green",
+  {
+    id: 'intelligence',
+    name: 'AI Intelligence',
+    description: 'AI-powered insights and automation',
     tabs: [
-      { id: "ai-chat", label: "AI Chat", icon: Bot, badge: null },
-      { id: "ai-report", label: "AI Report", icon: FileText, badge: null },
-      { id: "predictive", label: "Predictive AI", icon: Target, badge: null }
-    ]
-  },
-  advanced: {
-    title: "Advanced Operations",
-    description: "Quality control and automation",
-    icon: Settings,
-    color: "amber",
-    tabs: [
-      { id: "data-quality", label: "Data Quality", icon: Shield, badge: null },
-      { id: "agents", label: "AI Agents", icon: Settings, badge: null }
+      {
+        id: 'ai',
+        name: 'AI Assistant',
+        description: 'Get AI insights about your data',
+        icon: 'Brain',
+        requiredData: true,
+        shortcut: '6'
+      },
+      {
+        id: 'agents',
+        name: 'AI Agents',
+        description: 'Automated data analysis agents',
+        icon: 'Bot',
+        requiredData: false,
+        shortcut: '7'
+      }
     ]
   }
-});
+];
