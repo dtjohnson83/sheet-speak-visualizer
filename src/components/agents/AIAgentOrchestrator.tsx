@@ -44,7 +44,13 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     deleteInsight,
     clearAllInsights,
     triggerProcessor,
-    scheduleTasksForDataset
+    scheduleTasksForDataset,
+    isDeletingAgent,
+    isDeletingAllAgents,
+    isDeletingTask,
+    isClearingAllTasks,
+    isDeletingInsight,
+    isClearingAllInsights
   } = useAIAgents();
 
   const handleCreateAgent = (type: string) => {
@@ -113,6 +119,11 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     }
   };
 
+  const handleToggleAgent = (agent: any) => {
+    const newStatus = agent.status === 'active' ? 'inactive' : 'active';
+    updateAgentStatus({ agentId: agent.id, status: newStatus });
+  };
+
   const activeAgents = agents.filter(agent => agent.status === 'active').length;
   const pendingTasks = tasks.filter(task => task.status === 'pending').length;
   const unreadInsights = insights.filter(insight => !insight.is_read).length;
@@ -178,28 +189,28 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
         <AgentManagementTab
           agents={agents}
-          onCreateAgent={createAgent}
-          onUpdateStatus={updateAgentStatus}
+          onToggleAgent={handleToggleAgent}
           onDeleteAgent={deleteAgent}
-          onDeleteAll={deleteAllAgents}
-          onTriggerProcessor={triggerProcessor}
+          onDeleteAllAgents={deleteAllAgents}
+          isDeletingAgent={isDeletingAgent}
+          isDeletingAllAgents={isDeletingAllAgents}
         />
 
         <TaskManagementTab
           tasks={tasks}
-          agents={agents}
-          onCreate={createTask}
-          onDelete={deleteTask}
-          onClearAll={clearAllTasks}
-          onScheduleForDataset={scheduleTasksForDataset}
+          onDeleteTask={deleteTask}
+          onClearAllTasks={clearAllTasks}
+          isDeletingTask={isDeletingTask}
+          isClearingAllTasks={isClearingAllTasks}
         />
 
         <InsightManagementTab
           insights={insights}
-          agents={agents}
-          onMarkRead={markInsightRead}
-          onDelete={deleteInsight}
-          onClearAll={clearAllInsights}
+          onMarkInsightRead={markInsightRead}
+          onDeleteInsight={deleteInsight}
+          onClearAllInsights={clearAllInsights}
+          isDeletingInsight={isDeletingInsight}
+          isClearingAllInsights={isClearingAllInsights}
         />
 
         <ReportAutomationTab />

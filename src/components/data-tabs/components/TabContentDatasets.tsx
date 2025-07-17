@@ -45,6 +45,10 @@ export const TabContentDatasets = () => {
     setSelectedDatasets(null);
   };
 
+  const handleDatasetSelect = (dataset: DatasetInfo) => {
+    selectDataset(dataset.id);
+  };
+
   if (datasets.length === 0) {
     return (
       <div className="space-y-6">
@@ -98,7 +102,7 @@ export const TabContentDatasets = () => {
           <MultiDatasetManager
             datasets={datasets}
             activeDatasetId={activeDataset?.id || ''}
-            onDatasetSelect={selectDataset}
+            onDatasetSelect={handleDatasetSelect}
             onDatasetRemove={removeDataset}
             onDatasetSave={markDatasetAsSaved}
           />
@@ -106,7 +110,13 @@ export const TabContentDatasets = () => {
 
         <TabsContent value="compare" className="space-y-4">
           {datasets.length >= 2 ? (
-            <DatasetComparison datasets={datasets} />
+            <DatasetComparison 
+              datasets={datasets} 
+              onMerge={handleMergeDatasets}
+              onCreateChart={(data, type, title) => {
+                console.log('Chart creation requested:', { data, type, title });
+              }}
+            />
           ) : (
             <Card>
               <CardHeader>

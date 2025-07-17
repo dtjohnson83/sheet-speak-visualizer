@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -168,7 +169,6 @@ export const MultiDatasetChartGenerator: React.FC<MultiDatasetChartGeneratorProp
               chartType={chartType}
               data={chartData}
               columns={combinedColumns}
-              title={chartTitle}
               width={400}
               height={300}
             />

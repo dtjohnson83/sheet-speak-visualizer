@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Tab } from '@radix-ui/react-tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabContentSources } from './components/TabContentSources';
 import { TabContentPreview } from './components/TabContentPreview';
 import { TabContentCharts } from './components/TabContentCharts';
@@ -73,7 +74,7 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
       <div className="w-64 border-r overflow-y-auto">
         <div className="p-4 space-y-2">
           {currentTier.tabs.map((tab) => (
-            <Tab
+            <TabsTrigger
               key={tab.id}
               value={tab.id}
               className={`w-full text-left p-2 rounded-md hover:bg-secondary cursor-pointer ${
@@ -81,7 +82,7 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
               }`}
             >
               {tab.name}
-            </Tab>
+            </TabsTrigger>
           ))}
         </div>
       </div>
@@ -103,7 +104,6 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
               data={data}
               columns={columns}
               fileName={fileName}
-              showContextSetup={showContextSetup}
               onContextReady={onContextReady}
               onSkipContext={onSkipContext}
               onColumnTypeChange={onColumnTypeChange}
@@ -119,7 +119,6 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
               data={data}
               columns={columns}
               onAddTile={onAddTile}
-              onAIUsed={onAIUsed}
             />
           )}
           
@@ -132,7 +131,7 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
               onRemoveTile={onRemoveTile}
               onUpdateTile={onUpdateTile}
               onFiltersChange={onFiltersChange}
-              onLoadDashboard={onLoadDashboard}
+              onLoadDashboard={(tiles, filters, data, columns) => onLoadDashboard({ tiles, filters, data, columns })}
             />
           )}
           
@@ -140,12 +139,18 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
             <TabContentAI
               data={data}
               columns={columns}
-              currentDatasetId={currentDatasetId}
               onAIUsed={onAIUsed}
             />
           )}
           
-          {activeTab === 'agents' && <TabContentAgents />}
+          {activeTab === 'agents' && (
+            <TabContentAgents 
+              data={data}
+              columns={columns}
+              fileName={fileName}
+              onAIUsed={onAIUsed}
+            />
+          )}
         </div>
       </div>
     </div>
