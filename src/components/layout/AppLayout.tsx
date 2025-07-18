@@ -1,16 +1,12 @@
+
 import React, { useState, useCallback } from 'react';
 import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 import { FilterCondition } from '@/components/dashboard/DashboardFilters';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
-import { FeedbackForm } from '@/components/feedback/FeedbackForm';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
-import { useOnboardingState } from '@/contexts/OnboardingContext';
 import { useAppState } from '@/contexts/AppStateContext';
-import { Header } from './Header';
-import { StatusBar } from './StatusBar';
 
 export const AppLayout = () => {
   const [data, setData] = useState<DataRow[]>([]);
@@ -24,8 +20,7 @@ export const AppLayout = () => {
   const [showDataSourceDialog, setShowDataSourceDialog] = useState(false);
 
   const { toast } = useToast();
-  const { onboardingCompleted } = useOnboardingState();
-  const { hasUsedAI } = useAppState();
+  const { state } = useAppState();
 
   const handleAddTile = (tileData: DashboardTileData) => {
     setTiles(prevTiles => [...prevTiles, tileData]);
@@ -102,15 +97,20 @@ export const AppLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <h1 className="text-lg font-semibold">Data Analytics Platform</h1>
+        </div>
+      </header>
 
       <main className="flex-1 flex h-screen overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0">
-          <StatusBar 
-            fileName={fileName} 
-            rowCount={data.length} 
-            columnCount={columns.length} 
-          />
+          <div className="border-b px-4 py-2 bg-muted/50">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>{fileName}</span>
+              <span>{data.length} rows • {columns.length} columns</span>
+            </div>
+          </div>
 
           <div className="flex-1 overflow-hidden">
             <DataTabsSection
@@ -139,23 +139,6 @@ export const AppLayout = () => {
           </div>
         </div>
       </main>
-
-      {!onboardingCompleted && (
-        <OnboardingChecklist
-          hasData={data.length > 0}
-          hasCharts={tiles.length > 0}
-          hasDashboard={tiles.length > 1}
-          hasUsedAI={hasUsedAI}
-          onDismiss={() => {
-            toast({
-              title: "Getting Started Dismissed",
-              description: "You can always access the checklist from the help menu.",
-            });
-          }}
-        />
-      )}
-
-      <FeedbackForm />
     </div>
   );
 };

@@ -159,7 +159,7 @@ export const MultiDatasetChartGenerator: React.FC<MultiDatasetChartGeneratorProp
         </CardContent>
       </Card>
 
-      {chartData && (
+      {chartData && xAxis && yAxis && (
         <Card>
           <CardHeader>
             <CardTitle>Chart Preview</CardTitle>
@@ -170,6 +170,12 @@ export const MultiDatasetChartGenerator: React.FC<MultiDatasetChartGeneratorProp
                 chartType={chartType}
                 data={chartData}
                 columns={combinedColumns}
+                xColumn={xAxis}
+                yColumn={yAxis}
+                sortColumn=""
+                sortDirection="asc"
+                aggregationType="sum"
+                colorPalette="default"
               />
             </div>
             

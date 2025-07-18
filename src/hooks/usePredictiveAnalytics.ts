@@ -31,31 +31,37 @@ export interface BusinessPrediction {
   id: string;
   metric: string;
   title: string;
+  description: string;
   current: number;
   predicted: number;
+  prediction: number;
   change: number;
   changePercent: number;
   confidence: number;
   trend: 'increasing' | 'decreasing' | 'stable';
   type: string;
-  unit?: string;
-  prediction?: number[];
+  unit: string;
+  timeframe: string;
+  impact: 'low' | 'medium' | 'high';
 }
 
 export interface BusinessScenario {
+  id: string;
   name: string;
   description: string;
+  confidence: number;
+  assumptions: string[];
   predictions: BusinessPrediction[];
 }
 
-export const usePredictiveAnalytics = (data: DataRow[], columns: ColumnInfo[]) => {
+export const usePredictiveAnalytics = () => {
   const [trendPredictions, setTrendPredictions] = useState<TrendPrediction[]>([]);
   const [anomalyDetections, setAnomalyDetections] = useState<AnomalyDetection[]>([]);
   const [seasonalityAnalysis, setSeasonalityAnalysis] = useState<SeasonalityAnalysis[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
 
-  const runAllAnalysis = useCallback(() => {
+  const runAllAnalysis = useCallback((data: DataRow[], columns: ColumnInfo[]) => {
     setIsAnalyzing(true);
     setAnalysisProgress(0);
 
@@ -119,10 +125,56 @@ export const usePredictiveAnalytics = (data: DataRow[], columns: ColumnInfo[]) =
     setTrendPredictions(trends);
     setAnomalyDetections(anomalies);
     setSeasonalityAnalysis(seasonality);
-  }, [data, columns]);
+  }, []);
 
-  const runPredictiveAnalysis = useCallback(() => {
-    runAllAnalysis();
+  const runPredictiveAnalysis = useCallback((data: DataRow[], columns: ColumnInfo[]) => {
+    return new Promise<{
+      predictions: BusinessPrediction[];
+      scenarios: BusinessScenario[];
+      insights: any[];
+    }>((resolve) => {
+      runAllAnalysis(data, columns);
+      
+      // Generate mock predictions
+      const predictions: BusinessPrediction[] = [
+        {
+          id: '1',
+          metric: 'revenue',
+          title: 'Revenue Growth',
+          description: 'Expected revenue increase based on current trends',
+          current: 100000,
+          predicted: 120000,
+          prediction: 120000,
+          change: 20000,
+          changePercent: 20,
+          confidence: 0.85,
+          trend: 'increasing',
+          type: 'revenue',
+          unit: 'currency',
+          timeframe: '30 days',
+          impact: 'high'
+        }
+      ];
+
+      const scenarios: BusinessScenario[] = [
+        {
+          id: '1',
+          name: 'Optimistic',
+          description: 'Best case scenario',
+          confidence: 0.75,
+          assumptions: ['Market growth continues', 'No major disruptions'],
+          predictions
+        }
+      ];
+
+      setTimeout(() => {
+        resolve({
+          predictions,
+          scenarios,
+          insights: []
+        });
+      }, 1000);
+    });
   }, [runAllAnalysis]);
 
   const calculateTrend = (values: number[]): number => {

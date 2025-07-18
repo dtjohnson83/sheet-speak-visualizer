@@ -28,6 +28,9 @@ export const useDataQualityAgent = (fileName: string) => {
   // Mutation to create agent
   const createAgentMutation = useMutation({
     mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('ai_agents')
         .insert({
@@ -41,7 +44,8 @@ export const useDataQualityAgent = (fileName: string) => {
             schedule: { frequency: 'daily', time: '09:00' },
             thresholds: { completeness: 95, accuracy: 98 }
           },
-          priority: 5
+          priority: 5,
+          user_id: user.id
         })
         .select()
         .single();
