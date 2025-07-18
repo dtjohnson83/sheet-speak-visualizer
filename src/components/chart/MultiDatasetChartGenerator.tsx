@@ -174,8 +174,11 @@ export const MultiDatasetChartGenerator: React.FC<MultiDatasetChartGeneratorProp
                 yColumn={yAxis}
                 sortColumn=""
                 sortDirection="asc"
-                aggregationType="sum"
-                colorPalette="default"
+                series={[]}
+                aggregationMethod="sum"
+                showDataLabels={true}
+                supportsMultipleSeries={false}
+                chartColors={['#3B82F6', '#EF4444', '#10B981', '#F59E0B']}
               />
             </div>
             
