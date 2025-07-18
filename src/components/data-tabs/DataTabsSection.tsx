@@ -104,8 +104,6 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
               data={data}
               columns={columns}
               fileName={fileName}
-              onContextReady={onContextReady}
-              onSkipContext={onSkipContext}
               onColumnTypeChange={onColumnTypeChange}
             />
           )}
@@ -118,6 +116,7 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
             <TabContentCharts
               data={data}
               columns={columns}
+              fileName={fileName}
               onAddTile={onAddTile}
             />
           )}
@@ -128,6 +127,7 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
               filters={filters}
               data={data}
               columns={columns}
+              currentDatasetId={currentDatasetId}
               onRemoveTile={onRemoveTile}
               onUpdateTile={onUpdateTile}
               onFiltersChange={onFiltersChange}
@@ -139,6 +139,10 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
             <TabContentAI
               data={data}
               columns={columns}
+              fileName={fileName}
+              showContextSetup={showContextSetup}
+              onContextReady={onContextReady}
+              onSkipContext={onSkipContext}
               onAIUsed={onAIUsed}
             />
           )}

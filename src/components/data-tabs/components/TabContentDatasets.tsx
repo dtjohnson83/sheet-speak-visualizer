@@ -45,8 +45,16 @@ export const TabContentDatasets = () => {
     setSelectedDatasets(null);
   };
 
-  const handleDatasetSelect = (dataset: DatasetInfo) => {
-    selectDataset(dataset.id);
+  const handleDatasetSelect = (datasetId: string) => {
+    selectDataset(datasetId);
+  };
+
+  const handleDatasetRemove = (datasetId: string) => {
+    removeDataset(datasetId);
+  };
+
+  const handleDatasetSave = (dataset: DatasetInfo) => {
+    markDatasetAsSaved(dataset.id, dataset.name || 'Unnamed Dataset');
   };
 
   if (datasets.length === 0) {
@@ -103,8 +111,8 @@ export const TabContentDatasets = () => {
             datasets={datasets}
             activeDatasetId={activeDataset?.id || ''}
             onDatasetSelect={handleDatasetSelect}
-            onDatasetRemove={removeDataset}
-            onDatasetSave={markDatasetAsSaved}
+            onDatasetRemove={handleDatasetRemove}
+            onDatasetSave={handleDatasetSave}
           />
         </TabsContent>
 
@@ -113,8 +121,8 @@ export const TabContentDatasets = () => {
             <DatasetComparison 
               datasets={datasets} 
               onMerge={handleMergeDatasets}
-              onCreateChart={(data, type, title) => {
-                console.log('Chart creation requested:', { data, type, title });
+              onCreateChart={(datasets) => {
+                console.log('Chart creation requested for datasets:', datasets);
               }}
             />
           ) : (

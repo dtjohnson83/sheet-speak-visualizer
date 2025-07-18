@@ -80,20 +80,22 @@ export const useDataQualityAgent = (fileName: string) => {
     },
   });
 
-  const createDataQualityAgent = () => {
-    createAgentMutation.mutate();
+  const createDataQualityAgent = async () => {
+    await createAgentMutation.mutateAsync();
   };
 
-  const scheduleQualityCheck = () => {
+  const scheduleQualityCheck = async (scheduleTime?: string) => {
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 100));
     toast({
       title: "Quality Check Scheduled",
-      description: "Quality check has been scheduled for the next hour",
+      description: scheduleTime ? `Quality check scheduled for ${scheduleTime}` : "Quality check has been scheduled for the next hour",
     });
   };
 
   const handleReportGenerated = async (report: any) => {
     if (agent) {
-      saveTrendMutation.mutate({
+      await saveTrendMutation.mutateAsync({
         agent_id: agent.id,
         date: new Date().toISOString(),
         score: report.overallScore || 85,

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,14 @@ export const DataQualityAgentDashboard = ({
     await handleReportGenerated(report);
   };
 
+  const handleCreateAgent = async () => {
+    await createDataQualityAgent();
+  };
+
+  const handleScheduleCheck = async (scheduleTime?: string) => {
+    await scheduleQualityCheck(scheduleTime);
+  };
+
   if (data.length === 0) {
     return (
       <Card>
@@ -79,8 +88,8 @@ export const DataQualityAgentDashboard = ({
         fileName={fileName}
         agent={agent}
         isCreatingAgent={isCreatingAgent}
-        onCreateAgent={createDataQualityAgent}
-        onScheduleCheck={scheduleQualityCheck}
+        onCreateAgent={handleCreateAgent}
+        onScheduleCheck={handleScheduleCheck}
       />
 
       {/* Main Dashboard */}

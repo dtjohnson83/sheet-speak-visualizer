@@ -49,7 +49,7 @@ export const MultiDatasetChartGenerator: React.FC<MultiDatasetChartGeneratorProp
           allColumns.set(col.name, {
             name: col.name,
             type: col.type,
-            values: [] // Add the required values property
+            values: []
           });
         }
       });
@@ -165,13 +165,13 @@ export const MultiDatasetChartGenerator: React.FC<MultiDatasetChartGeneratorProp
             <CardTitle>Chart Preview</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartRenderer
-              chartType={chartType}
-              data={chartData}
-              columns={combinedColumns}
-              width={400}
-              height={300}
-            />
+            <div className="w-full h-64">
+              <ChartRenderer
+                chartType={chartType}
+                data={chartData}
+                columns={combinedColumns}
+              />
+            </div>
             
             <div className="mt-4 flex justify-end">
               <Button onClick={handleCreateChart}>

@@ -1,8 +1,8 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
 import { DataSourcesTab } from '@/components/data-sources/DataSourcesTab';
-import { SmartDataIntegration } from '@/components/semantic/SmartDataIntegration';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface TabContentSourcesProps {
@@ -21,24 +21,14 @@ export const TabContentSources: React.FC<TabContentSourcesProps> = ({
   onDataLoaded
 }) => {
   return (
-    <>
-      <TabsContent value="data-sources" className="space-y-4">
-        <Card className="p-6">
-          <DataSourcesTab 
-            selectedDataSource={selectedDataSource}
-            showDataSourceDialog={showDataSourceDialog}
-            onDataSourceSelect={onDataSourceSelect}
-            onDataSourceDialogChange={onDataSourceDialogChange}
-            onDataLoaded={onDataLoaded}
-          />
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="smart-integration" className="space-y-4">
-        <Card className="p-6">
-          <SmartDataIntegration onDataLoaded={onDataLoaded} />
-        </Card>
-      </TabsContent>
-    </>
+    <Card className="p-6">
+      <DataSourcesTab 
+        selectedDataSource={selectedDataSource}
+        showDataSourceDialog={showDataSourceDialog}
+        onDataSourceSelect={onDataSourceSelect}
+        onDataSourceDialogChange={onDataSourceDialogChange}
+        onDataLoaded={onDataLoaded}
+      />
+    </Card>
   );
 };

@@ -28,12 +28,18 @@ export interface SeasonalityAnalysis {
 }
 
 export interface BusinessPrediction {
+  id: string;
   metric: string;
+  title: string;
   current: number;
   predicted: number;
   change: number;
   changePercent: number;
   confidence: number;
+  trend: 'increasing' | 'decreasing' | 'stable';
+  type: string;
+  unit?: string;
+  prediction?: number[];
 }
 
 export interface BusinessScenario {
@@ -46,8 +52,25 @@ export const usePredictiveAnalytics = (data: DataRow[], columns: ColumnInfo[]) =
   const [trendPredictions, setTrendPredictions] = useState<TrendPrediction[]>([]);
   const [anomalyDetections, setAnomalyDetections] = useState<AnomalyDetection[]>([]);
   const [seasonalityAnalysis, setSeasonalityAnalysis] = useState<SeasonalityAnalysis[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
 
   const runAllAnalysis = useCallback(() => {
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setAnalysisProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          setIsAnalyzing(false);
+          return 100;
+        }
+        return prev + 20;
+      });
+    }, 200);
+
     // Run trend analysis
     const trends = columns
       .filter(col => col.type === 'numeric')
@@ -98,6 +121,10 @@ export const usePredictiveAnalytics = (data: DataRow[], columns: ColumnInfo[]) =
     setSeasonalityAnalysis(seasonality);
   }, [data, columns]);
 
+  const runPredictiveAnalysis = useCallback(() => {
+    runAllAnalysis();
+  }, [runAllAnalysis]);
+
   const calculateTrend = (values: number[]): number => {
     if (values.length < 2) return 0;
     
@@ -115,6 +142,9 @@ export const usePredictiveAnalytics = (data: DataRow[], columns: ColumnInfo[]) =
     trendPredictions,
     anomalyDetections,
     seasonalityAnalysis,
+    isAnalyzing,
+    analysisProgress,
     runAllAnalysis,
+    runPredictiveAnalysis,
   };
 };
