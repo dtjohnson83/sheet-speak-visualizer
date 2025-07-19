@@ -1,8 +1,6 @@
+
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { TabsContent } from '@/components/ui/tabs';
 import { ChartVisualization } from '@/components/ChartVisualization';
-import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 interface TabContentChartsProps {
@@ -19,24 +17,11 @@ export const TabContentCharts: React.FC<TabContentChartsProps> = ({
   onAddTile
 }) => {
   return (
-    <>
-      <TabsContent value="charts" className="space-y-4">
-        <Card className="p-6">
-          <ChartVisualization 
-            data={data} 
-            columns={columns}
-            onSaveTile={onAddTile}
-            dataSourceName={fileName}
-          />
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="predictive" className="space-y-4">
-        <PredictiveAnalyticsDashboard 
-          data={data} 
-          columns={columns}
-        />
-      </TabsContent>
-    </>
+    <ChartVisualization 
+      data={data} 
+      columns={columns}
+      onSaveTile={onAddTile}
+      dataSourceName={fileName}
+    />
   );
 };

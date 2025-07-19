@@ -15,7 +15,11 @@ import { useUIState } from '@/contexts/UIStateContext';
 import { useUIActions } from '@/hooks/useUIActions';
 import { tierDefinitions } from './tierDefinitions';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Database, Eye, BarChart3, Layout, Brain, Bot, Layers } from 'lucide-react';
+import { Database, Eye, BarChart3, Layout, Brain, Bot, Layers, MessageCircle, FileText, TrendingUp } from 'lucide-react';
+import { AIDataChat } from '@/components/AIDataChat';
+import { AISummaryReport } from '@/components/AISummaryReport';
+import { PredictiveAnalyticsDashboard } from '@/components/predictive-analytics/PredictiveAnalyticsDashboard';
+import { Card } from '@/components/ui/card';
 
 interface DataTabsSectionProps {
   data: DataRow[];
@@ -49,7 +53,10 @@ const iconMap = {
   Layout,
   Brain,
   Bot,
-  Layers
+  Layers,
+  MessageCircle,
+  FileText,
+  TrendingUp
 };
 
 export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
@@ -142,11 +149,20 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
           </TabsContent>
           
           <TabsContent value="charts" className="h-full m-0 p-4">
-            <TabContentCharts
-              data={data}
+            <Card className="p-6">
+              <TabContentCharts
+                data={data}
+                columns={columns}
+                fileName={fileName}
+                onAddTile={onAddTile}
+              />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="predictive" className="h-full m-0 p-4">
+            <PredictiveAnalyticsDashboard 
+              data={data} 
               columns={columns}
-              fileName={fileName}
-              onAddTile={onAddTile}
             />
           </TabsContent>
           
@@ -164,16 +180,24 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
             />
           </TabsContent>
           
-          <TabsContent value="ai" className="h-full m-0 p-4">
-            <TabContentAI
-              data={data}
-              columns={columns}
-              fileName={fileName}
-              showContextSetup={showContextSetup}
-              onContextReady={onContextReady}
-              onSkipContext={onSkipContext}
-              onAIUsed={onAIUsed}
-            />
+          <TabsContent value="ai-chat" className="h-full m-0 p-4">
+            <Card className="p-6" onClick={onAIUsed}>
+              <AIDataChat 
+                data={data} 
+                columns={columns}
+                fileName={fileName}
+              />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai-report" className="h-full m-0 p-4">
+            <div onClick={onAIUsed}>
+              <AISummaryReport 
+                data={data} 
+                columns={columns}
+                fileName={fileName}
+              />
+            </div>
           </TabsContent>
           
           <TabsContent value="agents" className="h-full m-0 p-4">
@@ -247,11 +271,20 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
         </TabsContent>
         
         <TabsContent value="charts" className="h-full overflow-auto m-0">
-          <TabContentCharts
-            data={data}
+          <Card className="p-6">
+            <TabContentCharts
+              data={data}
+              columns={columns}
+              fileName={fileName}
+              onAddTile={onAddTile}
+            />
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="predictive" className="h-full overflow-auto m-0">
+          <PredictiveAnalyticsDashboard 
+            data={data} 
             columns={columns}
-            fileName={fileName}
-            onAddTile={onAddTile}
           />
         </TabsContent>
         
@@ -269,16 +302,24 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
           />
         </TabsContent>
         
-        <TabsContent value="ai" className="h-full overflow-auto m-0">
-          <TabContentAI
-            data={data}
-            columns={columns}
-            fileName={fileName}
-            showContextSetup={showContextSetup}
-            onContextReady={onContextReady}
-            onSkipContext={onSkipContext}
-            onAIUsed={onAIUsed}
-          />
+        <TabsContent value="ai-chat" className="h-full overflow-auto m-0">
+          <Card className="p-6" onClick={onAIUsed}>
+            <AIDataChat 
+              data={data} 
+              columns={columns}
+              fileName={fileName}
+            />
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-report" className="h-full overflow-auto m-0">
+          <div onClick={onAIUsed}>
+            <AISummaryReport 
+              data={data} 
+              columns={columns}
+              fileName={fileName}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="agents" className="h-full overflow-auto m-0">

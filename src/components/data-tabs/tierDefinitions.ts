@@ -1,4 +1,5 @@
-import { Database, Eye, BarChart3, Layout, Brain, Bot, Layers } from 'lucide-react';
+
+import { Database, Eye, BarChart3, Layout, Brain, Bot, Layers, MessageCircle, FileText, TrendingUp } from 'lucide-react';
 
 export interface TierDefinition {
   id: string;
@@ -62,12 +63,20 @@ export const tierDefinitions: TierDefinition[] = [
         shortcut: '4'
       },
       {
+        id: 'predictive',
+        name: 'Predictive AI',
+        description: 'AI-powered predictive analytics and forecasting',
+        icon: 'TrendingUp',
+        requiredData: true,
+        shortcut: '5'
+      },
+      {
         id: 'dashboard',
         name: 'Dashboard',
         description: 'Build interactive dashboards',
         icon: 'Layout',
         requiredData: true,
-        shortcut: '5'
+        shortcut: '6'
       }
     ]
   },
@@ -77,12 +86,20 @@ export const tierDefinitions: TierDefinition[] = [
     description: 'AI-powered insights and automation',
     tabs: [
       {
-        id: 'ai',
-        name: 'AI Assistant',
-        description: 'Get AI insights about your data',
-        icon: 'Brain',
+        id: 'ai-chat',
+        name: 'AI Chat',
+        description: 'Chat with AI about your data',
+        icon: 'MessageCircle',
         requiredData: true,
-        shortcut: '6'
+        shortcut: '7'
+      },
+      {
+        id: 'ai-report',
+        name: 'AI Report',
+        description: 'Generate comprehensive AI reports',
+        icon: 'FileText',
+        requiredData: true,
+        shortcut: '8'
       },
       {
         id: 'agents',
@@ -90,7 +107,7 @@ export const tierDefinitions: TierDefinition[] = [
         description: 'Automated data analysis agents',
         icon: 'Bot',
         requiredData: false,
-        shortcut: '7'
+        shortcut: '9'
       }
     ]
   }
