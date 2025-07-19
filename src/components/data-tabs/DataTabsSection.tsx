@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TabContentSources } from './components/TabContentSources';
 import { TabContentPreview } from './components/TabContentPreview';
 import { TabContentCharts } from './components/TabContentCharts';
@@ -11,6 +11,7 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 import { FilterCondition } from '@/components/dashboard/DashboardFilters';
 import { useUIState } from '@/contexts/UIStateContext';
+import { useUIActions } from '@/hooks/useUIActions';
 import { TierDefinition, tierDefinitions } from './tierDefinitions';
 
 import { TabContentDatasets } from './components/TabContentDatasets';
@@ -63,6 +64,7 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
   onAIUsed
 }) => {
   const { state } = useUIState();
+  const { setActiveTab } = useUIActions();
   const activeTab = state.activeTab;
 
   const currentTier: TierDefinition = tierDefinitions.find(tier =>
@@ -70,93 +72,89 @@ export const DataTabsSection: React.FC<DataTabsSectionProps> = ({
   ) || tierDefinitions[0];
 
   return (
-    <div className="flex h-full">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full">
       <div className="w-64 border-r overflow-y-auto">
-        <div className="p-4 space-y-2">
+        <TabsList className="flex flex-col h-auto w-full bg-transparent p-4 space-y-2">
           {currentTier.tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
-              className={`w-full text-left p-2 rounded-md hover:bg-secondary cursor-pointer ${
-                activeTab === tab.id ? 'bg-secondary font-medium' : 'text-muted-foreground'
-              }`}
+              className="w-full text-left p-2 rounded-md hover:bg-secondary cursor-pointer data-[state=active]:bg-secondary data-[state=active]:font-medium data-[state=inactive]:text-muted-foreground"
             >
               {tab.name}
             </TabsTrigger>
           ))}
-        </div>
+        </TabsList>
       </div>
 
       <div className="flex-1 min-h-0">
-        <div className="h-full overflow-auto">
-          {activeTab === 'sources' && (
-            <TabContentSources
-              selectedDataSource={selectedDataSource}
-              showDataSourceDialog={showDataSourceDialog}
-              onDataSourceSelect={onDataSourceSelect}
-              onDataSourceDialogChange={onDataSourceDialogChange}
-              onDataLoaded={onDataLoaded}
-            />
-          )}
-          
-          {activeTab === 'preview' && (
-            <TabContentPreview
-              data={data}
-              columns={columns}
-              fileName={fileName}
-              onColumnTypeChange={onColumnTypeChange}
-            />
-          )}
+        <TabsContent value="sources" className="h-full overflow-auto m-0">
+          <TabContentSources
+            selectedDataSource={selectedDataSource}
+            showDataSourceDialog={showDataSourceDialog}
+            onDataSourceSelect={onDataSourceSelect}
+            onDataSourceDialogChange={onDataSourceDialogChange}
+            onDataLoaded={onDataLoaded}
+          />
+        </TabsContent>
+        
+        <TabsContent value="preview" className="h-full overflow-auto m-0">
+          <TabContentPreview
+            data={data}
+            columns={columns}
+            fileName={fileName}
+            onColumnTypeChange={onColumnTypeChange}
+          />
+        </TabsContent>
 
-          {activeTab === 'datasets' && (
-            <TabContentDatasets />
-          )}
-          
-          {activeTab === 'charts' && (
-            <TabContentCharts
-              data={data}
-              columns={columns}
-              fileName={fileName}
-              onAddTile={onAddTile}
-            />
-          )}
-          
-          {activeTab === 'dashboard' && (
-            <TabContentDashboard
-              tiles={tiles}
-              filters={filters}
-              data={data}
-              columns={columns}
-              currentDatasetId={currentDatasetId}
-              onRemoveTile={onRemoveTile}
-              onUpdateTile={onUpdateTile}
-              onFiltersChange={onFiltersChange}
-              onLoadDashboard={(tiles, filters, data, columns) => onLoadDashboard({ tiles, filters, data, columns })}
-            />
-          )}
-          
-          {activeTab === 'ai' && (
-            <TabContentAI
-              data={data}
-              columns={columns}
-              fileName={fileName}
-              showContextSetup={showContextSetup}
-              onContextReady={onContextReady}
-              onSkipContext={onSkipContext}
-              onAIUsed={onAIUsed}
-            />
-          )}
-          
-          {activeTab === 'agents' && (
-            <TabContentAgents 
-              data={data}
-              columns={columns}
-              fileName={fileName}
-              onAIUsed={onAIUsed}
-            />
-          )}
-        </div>
+        <TabsContent value="datasets" className="h-full overflow-auto m-0">
+          <TabContentDatasets />
+        </TabsContent>
+        
+        <TabsContent value="charts" className="h-full overflow-auto m-0">
+          <TabContentCharts
+            data={data}
+            columns={columns}
+            fileName={fileName}
+            onAddTile={onAddTile}
+          />
+        </TabsContent>
+        
+        <TabsContent value="dashboard" className="h-full overflow-auto m-0">
+          <TabContentDashboard
+            tiles={tiles}
+            filters={filters}
+            data={data}
+            columns={columns}
+            currentDatasetId={currentDatasetId}
+            onRemoveTile={onRemoveTile}
+            onUpdateTile={onUpdateTile}
+            onFiltersChange={onFiltersChange}
+            onLoadDashboard={(tiles, filters, data, columns) => onLoadDashboard({ tiles, filters, data, columns })}
+          />
+        </TabsContent>
+        
+        <TabsContent value="ai" className="h-full overflow-auto m-0">
+          <TabContentAI
+            data={data}
+            columns={columns}
+            fileName={fileName}
+            showContextSetup={showContextSetup}
+            onContextReady={onContextReady}
+            onSkipContext={onSkipContext}
+            onAIUsed={onAIUsed}
+          />
+        </TabsContent>
+        
+        <TabsContent value="agents" className="h-full overflow-auto m-0">
+          <TabContentAgents 
+            data={data}
+            columns={columns}
+            fileName={fileName}
+            onAIUsed={onAIUsed}
+          />
+        </TabsContent>
       </div>
-    </div>
+    </Tabs>
   );
 };
