@@ -8,15 +8,13 @@ import {
   Activity, 
   Settings, 
   BarChart3, 
-  List,
-  FileSpreadsheet 
+  List
 } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { AgentOverviewTab } from './tabs/AgentOverviewTab';
 import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
-import { ReportAutomationTab } from './tabs/ReportAutomationTab';
 
 interface AIAgentOrchestratorProps {
   data: any[];
@@ -94,21 +92,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           schedule: { frequency: 'weekly' as const, time: '11:00' },
           thresholds: { accuracy: 0.85, confidence_interval: 0.95 }
         }
-      },
-      report_automation: {
-        name: 'Report Automation Agent',
-        description: 'Automates Excel report generation and distribution',
-        type: 'report_automation' as const,
-        capabilities: ['report_generation', 'template_management', 'automated_distribution'],
-        configuration: {
-          schedule: { frequency: 'weekly' as const, time: '08:00' },
-          reportConfig: {
-            outputFormat: 'excel' as const,
-            recipients: [],
-            includeCharts: true,
-            autoDistribute: false
-          }
-        }
       }
     };
 
@@ -132,8 +115,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     { value: 'overview', label: 'Overview', icon: Activity, badge: agents.length },
     { value: 'management', label: 'Agents', icon: Bot, badge: activeAgents },
     { value: 'tasks', label: 'Tasks', icon: List, badge: pendingTasks },
-    { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights },
-    { value: 'report-automation', label: 'Reports', icon: FileSpreadsheet }
+    { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights }
   ];
 
   if (isLoading) {
@@ -168,7 +150,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -219,10 +201,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             isDeletingInsight={isDeletingInsight}
             isClearingAllInsights={isClearingAllInsights}
           />
-        </TabsContent>
-
-        <TabsContent value="report-automation">
-          <ReportAutomationTab />
         </TabsContent>
       </Tabs>
     </div>
