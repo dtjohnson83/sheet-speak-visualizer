@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
@@ -7,6 +6,8 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useAppState } from '@/contexts/AppStateContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const AppLayout = () => {
   const [data, setData] = useState<DataRow[]>([]);
@@ -21,6 +22,7 @@ export const AppLayout = () => {
 
   const { toast } = useToast();
   const { state } = useAppState();
+  const isMobile = useIsMobile();
 
   const handleAddTile = (tileData: DashboardTileData) => {
     setTiles(prevTiles => [...prevTiles, tileData]);
@@ -96,19 +98,26 @@ export const AppLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <h1 className="text-lg font-semibold">Data Analytics Platform</h1>
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
+        <div className="container flex h-14 items-center justify-between px-4">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-lg font-semibold truncate">
+              {isMobile ? 'Chartuvo' : 'Data Analytics Platform'}
+            </h1>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 
-      <main className="flex-1 flex h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="border-b px-4 py-2 bg-muted/50">
+          <div className="border-b px-4 py-2 bg-muted/30">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{fileName}</span>
-              <span>{data.length} rows • {columns.length} columns</span>
+              <span className="truncate max-w-[150px] md:max-w-none">{fileName}</span>
+              <span className="whitespace-nowrap">
+                {data.length} rows{isMobile ? '' : ` • ${columns.length} columns`}
+              </span>
             </div>
           </div>
 
