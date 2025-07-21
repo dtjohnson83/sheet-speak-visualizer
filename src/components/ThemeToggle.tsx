@@ -2,11 +2,9 @@
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from './ThemeProvider';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const isMobile = useIsMobile();
 
   const toggleTheme = () => {
     if (theme === 'light') {
@@ -34,10 +32,10 @@ export function ThemeToggle() {
   return (
     <Button
       variant="outline"
-      size={isMobile ? "sm" : "icon"}
+      size="icon"
       onClick={toggleTheme}
       title={getTooltip()}
-      className="relative bg-card hover:bg-accent"
+      className="relative"
     >
       {getIcon()}
       <span className="sr-only">Toggle theme</span>

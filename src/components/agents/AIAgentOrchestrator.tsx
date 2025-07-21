@@ -1,20 +1,22 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
   Bot, 
   Activity, 
   Settings, 
   BarChart3, 
-  List
+  List,
+  FileSpreadsheet 
 } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { AgentOverviewTab } from './tabs/AgentOverviewTab';
 import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
+import { ReportAutomationTab } from './tabs/ReportAutomationTab';
 
 interface AIAgentOrchestratorProps {
   data: any[];
@@ -42,13 +44,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     deleteInsight,
     clearAllInsights,
     triggerProcessor,
-    scheduleTasksForDataset,
-    isDeletingAgent,
-    isDeletingAllAgents,
-    isDeletingTask,
-    isClearingAllTasks,
-    isDeletingInsight,
-    isClearingAllInsights
+    scheduleTasksForDataset
   } = useAIAgents();
 
   const handleCreateAgent = (type: string) => {
@@ -92,6 +88,21 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           schedule: { frequency: 'weekly' as const, time: '11:00' },
           thresholds: { accuracy: 0.85, confidence_interval: 0.95 }
         }
+      },
+      report_automation: {
+        name: 'Report Automation Agent',
+        description: 'Automates Excel report generation and distribution',
+        type: 'report_automation' as const,
+        capabilities: ['report_generation', 'template_management', 'automated_distribution'],
+        configuration: {
+          schedule: { frequency: 'weekly' as const, time: '08:00' },
+          reportConfig: {
+            outputFormat: 'excel' as const,
+            recipients: [],
+            includeCharts: true,
+            autoDistribute: false
+          }
+        }
       }
     };
 
@@ -102,11 +113,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     }
   };
 
-  const handleToggleAgent = (agent: any) => {
-    const newStatus = agent.status === 'active' ? 'inactive' : 'active';
-    updateAgentStatus({ agentId: agent.id, status: newStatus });
-  };
-
   const activeAgents = agents.filter(agent => agent.status === 'active').length;
   const pendingTasks = tasks.filter(task => task.status === 'pending').length;
   const unreadInsights = insights.filter(insight => !insight.is_read).length;
@@ -115,7 +121,8 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     { value: 'overview', label: 'Overview', icon: Activity, badge: agents.length },
     { value: 'management', label: 'Agents', icon: Bot, badge: activeAgents },
     { value: 'tasks', label: 'Tasks', icon: List, badge: pendingTasks },
-    { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights }
+    { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights },
+    { value: 'report-automation', label: 'Reports', icon: FileSpreadsheet }
   ];
 
   if (isLoading) {
@@ -150,7 +157,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -164,44 +171,38 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           ))}
         </TabsList>
 
-        <TabsContent value="overview">
-          <AgentOverviewTab
-            agents={agents}
-            onCreateAgent={handleCreateAgent}
-          />
-        </TabsContent>
+        <AgentOverviewTab
+          agents={agents}
+          onCreateAgent={handleCreateAgent}
+        />
 
-        <TabsContent value="management">
-          <AgentManagementTab
-            agents={agents}
-            onToggleAgent={handleToggleAgent}
-            onDeleteAgent={deleteAgent}
-            onDeleteAllAgents={deleteAllAgents}
-            isDeletingAgent={isDeletingAgent}
-            isDeletingAllAgents={isDeletingAllAgents}
-          />
-        </TabsContent>
+        <AgentManagementTab
+          agents={agents}
+          onCreateAgent={createAgent}
+          onUpdateStatus={updateAgentStatus}
+          onDeleteAgent={deleteAgent}
+          onDeleteAll={deleteAllAgents}
+          onTriggerProcessor={triggerProcessor}
+        />
 
-        <TabsContent value="tasks">
-          <TaskManagementTab
-            tasks={tasks}
-            onDeleteTask={deleteTask}
-            onClearAllTasks={clearAllTasks}
-            isDeletingTask={isDeletingTask}
-            isClearingAllTasks={isClearingAllTasks}
-          />
-        </TabsContent>
+        <TaskManagementTab
+          tasks={tasks}
+          agents={agents}
+          onCreate={createTask}
+          onDelete={deleteTask}
+          onClearAll={clearAllTasks}
+          onScheduleForDataset={scheduleTasksForDataset}
+        />
 
-        <TabsContent value="insights">
-          <InsightManagementTab
-            insights={insights}
-            onMarkInsightRead={markInsightRead}
-            onDeleteInsight={deleteInsight}
-            onClearAllInsights={clearAllInsights}
-            isDeletingInsight={isDeletingInsight}
-            isClearingAllInsights={isClearingAllInsights}
-          />
-        </TabsContent>
+        <InsightManagementTab
+          insights={insights}
+          agents={agents}
+          onMarkRead={markInsightRead}
+          onDelete={deleteInsight}
+          onClearAll={clearAllInsights}
+        />
+
+        <ReportAutomationTab />
       </Tabs>
     </div>
   );

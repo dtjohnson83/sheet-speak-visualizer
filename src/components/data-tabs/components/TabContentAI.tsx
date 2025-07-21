@@ -1,5 +1,8 @@
-
 import React from 'react';
+import { Card } from '@/components/ui/card';
+import { TabsContent } from '@/components/ui/tabs';
+import { AIDataChat } from '@/components/AIDataChat';
+import { AISummaryReport } from '@/components/AISummaryReport';
 import { EnhancedDataContextManager } from '@/components/ai-context/EnhancedDataContextManager';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -22,24 +25,37 @@ export const TabContentAI: React.FC<TabContentAIProps> = ({
   onSkipContext,
   onAIUsed
 }) => {
-  if (showContextSetup) {
-    return (
-      <EnhancedDataContextManager
-        data={data}
-        columns={columns}
-        fileName={fileName}
-        onContextReady={onContextReady}
-        onSkip={onSkipContext}
-      />
-    );
-  }
-
   return (
-    <div className="text-center p-6">
-      <h3 className="text-lg font-medium mb-2">AI Context Ready</h3>
-      <p className="text-gray-600">
-        Your AI context has been configured. You can now use the AI Chat and AI Report tabs for enhanced insights.
-      </p>
-    </div>
+    <>
+      <TabsContent value="ai-chat" className="space-y-4">
+        {showContextSetup ? (
+          <EnhancedDataContextManager
+            data={data}
+            columns={columns}
+            fileName={fileName}
+            onContextReady={onContextReady}
+            onSkip={onSkipContext}
+          />
+        ) : (
+          <Card className="p-6" onClick={onAIUsed}>
+            <AIDataChat 
+              data={data} 
+              columns={columns}
+              fileName={fileName}
+            />
+          </Card>
+        )}
+      </TabsContent>
+      
+      <TabsContent value="ai-report" className="space-y-4">
+        <div onClick={onAIUsed}>
+          <AISummaryReport 
+            data={data} 
+            columns={columns}
+            fileName={fileName}
+          />
+        </div>
+      </TabsContent>
+    </>
   );
 };

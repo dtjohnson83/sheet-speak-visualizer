@@ -1,311 +1,363 @@
-
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Zap, 
-  Database, 
-  GitMerge, 
-  Brain, 
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2,
-  Loader2
-} from 'lucide-react';
-import { DatasetInfo } from '@/contexts/AppStateContext';
+import { Separator } from '@/components/ui/separator';
+import { useSemanticDataFusion } from '@/hooks/useSemanticDataFusion';
+import { Brain, GitMerge, Zap, CheckCircle2, XCircle, Lightbulb, Database, Network } from 'lucide-react';
 
-interface SmartDataIntegrationProps {
-  datasets: DatasetInfo[];
-  activeDatasetId: string;
-}
+export const SmartDataIntegration = ({ onDataLoaded }: { onDataLoaded?: (data: any, columns: any, name: string) => void }) => {
+  const {
+    entities,
+    relationships,
+    fusedDatasets,
+    currentOntology,
+    isAnalyzing,
+    suggestions,
+    acceptRelationship,
+    rejectRelationship,
+    createCustomFusion,
+    getEntitySummary,
+    getRecommendedJoins,
+    hasMultipleSources,
+    canFuseData
+  } = useSemanticDataFusion();
 
-interface DataRelationship {
-  id: string;
-  sourceDataset: string;
-  targetDataset: string;
-  relationshipType: 'foreign_key' | 'semantic' | 'temporal' | 'categorical';
-  sourceColumn: string;
-  targetColumn: string;
-  confidence: number;
-  description: string;
-  strength: 'weak' | 'moderate' | 'strong';
-}
+  const [selectedEntities, setSelectedEntities] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('overview');
 
-const getConfidenceBadgeVariant = (confidence: number) => {
-  if (confidence >= 0.8) return 'default';
-  if (confidence >= 0.6) return 'secondary';
-  return 'outline';
-};
+  const summary = getEntitySummary();
+  const recommendedJoins = getRecommendedJoins();
 
-const getConfidenceColor = (confidence: number) => {
-  if (confidence >= 0.8) return 'text-green-600';
-  if (confidence >= 0.6) return 'text-yellow-600';
-  return 'text-red-600';
-};
+  const handleEntityToggle = (entityId: string) => {
+    setSelectedEntities(prev => 
+      prev.includes(entityId) 
+        ? prev.filter(id => id !== entityId)
+        : [...prev, entityId]
+    );
+  };
 
-export const SmartDataIntegration = ({ datasets, activeDatasetId }: SmartDataIntegrationProps) => {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [relationships, setRelationships] = useState<DataRelationship[]>([]);
-  const [selectedRelationship, setSelectedRelationship] = useState<DataRelationship | null>(null);
-
-  const analyzeRelationships = useCallback(async () => {
-    if (datasets.length < 2) return;
-
-    setIsAnalyzing(true);
-    setAnalysisProgress(0);
-
-    // Simulate analysis progress
-    const progressInterval = setInterval(() => {
-      setAnalysisProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return 95;
-        }
-        return prev + 15;
-      });
-    }, 300);
-
-    // Simulate AI analysis delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Generate mock relationships
-    const mockRelationships: DataRelationship[] = [];
-    
-    for (let i = 0; i < datasets.length - 1; i++) {
-      for (let j = i + 1; j < datasets.length; j++) {
-        const source = datasets[i];
-        const target = datasets[j];
-        
-        // Find potential column matches
-        const sourceColumns = source.columns.map(col => col.name.toLowerCase());
-        const targetColumns = target.columns.map(col => col.name.toLowerCase());
-        
-        sourceColumns.forEach(sourceCol => {
-          targetColumns.forEach(targetCol => {
-            const similarity = calculateColumnSimilarity(sourceCol, targetCol);
-            
-            if (similarity > 0.6) {
-              mockRelationships.push({
-                id: `${source.id}-${target.id}-${sourceCol}-${targetCol}`,
-                sourceDataset: source.name,
-                targetDataset: target.name,
-                relationshipType: determineRelationshipType(sourceCol, targetCol),
-                sourceColumn: sourceCol,
-                targetColumn: targetCol,
-                confidence: similarity,
-                description: generateRelationshipDescription(sourceCol, targetCol, similarity),
-                strength: similarity > 0.8 ? 'strong' : similarity > 0.6 ? 'moderate' : 'weak'
-              });
-            }
-          });
-        });
+  const handleCreateFusion = () => {
+    if (selectedEntities.length >= 2) {
+      const fusedDataset = createCustomFusion(selectedEntities);
+      if (fusedDataset && onDataLoaded) {
+        onDataLoaded(fusedDataset.data, fusedDataset.columns, fusedDataset.name);
       }
-    }
-
-    clearInterval(progressInterval);
-    setAnalysisProgress(100);
-    setRelationships(mockRelationships);
-    setIsAnalyzing(false);
-  }, [datasets]);
-
-  const calculateColumnSimilarity = (col1: string, col2: string): number => {
-    // Simple similarity calculation
-    if (col1 === col2) return 1.0;
-    
-    const commonSubstrings = ['id', 'name', 'date', 'time', 'amount', 'price', 'quantity'];
-    const col1Lower = col1.toLowerCase();
-    const col2Lower = col2.toLowerCase();
-    
-    for (const substring of commonSubstrings) {
-      if (col1Lower.includes(substring) && col2Lower.includes(substring)) {
-        return 0.8;
-      }
-    }
-    
-    // Calculate Levenshtein distance-based similarity
-    const distance = levenshteinDistance(col1Lower, col2Lower);
-    const maxLength = Math.max(col1.length, col2.length);
-    return Math.max(0, 1 - distance / maxLength);
-  };
-
-  const levenshteinDistance = (str1: string, str2: string): number => {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-    
-    for (let i = 0; i <= str1.length; i += 1) {
-      matrix[0][i] = i;
-    }
-    
-    for (let j = 0; j <= str2.length; j += 1) {
-      matrix[j][0] = j;
-    }
-    
-    for (let j = 1; j <= str2.length; j += 1) {
-      for (let i = 1; i <= str1.length; i += 1) {
-        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1,
-          matrix[j - 1][i] + 1,
-          matrix[j - 1][i - 1] + indicator,
-        );
-      }
-    }
-    
-    return matrix[str2.length][str1.length];
-  };
-
-  const determineRelationshipType = (col1: string, col2: string): DataRelationship['relationshipType'] => {
-    const idPattern = /id$/i;
-    const datePattern = /(date|time)/i;
-    
-    if (idPattern.test(col1) || idPattern.test(col2)) {
-      return 'foreign_key';
-    }
-    
-    if (datePattern.test(col1) && datePattern.test(col2)) {
-      return 'temporal';
-    }
-    
-    return 'semantic';
-  };
-
-  const generateRelationshipDescription = (col1: string, col2: string, confidence: number): string => {
-    const confidenceText = confidence > 0.8 ? 'strong' : confidence > 0.6 ? 'moderate' : 'weak';
-    return `${confidenceText} relationship detected between "${col1}" and "${col2}" based on naming patterns and data characteristics.`;
-  };
-
-  const getRelationshipIcon = (type: DataRelationship['relationshipType']) => {
-    switch (type) {
-      case 'foreign_key': return <Database className="h-4 w-4" />;
-      case 'semantic': return <Brain className="h-4 w-4" />;
-      case 'temporal': return <TrendingUp className="h-4 w-4" />;
-      case 'categorical': return <GitMerge className="h-4 w-4" />;
-      default: return <Zap className="h-4 w-4" />;
+      setSelectedEntities([]);
     }
   };
+
+  const handleUseFusedDataset = (dataset: any) => {
+    if (onDataLoaded) {
+      onDataLoaded(dataset.data, dataset.columns, dataset.name);
+    }
+  };
+
+  if (!hasMultipleSources) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Database className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Smart Data Integration</h3>
+          <p className="text-muted-foreground mb-4">
+            Connect multiple data sources (real-time or uploaded) to enable AI-powered semantic data fusion
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Set up at least 2 data sources in the Data Sources tab to get started
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Smart Data Integration
-          </CardTitle>
-          <CardDescription>
-            AI-powered relationship discovery between your datasets
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {datasets.length < 2 ? (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Brain className="h-6 w-6 text-blue-500" />
+          <h2 className="text-2xl font-semibold">Smart Data Integration</h2>
+          {isAnalyzing && (
+            <Badge variant="secondary" className="animate-pulse">
+              <Zap className="h-3 w-3 mr-1" />
+              Analyzing...
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">{summary.totalEntities} Entities</Badge>
+          <Badge variant="outline">{summary.totalRelationships} Relationships</Badge>
+          {summary.averageQualityScore > 0 && (
+            <Badge variant="default">Quality: {(summary.averageQualityScore * 100).toFixed(0)}%</Badge>
+          )}
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="entities">Entities</TabsTrigger>
+          <TabsTrigger value="relationships">Relationships</TabsTrigger>
+          <TabsTrigger value="fusion">Data Fusion</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  Discovered Entities
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{summary.totalEntities}</div>
+                {Object.entries(summary.entitiesByType).map(([type, count]) => (
+                  <div key={type} className="flex justify-between text-sm">
+                    <span className="capitalize">{type}:</span>
+                    <span>{count}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Network className="h-4 w-4" />
+                  Relationships
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{summary.totalRelationships}</div>
+                <div className="text-sm text-muted-foreground">
+                  {summary.highConfidenceRelationships} high confidence
+                </div>
+                <Progress 
+                  value={summary.totalRelationships > 0 ? (summary.highConfidenceRelationships / summary.totalRelationships) * 100 : 0} 
+                  className="mt-2"
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <GitMerge className="h-4 w-4" />
+                  Fused Datasets
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{summary.fusedDatasets}</div>
+                {summary.averageQualityScore > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    Avg Quality: {(summary.averageQualityScore * 100).toFixed(0)}%
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {suggestions.length > 0 && (
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <Lightbulb className="h-4 w-4" />
               <AlertDescription>
-                You need at least 2 datasets to discover relationships. Load more datasets to enable this feature.
+                <div className="font-medium mb-2">AI Suggestions:</div>
+                <ul className="list-disc list-inside space-y-1">
+                  {suggestions.slice(0, 3).map((suggestion, index) => (
+                    <li key={index} className="text-sm">{suggestion}</li>
+                  ))}
+                </ul>
               </AlertDescription>
             </Alert>
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  {datasets.length} datasets available for analysis
-                </div>
-                <Button 
-                  onClick={analyzeRelationships}
-                  disabled={isAnalyzing}
-                  className="flex items-center gap-2"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="h-4 w-4" />
-                      Discover Relationships
-                    </>
-                  )}
-                </Button>
-              </div>
+          )}
 
-              {isAnalyzing && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Analyzing relationships...</span>
-                    <span>{analysisProgress}%</span>
+          {recommendedJoins.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Recommended Data Joins</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {recommendedJoins.map((join, index) => (
+                  <div key={join.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{join.description}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Join on: {join.joinColumns.map(col => `${col.source} = ${col.target}`).join(', ')}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">
+                        {(join.confidence * 100).toFixed(0)}% confidence
+                      </Badge>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const entityIds = [`${join.sourceEntity.type}_${join.sourceEntity.sourceId}`, `${join.targetEntity.type}_${join.targetEntity.sourceId}`];
+                          setSelectedEntities(entityIds);
+                          setActiveTab('fusion');
+                        }}
+                      >
+                        Use Join
+                      </Button>
+                    </div>
                   </div>
-                  <Progress value={analysisProgress} className="h-2" />
-                </div>
-              )}
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-              {relationships.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Discovered Relationships</h3>
-                    <Badge variant="secondary">
-                      {relationships.length} relationships found
+        <TabsContent value="entities" className="space-y-4">
+          <div className="grid gap-4">
+            {entities.map((entity, index) => (
+              <Card key={`${entity.type}_${entity.sourceId}_${index}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="capitalize">{entity.type}</Badge>
+                      <span className="font-medium">{entity.name}</span>
+                      <Badge variant="secondary">Source: {entity.sourceId}</Badge>
+                    </div>
+                    <Badge variant={entity.confidence > 0.7 ? 'default' : 'secondary'}>
+                      {(entity.confidence * 100).toFixed(0)}% confidence
                     </Badge>
                   </div>
-
-                  <div className="grid gap-3">
-                    {relationships.map((relationship) => (
-                      <Card 
-                        key={relationship.id} 
-                        className={`cursor-pointer transition-colors ${
-                          selectedRelationship?.id === relationship.id ? 'border-primary' : ''
-                        }`}
-                        onClick={() => setSelectedRelationship(relationship)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
-                              {getRelationshipIcon(relationship.relationshipType)}
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">{relationship.sourceDataset}</span>
-                                  <span className="text-muted-foreground">→</span>
-                                  <span className="font-medium">{relationship.targetDataset}</span>
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {relationship.sourceColumn} ↔ {relationship.targetColumn}
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {relationship.description}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <Badge variant={getConfidenceBadgeVariant(relationship.confidence)}>
-                                {Math.round(relationship.confidence * 100)}% confidence
-                              </Badge>
-                              <Badge variant="outline" className={getConfidenceColor(relationship.confidence)}>
-                                {relationship.strength}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <div className="text-sm text-muted-foreground">
+                    Columns: {entity.columns.join(', ')}
                   </div>
-                </div>
-              )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-              {!isAnalyzing && relationships.length === 0 && (
-                <Alert>
-                  <CheckCircle2 className="h-4 w-4" />
-                  <AlertDescription>
-                    Click "Discover Relationships" to start analyzing connections between your datasets.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </>
+        <TabsContent value="relationships" className="space-y-4">
+          <div className="grid gap-4">
+            {relationships.map((relationship, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium">
+                        {relationship.sourceEntity.name} → {relationship.targetEntity.name}
+                      </span>
+                      <Badge variant="outline" className="capitalize">
+                        {relationship.relationshipType.replace('-', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={relationship.confidence > 0.7 ? 'default' : 'secondary'}>
+                        {(relationship.confidence * 100).toFixed(0)}%
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => acceptRelationship(`${relationship.sourceEntity.sourceId}_${relationship.targetEntity.sourceId}`)}
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => rejectRelationship(`${relationship.sourceEntity.sourceId}_${relationship.targetEntity.sourceId}`)}
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Join on: {relationship.joinColumns.map(col => `${col.source} = ${col.target}`).join(', ')}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="fusion" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create Custom Data Fusion</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-3">
+                Select entities to fuse together (minimum 2 required):
+              </div>
+              
+              <div className="grid gap-2">
+                {entities.map((entity, index) => {
+                  const entityId = `${entity.type}_${entity.sourceId}`;
+                  const isSelected = selectedEntities.includes(entityId);
+                  
+                  return (
+                    <div
+                      key={`${entity.type}_${entity.sourceId}_${index}`}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-border hover:bg-muted/50'
+                      }`}
+                      onClick={() => handleEntityToggle(entityId)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="capitalize">{entity.type}</Badge>
+                          <span className="font-medium">{entity.name}</span>
+                        </div>
+                        <Badge variant="secondary">
+                          {(entity.confidence * 100).toFixed(0)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button 
+                onClick={handleCreateFusion}
+                disabled={selectedEntities.length < 2 || !canFuseData}
+                className="w-full"
+              >
+                <GitMerge className="h-4 w-4 mr-2" />
+                Create Fused Dataset ({selectedEntities.length} selected)
+              </Button>
+            </CardContent>
+          </Card>
+
+          {fusedDatasets.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Available Fused Datasets</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {fusedDatasets.map((dataset, index) => (
+                  <div key={dataset.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{dataset.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {dataset.data.length} rows • {dataset.columns.length} columns • 
+                        {dataset.sourceIds.length} sources
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default">
+                        Quality: {(dataset.qualityScore * 100).toFixed(0)}%
+                      </Badge>
+                      <Button
+                        size="sm"
+                        onClick={() => handleUseFusedDataset(dataset)}
+                      >
+                        Use Dataset
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

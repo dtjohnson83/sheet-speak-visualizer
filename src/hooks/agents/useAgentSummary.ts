@@ -1,58 +1,32 @@
-
-import { useMemo } from 'react';
-import { AIAgent } from '@/types/agents';
-
-export interface AgentTask {
-  id: string;
-  agent_id: string;
-  task_type: string;
-  status: string;
-  created_at: string;
-  completed_at?: string;
-  result?: any;
-}
-
-export interface AgentInsight {
-  id: string;
-  agent_id: string;
-  title: string;
-  description: string;
-  insight_type: string;
-  confidence_score: number;
-  is_read: boolean;
-  created_at: string;
-}
-
-export interface AgentSummary {
-  totalAgents: number;
-  activeAgents: number;
-  pausedAgents: number;
-  totalTasks: number;
-  completedTasks: number;
-  pendingTasks: number;
-  totalInsights: number;
-  unreadInsights: number;
-  highConfidenceInsights: number;
-}
+import { AIAgent, AgentTask, AgentInsight, AgentSummary } from '@/types/agents';
 
 export const useAgentSummary = () => {
+  // Generate agent summary
   const getAgentSummary = (
     agents: AIAgent[], 
     tasks: AgentTask[], 
     insights: AgentInsight[]
   ): AgentSummary => {
-    return useMemo(() => ({
-      totalAgents: agents.length,
-      activeAgents: agents.filter(agent => agent.status === 'active').length,
-      pausedAgents: agents.filter(agent => agent.status === 'paused').length,
-      totalTasks: tasks.length,
-      completedTasks: tasks.filter(task => task.status === 'completed').length,
-      pendingTasks: tasks.filter(task => task.status === 'pending').length,
-      totalInsights: insights.length,
-      unreadInsights: insights.filter(insight => !insight.is_read).length,
-      highConfidenceInsights: insights.filter(insight => insight.confidence_score >= 0.8).length,
-    }), [agents, tasks, insights]);
+    const activeAgents = agents.filter(agent => agent.status === 'active');
+    const pendingTasks = tasks.filter(task => task.status === 'pending');
+    const completedTasksToday = tasks.filter(task => 
+      task.status === 'completed' && 
+      new Date(task.completed_at || '').toDateString() === new Date().toDateString()
+    );
+    const unreadInsights = insights.filter(insight => !insight.is_read);
+    const lastActivity = tasks.length > 0 ? tasks[0].updated_at : undefined;
+
+    return {
+      total_agents: agents.length,
+      active_agents: activeAgents.length,
+      pending_tasks: pendingTasks.length,
+      completed_tasks_today: completedTasksToday.length,
+      unread_insights: unreadInsights.length,
+      last_activity: lastActivity
+    };
   };
 
-  return { getAgentSummary };
+  return {
+    getAgentSummary,
+  };
 };

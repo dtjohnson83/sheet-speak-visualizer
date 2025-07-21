@@ -1,153 +1,164 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
+import { AppHeader } from '@/components/layout/AppHeader';
+import { DataStatusBar } from '@/components/layout/DataStatusBar';
 import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
-import { DashboardTileData } from '@/components/dashboard/DashboardTile';
-import { FilterCondition } from '@/components/dashboard/DashboardFilters';
-import { DataRow, ColumnInfo } from '@/pages/Index';
-import { useToast } from '@/hooks/use-toast';
-import { ToastAction } from '@/components/ui/toast';
+import { TutorialOverlay } from '@/components/onboarding/TutorialOverlay';
+import { GettingStartedChecklist } from '@/components/onboarding/GettingStartedChecklist';
+import { ActiveSourceIndicator } from '@/components/realtime/ActiveSourceIndicator';
+import { RealtimeDashboardControls } from '@/components/realtime/RealtimeDashboardControls';
 import { useAppState } from '@/contexts/AppStateContext';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useUIState } from '@/contexts/UIStateContext';
+import { useAppActions } from '@/hooks/useAppActions';
+import { useUIActions } from '@/hooks/useUIActions';
+import { useTutorialProgress } from '@/hooks/useTutorialProgress';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useRealtimeData } from '@/contexts/RealtimeDataContext';
+import { PlatformChatbot } from '@/components/chat/PlatformChatbot';
 
-export const AppLayout = () => {
-  const [data, setData] = useState<DataRow[]>([]);
-  const [columns, setColumns] = useState<ColumnInfo[]>([]);
-  const [fileName, setFileName] = useState<string>('dataset');
-  const [tiles, setTiles] = useState<DashboardTileData[]>([]);
-  const [filters, setFilters] = useState<FilterCondition[]>([]);
-  const [currentDatasetId, setCurrentDatasetId] = useState<string>('');
-  const [showContextSetup, setShowContextSetup] = useState(false);
-  const [selectedDataSource, setSelectedDataSource] = useState<string>('');
-  const [showDataSourceDialog, setShowDataSourceDialog] = useState(false);
+export const AppLayout: React.FC = () => {
+  const { state: appState } = useAppState();
+  const { state: uiState } = useUIState();
+  const appActions = useAppActions();
+  const uiActions = useUIActions();
+  const { isAdmin, usesRemaining } = useUsageTracking();
+  const { getLatestData, sources } = useRealtimeData();
+  
+  // Tutorial progress tracking
+  const {
+    shouldShowTutorial,
+    shouldShowChecklist,
+    markTutorialSeen,
+    markTutorialCompleted,
+    markDataUploaded,
+    markChartCreated,
+    markDashboardBuilt,
+    markAIUsed,
+    setActiveTab,
+    progress
+  } = useTutorialProgress();
 
-  const { toast } = useToast();
-  const { state } = useAppState();
-  const isMobile = useIsMobile();
-
-  const handleAddTile = (tileData: DashboardTileData) => {
-    setTiles(prevTiles => [...prevTiles, tileData]);
-  };
-
-  const handleRemoveTile = (tileId: string) => {
-    setTiles(prevTiles => prevTiles.filter(tile => tile.id !== tileId));
-  };
-
-  const handleUpdateTile = (tileId: string, updates: Partial<DashboardTileData>) => {
-    setTiles(prevTiles =>
-      prevTiles.map(tile => (tile.id === tileId ? { ...tile, ...updates } : tile))
-    );
-  };
-
-  const handleFiltersChange = (newFilters: FilterCondition[]) => {
-    setFilters(newFilters);
-  };
-
-  const handleContextReady = () => {
-    setShowContextSetup(false);
-  };
-
-  const handleSkipContext = () => {
-    setShowContextSetup(false);
-  };
-
-  const handleColumnTypeChange = (columnName: string, newType: 'numeric' | 'date' | 'categorical' | 'text') => {
-    setColumns(prevColumns =>
-      prevColumns.map(column =>
-        column.name === columnName ? { ...column, type: newType } : column
-      )
-    );
-  };
-
-  const handleDataSourceSelect = (source: string) => {
-    setSelectedDataSource(source);
-  };
-
-  const handleDataLoaded = (loadedData: DataRow[], loadedColumns: ColumnInfo[], loadedFileName: string, source?: string) => {
-    setData(loadedData);
-    setColumns(loadedColumns);
-    setFileName(loadedFileName);
-    setSelectedDataSource(source || '');
-    setCurrentDatasetId('initial-dataset');
-
-    toast({
-      title: "Data Loaded",
-      description: `Successfully loaded ${loadedFileName}`,
-      action: <ToastAction altText="Goto charts">View charts</ToastAction>,
-    })
-  };
-
-  const handleAIUsed = useCallback(() => {
-    toast({
-      title: "AI Used",
-      description: "Thank you for trying our AI features!",
-    });
-  }, [toast]);
-
-  const handleLoadDashboard = (dashboardData: { 
-    tiles: DashboardTileData[]; 
-    filters: FilterCondition[]; 
-    data?: DataRow[]; 
-    columns?: ColumnInfo[] 
-  }) => {
-    setTiles(dashboardData.tiles);
-    setFilters(dashboardData.filters);
-    if (dashboardData.data && dashboardData.columns) {
-      setData(dashboardData.data);
-      setColumns(dashboardData.columns);
+  // Handle switching between real-time sources
+  const handleSourceSwitch = (sourceId: string) => {
+    const realtimeUpdate = getLatestData(sourceId);
+    const source = sources.find(s => s.id === sourceId);
+    
+    if (realtimeUpdate && source) {
+      console.log('🔄 Switching to source:', source.name);
+      appActions.handleDataLoaded(
+        realtimeUpdate.data,
+        realtimeUpdate.columns || [],
+        source.name,
+        'realtime'
+      );
     }
   };
 
+  // Enhanced data loading handler with tutorial progress tracking
+  const handleEnhancedDataLoaded = (loadedData: any[], loadedColumns: any[], fileName: string, source?: string) => {
+    appActions.handleDataLoaded(loadedData, loadedColumns, fileName, source);
+    if (loadedData.length > 0) {
+      markDataUploaded();
+    }
+  };
+
+  // Enhanced tile addition with tutorial progress tracking
+  const handleEnhancedAddTile = (tileData: any) => {
+    appActions.addTile(tileData);
+    markChartCreated();
+    if (appState.tiles.length === 0) { // First tile being added
+      markDashboardBuilt();
+    }
+  };
+
+  // Handle tutorial actions
+  const handleTutorialActionClick = (targetTab: string) => {
+    setActiveTab(targetTab);
+    uiActions.setActiveTab(targetTab);
+    // Scroll to tabs section
+    const tabsSection = document.querySelector('[data-tabs-section]');
+    if (tabsSection) {
+      tabsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const displayFileName = appState.worksheetName 
+    ? `${appState.fileName} - ${appState.worksheetName}` 
+    : appState.fileName;
+
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
-        <div className="container flex h-14 items-center justify-between px-4">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-semibold truncate">
-              {isMobile ? 'Chartuvo' : 'Data Analytics Platform'}
-            </h1>
-          </div>
-          <ThemeToggle />
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="max-w-7xl mx-auto">
+        <AppHeader isAdmin={isAdmin} usesRemaining={usesRemaining} />
 
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden">
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="border-b px-4 py-2 bg-muted/30">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span className="truncate max-w-[150px] md:max-w-none">{fileName}</span>
-              <span className="whitespace-nowrap">
-                {data.length} rows{isMobile ? '' : ` • ${columns.length} columns`}
-              </span>
-            </div>
-          </div>
+        <div className="space-y-6">
+          {/* Getting Started Checklist */}
+          {shouldShowChecklist && (
+            <GettingStartedChecklist
+              hasData={appState.data.length > 0}
+              hasCharts={appState.tiles.length > 0}
+              hasDashboard={appState.tiles.length > 0}
+              hasUsedAI={progress.hasUsedAI}
+              onActionClick={handleTutorialActionClick}
+            />
+          )}
 
-          <div className="flex-1 overflow-hidden">
+          {/* Active Source Indicator - shows when using real-time data */}
+          <ActiveSourceIndicator 
+            currentDatasetName={displayFileName}
+            onSourceChange={handleSourceSwitch}
+          />
+          
+          {/* Always show Real-time Dashboard Controls when data is available */}
+          {appState.data.length > 0 && <RealtimeDashboardControls />}
+
+          {/* Data Context Status Bar - only when data is loaded */}
+          {appState.data.length > 0 && (
+            <DataStatusBar 
+              displayFileName={displayFileName}
+              dataLength={appState.data.length}
+              columnsLength={appState.columns.length}
+              realtimeEnabled={appState.realtimeEnabled}
+            />
+          )}
+
+          {/* Always show DataTabsSection - users can access all features */}
+          <div data-tabs-section>
             <DataTabsSection
-              data={data}
-              columns={columns}
-              fileName={fileName}
-              tiles={tiles}
-              filters={filters}
-              currentDatasetId={currentDatasetId}
-              showContextSetup={showContextSetup}
-              selectedDataSource={selectedDataSource}
-              showDataSourceDialog={showDataSourceDialog}
-              onAddTile={handleAddTile}
-              onRemoveTile={handleRemoveTile}
-              onUpdateTile={handleUpdateTile}
-              onFiltersChange={handleFiltersChange}
-              onLoadDashboard={handleLoadDashboard}
-              onContextReady={handleContextReady}
-              onSkipContext={handleSkipContext}
-              onColumnTypeChange={handleColumnTypeChange}
-              onDataSourceSelect={handleDataSourceSelect}
-              onDataSourceDialogChange={setShowDataSourceDialog}
-              onDataLoaded={handleDataLoaded}
-              onAIUsed={handleAIUsed}
+              data={appState.data}
+              columns={appState.columns}
+              fileName={displayFileName}
+              tiles={appState.tiles}
+              filters={appState.filters}
+              currentDatasetId={appState.currentDatasetId}
+              showContextSetup={appState.showContextSetup}
+              selectedDataSource={uiState.selectedDataSource}
+              showDataSourceDialog={uiState.showDataSourceDialog}
+              onAddTile={handleEnhancedAddTile}
+              onRemoveTile={appActions.removeTile}
+              onUpdateTile={appActions.updateTile}
+              onFiltersChange={appActions.setFilters}
+              onLoadDashboard={appActions.handleLoadDashboard}
+              onContextReady={appActions.handleContextReady}
+              onSkipContext={appActions.handleSkipContext}
+              onColumnTypeChange={appActions.handleColumnTypeChange}
+              onDataSourceSelect={uiActions.setSelectedDataSource}
+              onDataSourceDialogChange={uiActions.setShowDataSourceDialog}
+              onDataLoaded={handleEnhancedDataLoaded}
+              onAIUsed={markAIUsed}
             />
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay
+        isOpen={shouldShowTutorial}
+        onClose={markTutorialSeen}
+        onComplete={markTutorialCompleted}
+      />
+      
+      {/* Platform Chatbot */}
+      <PlatformChatbot />
     </div>
   );
 };

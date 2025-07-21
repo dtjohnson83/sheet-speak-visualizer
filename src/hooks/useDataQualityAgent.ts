@@ -1,120 +1,196 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useAIAgents } from '@/hooks/useAIAgents';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface QualityTrend {
+  date: string;
+  score: number;
+  issues: number;
+}
 
 export const useDataQualityAgent = (fileName: string) => {
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  
+  const { agents, createAgent } = useAIAgents();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [qualityTrends, setQualityTrends] = useState<any[]>([]);
 
-  // Query for existing agent
-  const { data: agent, isLoading: isLoadingAgent } = useQuery({
-    queryKey: ['data-quality-agent', fileName],
+  const agent = agents.find(a => a.type === 'data_quality');
+
+  // Fetch quality trends from Supabase (last 7, ordered by date desc)
+  const { data: qualityTrends = [], isLoading: trendsLoading, error: trendsError } = useQuery<QualityTrend[]>({
+    queryKey: ['quality_trends', agent?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('type', 'data_quality')
-        .eq('name', `Data Quality Agent - ${fileName}`)
-        .maybeSingle();
-
+      if (!agent) return [];
+      let query = supabase
+        .from('quality_trends')
+        .select('date, score, issues')
+        .eq('agent_id', agent.id)
+        .order('date', { ascending: false })
+        .limit(7);
+      
+      // Add user filter if RLS/user-specific
+      if (user?.id) query = query.eq('user_id', user.id);
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
+    enabled: !!agent,
   });
 
-  // Mutation to create agent
-  const createAgentMutation = useMutation({
-    mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('ai_agents')
-        .insert({
-          name: `Data Quality Agent - ${fileName}`,
-          type: 'data_quality',
-          description: `Automated data quality monitoring for ${fileName}`,
-          status: 'active',
-          capabilities: ['data_validation', 'completeness_check', 'accuracy_assessment'],
-          configuration: {
-            dataset: fileName,
-            schedule: { frequency: 'daily', time: '09:00' },
-            thresholds: { completeness: 95, accuracy: 98 }
+  const createDataQualityAgent = async () => {
+    setIsCreatingAgent(true);
+    try {
+      const agentConfig = {
+        name: `Data Quality Monitor - ${fileName}`,
+        type: 'data_quality' as const,
+        description: 'Monitors data quality and generates automated reports',
+        capabilities: [
+          'data_quality_assessment',
+          'completeness_validation',
+          'consistency_checks',
+          'accuracy_validation',
+          'uniqueness_validation',
+          'automated_insights'
+        ],
+        configuration: {
+          analysis_frequency: 'daily',
+          confidence_threshold: 0.8,
+          auto_generate_visualizations: true,
+          notification_preferences: {
+            in_app: true,
+            email: false
           },
-          priority: 5,
-          user_id: user.id
-        })
-        .select()
-        .single();
+          quality_thresholds: {
+            completeness: 95,
+            consistency: 90,
+            accuracy: 95,
+            uniqueness: 98,
+            timeliness: 85
+          }
+        }
+      };
 
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['data-quality-agent'] });
+      await createAgent(agentConfig);
+      
       toast({
         title: "Success",
-        description: "Data quality agent created successfully",
+        description: "Data Quality Agent created successfully",
+      });
+    } catch (error) {
+      console.error('Error creating data quality agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create Data Quality Agent",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingAgent(false);
+    }
+  };
+
+  const scheduleQualityCheck = async () => {
+    if (!agent) return;
+
+    try {
+      await supabase.from('agent_tasks').insert({
+        agent_id: agent.id,
+        task_type: 'assess_data_quality',
+        parameters: {
+          dataset_name: fileName,
+          scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        }
+      });
+
+      toast({
+        title: "Success",
+        description: "Daily quality check scheduled",
+      });
+    } catch (error) {
+      console.error('Error scheduling quality check:', error);
+      toast({
+        title: "Error",
+        description: "Failed to schedule quality check",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Mutation for inserting new trend
+  const insertTrendMutation = useMutation({
+    mutationFn: async (newTrend: QualityTrend) => {
+      if (!agent) throw new Error('No agent');
+      let insertData = {
+        agent_id: agent.id,
+        date: newTrend.date,
+        score: newTrend.score,
+        issues: newTrend.issues
+      };
+      
+      // Add user_id if needed
+      if (user?.id) insertData = { ...insertData, user_id: user.id };
+      
+      await supabase.from('quality_trends').insert(insertData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quality_trends', agent?.id] });
+      toast({
+        title: "Success",
+        description: "Quality trend updated",
       });
     },
     onError: (error) => {
+      console.error('Error inserting trend:', error);
       toast({
         title: "Error",
-        description: "Failed to create data quality agent",
+        description: "Failed to save quality trend",
         variant: "destructive",
       });
     },
   });
 
-  // Mutation to save quality trends
-  const saveTrendMutation = useMutation({
-    mutationFn: async (trend: { 
-      dataset_id?: string; 
-      agent_id?: string; 
-      date: string; 
-      score: number; 
-      issues: number; 
-    }) => {
-      // For now, just store locally since we don't have a trends table
-      setQualityTrends(prev => [...prev, trend]);
-      return trend;
-    },
-  });
-
-  const createDataQualityAgent = async () => {
-    await createAgentMutation.mutateAsync();
-  };
-
-  const scheduleQualityCheck = async (scheduleTime?: string) => {
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 100));
-    toast({
-      title: "Quality Check Scheduled",
-      description: scheduleTime ? `Quality check scheduled for ${scheduleTime}` : "Quality check has been scheduled for the next hour",
-    });
-  };
-
   const handleReportGenerated = async (report: any) => {
     if (agent) {
-      await saveTrendMutation.mutateAsync({
-        agent_id: agent.id,
-        date: new Date().toISOString(),
-        score: report.overallScore || 85,
-        issues: report.totalIssues || 0,
-      });
+      try {
+        await supabase.from('agent_insights').insert({
+          agent_id: agent.id,
+          insight_type: 'data_quality_summary',
+          title: `Data Quality Report - ${fileName}`,
+          description: `Quality score: ${report.qualityScore.overall.toFixed(1)}%, ${report.summary.totalIssues} issues found`,
+          data: report,
+          confidence_score: report.qualityScore.overall / 100,
+          priority: report.summary.highSeverityIssues > 0 ? 8 : 5
+        });
+
+        const newTrend: QualityTrend = {
+          date: new Date().toISOString().split('T')[0],
+          score: report.qualityScore.overall,
+          issues: report.summary.totalIssues
+        };
+        
+        await insertTrendMutation.mutateAsync(newTrend);
+
+      } catch (error) {
+        console.error('Error saving quality insight:', error);
+      }
     }
+    
+    return report;
   };
 
   return {
     agent,
-    isCreatingAgent: createAgentMutation.isPending,
+    isCreatingAgent,
     qualityTrends,
+    trendsLoading,  // New: expose for UI spinner
+    trendsError,    // New: expose for error display
     createDataQualityAgent,
     scheduleQualityCheck,
-    handleReportGenerated,
-    saveTrend: saveTrendMutation,
+    handleReportGenerated
   };
 };

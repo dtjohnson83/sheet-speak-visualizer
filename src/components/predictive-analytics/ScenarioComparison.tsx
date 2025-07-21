@@ -46,15 +46,12 @@ export const ScenarioComparison = ({ scenarios }: ScenarioComparisonProps) => {
   });
 
   // Radar chart data for assumptions
-  const assumptionData = scenarios.map(scenario => {
-    const assumptions = typeof scenario.assumptions === 'object' ? scenario.assumptions : {};
-    return {
-      scenario: scenario.name.split(' ')[0], // Use first word
-      marketGrowth: ((assumptions as any).marketGrowth || 1.1 - 1) * 100,
-      customerRetention: ((assumptions as any).customerRetention || 0.85) * 100,
-      operationalEfficiency: (((assumptions as any).operationalEfficiency || 1.05) - 1) * 100 + 100
-    };
-  });
+  const assumptionData = scenarios.map(scenario => ({
+    scenario: scenario.name.split(' ')[0], // Use first word
+    marketGrowth: (scenario.assumptions.marketGrowth - 1) * 100,
+    customerRetention: scenario.assumptions.customerRetention * 100,
+    operationalEfficiency: (scenario.assumptions.operationalEfficiency - 1) * 100 + 100
+  }));
 
   return (
     <div className="space-y-6">
@@ -90,15 +87,15 @@ export const ScenarioComparison = ({ scenarios }: ScenarioComparisonProps) => {
                 <div className="space-y-1 text-xs text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Market Growth:</span>
-                    <span>{((((scenario.assumptions as any)?.marketGrowth || 1.1) - 1) * 100).toFixed(1)}%</span>
+                    <span>{((scenario.assumptions.marketGrowth - 1) * 100).toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Customer Retention:</span>
-                    <span>{(((scenario.assumptions as any)?.customerRetention || 0.85) * 100).toFixed(1)}%</span>
+                    <span>{(scenario.assumptions.customerRetention * 100).toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Operational Efficiency:</span>
-                    <span>{((((scenario.assumptions as any)?.operationalEfficiency || 1.05) - 1) * 100).toFixed(1)}%</span>
+                    <span>{((scenario.assumptions.operationalEfficiency - 1) * 100).toFixed(1)}%</span>
                   </div>
                 </div>
               </div>
