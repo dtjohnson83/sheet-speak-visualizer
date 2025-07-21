@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
   Bot, 
@@ -182,38 +182,48 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           ))}
         </TabsList>
 
-        <AgentOverviewTab
-          agents={agents}
-          onCreateAgent={handleCreateAgent}
-        />
+        <TabsContent value="overview">
+          <AgentOverviewTab
+            agents={agents}
+            onCreateAgent={handleCreateAgent}
+          />
+        </TabsContent>
 
-        <AgentManagementTab
-          agents={agents}
-          onToggleAgent={handleToggleAgent}
-          onDeleteAgent={deleteAgent}
-          onDeleteAllAgents={deleteAllAgents}
-          isDeletingAgent={isDeletingAgent}
-          isDeletingAllAgents={isDeletingAllAgents}
-        />
+        <TabsContent value="management">
+          <AgentManagementTab
+            agents={agents}
+            onToggleAgent={handleToggleAgent}
+            onDeleteAgent={deleteAgent}
+            onDeleteAllAgents={deleteAllAgents}
+            isDeletingAgent={isDeletingAgent}
+            isDeletingAllAgents={isDeletingAllAgents}
+          />
+        </TabsContent>
 
-        <TaskManagementTab
-          tasks={tasks}
-          onDeleteTask={deleteTask}
-          onClearAllTasks={clearAllTasks}
-          isDeletingTask={isDeletingTask}
-          isClearingAllTasks={isClearingAllTasks}
-        />
+        <TabsContent value="tasks">
+          <TaskManagementTab
+            tasks={tasks}
+            onDeleteTask={deleteTask}
+            onClearAllTasks={clearAllTasks}
+            isDeletingTask={isDeletingTask}
+            isClearingAllTasks={isClearingAllTasks}
+          />
+        </TabsContent>
 
-        <InsightManagementTab
-          insights={insights}
-          onMarkInsightRead={markInsightRead}
-          onDeleteInsight={deleteInsight}
-          onClearAllInsights={clearAllInsights}
-          isDeletingInsight={isDeletingInsight}
-          isClearingAllInsights={isClearingAllInsights}
-        />
+        <TabsContent value="insights">
+          <InsightManagementTab
+            insights={insights}
+            onMarkInsightRead={markInsightRead}
+            onDeleteInsight={deleteInsight}
+            onClearAllInsights={clearAllInsights}
+            isDeletingInsight={isDeletingInsight}
+            isClearingAllInsights={isClearingAllInsights}
+          />
+        </TabsContent>
 
-        <ReportAutomationTab />
+        <TabsContent value="report-automation">
+          <ReportAutomationTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
