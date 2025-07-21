@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useUserRole } from '@/hooks/useUserRole';
-import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain, FileDown, AlertTriangle } from 'lucide-react';
+import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain, FileDown, AlertTriangle, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
@@ -20,19 +20,34 @@ interface AISummaryReportProps {
   fileName?: string;
 }
 
-interface BusinessHealthMetrics {
-  customerTrend: 'growth' | 'stable' | 'decline' | 'crisis';
-  acquisitionRate: number;
-  churnRisk: number;
-  activityLevel: number;
-  revenueStability: number;
+interface DatasetProfile {
+  dataType: 'customer' | 'financial' | 'sales' | 'marketing' | 'operations' | 'hr' | 'scientific' | 'mixed' | 'unknown';
+  confidence: number;
+  keyColumns: {
+    identifiers: string[];
+    dates: string[];
+    metrics: string[];
+    categories: string[];
+    risks: string[];
+  };
+  businessContext: string;
+  analysisApproach: string;
+}
+
+interface UniversalHealthMetrics {
+  dataQuality: number;
+  trendDirection: 'improving' | 'stable' | 'declining' | 'volatile' | 'insufficient_data';
+  riskFactors: string[];
+  opportunities: string[];
+  keyInsights: string[];
   criticalIssues: string[];
-  keyMetrics: Record<string, any>;
+  dataCharacteristics: Record<string, any>;
 }
 
 interface ReportData {
   report: string;
-  businessHealth?: BusinessHealthMetrics;
+  datasetProfile?: DatasetProfile;
+  healthMetrics?: UniversalHealthMetrics;
   metadata: {
     totalRows: number;
     totalColumns: number;
@@ -40,7 +55,8 @@ interface ReportData {
     dataCompleteness: Array<{ column: string; completeness: number }>;
     persona: string;
     generatedAt: string;
-    businessHealthAlert?: string;
+    dataTypeDetected?: string;
+    qualityAlert?: string;
   };
 }
 
@@ -49,44 +65,37 @@ const personas = [
     value: 'general', 
     label: 'General Analysis', 
     icon: BarChart3, 
-    description: 'Comprehensive business insights with health assessment',
-    prompt: 'Analyze this data comprehensively. Focus on business health, customer trends, revenue patterns, and operational metrics. Always identify declining trends, churn risks, and business crises. If customers are declining or revenue is dropping, make this the PRIMARY focus of your analysis.'
+    description: 'Comprehensive insights adapted to your data type',
+    getPrompt: (profile: DatasetProfile) => `Analyze this ${profile.dataType} dataset comprehensively. Focus on data quality, trends, patterns, and ${profile.businessContext}. Identify any critical issues, declining trends, or data quality problems. Structure your analysis based on the ${profile.analysisApproach}.`
   },
   { 
     value: 'executive', 
     label: 'Executive', 
     icon: Briefcase, 
-    description: 'Strategic insights for leadership with crisis alerts',
-    prompt: 'Provide executive-level strategic analysis. CRITICALLY IMPORTANT: If business metrics show decline (customer loss, revenue drop, high churn), lead with URGENT BUSINESS HEALTH ALERTS. Focus on strategic implications, competitive position, and immediate action items for leadership.'
+    description: 'Strategic insights for leadership',
+    getPrompt: (profile: DatasetProfile) => `Provide executive-level strategic analysis for this ${profile.dataType} data. Focus on business implications, performance trends, risk assessment, and strategic recommendations. If any declining trends or critical issues are detected, prioritize these in your analysis. Present insights suitable for C-level decision making.`
   },
   { 
-    value: 'marketing', 
-    label: 'Marketing', 
-    icon: TrendingUp, 
-    description: 'Customer and campaign insights with retention focus',
-    prompt: 'Analyze from marketing perspective. Focus on customer acquisition vs. churn rates, segmentation opportunities, and retention strategies. If customer acquisition is declining or churn is high, prioritize retention marketing strategies over growth marketing.'
-  },
-  { 
-    value: 'finance', 
-    label: 'Finance', 
-    icon: Calculator, 
-    description: 'Financial performance with revenue trend analysis',
-    prompt: 'Provide financial analysis focusing on revenue trends, customer lifetime value, and business sustainability. If revenue is declining or customer economics are poor, assess financial health and recommend cost optimization or turnaround strategies.'
-  },
-  { 
-    value: 'operations', 
-    label: 'Operations', 
-    icon: BarChart3, 
-    description: 'Efficiency and process insights with health monitoring',
-    prompt: 'Analyze operational efficiency and customer service metrics. Focus on customer satisfaction, loyalty metrics, and operational KPIs. If satisfaction scores are low or churn risk is high, prioritize operational improvements for retention.'
-  },
-  { 
-    value: 'data_scientist', 
-    label: 'Data Science', 
+    value: 'analyst', 
+    label: 'Data Analyst', 
     icon: Brain, 
-    description: 'Technical statistical analysis with predictive insights',
-    prompt: 'Perform statistical analysis with focus on trends, correlations, and predictive indicators. Calculate customer acquisition rates, churn predictions, and business trajectory. Always validate if business is growing, stable, declining, or in crisis based on quantitative analysis.'
+    description: 'Technical analysis with statistical insights',
+    getPrompt: (profile: DatasetProfile) => `Perform detailed analytical assessment of this ${profile.dataType} dataset. Focus on statistical analysis, data quality assessment, correlation analysis, trend detection, and anomaly identification. Provide quantitative insights and validate data reliability. Use statistical methods appropriate for ${profile.analysisApproach}.`
   },
+  { 
+    value: 'operational', 
+    label: 'Operational', 
+    icon: Activity, 
+    description: 'Process and efficiency insights',
+    getPrompt: (profile: DatasetProfile) => `Analyze this ${profile.dataType} data from an operational perspective. Focus on efficiency metrics, process performance, operational KPIs, and process optimization opportunities. Identify bottlenecks, inefficiencies, or operational risks based on the data patterns.`
+  },
+  { 
+    value: 'domain_expert', 
+    label: 'Domain Expert', 
+    icon: TrendingUp, 
+    description: 'Industry-specific insights',
+    getPrompt: (profile: DatasetProfile) => `Provide domain-expert analysis for this ${profile.dataType} dataset. Apply industry best practices, domain-specific KPIs, and specialized knowledge relevant to ${profile.businessContext}. Focus on insights that require deep understanding of this specific domain and industry context.`
+  }
 ];
 
 export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProps) => {
@@ -100,140 +109,323 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const { isAdmin } = useUserRole();
   const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
 
-  // Analyze business health before sending to AI
-  const analyzeBusinessHealth = (data: DataRow[]): BusinessHealthMetrics => {
-    console.log('=== Pre-Analysis Business Health Check ===');
+  // Smart dataset profiling - detects what type of data this is
+  const profileDataset = (data: DataRow[], columns: ColumnInfo[]): DatasetProfile => {
+    console.log('=== Smart Dataset Profiling ===');
     
-    // Analyze customer acquisition trends
-    const signupDates = data
-      .map(row => ({ date: new Date(row.SignupDate || ''), id: row.CustomerID }))
-      .filter(item => !isNaN(item.date.getTime()) && item.id);
+    const columnNames = columns.map(c => c.name.toLowerCase());
+    const numericColumns = columns.filter(c => c.type === 'numeric').map(c => c.name.toLowerCase());
+    const dateColumns = columns.filter(c => c.type === 'date' || c.name.toLowerCase().includes('date')).map(c => c.name);
+    
+    // Column pattern matching for different data types
+    const patterns = {
+      customer: {
+        keywords: ['customer', 'user', 'client', 'signup', 'churn', 'retention', 'satisfaction', 'loyalty', 'spend'],
+        score: 0
+      },
+      financial: {
+        keywords: ['revenue', 'profit', 'cost', 'price', 'amount', 'balance', 'account', 'transaction', 'payment', 'invoice'],
+        score: 0
+      },
+      sales: {
+        keywords: ['sales', 'order', 'product', 'quantity', 'inventory', 'units', 'sold', 'purchase', 'sku'],
+        score: 0
+      },
+      marketing: {
+        keywords: ['campaign', 'ad', 'click', 'impression', 'conversion', 'lead', 'engagement', 'ctr', 'cpc'],
+        score: 0
+      },
+      operations: {
+        keywords: ['process', 'efficiency', 'production', 'manufacturing', 'quality', 'defect', 'cycle', 'throughput'],
+        score: 0
+      },
+      hr: {
+        keywords: ['employee', 'staff', 'salary', 'performance', 'department', 'hire', 'termination', 'rating'],
+        score: 0
+      },
+      scientific: {
+        keywords: ['experiment', 'sample', 'measurement', 'test', 'result', 'parameter', 'variable', 'observation'],
+        score: 0
+      }
+    };
 
-    const signupsByYear = signupDates.reduce((acc, item) => {
-      const year = item.date.getFullYear();
-      acc[year] = (acc[year] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
+    // Score each data type based on column name matches
+    Object.keys(patterns).forEach(type => {
+      patterns[type].score = patterns[type].keywords.reduce((score, keyword) => {
+        return score + columnNames.filter(col => col.includes(keyword)).length;
+      }, 0);
+    });
 
-    const years = Object.keys(signupsByYear).map(Number).sort();
-    let acquisitionRate = 0;
-    let customerTrend: 'growth' | 'stable' | 'decline' | 'crisis' = 'stable';
+    // Determine the most likely data type
+    const scores = Object.entries(patterns).map(([type, data]) => ({ type, score: data.score }));
+    const bestMatch = scores.reduce((max, current) => current.score > max.score ? current : max);
+    
+    let dataType = bestMatch.score > 0 ? bestMatch.type as any : 'unknown';
+    const confidence = bestMatch.score / columnNames.length;
 
-    if (years.length >= 2) {
-      const latestYear = years[years.length - 1];
-      const previousYear = years[years.length - 2];
-      const currentYearSignups = signupsByYear[latestYear] || 0;
-      const previousYearSignups = signupsByYear[previousYear] || 0;
-      
-      if (previousYearSignups > 0) {
-        acquisitionRate = (currentYearSignups - previousYearSignups) / previousYearSignups;
-        
-        if (acquisitionRate > 0.1) customerTrend = 'growth';
-        else if (acquisitionRate > -0.1) customerTrend = 'stable';
-        else if (acquisitionRate > -0.3) customerTrend = 'decline';
-        else customerTrend = 'crisis';
+    // If no clear match, analyze patterns more deeply
+    if (confidence < 0.3) {
+      if (numericColumns.length > columnNames.length * 0.7) {
+        dataType = 'scientific'; // Mostly numeric = likely scientific/analytical
+      } else if (dateColumns.length > 2) {
+        dataType = 'operations'; // Many dates = likely operational/tracking
+      } else {
+        dataType = 'mixed';
       }
     }
 
-    // Analyze churn risk
-    const churnScores = data
-      .map(row => Number(row.ChurnRiskScore))
-      .filter(score => !isNaN(score));
-    const avgChurnRisk = churnScores.length > 0 ? 
-      churnScores.reduce((a, b) => a + b, 0) / churnScores.length : 0.5;
-
-    // Analyze activity level
-    const currentYear = new Date().getFullYear();
-    const activeCustomers = data.filter(row => {
-      const lastOrder = new Date(row.LastOrderDate || '');
-      return !isNaN(lastOrder.getTime()) && lastOrder.getFullYear() === currentYear;
-    }).length;
-    
-    const activityLevel = data.length > 0 ? activeCustomers / data.length : 0;
-
-    // Analyze revenue stability
-    const revenueValues = data
-      .map(row => Number(row.TotalSpend || row.Revenue || 0))
-      .filter(val => val > 0);
-    const revenueMean = revenueValues.reduce((a, b) => a + b, 0) / revenueValues.length;
-    const revenueVariance = revenueValues.reduce((sum, val) => sum + Math.pow(val - revenueMean, 2), 0) / revenueValues.length;
-    const revenueStability = 1 - (Math.sqrt(revenueVariance) / revenueMean);
-
-    // Identify critical issues
-    const criticalIssues: string[] = [];
-    if (acquisitionRate < -0.2) criticalIssues.push(`Customer acquisition declined ${Math.abs(acquisitionRate * 100).toFixed(1)}%`);
-    if (avgChurnRisk > 0.6) criticalIssues.push(`High average churn risk: ${(avgChurnRisk * 100).toFixed(1)}%`);
-    if (activityLevel < 0.3) criticalIssues.push(`Low customer activity: only ${(activityLevel * 100).toFixed(1)}% active`);
-    const highRiskCustomers = churnScores.filter(score => score > 0.7).length;
-    if (highRiskCustomers > data.length * 0.2) {
-      criticalIssues.push(`${highRiskCustomers} customers (${((highRiskCustomers/data.length)*100).toFixed(1)}%) at high churn risk`);
-    }
-
-    const keyMetrics = {
-      totalCustomers: data.length,
-      activeCustomers,
-      activityRate: activityLevel,
-      avgChurnRisk,
-      acquisitionTrend: acquisitionRate,
-      signupsByYear,
-      highRiskCustomers,
-      avgRevenue: revenueMean
+    // Categorize columns by function
+    const keyColumns = {
+      identifiers: columnNames.filter(col => 
+        col.includes('id') || col.includes('key') || col.includes('code') || col.includes('number')
+      ),
+      dates: dateColumns,
+      metrics: numericColumns.filter(col => 
+        !col.includes('id') && !col.includes('code') && !col.includes('number')
+      ),
+      categories: columns.filter(c => 
+        c.type === 'text' && !c.name.toLowerCase().includes('id') && !c.name.toLowerCase().includes('name')
+      ).map(c => c.name),
+      risks: columnNames.filter(col => 
+        col.includes('risk') || col.includes('score') || col.includes('rating')
+      )
     };
 
-    console.log('Business Health Analysis:', {
-      customerTrend,
-      acquisitionRate: (acquisitionRate * 100).toFixed(1) + '%',
-      avgChurnRisk: (avgChurnRisk * 100).toFixed(1) + '%',
-      activityLevel: (activityLevel * 100).toFixed(1) + '%',
-      criticalIssues
+    // Generate business context and analysis approach
+    const businessContexts = {
+      customer: 'customer lifecycle, retention, and satisfaction metrics',
+      financial: 'financial performance, profitability, and monetary flows',
+      sales: 'sales performance, product demand, and inventory management',
+      marketing: 'campaign effectiveness, customer acquisition, and engagement',
+      operations: 'operational efficiency, process performance, and quality metrics',
+      hr: 'workforce analytics, performance management, and organizational metrics',
+      scientific: 'experimental results, measurements, and research data',
+      mixed: 'multi-domain business metrics and performance indicators',
+      unknown: 'general data patterns and statistical relationships'
+    };
+
+    const analysisApproaches = {
+      customer: 'customer journey analysis, cohort studies, and retention modeling',
+      financial: 'financial ratio analysis, trend analysis, and performance benchmarking',
+      sales: 'sales funnel analysis, demand forecasting, and product performance',
+      marketing: 'campaign ROI analysis, conversion optimization, and attribution modeling',
+      operations: 'process optimization, efficiency analysis, and quality control',
+      hr: 'workforce analytics, performance correlation, and organizational health',
+      scientific: 'statistical hypothesis testing, correlation analysis, and experimental validation',
+      mixed: 'multi-perspective analysis combining domain-specific approaches',
+      unknown: 'exploratory data analysis and pattern discovery'
+    };
+
+    console.log('Dataset Profile:', {
+      dataType,
+      confidence: (confidence * 100).toFixed(1) + '%',
+      keyColumns,
+      scores
     });
 
     return {
-      customerTrend,
-      acquisitionRate,
-      churnRisk: avgChurnRisk,
-      activityLevel,
-      revenueStability: Math.max(0, Math.min(1, revenueStability)),
-      criticalIssues,
-      keyMetrics
+      dataType,
+      confidence,
+      keyColumns,
+      businessContext: businessContexts[dataType],
+      analysisApproach: analysisApproaches[dataType]
     };
   };
 
-  const buildEnhancedAIContext = (data: DataRow[], columns: ColumnInfo[], businessHealth: BusinessHealthMetrics) => {
+  // Universal health analysis - works for any data type
+  const analyzeUniversalHealth = (data: DataRow[], columns: ColumnInfo[], profile: DatasetProfile): UniversalHealthMetrics => {
+    console.log('=== Universal Health Analysis ===');
+    
+    const numericColumns = columns.filter(c => c.type === 'numeric');
+    const riskFactors: string[] = [];
+    const opportunities: string[] = [];
+    const keyInsights: string[] = [];
+    const criticalIssues: string[] = [];
+
+    // Data Quality Assessment
+    let totalCompleteness = 0;
+    const columnCompleteness = columns.map(col => {
+      const nonEmpty = data.filter(row => row[col.name] != null && row[col.name] !== '').length;
+      const completeness = nonEmpty / data.length;
+      totalCompleteness += completeness;
+      
+      if (completeness < 0.8) {
+        riskFactors.push(`${col.name} has ${((1-completeness)*100).toFixed(1)}% missing data`);
+      }
+      
+      return { column: col.name, completeness };
+    });
+    
+    const dataQuality = totalCompleteness / columns.length;
+
+    // Trend Analysis for Numeric Columns
+    let trendDirection: 'improving' | 'stable' | 'declining' | 'volatile' | 'insufficient_data' = 'insufficient_data';
+    
+    if (numericColumns.length > 0 && data.length > 10) {
+      const trends = numericColumns.map(col => {
+        const values = data.map(row => Number(row[col.name])).filter(val => !isNaN(val));
+        if (values.length < 5) return 0;
+        
+        // Simple trend calculation
+        const n = values.length;
+        const x = Array.from({length: n}, (_, i) => i);
+        const meanX = x.reduce((a, b) => a + b, 0) / n;
+        const meanY = values.reduce((a, b) => a + b, 0) / n;
+        
+        const ssXX = x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0);
+        const ssXY = x.reduce((sum, xi, i) => sum + (xi - meanX) * (values[i] - meanY), 0);
+        
+        return ssXX > 0 ? ssXY / ssXX : 0; // slope
+      });
+      
+      const avgTrend = trends.reduce((a, b) => a + b, 0) / trends.length;
+      const trendVariance = trends.reduce((sum, t) => sum + Math.pow(t - avgTrend, 2), 0) / trends.length;
+      
+      if (trendVariance > Math.abs(avgTrend) * 2) {
+        trendDirection = 'volatile';
+        riskFactors.push('High volatility detected in key metrics');
+      } else if (avgTrend > 0.1) {
+        trendDirection = 'improving';
+        opportunities.push('Positive trends detected in multiple metrics');
+      } else if (avgTrend < -0.1) {
+        trendDirection = 'declining';
+        criticalIssues.push('Declining trends detected in key metrics');
+      } else {
+        trendDirection = 'stable';
+      }
+    }
+
+    // Outlier Detection
+    numericColumns.forEach(col => {
+      const values = data.map(row => Number(row[col.name])).filter(val => !isNaN(val));
+      if (values.length > 10) {
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+        const outliers = values.filter(val => Math.abs(val - mean) > 3 * stdDev).length;
+        
+        if (outliers > values.length * 0.05) {
+          riskFactors.push(`${col.name} has ${outliers} potential outliers (${((outliers/values.length)*100).toFixed(1)}%)`);
+        }
+      }
+    });
+
+    // Domain-specific insights
+    if (profile.dataType === 'customer' && profile.keyColumns.risks.length > 0) {
+      const riskCol = profile.keyColumns.risks[0];
+      const riskValues = data.map(row => Number(row[riskCol])).filter(val => !isNaN(val));
+      if (riskValues.length > 0) {
+        const avgRisk = riskValues.reduce((a, b) => a + b, 0) / riskValues.length;
+        const highRisk = riskValues.filter(val => val > 0.7).length;
+        
+        if (avgRisk > 0.5) {
+          criticalIssues.push(`High average risk score: ${(avgRisk * 100).toFixed(1)}%`);
+        }
+        if (highRisk > data.length * 0.2) {
+          criticalIssues.push(`${highRisk} records (${((highRisk/data.length)*100).toFixed(1)}%) at high risk`);
+        }
+      }
+    }
+
+    // Data characteristics
+    const dataCharacteristics = {
+      rowCount: data.length,
+      columnCount: columns.length,
+      numericColumns: numericColumns.length,
+      dateColumns: profile.keyColumns.dates.length,
+      categoricalColumns: profile.keyColumns.categories.length,
+      identifierColumns: profile.keyColumns.identifiers.length,
+      dataType: profile.dataType,
+      confidence: profile.confidence
+    };
+
+    // Generate insights based on data characteristics
+    if (data.length < 50) {
+      riskFactors.push('Limited sample size may affect analysis reliability');
+    }
+    
+    if (numericColumns.length === 0) {
+      riskFactors.push('No numeric columns found for quantitative analysis');
+    }
+    
+    if (profile.keyColumns.dates.length === 0) {
+      opportunities.push('Consider adding timestamp data for temporal analysis');
+    }
+
+    console.log('Universal Health Metrics:', {
+      dataQuality: (dataQuality * 100).toFixed(1) + '%',
+      trendDirection,
+      riskFactors: riskFactors.length,
+      criticalIssues: criticalIssues.length
+    });
+
+    return {
+      dataQuality,
+      trendDirection,
+      riskFactors,
+      opportunities,
+      keyInsights,
+      criticalIssues,
+      dataCharacteristics
+    };
+  };
+
+  const buildAdaptiveAIContext = (
+    data: DataRow[], 
+    columns: ColumnInfo[], 
+    profile: DatasetProfile, 
+    healthMetrics: UniversalHealthMetrics
+  ) => {
     const sampleSize = isAdmin ? 200 : 20;
     const baseContext = buildAIContext(data, columns, fileName, sampleSize, isAdmin);
     
-    // Add business health context
-    const healthContext = `
-CRITICAL BUSINESS HEALTH ANALYSIS:
-Business State: ${businessHealth.customerTrend.toUpperCase()}
-Customer Acquisition Rate: ${(businessHealth.acquisitionRate * 100).toFixed(1)}%
-Average Churn Risk: ${(businessHealth.churnRisk * 100).toFixed(1)}%
-Customer Activity Level: ${(businessHealth.activityLevel * 100).toFixed(1)}%
-Revenue Stability: ${(businessHealth.revenueStability * 100).toFixed(1)}%
+    const adaptiveContext = `
+DATASET PROFILE ANALYSIS:
+Data Type: ${profile.dataType.toUpperCase()} (${(profile.confidence * 100).toFixed(1)}% confidence)
+Business Context: ${profile.businessContext}
+Analysis Approach: ${profile.analysisApproach}
 
-${businessHealth.criticalIssues.length > 0 ? `
+KEY COLUMN CATEGORIES:
+- Identifiers: ${profile.keyColumns.identifiers.join(', ') || 'None detected'}
+- Date Columns: ${profile.keyColumns.dates.join(', ') || 'None detected'}
+- Metric Columns: ${profile.keyColumns.metrics.join(', ') || 'None detected'}
+- Category Columns: ${profile.keyColumns.categories.join(', ') || 'None detected'}
+- Risk/Score Columns: ${profile.keyColumns.risks.join(', ') || 'None detected'}
+
+UNIVERSAL HEALTH ASSESSMENT:
+Data Quality: ${(healthMetrics.dataQuality * 100).toFixed(1)}%
+Trend Direction: ${healthMetrics.trendDirection.toUpperCase()}
+Risk Factors: ${healthMetrics.riskFactors.length}
+Critical Issues: ${healthMetrics.criticalIssues.length}
+
+${healthMetrics.criticalIssues.length > 0 ? `
 🚨 CRITICAL ISSUES DETECTED:
-${businessHealth.criticalIssues.map(issue => `- ${issue}`).join('\n')}
-
-INSTRUCTIONS: These critical issues MUST be prominently featured in your analysis. If the business is in decline or crisis, make this the PRIMARY focus of your report.
+${healthMetrics.criticalIssues.map(issue => `- ${issue}`).join('\n')}
 ` : ''}
 
-KEY METRICS:
-- Total Customers: ${businessHealth.keyMetrics.totalCustomers}
-- Active Customers: ${businessHealth.keyMetrics.activeCustomers}
-- High Risk Customers: ${businessHealth.keyMetrics.highRiskCustomers}
-- Customer Signups by Year: ${JSON.stringify(businessHealth.keyMetrics.signupsByYear)}
+${healthMetrics.riskFactors.length > 0 ? `
+⚠️ RISK FACTORS:
+${healthMetrics.riskFactors.map(risk => `- ${risk}`).join('\n')}
+` : ''}
 
-ANALYSIS REQUIREMENTS:
-1. If customer acquisition is negative, focus on retention and turnaround strategies
-2. If churn risk is >50%, prioritize immediate retention interventions
-3. If activity level is <40%, highlight customer engagement crisis
-4. Always validate business health against the data trends
-5. Provide specific, actionable recommendations based on business state
+${healthMetrics.opportunities.length > 0 ? `
+💡 OPPORTUNITIES:
+${healthMetrics.opportunities.map(opp => `- ${opp}`).join('\n')}
+` : ''}
+
+DATA CHARACTERISTICS:
+${Object.entries(healthMetrics.dataCharacteristics).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
+
+ANALYSIS INSTRUCTIONS:
+1. Adapt your analysis to the detected data type: ${profile.dataType}
+2. Focus on the business context: ${profile.businessContext}
+3. Use appropriate analysis methods: ${profile.analysisApproach}
+4. If critical issues exist, prioritize these in your analysis
+5. Provide domain-specific insights relevant to ${profile.dataType} data
+6. Consider data quality limitations in your recommendations
+7. Structure insights appropriate for the detected data patterns
 `;
 
-    return baseContext + '\n\n' + healthContext;
+    return baseContext + '\n\n' + adaptiveContext;
   };
 
   const generateReport = async () => {
@@ -246,86 +438,85 @@ ANALYSIS REQUIREMENTS:
       return;
     }
 
-    // Check usage limit before proceeding
     const canProceed = await decrementUsage();
     if (!canProceed) return;
 
     setIsGenerating(true);
 
     try {
-      // Analyze business health first
-      const businessHealth = analyzeBusinessHealth(filteredData);
+      // Smart dataset profiling
+      const datasetProfile = profileDataset(filteredData, columns);
       
-      // Prepare enhanced data context with business health insights
-      const enhancedContext = buildEnhancedAIContext(filteredData, columns, businessHealth);
+      // Universal health analysis
+      const healthMetrics = analyzeUniversalHealth(filteredData, columns, datasetProfile);
+      
+      // Build adaptive context
+      const adaptiveContext = buildAdaptiveAIContext(filteredData, columns, datasetProfile, healthMetrics);
+      
+      // Get dynamic prompt based on data type and persona
       const selectedPersonaConfig = personas.find(p => p.value === selectedPersona);
+      const dynamicPrompt = selectedPersonaConfig?.getPrompt(datasetProfile) || selectedPersonaConfig?.description || '';
       
-      // Build comprehensive prompt with business health awareness
-      const systemPrompt = `${selectedPersonaConfig?.prompt}
+      const systemPrompt = `${dynamicPrompt}
 
-CRITICAL: The business health analysis shows this company is in "${businessHealth.customerTrend}" state with ${businessHealth.criticalIssues.length} critical issues.
+CRITICAL ANALYSIS FRAMEWORK:
+- Dataset Type: ${datasetProfile.dataType} 
+- Quality Level: ${(healthMetrics.dataQuality * 100).toFixed(1)}%
+- Trend Status: ${healthMetrics.trendDirection}
 
-${businessHealth.criticalIssues.length > 0 ? `
-🚨 URGENT BUSINESS HEALTH ALERTS:
-${businessHealth.criticalIssues.map(issue => `- ${issue}`).join('\n')}
-
-Your analysis MUST lead with these critical findings and provide emergency recommendations.
+${healthMetrics.criticalIssues.length > 0 ? `
+🚨 PRIORITY: Address these critical issues first:
+${healthMetrics.criticalIssues.map(issue => `- ${issue}`).join('\n')}
 ` : ''}
 
-ANALYSIS FRAMEWORK:
-1. Business Health Assessment (lead with this if critical issues exist)
-2. Data Quality and Completeness
-3. Key Performance Indicators
-4. Trend Analysis (customer, revenue, satisfaction)
-5. Risk Assessment (churn, satisfaction, activity)
-6. Actionable Recommendations (priority: emergency actions if in decline/crisis)
-7. Strategic Next Steps
-
 OUTPUT REQUIREMENTS:
-- Use clear headers and bullet points for readability
-- Quantify all insights with specific numbers and percentages
-- If business is declining/crisis: focus 60% of report on urgent issues and solutions
-- If business is stable/growing: balance analysis across all areas
-- Always include confidence levels for your recommendations
-- Provide specific, measurable action items
+- Adapt analysis depth to data type and business context
+- Use domain-appropriate terminology and KPIs
+- If quality issues exist, discuss data reliability limitations
+- Provide actionable recommendations specific to ${datasetProfile.dataType} domain
+- Structure findings based on ${datasetProfile.analysisApproach}
+- Include confidence levels based on data quality and sample size
 `;
 
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
         body: {
-          dataContext: enhancedContext,
+          dataContext: adaptiveContext,
           persona: selectedPersona,
           systemPrompt: systemPrompt,
-          businessHealth: businessHealth
+          datasetProfile: datasetProfile,
+          healthMetrics: healthMetrics
         }
       });
 
       if (error) throw error;
 
-      // Add business health alert to metadata if critical issues exist
       const enhancedResponse = {
         ...response,
-        businessHealth,
+        datasetProfile,
+        healthMetrics,
         metadata: {
           ...response.metadata,
-          businessHealthAlert: businessHealth.criticalIssues.length > 0 ? 
-            `BUSINESS HEALTH ALERT: ${businessHealth.customerTrend.toUpperCase()} - ${businessHealth.criticalIssues.length} critical issues detected` : 
+          dataTypeDetected: `${datasetProfile.dataType} (${(datasetProfile.confidence * 100).toFixed(1)}% confidence)`,
+          qualityAlert: healthMetrics.criticalIssues.length > 0 ? 
+            `${healthMetrics.criticalIssues.length} critical issues detected` : 
+            healthMetrics.dataQuality < 0.8 ? 
+            `Data quality: ${(healthMetrics.dataQuality * 100).toFixed(1)}%` : 
             undefined
         }
       };
 
       setReportData(enhancedResponse);
       
-      // Show warning toast if critical issues detected
-      if (businessHealth.criticalIssues.length > 0) {
+      if (healthMetrics.criticalIssues.length > 0) {
         toast({
-          title: "⚠️ Critical Business Issues Detected",
-          description: `${businessHealth.criticalIssues.length} urgent issues found. Check the detailed report.`,
+          title: "⚠️ Critical Issues Detected",
+          description: `${healthMetrics.criticalIssues.length} issues found in ${datasetProfile.dataType} data`,
           variant: "destructive",
         });
       } else {
         toast({
           title: "Report Generated",
-          description: "Your AI summary report is ready!",
+          description: `${datasetProfile.dataType} data analysis complete!`,
         });
       }
 
@@ -344,27 +535,29 @@ OUTPUT REQUIREMENTS:
   const exportReport = () => {
     if (!reportData) return;
 
-    const businessHealthSummary = reportData.businessHealth ? `
-Business Health Assessment:
-- State: ${reportData.businessHealth.customerTrend.toUpperCase()}
-- Customer Acquisition Rate: ${(reportData.businessHealth.acquisitionRate * 100).toFixed(1)}%
-- Average Churn Risk: ${(reportData.businessHealth.churnRisk * 100).toFixed(1)}%
-- Customer Activity Level: ${(reportData.businessHealth.activityLevel * 100).toFixed(1)}%
-${reportData.businessHealth.criticalIssues.length > 0 ? `
+    const profileSummary = reportData.datasetProfile ? `
+Dataset Profile:
+- Type: ${reportData.datasetProfile.dataType} (${(reportData.datasetProfile.confidence * 100).toFixed(1)}% confidence)
+- Business Context: ${reportData.datasetProfile.businessContext}
+- Analysis Approach: ${reportData.datasetProfile.analysisApproach}
+
+Universal Health Metrics:
+- Data Quality: ${(reportData.healthMetrics?.dataQuality || 0 * 100).toFixed(1)}%
+- Trend Direction: ${reportData.healthMetrics?.trendDirection || 'unknown'}
+${reportData.healthMetrics?.criticalIssues && reportData.healthMetrics.criticalIssues.length > 0 ? `
 Critical Issues:
-${reportData.businessHealth.criticalIssues.map(issue => `- ${issue}`).join('\n')}
+${reportData.healthMetrics.criticalIssues.map(issue => `- ${issue}`).join('\n')}
 ` : ''}
 ` : '';
 
-    const reportText = `AI Summary Report
+    const reportText = `AI Summary Report - Dynamic Analysis
 Generated: ${new Date(reportData.metadata.generatedAt).toLocaleString()}
 Dataset: ${fileName || 'Uploaded Data'}
 Persona: ${personas.find(p => p.value === reportData.metadata.persona)?.label}
-${reportData.metadata.businessHealthAlert ? `
-🚨 ${reportData.metadata.businessHealthAlert}
-` : ''}
+${reportData.metadata.dataTypeDetected ? `Data Type: ${reportData.metadata.dataTypeDetected}` : ''}
+${reportData.metadata.qualityAlert ? `Quality Alert: ${reportData.metadata.qualityAlert}` : ''}
 
-${businessHealthSummary}
+${profileSummary}
 
 ${reportData.report}
 
@@ -379,7 +572,7 @@ Report Metadata:
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ai-report-${fileName || 'data'}-${reportData.metadata.persona}-${Date.now()}.txt`;
+    a.download = `ai-report-${reportData.datasetProfile?.dataType || 'data'}-${reportData.metadata.persona}-${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -417,7 +610,6 @@ Report Metadata:
 
   return (
     <div className="space-y-6">
-      {/* Date Range Filter */}
       <DateRangeFilter
         data={data}
         columns={columns}
@@ -431,7 +623,7 @@ Report Metadata:
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
-            AI Summary Report
+            Dynamic AI Analysis
             {isAdmin && (
               <Badge variant="default" className="text-xs bg-purple-500">
                 Admin Mode - Unlimited
@@ -444,8 +636,8 @@ Report Metadata:
                 Enhanced AI
               </Badge>
             )}
-            <Badge variant="default" className="text-xs bg-green-600">
-              Business Health Analysis
+            <Badge variant="default" className="text-xs bg-blue-600">
+              Smart Data Profiling
             </Badge>
             <DataSamplingInfo 
               totalRows={filteredData.length} 
@@ -462,7 +654,7 @@ Report Metadata:
         </div>
         <div className="space-y-2">
           <p className="text-gray-600">
-            Generate comprehensive insights with advanced business health analysis and crisis detection.
+            Intelligent analysis that adapts to your data type - automatically detects customer, financial, sales, marketing, operations, HR, or scientific data.
             {filteredData.length !== data.length && (
               <span className="font-medium"> Currently analyzing: {filterSummary}</span>
             )}
@@ -506,13 +698,13 @@ Report Metadata:
 
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Ready to analyze {filteredData.length.toLocaleString()} rows and {columns.length} columns with business health assessment
+              Smart analysis for {filteredData.length.toLocaleString()} rows and {columns.length} columns
             </div>
             <Button 
               onClick={generateReport} 
               disabled={isGenerating || (!isAdmin && usesRemaining <= 0)}
               className="flex items-center gap-2"
-              title={(!isAdmin && usesRemaining <= 0) ? "No AI uses remaining" : "Generate enhanced AI report with business health analysis"}
+              title={(!isAdmin && usesRemaining <= 0) ? "No AI uses remaining" : "Generate adaptive AI analysis"}
             >
               {isGenerating ? (
                 <>
@@ -532,17 +724,17 @@ Report Metadata:
 
       {reportData && (
         <Card className="p-6">
-          {/* Business Health Alert */}
-          {reportData.metadata.businessHealthAlert && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          {/* Quality/Critical Issues Alert */}
+          {reportData.metadata.qualityAlert && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-                <span className="font-semibold text-red-800">Business Health Alert</span>
+                <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                <span className="font-semibold text-yellow-800">Data Quality Alert</span>
               </div>
-              <p className="text-red-700 text-sm">{reportData.metadata.businessHealthAlert}</p>
-              {reportData.businessHealth?.criticalIssues && reportData.businessHealth.criticalIssues.length > 0 && (
-                <ul className="mt-2 text-sm text-red-600">
-                  {reportData.businessHealth.criticalIssues.map((issue, index) => (
+              <p className="text-yellow-700 text-sm">{reportData.metadata.qualityAlert}</p>
+              {reportData.healthMetrics?.criticalIssues && reportData.healthMetrics.criticalIssues.length > 0 && (
+                <ul className="mt-2 text-sm text-yellow-600">
+                  {reportData.healthMetrics.criticalIssues.map((issue, index) => (
                     <li key={index} className="flex items-center gap-1">
                       <span>•</span> {issue}
                     </li>
@@ -552,16 +744,43 @@ Report Metadata:
             </div>
           )}
 
+          {/* Dataset Profile Summary */}
+          {reportData.datasetProfile && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Brain className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-blue-800">Dataset Profile</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <span className="font-medium">Data Type: </span>
+                  <span className="text-blue-700">{reportData.datasetProfile.dataType}</span>
+                  <span className="text-blue-600 ml-1">({(reportData.datasetProfile.confidence * 100).toFixed(1)}%)</span>
+                </div>
+                <div>
+                  <span className="font-medium">Quality: </span>
+                  <span className={`${(reportData.healthMetrics?.dataQuality || 0) > 0.8 ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {((reportData.healthMetrics?.dataQuality || 0) * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium">Trend: </span>
+                  <span className={`${reportData.healthMetrics?.trendDirection === 'declining' ? 'text-red-600' : reportData.healthMetrics?.trendDirection === 'improving' ? 'text-green-600' : 'text-gray-600'}`}>
+                    {reportData.healthMetrics?.trendDirection || 'unknown'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="text-lg font-semibold">Analysis Report</h4>
+              <h4 className="text-lg font-semibold">Dynamic Analysis Report</h4>
               <p className="text-sm text-gray-600">
                 Generated on {new Date(reportData.metadata.generatedAt).toLocaleString()} • 
                 {personas.find(p => p.value === reportData.metadata.persona)?.label} perspective
-                {reportData.businessHealth && (
-                  <span className="ml-2 font-medium">
-                    • Business State: {reportData.businessHealth.customerTrend.toUpperCase()}
-                  </span>
+                {reportData.metadata.dataTypeDetected && (
+                  <span className="ml-2 font-medium">• {reportData.metadata.dataTypeDetected}</span>
                 )}
               </p>
             </div>
@@ -617,39 +836,6 @@ Report Metadata:
                 <div className="text-gray-600">{personas.find(p => p.value === reportData.metadata.persona)?.label}</div>
               </div>
             </div>
-
-            {/* Business Health Summary */}
-            {reportData.businessHealth && (
-              <div className="mt-4 pt-4 border-t">
-                <h5 className="font-medium mb-2">Business Health Summary</h5>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                  <div>
-                    <div className="font-medium">Customer Trend</div>
-                    <div className={`${reportData.businessHealth.customerTrend === 'decline' || reportData.businessHealth.customerTrend === 'crisis' ? 'text-red-600' : 'text-gray-600'}`}>
-                      {reportData.businessHealth.customerTrend.toUpperCase()}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-medium">Acquisition Rate</div>
-                    <div className={`${reportData.businessHealth.acquisitionRate < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {(reportData.businessHealth.acquisitionRate * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-medium">Churn Risk</div>
-                    <div className={`${reportData.businessHealth.churnRisk > 0.5 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {(reportData.businessHealth.churnRisk * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-medium">Activity Level</div>
-                    <div className={`${reportData.businessHealth.activityLevel < 0.4 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {(reportData.businessHealth.activityLevel * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </Card>
       )}
