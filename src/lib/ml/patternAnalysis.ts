@@ -1,3 +1,4 @@
+
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
 export function detectCorrelationPatterns(data: DataRow[], columns: ColumnInfo[]): any[] {
@@ -109,4 +110,16 @@ export function detectCategoricalPatterns(data: DataRow[], columns: ColumnInfo[]
   });
   
   return patterns;
+}
+
+// Main export function that combines all pattern discovery methods
+export function discoverPatterns(data: DataRow[], columns: ColumnInfo[]): { patterns: any[] } {
+  const allPatterns: any[] = [];
+  
+  // Combine all pattern detection methods
+  allPatterns.push(...detectCorrelationPatterns(data, columns));
+  allPatterns.push(...detectTemporalPatterns(data, columns));
+  allPatterns.push(...detectCategoricalPatterns(data, columns));
+  
+  return { patterns: allPatterns };
 }

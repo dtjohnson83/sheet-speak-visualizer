@@ -1,6 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { useAIAgents } from '@/hooks/useAIAgents';
 
 export interface DataQualityMetrics {
   completeness: number;
@@ -27,7 +28,8 @@ export interface QualityTrend {
   issues: number;
 }
 
-export const useDataQualityAgent = () => {
+export const useDataQualityAgent = (fileName: string) => {
+  const { agents, createAgent, isCreatingAgent } = useAIAgents();
   const [metrics, setMetrics] = useState<DataQualityMetrics>({
     completeness: 0,
     consistency: 0,
@@ -39,6 +41,40 @@ export const useDataQualityAgent = () => {
   const [issues, setIssues] = useState<QualityIssue[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [trends, setTrends] = useState<QualityTrend[]>([]);
+  const [qualityTrends, setQualityTrends] = useState<QualityTrend[]>([]);
+
+  // Find the data quality agent for this file
+  const agent = agents.find(a => a.type === 'data_quality' && a.name.includes(fileName));
+
+  const createDataQualityAgent = useCallback(async () => {
+    return await createAgent({
+      name: `Data Quality Agent - ${fileName}`,
+      type: 'data_quality',
+      description: `Automated data quality monitoring for ${fileName}`,
+      configuration: {
+        analysis_frequency: 'daily',
+        thresholds: {
+          completeness: 0.95,
+          consistency: 0.9,
+          accuracy: 0.95
+        },
+        notifications: {
+          email: []
+        }
+      },
+      capabilities: ['quality_assessment', 'anomaly_detection', 'trend_analysis']
+    });
+  }, [createAgent, fileName]);
+
+  const scheduleQualityCheck = useCallback(async (scheduleTime: 'now' | string) => {
+    console.log(`Scheduling quality check for ${scheduleTime}`);
+    // Implementation would schedule the quality check
+  }, []);
+
+  const handleReportGenerated = useCallback(async (report: any) => {
+    console.log('Quality report generated:', report);
+    // Handle the generated report
+  }, []);
 
   const analyzeDataQuality = useCallback(async (
     data: DataRow[],
@@ -146,6 +182,11 @@ export const useDataQualityAgent = () => {
         return updated.slice(-30); // Keep last 30 days
       });
 
+      setQualityTrends(prev => {
+        const updated = [...prev, newTrend];
+        return updated.slice(-30); // Keep last 30 days
+      });
+
       console.log('Data quality analysis completed:', {
         metrics: newMetrics,
         issues: qualityIssues.length,
@@ -172,6 +213,12 @@ export const useDataQualityAgent = () => {
   }, [trends]);
 
   return {
+    agent,
+    isCreatingAgent,
+    qualityTrends,
+    createDataQualityAgent,
+    scheduleQualityCheck,
+    handleReportGenerated,
     metrics,
     issues,
     isAnalyzing,
