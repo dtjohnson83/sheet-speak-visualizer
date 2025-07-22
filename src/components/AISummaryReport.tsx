@@ -13,51 +13,12 @@ import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
 import { exportAIReportToPDF } from '@/utils/pdf';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
+import { UnifiedReportData, DatasetProfile, UniversalHealthMetrics } from '@/types/reportTypes';
 
 interface AISummaryReportProps {
   data: DataRow[];
   columns: ColumnInfo[];
   fileName?: string;
-}
-
-interface DatasetProfile {
-  dataType: 'customer' | 'financial' | 'sales' | 'marketing' | 'operations' | 'hr' | 'scientific' | 'mixed' | 'unknown';
-  confidence: number;
-  keyColumns: {
-    identifiers: string[];
-    dates: string[];
-    metrics: string[];
-    categories: string[];
-    risks: string[];
-  };
-  businessContext: string;
-  analysisApproach: string;
-}
-
-interface UniversalHealthMetrics {
-  dataQuality: number;
-  trendDirection: 'improving' | 'stable' | 'declining' | 'volatile' | 'insufficient_data';
-  riskFactors: string[];
-  opportunities: string[];
-  keyInsights: string[];
-  criticalIssues: string[];
-  dataCharacteristics: Record<string, any>;
-}
-
-interface ReportData {
-  report: string;
-  datasetProfile?: DatasetProfile;
-  healthMetrics?: UniversalHealthMetrics;
-  metadata: {
-    totalRows: number;
-    totalColumns: number;
-    columnTypes: Record<string, number>;
-    dataCompleteness: Array<{ column: string; completeness: number }>;
-    persona: string;
-    generatedAt: string;
-    dataTypeDetected?: string;
-    qualityAlert?: string;
-  };
 }
 
 const personas = [
@@ -101,7 +62,7 @@ const personas = [
 export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState('general');
-  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [reportData, setReportData] = useState<UnifiedReportData | null>(null);
   const [filteredData, setFilteredData] = useState<DataRow[]>(data);
   const [filterSummary, setFilterSummary] = useState<string>(`All ${data.length.toLocaleString()} rows`);
   const { toast } = useToast();
@@ -490,12 +451,18 @@ OUTPUT REQUIREMENTS:
 
       if (error) throw error;
 
-      const enhancedResponse = {
-        ...response,
+      // Create unified report data with proper structure
+      const unifiedReportData: UnifiedReportData = {
+        report: response.report,
         datasetProfile,
         healthMetrics,
         metadata: {
-          ...response.metadata,
+          totalRows: response.metadata?.totalRows || filteredData.length,
+          totalColumns: response.metadata?.totalColumns || columns.length,
+          columnTypes: response.metadata?.columnTypes || {},
+          dataCompleteness: response.metadata?.dataCompleteness || [],
+          persona: selectedPersona,
+          generatedAt: response.metadata?.generatedAt || new Date().toISOString(),
           dataTypeDetected: `${datasetProfile.dataType} (${(datasetProfile.confidence * 100).toFixed(1)}% confidence)`,
           qualityAlert: healthMetrics.criticalIssues.length > 0 ? 
             `${healthMetrics.criticalIssues.length} critical issues detected` : 
@@ -505,7 +472,7 @@ OUTPUT REQUIREMENTS:
         }
       };
 
-      setReportData(enhancedResponse);
+      setReportData(unifiedReportData);
       
       if (healthMetrics.criticalIssues.length > 0) {
         toast({
@@ -592,7 +559,7 @@ Report Metadata:
       console.error('Error exporting report to PDF:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export report to PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to export report to PDF. Please try again.",
         variant: "destructive",
       });
     }
@@ -826,8 +793,9 @@ Report Metadata:
                 <div className="font-medium">Data Quality</div>
                 <div className="text-gray-600">
                   {Math.round(
-                    reportData.metadata.dataCompleteness.reduce((sum, dc) => sum + dc.completeness, 0) / 
-                    reportData.metadata.dataCompleteness.length
+                    reportData.metadata.dataCompleteness.length > 0 
+                      ? reportData.metadata.dataCompleteness.reduce((sum, dc) => sum + dc.completeness, 0) / reportData.metadata.dataCompleteness.length
+                      : 0
                   )}% complete
                 </div>
               </div>
