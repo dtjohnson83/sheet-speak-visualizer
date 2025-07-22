@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -21,24 +22,14 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Bot } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
-import { AgentType, AgentCapability } from '@/types/agents';
+import { AgentType } from '@/types/agents';
 import { DatasetSelector } from './DatasetSelector';
 
 const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = [
   {
-    value: 'monitoring',
-    label: 'Data Monitoring',
-    description: 'Continuously monitors data for changes and patterns'
-  },
-  {
-    value: 'insight_generation',
-    label: 'Insight Generation',
-    description: 'Automatically generates insights from data analysis'
-  },
-  {
-    value: 'visualization',
-    label: 'Visualization',
-    description: 'Creates optimal chart recommendations and visualizations'
+    value: 'data_quality',
+    label: 'Data Quality Monitor',
+    description: 'Monitors data completeness, accuracy, and consistency'
   },
   {
     value: 'anomaly_detection',
@@ -51,18 +42,18 @@ const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = 
     description: 'Analyzes trends and forecasts future patterns'
   },
   {
-    value: 'correlation_discovery',
-    label: 'Correlation Discovery',
-    description: 'Finds relationships and correlations between variables'
+    value: 'predictive_analytics',
+    label: 'Predictive Analytics',
+    description: 'Creates predictive models and forecasts'
   },
   {
-    value: 'data_quality',
-    label: 'Data Quality Monitor',
-    description: 'Monitors data quality issues and generates quality reports'
+    value: 'report_automation',
+    label: 'Report Automation',
+    description: 'Automates Excel report generation and distribution'
   }
 ];
 
-const CAPABILITIES: { value: AgentCapability; label: string }[] = [
+const CAPABILITIES: { value: string; label: string }[] = [
   { value: 'data_analysis', label: 'Data Analysis' },
   { value: 'pattern_recognition', label: 'Pattern Recognition' },
   { value: 'statistical_analysis', label: 'Statistical Analysis' },
@@ -83,8 +74,8 @@ export const CreateAgentDialog = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<AgentType>('monitoring');
-  const [capabilities, setCapabilities] = useState<AgentCapability[]>([]);
+  const [type, setType] = useState<AgentType>('data_quality');
+  const [capabilities, setCapabilities] = useState<string[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<string>('');
   
   const { createAgent, isCreatingAgent } = useAIAgents();
@@ -115,13 +106,13 @@ export const CreateAgentDialog = () => {
     // Reset form
     setName('');
     setDescription('');
-    setType('monitoring');
+    setType('data_quality');
     setCapabilities([]);
     setSelectedDataset('');
     setOpen(false);
   };
 
-  const toggleCapability = (capability: AgentCapability) => {
+  const toggleCapability = (capability: string) => {
     setCapabilities(prev => 
       prev.includes(capability) 
         ? prev.filter(c => c !== capability)

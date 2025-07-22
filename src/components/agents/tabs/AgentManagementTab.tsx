@@ -4,26 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Bot, Play, Pause, Trash2, TrashIcon } from 'lucide-react';
-import { AIAgent } from '@/types/agents';
+import { Agent } from '@/types/agents';
 import { CreateAgentDialog } from '../CreateAgentDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AgentManagementTabProps {
-  agents: AIAgent[];
-  onToggleAgent: (agent: AIAgent) => void;
+  agents: Agent[];
+  onCreateAgent: (config: any) => void;
+  onUpdateStatus: (params: { agentId: string; status: string }) => void;
   onDeleteAgent: (agentId: string) => void;
-  onDeleteAllAgents: () => void;
-  isDeletingAgent: boolean;
-  isDeletingAllAgents: boolean;
+  onDeleteAll: () => void;
+  onTriggerProcessor: () => void;
 }
 
 export const AgentManagementTab = ({ 
   agents, 
-  onToggleAgent, 
+  onCreateAgent,
+  onUpdateStatus,
   onDeleteAgent, 
-  onDeleteAllAgents,
-  isDeletingAgent,
-  isDeletingAllAgents
+  onDeleteAll,
+  onTriggerProcessor
 }: AgentManagementTabProps) => {
   const getAgentIcon = (type: string) => {
     switch (type) {
@@ -47,6 +47,11 @@ export const AgentManagementTab = ({
 
   const getTypeLabel = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const handleToggleAgent = (agent: Agent) => {
+    const newStatus = agent.status === 'active' ? 'paused' : 'active';
+    onUpdateStatus({ agentId: agent.id, status: newStatus });
   };
 
   return (
@@ -82,11 +87,10 @@ export const AgentManagementTab = ({
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction 
-                      onClick={onDeleteAllAgents}
-                      disabled={isDeletingAllAgents}
+                      onClick={onDeleteAll}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      {isDeletingAllAgents ? 'Deleting...' : 'Delete All'}
+                      Delete All
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -132,7 +136,7 @@ export const AgentManagementTab = ({
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => onToggleAgent(agent)}
+                      onClick={() => handleToggleAgent(agent)}
                     >
                       {agent.status === 'active' ? (
                         <>
@@ -151,7 +155,6 @@ export const AgentManagementTab = ({
                         <Button 
                           size="sm" 
                           variant="outline"
-                          disabled={isDeletingAgent}
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />

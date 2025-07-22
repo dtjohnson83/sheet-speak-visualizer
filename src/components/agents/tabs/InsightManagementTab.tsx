@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,18 +11,18 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface InsightManagementTabProps {
   insights: AgentInsight[];
-  onMarkInsightRead: (insightId: string) => void;
-  onDeleteInsight: (insightId: string) => void;
-  onClearAllInsights: (type?: 'read' | 'all') => void;
+  onMarkRead: (insightId: string) => void;
+  onDelete: (insightId: string) => void;
+  onClearAll: (type?: 'read' | 'all') => void;
   isDeletingInsight: boolean;
   isClearingAllInsights: boolean;
 }
 
 export const InsightManagementTab = ({ 
   insights, 
-  onMarkInsightRead, 
-  onDeleteInsight, 
-  onClearAllInsights,
+  onMarkRead: onMarkInsightRead, 
+  onDelete: onDeleteInsight, 
+  onClearAll: onClearAllInsights,
   isDeletingInsight,
   isClearingAllInsights
 }: InsightManagementTabProps) => {

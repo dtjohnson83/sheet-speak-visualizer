@@ -11,16 +11,20 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface TaskManagementTabProps {
   tasks: AgentTask[];
-  onDeleteTask: (taskId: string) => void;
-  onClearAllTasks: (status?: 'completed' | 'failed' | 'all') => void;
+  onCreate: (params: any) => void;
+  onDelete: (taskId: string) => void;
+  onClearAll: (status?: 'completed' | 'failed' | 'all') => void;
+  onScheduleForDataset: (datasetId: string) => void;
   isDeletingTask: boolean;
   isClearingAllTasks: boolean;
 }
 
 export const TaskManagementTab = ({ 
   tasks, 
-  onDeleteTask, 
-  onClearAllTasks,
+  onCreate,
+  onDelete: onDeleteTask, 
+  onClearAll: onClearAllTasks,
+  onScheduleForDataset,
   isDeletingTask,
   isClearingAllTasks
 }: TaskManagementTabProps) => {

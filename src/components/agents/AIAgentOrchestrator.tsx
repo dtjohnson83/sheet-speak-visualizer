@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,7 +43,13 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     deleteInsight,
     clearAllInsights,
     triggerProcessor,
-    scheduleTasksForDataset
+    scheduleTasksForDataset,
+    isDeletingAgent,
+    isDeletingAllAgents,
+    isDeletingTask,
+    isClearingAllTasks,
+    isDeletingInsight,
+    isClearingAllInsights
   } = useAIAgents();
 
   const handleCreateAgent = (type: string) => {
@@ -187,19 +192,21 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
         <TaskManagementTab
           tasks={tasks}
-          agents={agents}
           onCreate={createTask}
           onDelete={deleteTask}
           onClearAll={clearAllTasks}
           onScheduleForDataset={scheduleTasksForDataset}
+          isDeletingTask={isDeletingTask}
+          isClearingAllTasks={isClearingAllTasks}
         />
 
         <InsightManagementTab
           insights={insights}
-          agents={agents}
           onMarkRead={markInsightRead}
           onDelete={deleteInsight}
           onClearAll={clearAllInsights}
+          isDeletingInsight={isDeletingInsight}
+          isClearingAllInsights={isClearingAllInsights}
         />
 
         <ReportAutomationTab />
