@@ -13,10 +13,14 @@ import {
   Target,
   AlertTriangle,
   CheckCircle,
-  Activity
+  Activity,
+  Brain,
+  Zap,
+  LineChart
 } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { usePredictiveAnalytics, BusinessPrediction, BusinessScenario } from '@/hooks/usePredictiveAnalytics';
+import { BusinessPrediction, BusinessScenario } from '@/hooks/usePredictiveAnalytics';
+import { useEnhancedPredictiveAnalytics } from '@/hooks/useEnhancedPredictiveAnalytics';
 import { BusinessForecastChart } from './BusinessForecastChart';
 import { ScenarioComparison } from './ScenarioComparison';
 import { PredictiveInsights } from './PredictiveInsights';
@@ -32,31 +36,37 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
   const [predictions, setPredictions] = useState<BusinessPrediction[]>([]);
   const [scenarios, setScenarios] = useState<BusinessScenario[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [forecastResults, setForecastResults] = useState<Map<string, any>>(new Map());
+  const [businessHealth, setBusinessHealth] = useState<any>(null);
   
-  const { isAnalyzing, analysisProgress, runPredictiveAnalysis } = usePredictiveAnalytics();
+  const { isAnalyzing, analysisProgress, runEnhancedPredictiveAnalysis } = useEnhancedPredictiveAnalytics();
   const { toast } = useToast();
 
-  const handleRunAnalysis = async () => {
-    console.log('Generate predictions button clicked!');
+  const handleRunEnhancedAnalysis = async () => {
+    console.log('Enhanced predictions button clicked!');
     console.log('Data available:', { dataRows: data.length, columns: columns.length });
     
     try {
-      const result = await runPredictiveAnalysis(data, columns);
-      console.log('Analysis result:', result);
+      const result = await runEnhancedPredictiveAnalysis(data, columns);
+      console.log('Enhanced analysis result:', result);
       
       setPredictions(result.predictions);
       setScenarios(result.scenarios);
       setInsights(result.insights);
+      setRecommendations(result.recommendations);
+      setForecastResults(result.forecastResults);
+      setBusinessHealth(result.businessHealth);
       
       toast({
-        title: "Predictive Analysis Complete",
-        description: `Generated ${result.predictions.length} predictions and ${result.scenarios.length} scenarios.`,
+        title: "Enhanced Predictive Analysis Complete",
+        description: `Generated ${result.predictions.length} predictions with advanced forecasting methods.`,
       });
     } catch (error) {
-      console.error('Analysis failed:', error);
+      console.error('Enhanced analysis failed:', error);
       toast({
         title: "Analysis Failed",
-        description: "Unable to complete predictive analysis. Please try again.",
+        description: "Unable to complete enhanced predictive analysis. Please try again.",
         variant: "destructive",
       });
     }
@@ -106,26 +116,50 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
     }
   };
 
+  const getModelAccuracyBadge = (prediction: BusinessPrediction) => {
+    const r2Score = prediction.metadata?.r2Score || prediction.confidence;
+    if (r2Score > 0.8) return <Badge variant="default" className="bg-green-600">High Accuracy</Badge>;
+    if (r2Score > 0.6) return <Badge variant="secondary">Good Accuracy</Badge>;
+    if (r2Score > 0.4) return <Badge variant="outline">Fair Accuracy</Badge>;
+    return <Badge variant="destructive">Low Accuracy</Badge>;
+  };
+
+  const getForecastMethodBadge = (method: string) => {
+    const methodLabels = {
+      'linear': 'Linear Regression',
+      'exponential': 'Exponential Smoothing',
+      'seasonal': 'Seasonal Decomposition',
+      'arima-simple': 'ARIMA Model'
+    };
+    
+    return (
+      <Badge variant="outline" className="text-xs">
+        <Brain className="h-3 w-3 mr-1" />
+        {methodLabels[method as keyof typeof methodLabels] || method}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Enhanced Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Business Intelligence Predictive Analytics
+                <Zap className="h-5 w-5 text-purple-500" />
+                Enhanced Predictive Analytics
               </CardTitle>
               <CardDescription>
-                AI-powered forecasting and business intelligence insights
+                Advanced AI-powered forecasting with ARIMA, exponential smoothing, and seasonal decomposition
               </CardDescription>
             </div>
             
             <Button
-              onClick={handleRunAnalysis}
+              onClick={handleRunEnhancedAnalysis}
               disabled={isAnalyzing || data.length === 0}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
             >
               {isAnalyzing ? (
                 <>
@@ -134,8 +168,8 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
                 </>
               ) : (
                 <>
-                  <Target className="h-4 w-4" />
-                  Generate Predictions
+                  <Brain className="h-4 w-4" />
+                  Generate Enhanced Predictions
                 </>
               )}
             </Button>
@@ -146,10 +180,13 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Analysis Progress</span>
+                <span>Enhanced Analysis Progress</span>
                 <span>{analysisProgress}%</span>
               </div>
               <Progress value={analysisProgress} className="h-2" />
+              <div className="text-xs text-muted-foreground">
+                Running advanced statistical models and seasonal decomposition...
+              </div>
             </div>
           </CardContent>
         )}
@@ -157,19 +194,18 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
 
       {predictions.length > 0 && (
         <Tabs defaultValue="predictions" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="predictions">Predictions</TabsTrigger>
-            <TabsTrigger value="forecasts">Forecasts</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="predictions">Enhanced Predictions</TabsTrigger>
+            <TabsTrigger value="forecasts">Statistical Models</TabsTrigger>
             <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
           </TabsList>
           
           <TabsContent value="predictions" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {predictions.map((prediction) => (
-                <Card key={prediction.id} className="relative overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-1 h-full ${getImpactColor(prediction.impact)}`} />
-                  
+                <Card key={prediction.id} className="relative overflow-hidden border-l-4 border-l-purple-500">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
@@ -193,14 +229,39 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
                         <span className="text-2xl font-bold">
                           {formatPredictionValue(prediction)}
                         </span>
-                        <Badge variant="secondary" className="text-xs">
-                          {(prediction.confidence * 100).toFixed(0)}% confidence
-                        </Badge>
+                        {getModelAccuracyBadge(prediction)}
                       </div>
                       
                       <p className="text-sm text-muted-foreground">
                         {prediction.description}
                       </p>
+                      
+                      {/* Enhanced metadata display */}
+                      <div className="space-y-2">
+                        {prediction.metadata?.forecastMethod && (
+                          <div className="flex justify-between items-center">
+                            {getForecastMethodBadge(prediction.metadata.forecastMethod)}
+                            {prediction.metadata.r2Score && (
+                              <span className="text-xs text-muted-foreground">
+                                R² = {(prediction.metadata.r2Score * 100).toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        
+                        {prediction.metadata?.mape && (
+                          <div className="text-xs text-muted-foreground">
+                            MAPE: {prediction.metadata.mape.toFixed(1)}% | 
+                            Seasonality: {(prediction.metadata.seasonality * 100).toFixed(1)}%
+                          </div>
+                        )}
+                        
+                        {prediction.metadata?.confidenceInterval && (
+                          <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                            Confidence Interval: {prediction.metadata.confidenceInterval.lower.toFixed(0)} - {prediction.metadata.confidenceInterval.upper.toFixed(0)}
+                          </div>
+                        )}
+                      </div>
                       
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>Impact: {prediction.impact}</span>
@@ -218,6 +279,7 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
               predictions={predictions}
               data={data}
               columns={columns}
+              forecastResults={forecastResults}
             />
           </TabsContent>
           
@@ -230,6 +292,43 @@ export const PredictiveAnalyticsDashboard = ({ data, columns }: PredictiveAnalyt
               insights={insights}
               predictions={predictions}
             />
+          </TabsContent>
+          
+          <TabsContent value="recommendations" className="space-y-4">
+            {recommendations.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {recommendations.map((rec) => (
+                  <Card key={rec.id} className="border-l-4 border-l-blue-500">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Target className="h-4 w-4" />
+                        {rec.title}
+                      </CardTitle>
+                      <CardDescription>{rec.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-medium mb-1">Implementation</h4>
+                          <p className="text-sm text-muted-foreground">{rec.implementation}</p>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span>Expected Impact: <strong>{(rec.expectedImpact * 100).toFixed(0)}%</strong></span>
+                          <span>Timeframe: <strong>{rec.timeframe}</strong></span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No recommendations available. Run enhanced analysis to generate actionable insights.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       )}
