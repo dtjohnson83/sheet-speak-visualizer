@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { AdvancedForecasting, ForecastingConfig, ForecastResult } from '@/lib/ml/advancedForecasting';
@@ -94,7 +95,7 @@ export const useEnhancedPredictiveAnalytics = () => {
         method: 'exponential',
         confidenceLevel: 0.95
       });
-      revenueStability = Math.max(0, Math.min(1, forecastResult.r2Score));
+      revenueStability = Math.max(0, Math.min(1, forecastResult.r2Score || 0));
     }
 
     // Analyze activity level
@@ -135,10 +136,10 @@ export const useEnhancedPredictiveAnalytics = () => {
 
     return {
       customerAcquisitionTrend: customerAcquisitionTrend || 0,
-      churnRisk: 0.3,
-      revenueStability: 0.7,
-      activityLevel: 0.6,
-      overallHealth: 'stable' as const
+      churnRisk: avgChurnRisk,
+      revenueStability: revenueStability,
+      activityLevel: activityLevel,
+      overallHealth
     };
   }, []);
 
@@ -183,7 +184,7 @@ export const useEnhancedPredictiveAnalytics = () => {
               method
             });
 
-            if (!bestForecast || forecast.r2Score > bestForecast.r2Score) {
+            if (!bestForecast || (forecast.r2Score || 0) > (bestForecast.r2Score || 0)) {
               bestForecast = forecast;
               bestMethod = method;
             }
@@ -201,10 +202,10 @@ export const useEnhancedPredictiveAnalytics = () => {
             id: `revenue_${column.name}_${Date.now()}`,
             type: 'revenue',
             title: `${column.name} Advanced Forecast`,
-            description: `30-day ${column.name.toLowerCase()} forecast using ${bestMethod} method with ${(bestForecast.r2Score * 100).toFixed(1)}% accuracy`,
+            description: `30-day ${column.name.toLowerCase()} forecast using ${bestMethod} method with ${((bestForecast.r2Score || 0) * 100).toFixed(1)}% accuracy`,
             prediction: avgPrediction,
             unit: 'currency',
-            confidence: Math.max(0.3, bestForecast.r2Score),
+            confidence: Math.max(0.3, bestForecast.r2Score || 0),
             timeframe: '30 days',
             trend: bestForecast.trend,
             impact: avgPrediction > values[values.length - 1] * 1.1 ? 'high' : 
@@ -215,11 +216,11 @@ export const useEnhancedPredictiveAnalytics = () => {
               mae: bestForecast.mae,
               mape: bestForecast.mape,
               seasonality: bestForecast.seasonality,
-              outliers: bestForecast.metadata.outliers,
-              trendStrength: bestForecast.metadata.trendStrength,
+              outliers: bestForecast.metadata?.outliers,
+              trendStrength: bestForecast.metadata?.trendStrength,
               confidenceInterval: {
-                lower: bestForecast.confidenceIntervals.lower[0],
-                upper: bestForecast.confidenceIntervals.upper[0]
+                lower: bestForecast.confidenceIntervals?.lower?.[0],
+                upper: bestForecast.confidenceIntervals?.upper?.[0]
               }
             },
             timestamp: new Date()
@@ -235,7 +236,7 @@ export const useEnhancedPredictiveAnalytics = () => {
 
     if (customerIdColumns.length > 0) {
       const uniqueCustomers = new Set(data.map(row => row[customerIdColumns[0].name])).size;
-      const monthlyCustomers = this.extractMonthlyCustomerCounts(data, customerIdColumns[0].name);
+      const monthlyCustomers = extractMonthlyCustomerCounts(data, customerIdColumns[0].name);
       
       if (monthlyCustomers.length >= 6) {
         const customerForecast = AdvancedForecasting.forecast(monthlyCustomers, {
@@ -251,10 +252,10 @@ export const useEnhancedPredictiveAnalytics = () => {
           id: `customers_enhanced_${Date.now()}`,
           type: 'customer',
           title: 'Customer Growth Forecast',
-          description: `Advanced customer growth prediction with ${(customerForecast.r2Score * 100).toFixed(1)}% model accuracy`,
+          description: `Advanced customer growth prediction with ${((customerForecast.r2Score || 0) * 100).toFixed(1)}% model accuracy`,
           prediction: (customerForecast.predictions[11] / uniqueCustomers - 1) * 100, // 12-month growth rate
           unit: 'percentage',
-          confidence: customerForecast.r2Score,
+          confidence: customerForecast.r2Score || 0,
           timeframe: '12 months',
           trend: customerForecast.trend,
           impact: 'high',
@@ -272,18 +273,18 @@ export const useEnhancedPredictiveAnalytics = () => {
     }
 
     // Data quality predictions
-    const qualityTrend = predictQualityTrend(0.85, data.length);
+    const qualityTrend = predictQualityTrend(85, data.length);
     predictions.push({
       id: `data_quality_${Date.now()}`,
       type: 'risk',
       title: 'Data Quality Trend',
       description: 'Predicted data quality degradation risk based on dataset size and complexity',
-      prediction: qualityTrend.score,
+      prediction: qualityTrend.r2Score ? qualityTrend.r2Score * 100 : 0,
       unit: 'percentage',
       confidence: qualityTrend.confidence,
       timeframe: '60 days',
-      trend: qualityTrend.score < 20 ? 'increasing' : 'decreasing',
-      impact: qualityTrend.score > 50 ? 'high' : qualityTrend.score > 25 ? 'medium' : 'low',
+      trend: (qualityTrend.r2Score || 0) < 0.2 ? 'increasing' : 'decreasing',
+      impact: (qualityTrend.r2Score || 0) > 0.5 ? 'high' : (qualityTrend.r2Score || 0) > 0.25 ? 'medium' : 'low',
       metadata: {
         currentQuality: 85,
         dataSize: data.length,
@@ -305,8 +306,6 @@ export const useEnhancedPredictiveAnalytics = () => {
     // Revenue optimization recommendations
     const revenuePredictions = predictions.filter(p => p.type === 'revenue');
     for (const pred of revenuePredictions) {
-      const forecast = forecastResults.get(pred.metadata?.forecastMethod);
-      
       if (pred.trend === 'decreasing' || pred.confidence < 0.7) {
         recommendations.push({
           id: `revenue_opt_${Date.now()}`,
@@ -407,12 +406,12 @@ export const useEnhancedPredictiveAnalytics = () => {
 
       // Step 3: Generate scenarios based on forecasts (70%)
       setAnalysisProgress(55);
-      const scenarios = this.generateEnhancedScenarios(predictions, businessHealth, forecastResults);
+      const scenarios = generateEnhancedScenarios(predictions, businessHealth, forecastResults);
       setAnalysisProgress(70);
 
       // Step 4: Generate actionable insights (85%)
       setAnalysisProgress(75);
-      const insights = this.generateEnhancedInsights(predictions, businessHealth, forecastResults);
+      const insights = generateEnhancedInsights(predictions, businessHealth, forecastResults);
       setAnalysisProgress(85);
 
       // Step 5: Generate recommendations (100%)
@@ -458,7 +457,7 @@ export const useEnhancedPredictiveAnalytics = () => {
       .map(row => ({ date: new Date(row.SignupDate as string || ''), customer: row[customerColumn] }))
       .filter(item => !isNaN(item.date.getTime()) && item.customer);
 
-    const monthlyGroups = this.groupByMonth(signupDates.map(s => s.date));
+    const monthlyGroups = groupByMonth(signupDates.map(s => s.date));
     return Object.values(monthlyGroups);
   };
 
@@ -467,8 +466,29 @@ export const useEnhancedPredictiveAnalytics = () => {
     businessHealth: BusinessHealthMetrics,
     forecastResults: Map<string, ForecastResult>
   ): BusinessScenario[] => {
-    // Implementation similar to the original but enhanced with forecast data
-    return []; // Simplified for brevity
+    // Return simplified scenarios for now to avoid complexity
+    return [
+      {
+        id: 'enhanced_optimistic',
+        name: 'Enhanced Optimistic',
+        title: 'AI-Driven Growth Strategy',
+        description: 'Leverage ML insights for aggressive growth',
+        confidence: 0.75,
+        assumptions: {
+          marketGrowth: 1.2,
+          customerRetention: 0.9,
+          operationalEfficiency: 1.15
+        },
+        predictions: predictions.map(p => ({
+          type: p.type,
+          prediction: p.prediction * 1.25,
+          unit: p.unit
+        })),
+        potentialImpact: 0.25,
+        riskLevel: 'medium' as const,
+        recommendations: ['Implement AI recommendations', 'Scale successful channels', 'Monitor key metrics']
+      }
+    ];
   };
 
   const generateEnhancedInsights = (
@@ -476,8 +496,17 @@ export const useEnhancedPredictiveAnalytics = () => {
     businessHealth: BusinessHealthMetrics,
     forecastResults: Map<string, ForecastResult>
   ) => {
-    // Implementation similar to the original but enhanced with forecast data
-    return []; // Simplified for brevity
+    return [
+      {
+        id: `enhanced_insight_${Date.now()}`,
+        title: 'ML-Powered Business Health Assessment',
+        description: `Business health is ${businessHealth.overallHealth}. Key risk: ${businessHealth.churnRisk > 0.5 ? 'High churn risk' : 'Revenue stability'}`,
+        actionable: true,
+        priority: 'high' as const,
+        confidence: 0.85,
+        impact: 0.8
+      }
+    ];
   };
 
   return {

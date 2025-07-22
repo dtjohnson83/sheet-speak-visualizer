@@ -33,7 +33,7 @@ export const useAgentInsights = () => {
       return data.map(insight => ({
         ...insight,
         created_at: new Date(insight.created_at),
-        severity: insight.severity || 'info',
+        severity: (insight as any).severity || 'info' as const,
         priority: insight.priority || 5,
         confidence_score: insight.confidence_score || 0.5,
         ai_agents: undefined
@@ -92,6 +92,9 @@ export const useAgentInsights = () => {
     mutationFn: async (type?: 'read' | 'all') => {
       if (!user?.id) return;
       
+      // Get agents from cache for bulk operations
+      const agents = queryClient.getQueryData(['ai-agents', user?.id]) as any[] || [];
+      
       let query = supabase
         .from('agent_insights')
         .delete()
@@ -120,9 +123,6 @@ export const useAgentInsights = () => {
       });
     },
   });
-
-  // Get agents from cache for bulk operations
-  const agents = queryClient.getQueryData(['ai-agents', user?.id]) as any[] || [];
 
   return {
     insights,

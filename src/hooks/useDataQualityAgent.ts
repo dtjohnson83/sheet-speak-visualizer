@@ -1,196 +1,184 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAIAgents } from '@/hooks/useAIAgents';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
-interface QualityTrend {
+import { useState, useCallback, useEffect } from 'react';
+import { DataRow, ColumnInfo } from '@/pages/Index';
+
+export interface DataQualityMetrics {
+  completeness: number;
+  consistency: number;
+  accuracy: number;
+  validity: number;
+  overall: number;
+}
+
+export interface QualityIssue {
+  id: string;
+  type: 'missing' | 'duplicate' | 'invalid' | 'inconsistent' | 'outlier';
+  column: string;
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  count: number;
+  examples: any[];
+  recommendation: string;
+}
+
+export interface QualityTrend {
   date: string;
   score: number;
   issues: number;
 }
 
-export const useDataQualityAgent = (fileName: string) => {
-  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-  
-  const { agents, createAgent } = useAIAgents();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  const agent = agents.find(a => a.type === 'data_quality');
-
-  // Fetch quality trends from Supabase (last 7, ordered by date desc)
-  const { data: qualityTrends = [], isLoading: trendsLoading, error: trendsError } = useQuery<QualityTrend[]>({
-    queryKey: ['quality_trends', agent?.id],
-    queryFn: async () => {
-      if (!agent) return [];
-      let query = supabase
-        .from('quality_trends')
-        .select('date, score, issues')
-        .eq('agent_id', agent.id)
-        .order('date', { ascending: false })
-        .limit(7);
-      
-      // Add user filter if RLS/user-specific
-      if (user?.id) query = query.eq('user_id', user.id);
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!agent,
+export const useDataQualityAgent = () => {
+  const [metrics, setMetrics] = useState<DataQualityMetrics>({
+    completeness: 0,
+    consistency: 0,
+    accuracy: 0,
+    validity: 0,
+    overall: 0
   });
 
-  const createDataQualityAgent = async () => {
-    setIsCreatingAgent(true);
+  const [issues, setIssues] = useState<QualityIssue[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [trends, setTrends] = useState<QualityTrend[]>([]);
+
+  const analyzeDataQuality = useCallback(async (
+    data: DataRow[],
+    columns: ColumnInfo[]
+  ) => {
+    console.log('Starting data quality analysis...');
+    setIsAnalyzing(true);
+
     try {
-      const agentConfig = {
-        name: `Data Quality Monitor - ${fileName}`,
-        type: 'data_quality' as const,
-        description: 'Monitors data quality and generates automated reports',
-        capabilities: [
-          'data_quality_assessment',
-          'completeness_validation',
-          'consistency_checks',
-          'accuracy_validation',
-          'uniqueness_validation',
-          'automated_insights'
-        ],
-        configuration: {
-          analysis_frequency: 'daily',
-          confidence_threshold: 0.8,
-          auto_generate_visualizations: true,
-          notification_preferences: {
-            in_app: true,
-            email: false
-          },
-          quality_thresholds: {
-            completeness: 95,
-            consistency: 90,
-            accuracy: 95,
-            uniqueness: 98,
-            timeliness: 85
+      const qualityIssues: QualityIssue[] = [];
+      let totalCells = data.length * columns.length;
+      let validCells = 0;
+      let completeCells = 0;
+
+      // Analyze each column
+      for (const column of columns) {
+        const columnData = data.map(row => row[column.name]);
+        const nonNullData = columnData.filter(val => val !== null && val !== undefined && val !== '');
+        
+        // Completeness check
+        const completeness = nonNullData.length / data.length;
+        completeCells += nonNullData.length;
+        
+        if (completeness < 0.95) {
+          qualityIssues.push({
+            id: `missing_${column.name}_${Date.now()}`,
+            type: 'missing',
+            column: column.name,
+            severity: completeness < 0.8 ? 'high' : completeness < 0.9 ? 'medium' : 'low',
+            description: `${((1 - completeness) * 100).toFixed(1)}% missing values`,
+            count: data.length - nonNullData.length,
+            examples: columnData.filter((val, idx) => (val === null || val === undefined || val === '') && idx < 5),
+            recommendation: 'Fill missing values with appropriate defaults or remove incomplete records'
+          });
+        }
+
+        // Type validation
+        if (column.type === 'numeric') {
+          const invalidNumbers = nonNullData.filter(val => isNaN(Number(val)));
+          validCells += nonNullData.length - invalidNumbers.length;
+          
+          if (invalidNumbers.length > 0) {
+            qualityIssues.push({
+              id: `invalid_${column.name}_${Date.now()}`,
+              type: 'invalid',
+              column: column.name,
+              severity: invalidNumbers.length > nonNullData.length * 0.1 ? 'high' : 'medium',
+              description: `${invalidNumbers.length} non-numeric values in numeric column`,
+              count: invalidNumbers.length,
+              examples: invalidNumbers.slice(0, 5),
+              recommendation: 'Convert invalid values to numbers or remove them'
+            });
+          }
+        } else {
+          validCells += nonNullData.length;
+        }
+
+        // Duplicate detection (for key columns)
+        if (column.name.toLowerCase().includes('id') || column.name.toLowerCase().includes('key')) {
+          const uniqueValues = new Set(nonNullData);
+          const duplicateCount = nonNullData.length - uniqueValues.size;
+          
+          if (duplicateCount > 0) {
+            qualityIssues.push({
+              id: `duplicate_${column.name}_${Date.now()}`,
+              type: 'duplicate',
+              column: column.name,
+              severity: duplicateCount > nonNullData.length * 0.05 ? 'high' : 'medium',
+              description: `${duplicateCount} duplicate values in identifier column`,
+              count: duplicateCount,
+              examples: [],
+              recommendation: 'Remove or consolidate duplicate records'
+            });
           }
         }
-      };
-
-      await createAgent(agentConfig);
-      
-      toast({
-        title: "Success",
-        description: "Data Quality Agent created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating data quality agent:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create Data Quality Agent",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreatingAgent(false);
-    }
-  };
-
-  const scheduleQualityCheck = async () => {
-    if (!agent) return;
-
-    try {
-      await supabase.from('agent_tasks').insert({
-        agent_id: agent.id,
-        task_type: 'assess_data_quality',
-        parameters: {
-          dataset_name: fileName,
-          scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        }
-      });
-
-      toast({
-        title: "Success",
-        description: "Daily quality check scheduled",
-      });
-    } catch (error) {
-      console.error('Error scheduling quality check:', error);
-      toast({
-        title: "Error",
-        description: "Failed to schedule quality check",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Mutation for inserting new trend
-  const insertTrendMutation = useMutation({
-    mutationFn: async (newTrend: QualityTrend) => {
-      if (!agent) throw new Error('No agent');
-      let insertData = {
-        agent_id: agent.id,
-        date: newTrend.date,
-        score: newTrend.score,
-        issues: newTrend.issues
-      };
-      
-      // Add user_id if needed
-      if (user?.id) insertData = { ...insertData, user_id: user.id };
-      
-      await supabase.from('quality_trends').insert(insertData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quality_trends', agent?.id] });
-      toast({
-        title: "Success",
-        description: "Quality trend updated",
-      });
-    },
-    onError: (error) => {
-      console.error('Error inserting trend:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save quality trend",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleReportGenerated = async (report: any) => {
-    if (agent) {
-      try {
-        await supabase.from('agent_insights').insert({
-          agent_id: agent.id,
-          insight_type: 'data_quality_summary',
-          title: `Data Quality Report - ${fileName}`,
-          description: `Quality score: ${report.qualityScore.overall.toFixed(1)}%, ${report.summary.totalIssues} issues found`,
-          data: report,
-          confidence_score: report.qualityScore.overall / 100,
-          priority: report.summary.highSeverityIssues > 0 ? 8 : 5
-        });
-
-        const newTrend: QualityTrend = {
-          date: new Date().toISOString().split('T')[0],
-          score: report.qualityScore.overall,
-          issues: report.summary.totalIssues
-        };
-        
-        await insertTrendMutation.mutateAsync(newTrend);
-
-      } catch (error) {
-        console.error('Error saving quality insight:', error);
       }
+
+      // Calculate overall metrics
+      const completeness = completeCells / totalCells;
+      const validity = validCells / totalCells;
+      const consistency = 1 - (qualityIssues.filter(i => i.type === 'inconsistent').length / data.length);
+      const accuracy = 1 - (qualityIssues.filter(i => i.type === 'outlier').length / data.length);
+      const overall = (completeness + validity + consistency + accuracy) / 4;
+
+      const newMetrics: DataQualityMetrics = {
+        completeness: completeness * 100,
+        consistency: consistency * 100,
+        accuracy: accuracy * 100,
+        validity: validity * 100,
+        overall: overall * 100
+      };
+
+      setMetrics(newMetrics);
+      setIssues(qualityIssues);
+
+      // Update trends
+      const newTrend: QualityTrend = {
+        date: new Date().toISOString().split('T')[0],
+        score: overall * 100,
+        issues: qualityIssues.length
+      };
+
+      setTrends(prev => {
+        const updated = [...prev, newTrend];
+        return updated.slice(-30); // Keep last 30 days
+      });
+
+      console.log('Data quality analysis completed:', {
+        metrics: newMetrics,
+        issues: qualityIssues.length,
+        trends: trends.length + 1
+      });
+
+    } catch (error) {
+      console.error('Data quality analysis failed:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
-    
-    return report;
-  };
+  }, [trends.length]);
+
+  const getQualityScore = useCallback(() => {
+    return metrics.overall;
+  }, [metrics.overall]);
+
+  const getIssuesBySeverity = useCallback((severity: 'low' | 'medium' | 'high') => {
+    return issues.filter(issue => issue.severity === severity);
+  }, [issues]);
+
+  const getTrendData = useCallback(() => {
+    return trends;
+  }, [trends]);
 
   return {
-    agent,
-    isCreatingAgent,
-    qualityTrends,
-    trendsLoading,  // New: expose for UI spinner
-    trendsError,    // New: expose for error display
-    createDataQualityAgent,
-    scheduleQualityCheck,
-    handleReportGenerated
+    metrics,
+    issues,
+    isAnalyzing,
+    trends,
+    analyzeDataQuality,
+    getQualityScore,
+    getIssuesBySeverity,
+    getTrendData
   };
 };

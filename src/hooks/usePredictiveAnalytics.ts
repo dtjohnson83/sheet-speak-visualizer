@@ -18,9 +18,20 @@ export interface BusinessPrediction {
 
 export interface BusinessScenario {
   id: string;
+  name: string;
   title: string;
   description: string;
-  assumptions: string;
+  confidence: number;
+  assumptions: {
+    marketGrowth: number;
+    customerRetention: number;
+    operationalEfficiency: number;
+  };
+  predictions: Array<{
+    type: string;
+    prediction: number;
+    unit: string;
+  }>;
   potentialImpact: number;
   riskLevel: 'high' | 'medium' | 'low';
   recommendations: string[];
@@ -61,8 +72,9 @@ export const usePredictiveAnalytics = () => {
         .filter(val => !isNaN(val) && val > 0);
 
       if (values.length >= 5) {
-        const trend = values[values.length - 1] > values[0] ? 'increasing' as const : 
-                     values[values.length - 1] < values[0] ? 'decreasing' as const : 'stable' as const;
+        const trend: 'increasing' | 'decreasing' | 'stable' = 
+          values[values.length - 1] > values[0] ? 'increasing' : 
+          values[values.length - 1] < values[0] ? 'decreasing' : 'stable';
         
         predictions.push({
           id: `revenue_${column.name}_${Date.now()}`,
@@ -92,7 +104,7 @@ export const usePredictiveAnalytics = () => {
 
       if (values.length > 0) {
         const avgChurn = values.reduce((a, b) => a + b, 0) / values.length;
-        const trend = avgChurn > 0.5 ? 'increasing' as const : 'decreasing' as const;
+        const trend: 'increasing' | 'decreasing' | 'stable' = avgChurn > 0.5 ? 'increasing' : 'decreasing';
 
         predictions.push({
           id: `churn_${column.name}_${Date.now()}`,
@@ -121,8 +133,9 @@ export const usePredictiveAnalytics = () => {
         .filter(val => !isNaN(val));
 
       if (values.length > 0) {
-         const trend = values[values.length - 1] > values[0] ? 'increasing' as const : 
-                     values[values.length - 1] < values[0] ? 'decreasing' as const : 'stable' as const;
+        const trend: 'increasing' | 'decreasing' | 'stable' = 
+          values[values.length - 1] > values[0] ? 'increasing' : 
+          values[values.length - 1] < values[0] ? 'decreasing' : 'stable';
 
         predictions.push({
           id: `market_${column.name}_${Date.now()}`,
@@ -148,26 +161,70 @@ export const usePredictiveAnalytics = () => {
   ): BusinessScenario[] => {
     const scenarios: BusinessScenario[] = [];
 
-    // Scenario 1: Revenue Growth
+    // Scenario 1: Optimistic Growth
     scenarios.push({
-      id: 'scenario_1',
+      id: 'scenario_optimistic',
+      name: 'Optimistic Growth',
       title: 'Aggressive Marketing Campaign',
       description: 'Launch an aggressive marketing campaign to boost revenue',
-      assumptions: 'Increased marketing spend by 20%',
+      confidence: 0.7,
+      assumptions: {
+        marketGrowth: 1.15,
+        customerRetention: 0.85,
+        operationalEfficiency: 1.1
+      },
+      predictions: predictions.map(p => ({
+        type: p.type,
+        prediction: p.prediction * 1.2,
+        unit: p.unit
+      })),
       potentialImpact: 0.15,
       riskLevel: 'medium',
       recommendations: ['Increase ad spend', 'Improve targeting', 'Monitor ROI']
     });
 
-    // Scenario 2: Customer Retention
+    // Scenario 2: Conservative Approach
     scenarios.push({
-      id: 'scenario_2',
+      id: 'scenario_conservative',
+      name: 'Conservative Approach',
       title: 'Enhanced Customer Support',
       description: 'Improve customer support to reduce churn',
-      assumptions: 'Improved support response time by 50%',
+      confidence: 0.85,
+      assumptions: {
+        marketGrowth: 1.05,
+        customerRetention: 0.9,
+        operationalEfficiency: 1.05
+      },
+      predictions: predictions.map(p => ({
+        type: p.type,
+        prediction: p.prediction * 1.05,
+        unit: p.unit
+      })),
       potentialImpact: 0.10,
       riskLevel: 'low',
       recommendations: ['Train support staff', 'Implement chatbot', 'Gather feedback']
+    });
+
+    // Scenario 3: Risk Mitigation
+    scenarios.push({
+      id: 'scenario_risk',
+      name: 'Risk Mitigation',
+      title: 'Defensive Strategy',
+      description: 'Focus on maintaining current performance and reducing risks',
+      confidence: 0.9,
+      assumptions: {
+        marketGrowth: 1.0,
+        customerRetention: 0.8,
+        operationalEfficiency: 1.0
+      },
+      predictions: predictions.map(p => ({
+        type: p.type,
+        prediction: p.prediction * 0.95,
+        unit: p.unit
+      })),
+      potentialImpact: 0.05,
+      riskLevel: 'low',
+      recommendations: ['Cost reduction', 'Quality improvement', 'Risk assessment']
     });
 
     return scenarios;
