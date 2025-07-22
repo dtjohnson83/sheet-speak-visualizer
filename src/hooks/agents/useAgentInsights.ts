@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,8 +28,14 @@ export const useAgentInsights = () => {
         .limit(20);
 
       if (error) throw error;
+      
+      // Transform database response to match interface
       return data.map(insight => ({
         ...insight,
+        created_at: new Date(insight.created_at),
+        severity: insight.severity || 'info',
+        priority: insight.priority || 5,
+        confidence_score: insight.confidence_score || 0.5,
         ai_agents: undefined
       })) as AgentInsight[];
     },

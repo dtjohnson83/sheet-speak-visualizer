@@ -40,6 +40,7 @@ export interface AgentConfiguration {
     webhook?: string;
   };
   dataFilters?: Record<string, any>;
+  analysis_frequency?: 'real_time' | 'hourly' | 'daily' | 'weekly';
   // Report automation specific config
   reportConfig?: {
     templateId?: string;
@@ -58,7 +59,9 @@ export type TaskType =
   | 'detect_anomalies'
   | 'analyze_trends'
   | 'find_correlations'
-  | 'create_visualization';
+  | 'create_visualization'
+  | 'report_generation'
+  | 'assess_data_quality';
 
 export interface AgentTask {
   id: string;
@@ -88,4 +91,13 @@ export interface AgentInsight {
   insight_type: 'trend' | 'anomaly' | 'correlation' | 'recommendation' | 'summary';
   priority: number;
   confidence_score: number;
+}
+
+export interface AgentSummary {
+  total_agents: number;
+  active_agents: number;
+  pending_tasks: number;
+  completed_tasks_today: number;
+  unread_insights: number;
+  last_activity?: Date;
 }

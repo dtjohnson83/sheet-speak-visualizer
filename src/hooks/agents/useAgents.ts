@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +23,15 @@ export const useAgents = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as AIAgent[];
+      
+      // Transform database response to match interface
+      return data.map(agent => ({
+        ...agent,
+        created_at: new Date(agent.created_at),
+        updated_at: new Date(agent.updated_at),
+        capabilities: Array.isArray(agent.capabilities) ? agent.capabilities : [],
+        configuration: agent.configuration || {}
+      })) as AIAgent[];
     },
     enabled: !!user?.id,
   });

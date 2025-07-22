@@ -26,8 +26,17 @@ export const useAgentTasks = () => {
         .limit(50);
 
       if (error) throw error;
+      
+      // Transform database response to match interface
       return data.map(task => ({
         ...task,
+        created_at: new Date(task.created_at),
+        updated_at: new Date(task.updated_at),
+        started_at: task.started_at ? new Date(task.started_at) : undefined,
+        completed_at: task.completed_at ? new Date(task.completed_at) : undefined,
+        scheduled_at: new Date(task.scheduled_at),
+        description: `${task.task_type.replace('_', ' ')} task`,
+        priority: 5,
         ai_agents: undefined
       })) as AgentTask[];
     },
