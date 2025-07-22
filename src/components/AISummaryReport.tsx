@@ -74,6 +74,40 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const profileDataset = (data: DataRow[], columns: ColumnInfo[]): DatasetProfile => {
     console.log('=== Smart Dataset Profiling ===');
     
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      console.warn('No data provided for profiling');
+      return {
+        dataType: 'unknown',
+        confidence: 0,
+        keyColumns: {
+          identifiers: [],
+          dates: [],
+          metrics: [],
+          categories: [],
+          risks: []
+        },
+        businessContext: 'general data patterns and statistical relationships',
+        analysisApproach: 'exploratory data analysis and pattern discovery'
+      };
+    }
+
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      console.warn('No columns provided for profiling');
+      return {
+        dataType: 'unknown',
+        confidence: 0,
+        keyColumns: {
+          identifiers: [],
+          dates: [],
+          metrics: [],
+          categories: [],
+          risks: []
+        },
+        businessContext: 'general data patterns and statistical relationships',
+        analysisApproach: 'exploratory data analysis and pattern discovery'
+      };
+    }
+
     const columnNames = columns.map(c => c.name.toLowerCase());
     const numericColumns = columns.filter(c => c.type === 'numeric').map(c => c.name.toLowerCase());
     const dateColumns = columns.filter(c => c.type === 'date' || c.name.toLowerCase().includes('date')).map(c => c.name);
@@ -197,6 +231,27 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const analyzeUniversalHealth = (data: DataRow[], columns: ColumnInfo[], profile: DatasetProfile): UniversalHealthMetrics => {
     console.log('=== Universal Health Analysis ===');
     
+    if (!data || !Array.isArray(data) || data.length === 0 || !columns || !Array.isArray(columns) || columns.length === 0) {
+      return {
+        dataQuality: 0,
+        trendDirection: 'insufficient_data',
+        riskFactors: ['No data available for analysis'],
+        opportunities: [],
+        keyInsights: [],
+        criticalIssues: ['Insufficient data for quality assessment'],
+        dataCharacteristics: {
+          rowCount: 0,
+          columnCount: 0,
+          numericColumns: 0,
+          dateColumns: 0,
+          categoricalColumns: 0,
+          identifierColumns: 0,
+          dataType: 'unknown',
+          confidence: 0
+        }
+      };
+    }
+
     const numericColumns = columns.filter(c => c.type === 'numeric');
     const riskFactors: string[] = [];
     const opportunities: string[] = [];
@@ -336,6 +391,15 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     profile: DatasetProfile, 
     healthMetrics: UniversalHealthMetrics
   ) => {
+    // Validate data before building context
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      throw new Error('No valid data provided for AI context');
+    }
+
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      throw new Error('No valid columns provided for AI context');
+    }
+
     const sampleSize = isAdmin ? 200 : 20;
     const baseContext = buildAIContext(data, columns, fileName, sampleSize, isAdmin);
     
@@ -390,10 +454,19 @@ ANALYSIS INSTRUCTIONS:
   };
 
   const generateReport = async () => {
-    if (!filteredData.length || !columns.length) {
+    if (!filteredData || !Array.isArray(filteredData) || filteredData.length === 0) {
       toast({
         title: "No Data",
         description: "Please upload data before generating a report.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      toast({
+        title: "No Columns",
+        description: "No columns detected in the data.",
         variant: "destructive",
       });
       return;
@@ -405,6 +478,12 @@ ANALYSIS INSTRUCTIONS:
     setIsGenerating(true);
 
     try {
+      console.log('Starting report generation with data:', {
+        dataLength: filteredData.length,
+        columnsLength: columns.length,
+        persona: selectedPersona
+      });
+
       // Smart dataset profiling
       const datasetProfile = profileDataset(filteredData, columns);
       
@@ -439,6 +518,8 @@ OUTPUT REQUIREMENTS:
 - Include confidence levels based on data quality and sample size
 `;
 
+      console.log('Sending request to AI function...');
+
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
         body: {
           dataContext: adaptiveContext,
@@ -449,11 +530,16 @@ OUTPUT REQUIREMENTS:
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      console.log('AI function response received:', response);
 
       // Create unified report data with proper structure
       const unifiedReportData: UnifiedReportData = {
-        report: response.report,
+        report: response.report || 'Report generation completed but no content returned.',
         datasetProfile,
         healthMetrics,
         metadata: {
@@ -491,7 +577,7 @@ OUTPUT REQUIREMENTS:
       console.error('Error generating report:', error);
       toast({
         title: "Error",
-        description: "Failed to generate report. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate report. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -565,7 +651,7 @@ Report Metadata:
     }
   };
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <Card className="p-6 text-center">
         <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
