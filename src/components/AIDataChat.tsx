@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useUserRole } from '@/hooks/useUserRole';
-import { Send, Bot, User, Sparkles, BarChart3, FileDown } from 'lucide-react';
+import { Send, Bot, User, Sparkles, BarChart3, FileDown, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContext';
@@ -17,6 +17,7 @@ import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { AIResponseDisclaimer } from '@/components/transparency/AIResponseDisclaimer';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
 import { ChatbotToneSelector } from '@/components/ai-chat/ChatbotToneSelector';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Message {
   id: string;
@@ -52,26 +53,45 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sample questions based on data
+  // Enhanced sample questions based on actual data columns
   const sampleQuestions = [
-    "What patterns do you see in this data?",
-    "What's the best way to visualize this data?",
-    "Show me the distribution of values",
-    "What insights can you find?",
-    "How should I group this data for analysis?"
+    "What are the key patterns in this data?",
+    columns.length > 0 ? `Analyze the distribution of ${columns[0].name}` : "Show me the data distribution",
+    "What correlations do you see between variables?",
+    "What visualization would best represent this data?",
+    "Are there any outliers or anomalies in the data?"
   ];
 
   useEffect(() => {
-    // Add welcome message when component mounts
+    // Add contextual welcome message based on actual data
     if (messages.length === 0 && data.length > 0) {
+      const columnTypes = columns.reduce((acc, col) => {
+        acc[col.type] = (acc[col.type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const contextualInfo = Object.entries(columnTypes)
+        .map(([type, count]) => `${count} ${type}`)
+        .join(', ');
+
+      const dataQuality = columns.length > 0 ? 
+        Math.round((columns.reduce((acc, col) => {
+          const nonNull = col.values.filter(v => v !== null && v !== undefined && v !== '').length;
+          return acc + (nonNull / col.values.length);
+        }, 0) / columns.length) * 100) : 0;
+
       setMessages([{
         id: 'welcome',
         role: 'assistant',
-        content: `Hi! I'm your AI data analyst. I can see you have ${data.length} rows of data with ${columns.length} columns.${isAdmin ? ' As an admin, you have unlimited processing power for comprehensive analysis.' : ''} What would you like to explore or visualize?`,
+        content: `I'm analyzing your ${fileName || 'dataset'} with ${data.length.toLocaleString()} rows and ${columns.length} columns (${contextualInfo}). Data quality: ${dataQuality}% complete.
+
+${hasEnhancedContext ? '✅ Enhanced business context available for deeper insights.' : '💡 Tip: Set up business context for more relevant analysis.'}
+
+Ask me specific questions about patterns, trends, or relationships in your data!`,
         timestamp: new Date()
       }]);
     }
-  }, [data.length, columns.length, messages.length, isAdmin]);
+  }, [data.length, columns.length, messages.length, fileName, hasEnhancedContext]);
 
   // Update filtered data when source data changes
   useEffect(() => {
@@ -108,9 +128,14 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
     setIsLoading(true);
 
     try {
-      // Prepare enhanced data context for AI (use filtered data and admin status)
-      const sampleSize = isAdmin ? 100 : 10;
+      // Build comprehensive data context with enhanced statistics
+      const sampleSize = isAdmin ? Math.min(100, filteredData.length) : Math.min(10, filteredData.length);
       const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
+
+      // Validate data context has required fields
+      if (!dataContext.columns || !dataContext.sampleData) {
+        throw new Error('Invalid data context: missing columns or sample data');
+      }
 
       // Prepare messages for AI (exclude welcome message)
       const chatMessages = messages
@@ -123,6 +148,13 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
       chatMessages.push({
         role: 'user',
         content: userMessage.content
+      });
+
+      console.log('Sending AI chat request with context:', {
+        dataContextColumns: dataContext.columns.length,
+        sampleDataRows: dataContext.sampleData.length,
+        totalRows: dataContext.totalRows,
+        hasEnhancedContext: !!dataContext.enhancedContext
       });
 
       const { data: response, error } = await supabase.functions.invoke('ai-data-chat', {
@@ -147,8 +179,8 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
+        title: "Analysis Error",
+        description: "Failed to analyze your data. Please try rephrasing your question or check your data format.",
         variant: "destructive",
       });
     } finally {
@@ -195,6 +227,12 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
     }
   };
 
+  // Check for data quality issues
+  const dataQualityIssues = columns.filter(col => {
+    const nonNull = col.values.filter(v => v !== null && v !== undefined && v !== '').length;
+    return (nonNull / col.values.length) < 0.5; // Less than 50% complete
+  });
+
   if (data.length === 0) {
     return (
       <Card className="p-6 text-center">
@@ -217,6 +255,17 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
         }}
       />
 
+      {/* Data Quality Alert */}
+      {dataQualityIssues.length > 0 && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Data quality notice: {dataQualityIssues.length} columns have significant missing values. 
+            This may affect analysis accuracy. Columns: {dataQualityIssues.map(col => col.name).join(', ')}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold flex items-center gap-2">
@@ -224,7 +273,7 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
             AI Data Chat
             {isAdmin && (
               <Badge variant="default" className="text-xs bg-purple-500">
-                Admin Mode - Unlimited
+                Admin Mode - Enhanced Analysis
               </Badge>
             )}
           </h3>
@@ -245,13 +294,13 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
               </Button>
             )}
             {hasEnhancedContext && (
-              <Badge variant="default" className="text-xs">
-                Enhanced AI
+              <Badge variant="default" className="text-xs bg-green-600">
+                Enhanced Context
               </Badge>
             )}
             <DataSamplingInfo 
               totalRows={filteredData.length} 
-              sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 10} 
+              sampleSize={isAdmin ? Math.min(filteredData.length, 100) : Math.min(10, filteredData.length)} 
               columns={columns}
               analysisType="chat"
             />
@@ -264,15 +313,18 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
         </div>
         <div className="space-y-2">
           <p className="text-gray-600">
-            Ask questions about your data and get intelligent insights and visualization suggestions.
+            Get specific, data-driven insights from your dataset. I'll analyze patterns, trends, and provide visualization suggestions.
             {filteredData.length !== data.length && (
               <span className="font-medium"> Currently analyzing: {filterSummary}</span>
             )}
           </p>
           <AIResponseDisclaimer 
-            sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 10} 
+            sampleSize={isAdmin ? Math.min(filteredData.length, 100) : Math.min(10, filteredData.length)} 
             totalRows={filteredData.length} 
-            confidenceLevel={filteredData.length > 1000 ? 'low' : filteredData.length > 100 ? 'medium' : 'high'}
+            confidenceLevel={
+              filteredData.length > 1000 ? 'high' : 
+              filteredData.length > 100 ? 'medium' : 'low'
+            }
             analysisType="chat"
           />
         </div>
@@ -329,7 +381,7 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
           <div className="flex gap-2">
             <Input
               ref={inputRef}
-              placeholder="Ask about your data..."
+              placeholder="Ask specific questions about your data..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -350,7 +402,7 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
 
       {messages.length <= 1 && (
         <div>
-          <h4 className="text-sm font-medium mb-2">Try asking:</h4>
+          <h4 className="text-sm font-medium mb-2">Try asking specific questions:</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {sampleQuestions.map((question, index) => (
               <Card 
