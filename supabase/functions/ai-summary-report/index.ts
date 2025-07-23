@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -15,15 +16,41 @@ interface DataContext {
     name: string;
     type: string;
     values: any[];
+    description?: string;
+    businessMeaning?: string;
+    unit?: string;
+    isKPI?: boolean;
+    expectedRange?: string;
   }>;
   sampleData: any[];
   totalRows: number;
   fileName?: string;
+  enhancedContext?: {
+    businessDomain: string;
+    businessPurpose: string;
+    timePeriod: string;
+    objectives: string[];
+    industry: string;
+    primaryDateColumn: string;
+    keyMetrics: string[];
+    dimensions: string[];
+    measures: string[];
+    dataQuality: {
+      completeness: number;
+      consistency: number;
+      validity: number;
+    };
+    businessRules: string[];
+    commonPatterns: string[];
+  };
 }
 
 interface ReportRequest {
   dataContext: DataContext;
   persona?: string;
+  systemPrompt?: string;
+  datasetProfile?: any;
+  healthMetrics?: any;
 }
 
 const personaPrompts = {
@@ -73,6 +100,33 @@ STRUCTURE: Efficiency Overview → Resource Utilization → Process Optimization
 - Data preprocessing needs and technical recommendations
 STRUCTURE: Statistical Summary → Data Quality Analysis → Pattern Analysis → Predictive Opportunities → Technical Recommendations`,
 
+  analyst: `You are a senior data analyst providing comprehensive analytical insights. Focus on:
+- Statistical analysis: distributions, correlations, statistical significance
+- Data quality assessment: completeness, consistency, outliers, anomalies
+- Pattern recognition and trend analysis with confidence intervals
+- Predictive modeling opportunities and feature engineering potential
+- Advanced analytics recommendations: clustering, forecasting, ML applications
+- Data preprocessing needs and technical recommendations
+STRUCTURE: Statistical Summary → Data Quality Analysis → Pattern Analysis → Predictive Opportunities → Technical Recommendations`,
+
+  operational: `You are an operations consultant providing efficiency and process insights. Focus on:
+- Operational efficiency metrics and performance indicators
+- Resource utilization patterns and capacity optimization
+- Process bottlenecks and workflow improvement opportunities
+- Quality metrics and operational excellence indicators
+- Supply chain and logistics optimization potential
+- Scalability assessment and operational recommendations
+STRUCTURE: Efficiency Overview → Resource Utilization → Process Optimization → Scalability Recommendations`,
+
+  domain_expert: `You are a domain expert providing specialized insights. Focus on:
+- Industry-specific analysis using domain knowledge
+- Best practices and standards relevant to the business context
+- Specialized KPIs and metrics for the domain
+- Regulatory and compliance considerations
+- Industry benchmarking and competitive analysis
+- Domain-specific recommendations and strategic insights
+STRUCTURE: Domain Analysis → Industry Benchmarks → Compliance & Standards → Strategic Recommendations`,
+
   general: `You are a business intelligence analyst providing comprehensive insights. Focus on:
 - Balanced overview of data patterns and business trends
 - Key performance indicators and notable observations
@@ -89,7 +143,34 @@ serve(async (req) => {
   }
 
   try {
-    const { dataContext, persona = 'general' }: ReportRequest = await req.json();
+    const requestBody = await req.json();
+    console.log('Request body keys:', Object.keys(requestBody));
+    
+    // Validate request structure
+    if (!requestBody.dataContext) {
+      throw new Error('dataContext is required');
+    }
+
+    const { dataContext, persona = 'general', systemPrompt, datasetProfile, healthMetrics }: ReportRequest = requestBody;
+
+    // Validate dataContext structure
+    if (!dataContext.columns || !Array.isArray(dataContext.columns)) {
+      throw new Error('dataContext.columns must be an array');
+    }
+
+    if (!dataContext.sampleData || !Array.isArray(dataContext.sampleData)) {
+      throw new Error('dataContext.sampleData must be an array');
+    }
+
+    if (typeof dataContext.totalRows !== 'number') {
+      throw new Error('dataContext.totalRows must be a number');
+    }
+
+    console.log('Data context validation passed:', {
+      columnsCount: dataContext.columns.length,
+      sampleDataCount: dataContext.sampleData.length,
+      totalRows: dataContext.totalRows
+    });
 
     // Determine which API to use based on available keys
     let apiUrl = '';
@@ -127,14 +208,14 @@ serve(async (req) => {
     // Calculate data completeness
     const dataCompleteness = dataContext.columns.map(col => {
       const nullCount = col.values.filter(val => val === null || val === undefined || val === '').length;
-      const completeness = ((col.values.length - nullCount) / col.values.length) * 100;
+      const completeness = col.values.length > 0 ? ((col.values.length - nullCount) / col.values.length) * 100 : 0;
       return { column: col.name, completeness: Math.round(completeness) };
     });
 
     // Get persona-specific prompt
     const personaPrompt = personaPrompts[persona as keyof typeof personaPrompts] || personaPrompts.general;
 
-    // Create persona-specific system prompt with tailored structure
+    // Create system prompt
     const basePrompt = `You are analyzing a dataset with the following characteristics:
 - Dataset: ${dataContext.fileName || 'Uploaded Data'}
 - Total rows: ${totalRows.toLocaleString()}
@@ -143,59 +224,45 @@ serve(async (req) => {
 - Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 2))}
 
 Data Completeness Summary:
-${dataCompleteness.map(dc => `- ${dc.column}: ${dc.completeness}% complete`).join('\n')}`;
+${dataCompleteness.map(dc => `- ${dc.column}: ${dc.completeness}% complete`).join('\n')}
 
-    let systemPrompt = '';
-    
-    if (persona === 'executive') {
-      systemPrompt = `${personaPrompt}
+${dataContext.enhancedContext ? `
+Enhanced Business Context:
+- Business Domain: ${dataContext.enhancedContext.businessDomain}
+- Business Purpose: ${dataContext.enhancedContext.businessPurpose}
+- Time Period: ${dataContext.enhancedContext.timePeriod}
+- Industry: ${dataContext.enhancedContext.industry}
+- Key Metrics: ${dataContext.enhancedContext.keyMetrics.join(', ')}
+- Dimensions: ${dataContext.enhancedContext.dimensions.join(', ')}
+- Measures: ${dataContext.enhancedContext.measures.join(', ')}
+` : ''}
+
+${datasetProfile ? `
+Dataset Profile:
+- Data Type: ${datasetProfile.dataType} (${(datasetProfile.confidence * 100).toFixed(1)}% confidence)
+- Business Context: ${datasetProfile.businessContext}
+- Analysis Approach: ${datasetProfile.analysisApproach}
+` : ''}
+
+${healthMetrics ? `
+Health Metrics:
+- Data Quality: ${(healthMetrics.dataQuality * 100).toFixed(1)}%
+- Trend Direction: ${healthMetrics.trendDirection}
+${healthMetrics.criticalIssues && healthMetrics.criticalIssues.length > 0 ? `
+Critical Issues:
+${healthMetrics.criticalIssues.map((issue: string) => `- ${issue}`).join('\n')}
+` : ''}
+${healthMetrics.riskFactors && healthMetrics.riskFactors.length > 0 ? `
+Risk Factors:
+${healthMetrics.riskFactors.map((risk: string) => `- ${risk}`).join('\n')}
+` : ''}
+` : ''}`;
+
+    const finalSystemPrompt = systemPrompt || `${personaPrompt}
 
 ${basePrompt}
 
-Generate a brief executive report focusing on strategic business implications. Keep it under 400 words and focus on actionable insights for leadership.`;
-    } else if (persona === 'data_scientist') {
-      systemPrompt = `${personaPrompt}
-
-${basePrompt}
-
-Provide a detailed technical analysis including statistical insights, data quality assessment, and advanced analytics recommendations. Include specific metrics and technical details.`;
-    } else {
-      systemPrompt = `${personaPrompt}
-
-${basePrompt}
-
-Please provide a comprehensive analysis report with the following structure:
-
-## Executive Summary
-Brief overview of the dataset and key insights (2-3 sentences)
-
-## Key Findings
-- 3-5 most important insights from the data
-- Notable patterns, trends, or anomalies
-- Data quality observations
-
-## Detailed Analysis
-- Column-by-column insights where relevant
-- Relationships between different data points
-- Statistical observations
-
-## Recommended Visualizations
-- Suggest 3-4 specific chart types that would best represent this data
-- Include which columns to use for each visualization
-- Explain why each visualization would be valuable
-
-## Data Quality Assessment
-- Overall data completeness and quality
-- Potential data issues or cleaning needs
-- Reliability assessment
-
-## Next Steps & Recommendations
-- Actionable insights based on the analysis
-- Suggested follow-up questions or investigations
-- Potential business applications
-
-Keep the report concise but comprehensive, using bullet points and clear sections. Focus on actionable insights.`;
-    }
+Please analyze this dataset and provide a comprehensive report based on the data characteristics provided above.`;
 
     const userPrompt = `Please analyze this dataset and provide a comprehensive report based on the data characteristics provided above.`;
 
@@ -210,7 +277,7 @@ Keep the report concise but comprehensive, using bullet points and clear section
       body: JSON.stringify({
         model: model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: finalSystemPrompt },
           { role: 'user', content: userPrompt }
         ],
         max_tokens: 2048,
@@ -241,7 +308,9 @@ Keep the report concise but comprehensive, using bullet points and clear section
         columnTypes,
         dataCompleteness,
         persona,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        datasetProfile,
+        healthMetrics
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

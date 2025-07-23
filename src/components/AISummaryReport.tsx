@@ -70,7 +70,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const { isAdmin } = useUserRole();
   const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
 
-  // Smart dataset profiling - detects what type of data this is
   const profileDataset = (data: DataRow[], columns: ColumnInfo[]): DatasetProfile => {
     console.log('=== Smart Dataset Profiling ===');
     
@@ -112,7 +111,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     const numericColumns = columns.filter(c => c.type === 'numeric').map(c => c.name.toLowerCase());
     const dateColumns = columns.filter(c => c.type === 'date' || c.name.toLowerCase().includes('date')).map(c => c.name);
     
-    // Column pattern matching for different data types
     const patterns = {
       customer: {
         keywords: ['customer', 'user', 'client', 'signup', 'churn', 'retention', 'satisfaction', 'loyalty', 'spend'],
@@ -144,32 +142,28 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       }
     };
 
-    // Score each data type based on column name matches
     Object.keys(patterns).forEach(type => {
       patterns[type].score = patterns[type].keywords.reduce((score, keyword) => {
         return score + columnNames.filter(col => col.includes(keyword)).length;
       }, 0);
     });
 
-    // Determine the most likely data type
     const scores = Object.entries(patterns).map(([type, data]) => ({ type, score: data.score }));
     const bestMatch = scores.reduce((max, current) => current.score > max.score ? current : max);
     
     let dataType = bestMatch.score > 0 ? bestMatch.type as any : 'unknown';
     const confidence = bestMatch.score / columnNames.length;
 
-    // If no clear match, analyze patterns more deeply
     if (confidence < 0.3) {
       if (numericColumns.length > columnNames.length * 0.7) {
-        dataType = 'scientific'; // Mostly numeric = likely scientific/analytical
+        dataType = 'scientific';
       } else if (dateColumns.length > 2) {
-        dataType = 'operations'; // Many dates = likely operational/tracking
+        dataType = 'operations';
       } else {
         dataType = 'mixed';
       }
     }
 
-    // Categorize columns by function
     const keyColumns = {
       identifiers: columnNames.filter(col => 
         col.includes('id') || col.includes('key') || col.includes('code') || col.includes('number')
@@ -186,7 +180,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       )
     };
 
-    // Generate business context and analysis approach
     const businessContexts = {
       customer: 'customer lifecycle, retention, and satisfaction metrics',
       financial: 'financial performance, profitability, and monetary flows',
@@ -227,7 +220,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     };
   };
 
-  // Universal health analysis - works for any data type
   const analyzeUniversalHealth = (data: DataRow[], columns: ColumnInfo[], profile: DatasetProfile): UniversalHealthMetrics => {
     console.log('=== Universal Health Analysis ===');
     
@@ -258,7 +250,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     const keyInsights: string[] = [];
     const criticalIssues: string[] = [];
 
-    // Data Quality Assessment
     let totalCompleteness = 0;
     const columnCompleteness = columns.map(col => {
       const nonEmpty = data.filter(row => row[col.name] != null && row[col.name] !== '').length;
@@ -274,7 +265,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     
     const dataQuality = totalCompleteness / columns.length;
 
-    // Trend Analysis for Numeric Columns
     let trendDirection: 'improving' | 'stable' | 'declining' | 'volatile' | 'insufficient_data' = 'insufficient_data';
     
     if (numericColumns.length > 0 && data.length > 10) {
@@ -282,7 +272,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
         const values = data.map(row => Number(row[col.name])).filter(val => !isNaN(val));
         if (values.length < 5) return 0;
         
-        // Simple trend calculation
         const n = values.length;
         const x = Array.from({length: n}, (_, i) => i);
         const meanX = x.reduce((a, b) => a + b, 0) / n;
@@ -291,7 +280,7 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
         const ssXX = x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0);
         const ssXY = x.reduce((sum, xi, i) => sum + (xi - meanX) * (values[i] - meanY), 0);
         
-        return ssXX > 0 ? ssXY / ssXX : 0; // slope
+        return ssXX > 0 ? ssXY / ssXX : 0;
       });
       
       const avgTrend = trends.reduce((a, b) => a + b, 0) / trends.length;
@@ -311,7 +300,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       }
     }
 
-    // Outlier Detection
     numericColumns.forEach(col => {
       const values = data.map(row => Number(row[col.name])).filter(val => !isNaN(val));
       if (values.length > 10) {
@@ -325,7 +313,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       }
     });
 
-    // Domain-specific insights
     if (profile.dataType === 'customer' && profile.keyColumns.risks.length > 0) {
       const riskCol = profile.keyColumns.risks[0];
       const riskValues = data.map(row => Number(row[riskCol])).filter(val => !isNaN(val));
@@ -342,7 +329,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       }
     }
 
-    // Data characteristics
     const dataCharacteristics = {
       rowCount: data.length,
       columnCount: columns.length,
@@ -354,7 +340,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       confidence: profile.confidence
     };
 
-    // Generate insights based on data characteristics
     if (data.length < 50) {
       riskFactors.push('Limited sample size may affect analysis reliability');
     }
@@ -383,74 +368,6 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       criticalIssues,
       dataCharacteristics
     };
-  };
-
-  const buildAdaptiveAIContext = (
-    data: DataRow[], 
-    columns: ColumnInfo[], 
-    profile: DatasetProfile, 
-    healthMetrics: UniversalHealthMetrics
-  ) => {
-    // Validate data before building context
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      throw new Error('No valid data provided for AI context');
-    }
-
-    if (!columns || !Array.isArray(columns) || columns.length === 0) {
-      throw new Error('No valid columns provided for AI context');
-    }
-
-    const sampleSize = isAdmin ? 200 : 20;
-    const baseContext = buildAIContext(data, columns, fileName, sampleSize, isAdmin);
-    
-    const adaptiveContext = `
-DATASET PROFILE ANALYSIS:
-Data Type: ${profile.dataType.toUpperCase()} (${(profile.confidence * 100).toFixed(1)}% confidence)
-Business Context: ${profile.businessContext}
-Analysis Approach: ${profile.analysisApproach}
-
-KEY COLUMN CATEGORIES:
-- Identifiers: ${profile.keyColumns.identifiers.join(', ') || 'None detected'}
-- Date Columns: ${profile.keyColumns.dates.join(', ') || 'None detected'}
-- Metric Columns: ${profile.keyColumns.metrics.join(', ') || 'None detected'}
-- Category Columns: ${profile.keyColumns.categories.join(', ') || 'None detected'}
-- Risk/Score Columns: ${profile.keyColumns.risks.join(', ') || 'None detected'}
-
-UNIVERSAL HEALTH ASSESSMENT:
-Data Quality: ${(healthMetrics.dataQuality * 100).toFixed(1)}%
-Trend Direction: ${healthMetrics.trendDirection.toUpperCase()}
-Risk Factors: ${healthMetrics.riskFactors.length}
-Critical Issues: ${healthMetrics.criticalIssues.length}
-
-${healthMetrics.criticalIssues.length > 0 ? `
-🚨 CRITICAL ISSUES DETECTED:
-${healthMetrics.criticalIssues.map(issue => `- ${issue}`).join('\n')}
-` : ''}
-
-${healthMetrics.riskFactors.length > 0 ? `
-⚠️ RISK FACTORS:
-${healthMetrics.riskFactors.map(risk => `- ${risk}`).join('\n')}
-` : ''}
-
-${healthMetrics.opportunities.length > 0 ? `
-💡 OPPORTUNITIES:
-${healthMetrics.opportunities.map(opp => `- ${opp}`).join('\n')}
-` : ''}
-
-DATA CHARACTERISTICS:
-${Object.entries(healthMetrics.dataCharacteristics).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
-
-ANALYSIS INSTRUCTIONS:
-1. Adapt your analysis to the detected data type: ${profile.dataType}
-2. Focus on the business context: ${profile.businessContext}
-3. Use appropriate analysis methods: ${profile.analysisApproach}
-4. If critical issues exist, prioritize these in your analysis
-5. Provide domain-specific insights relevant to ${profile.dataType} data
-6. Consider data quality limitations in your recommendations
-7. Structure insights appropriate for the detected data patterns
-`;
-
-    return baseContext + '\n\n' + adaptiveContext;
   };
 
   const generateReport = async () => {
@@ -484,16 +401,13 @@ ANALYSIS INSTRUCTIONS:
         persona: selectedPersona
       });
 
-      // Smart dataset profiling
       const datasetProfile = profileDataset(filteredData, columns);
       
-      // Universal health analysis
       const healthMetrics = analyzeUniversalHealth(filteredData, columns, datasetProfile);
       
-      // Build adaptive context
-      const adaptiveContext = buildAdaptiveAIContext(filteredData, columns, datasetProfile, healthMetrics);
+      const sampleSize = isAdmin ? 200 : 20;
+      const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
       
-      // Get dynamic prompt based on data type and persona
       const selectedPersonaConfig = personas.find(p => p.value === selectedPersona);
       const dynamicPrompt = selectedPersonaConfig?.getPrompt(datasetProfile) || selectedPersonaConfig?.description || '';
       
@@ -522,7 +436,7 @@ OUTPUT REQUIREMENTS:
 
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
         body: {
-          dataContext: adaptiveContext,
+          dataContext: dataContext,
           persona: selectedPersona,
           systemPrompt: systemPrompt,
           datasetProfile: datasetProfile,
@@ -537,7 +451,6 @@ OUTPUT REQUIREMENTS:
 
       console.log('AI function response received:', response);
 
-      // Create unified report data with proper structure
       const unifiedReportData: UnifiedReportData = {
         report: response.report || 'Report generation completed but no content returned.',
         datasetProfile,
@@ -777,7 +690,6 @@ Report Metadata:
 
       {reportData && (
         <Card className="p-6">
-          {/* Quality/Critical Issues Alert */}
           {reportData.metadata.qualityAlert && (
             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -797,7 +709,6 @@ Report Metadata:
             </div>
           )}
 
-          {/* Dataset Profile Summary */}
           {reportData.datasetProfile && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
