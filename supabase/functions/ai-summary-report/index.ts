@@ -54,87 +54,96 @@ interface ReportRequest {
 }
 
 const personaPrompts = {
-  executive: `You are a C-level executive assistant providing strategic insights for busy executives. Your response must be:
-- CONCISE and HIGH-LEVEL only (maximum 400 words total)
-- Focus on STRATEGIC IMPLICATIONS and BOTTOM-LINE IMPACT
-- Lead with 3-4 KEY BUSINESS INSIGHTS in bullet points
-- Include only the most CRITICAL metrics and trends
-- Provide ACTIONABLE RECOMMENDATIONS for leadership decisions
-- Avoid technical details, statistical jargon, or granular analysis
-- Use executive language: ROI, market opportunities, competitive advantage, risk mitigation
-STRUCTURE: Executive Summary (2-3 sentences) → Key Business Insights (3-4 bullets) → Strategic Recommendations (2-3 bullets)`,
+  executive: `You are providing strategic insights for executives. Focus on:
+- KEY BUSINESS IMPACT: What does this data mean for business performance?
+- CRITICAL TRENDS: Identify 3-4 most important patterns affecting the bottom line
+- STRATEGIC ACTIONS: Specific recommendations for leadership decisions
+- RISK ASSESSMENT: What threats or opportunities are evident?
 
-  marketing: `You are a marketing strategist providing campaign and customer insights. Focus on:
-- Customer segmentation and behavior patterns with actionable targeting strategies
-- Marketing performance metrics: conversion rates, CAC, LTV, funnel analysis
-- Audience analysis with specific demographic and psychographic insights
-- Campaign effectiveness with optimization recommendations
-- Growth opportunities and engagement strategies
-- Competitive positioning and market penetration insights
-STRUCTURE: Customer Insights → Performance Metrics → Growth Opportunities → Actionable Recommendations`,
+Keep response under 300 words. Lead with impact, not data description.`,
 
-  finance: `You are a CFO advisor providing fiscal insights and financial intelligence. Focus on:
-- Revenue trends, profit margins, and financial performance indicators
-- Cost structure analysis and budget optimization opportunities
-- Cash flow patterns and working capital implications
-- ROI analysis and resource allocation efficiency
-- Financial risks and mitigation strategies
-- Investment recommendations and capital allocation insights
-STRUCTURE: Financial Performance Summary → Cost & Profitability Analysis → Risk Assessment → Investment Recommendations`,
+  marketing: `You are analyzing marketing performance data. Focus on:
+- CUSTOMER INSIGHTS: What do the patterns reveal about customer behavior?
+- CAMPAIGN EFFECTIVENESS: Which strategies are working/failing?
+- OPTIMIZATION OPPORTUNITIES: Specific actions to improve performance
+- AUDIENCE TARGETING: How to better reach and convert customers
 
-  operations: `You are an operations consultant providing efficiency and process insights. Focus on:
-- Operational efficiency metrics and performance indicators
-- Resource utilization patterns and capacity optimization
-- Process bottlenecks and workflow improvement opportunities
-- Quality metrics and operational excellence indicators
-- Supply chain and logistics optimization potential
-- Scalability assessment and operational recommendations
-STRUCTURE: Efficiency Overview → Resource Utilization → Process Optimization → Scalability Recommendations`,
+Provide actionable recommendations, not just data summaries.`,
 
-  data_scientist: `You are a senior data scientist providing technical and statistical insights. Focus on:
-- Statistical analysis: distributions, correlations, statistical significance
-- Data quality assessment: completeness, consistency, outliers, anomalies
-- Pattern recognition and trend analysis with confidence intervals
-- Predictive modeling opportunities and feature engineering potential
-- Advanced analytics recommendations: clustering, forecasting, ML applications
-- Data preprocessing needs and technical recommendations
-STRUCTURE: Statistical Summary → Data Quality Analysis → Pattern Analysis → Predictive Opportunities → Technical Recommendations`,
+  finance: `You are providing financial analysis. Focus on:
+- FINANCIAL HEALTH: What do the numbers say about fiscal performance?
+- COST OPTIMIZATION: Where can efficiency be improved?
+- REVENUE INSIGHTS: Patterns in income, profitability, and growth
+- RISK FACTORS: Financial threats or opportunities
 
-  analyst: `You are a senior data analyst providing comprehensive analytical insights. Focus on:
-- Statistical analysis: distributions, correlations, statistical significance
-- Data quality assessment: completeness, consistency, outliers, anomalies
-- Pattern recognition and trend analysis with confidence intervals
-- Predictive modeling opportunities and feature engineering potential
-- Advanced analytics recommendations: clustering, forecasting, ML applications
-- Data preprocessing needs and technical recommendations
-STRUCTURE: Statistical Summary → Data Quality Analysis → Pattern Analysis → Predictive Opportunities → Technical Recommendations`,
+Quantify impact where possible and provide specific recommendations.`,
 
-  operational: `You are an operations consultant providing efficiency and process insights. Focus on:
-- Operational efficiency metrics and performance indicators
-- Resource utilization patterns and capacity optimization
-- Process bottlenecks and workflow improvement opportunities
-- Quality metrics and operational excellence indicators
-- Supply chain and logistics optimization potential
-- Scalability assessment and operational recommendations
-STRUCTURE: Efficiency Overview → Resource Utilization → Process Optimization → Scalability Recommendations`,
+  operations: `You are analyzing operational performance. Focus on:
+- EFFICIENCY METRICS: How well are processes performing?
+- BOTTLENECKS: Where are the main constraints and delays?
+- QUALITY INDICATORS: What's the state of output quality?
+- IMPROVEMENT OPPORTUNITIES: Specific actions to enhance operations
 
-  domain_expert: `You are a domain expert providing specialized insights. Focus on:
-- Industry-specific analysis using domain knowledge
-- Best practices and standards relevant to the business context
-- Specialized KPIs and metrics for the domain
-- Regulatory and compliance considerations
-- Industry benchmarking and competitive analysis
-- Domain-specific recommendations and strategic insights
-STRUCTURE: Domain Analysis → Industry Benchmarks → Compliance & Standards → Strategic Recommendations`,
+Focus on actionable insights for process improvement.`,
 
-  general: `You are a business intelligence analyst providing comprehensive insights. Focus on:
-- Balanced overview of data patterns and business trends
-- Key performance indicators and notable observations
-- Data quality assessment with business impact
-- Visualization recommendations for stakeholder communication
-- Cross-functional insights relevant to multiple departments
-- Practical business applications and next steps
-STRUCTURE: Overview → Key Findings → Data Quality → Visualization Suggestions → Business Applications`
+  analyst: `You are providing technical data analysis. Focus on:
+- STATISTICAL PATTERNS: Key correlations, distributions, and trends
+- DATA QUALITY: Completeness, consistency, and reliability issues
+- ANALYTICAL INSIGHTS: What advanced analysis reveals about the data
+- PREDICTIVE INDICATORS: Patterns that suggest future outcomes
+
+Provide technical depth while remaining accessible.`,
+
+  general: `You are providing comprehensive business intelligence. Focus on:
+- KEY INSIGHTS: Most important findings from the data
+- PERFORMANCE INDICATORS: How key metrics are performing
+- ACTIONABLE RECOMMENDATIONS: Specific next steps
+- CRITICAL ISSUES: Problems that need immediate attention
+
+Balance depth with accessibility for diverse stakeholders.`
+};
+
+const createAnalyticalContext = (dataContext: DataContext) => {
+  const columns = dataContext.columns || [];
+  const sampleData = dataContext.sampleData || [];
+  const totalRows = dataContext.totalRows || 0;
+
+  // Create concise column summaries
+  const columnSummaries = columns.map(col => {
+    const values = col.values || [];
+    const nonNullValues = values.filter(v => v !== null && v !== undefined && v !== '');
+    const completeness = values.length > 0 ? (nonNullValues.length / values.length) * 100 : 0;
+    
+    let summary = `${col.name} (${col.type})`;
+    if (col.businessMeaning) summary += ` - ${col.businessMeaning}`;
+    if (completeness < 100) summary += ` [${completeness.toFixed(0)}% complete]`;
+    
+    // Add value insights for key columns
+    if (col.type === 'numeric' && nonNullValues.length > 0) {
+      const nums = nonNullValues.map(v => Number(v)).filter(v => !isNaN(v));
+      if (nums.length > 0) {
+        const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
+        const min = Math.min(...nums);
+        const max = Math.max(...nums);
+        summary += ` [avg: ${avg.toFixed(1)}, range: ${min}-${max}]`;
+      }
+    }
+    
+    return summary;
+  });
+
+  // Enhanced context summary
+  const contextSummary = dataContext.enhancedContext ? `
+Business Context: ${dataContext.enhancedContext.businessDomain} | ${dataContext.enhancedContext.businessPurpose}
+Key Metrics: ${dataContext.enhancedContext.keyMetrics.join(', ')}
+Time Period: ${dataContext.enhancedContext.timePeriod}` : '';
+
+  return {
+    datasetOverview: `${dataContext.fileName || 'Dataset'}: ${totalRows.toLocaleString()} rows, ${columns.length} columns`,
+    columnSummaries,
+    contextSummary,
+    sampleSize: sampleData.length
+  };
 };
 
 serve(async (req) => {
@@ -146,7 +155,6 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('Request body keys:', Object.keys(requestBody));
     
-    // Validate request structure
     if (!requestBody.dataContext) {
       throw new Error('dataContext is required');
     }
@@ -172,7 +180,7 @@ serve(async (req) => {
       totalRows: dataContext.totalRows
     });
 
-    // Determine which API to use based on available keys
+    // Determine API configuration
     let apiUrl = '';
     let apiKey = '';
     let model = '';
@@ -189,84 +197,51 @@ serve(async (req) => {
       model = 'gpt-4o-mini';
       provider = 'OpenAI';
     } else {
-      console.error('No API key found. Checked: XAI_API_KEY, OPENAI_API_KEY');
       throw new Error('API key not configured. Please add XAI_API_KEY or OPENAI_API_KEY to your Supabase secrets.');
     }
 
     console.log(`Using ${provider} API with model ${model} for report generation`);
 
-    // Calculate basic statistics
-    const totalRows = dataContext.totalRows;
-    const totalColumns = dataContext.columns.length;
-    
-    // Analyze column types
-    const columnTypes = dataContext.columns.reduce((acc, col) => {
-      acc[col.type] = (acc[col.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    // Create analytical context
+    const analyticalContext = createAnalyticalContext(dataContext);
 
-    // Calculate data completeness
-    const dataCompleteness = dataContext.columns.map(col => {
-      const nullCount = col.values.filter(val => val === null || val === undefined || val === '').length;
-      const completeness = col.values.length > 0 ? ((col.values.length - nullCount) / col.values.length) * 100 : 0;
-      return { column: col.name, completeness: Math.round(completeness) };
-    });
-
-    // Get persona-specific prompt
+    // Build focused system prompt
     const personaPrompt = personaPrompts[persona as keyof typeof personaPrompts] || personaPrompts.general;
+    
+    let focusedSystemPrompt = `${personaPrompt}
 
-    // Create system prompt
-    const basePrompt = `You are analyzing a dataset with the following characteristics:
-- Dataset: ${dataContext.fileName || 'Uploaded Data'}
-- Total rows: ${totalRows.toLocaleString()}
-- Total columns: ${totalColumns}
-- Column types: ${Object.entries(columnTypes).map(([type, count]) => `${count} ${type}`).join(', ')}
-- Sample data: ${JSON.stringify(dataContext.sampleData.slice(0, 2))}
+DATASET OVERVIEW:
+${analyticalContext.datasetOverview}
 
-Data Completeness Summary:
-${dataCompleteness.map(dc => `- ${dc.column}: ${dc.completeness}% complete`).join('\n')}
+COLUMN ANALYSIS:
+${analyticalContext.columnSummaries.join('\n')}
 
-${dataContext.enhancedContext ? `
-Enhanced Business Context:
-- Business Domain: ${dataContext.enhancedContext.businessDomain}
-- Business Purpose: ${dataContext.enhancedContext.businessPurpose}
-- Time Period: ${dataContext.enhancedContext.timePeriod}
-- Industry: ${dataContext.enhancedContext.industry}
-- Key Metrics: ${dataContext.enhancedContext.keyMetrics.join(', ')}
-- Dimensions: ${dataContext.enhancedContext.dimensions.join(', ')}
-- Measures: ${dataContext.enhancedContext.measures.join(', ')}
-` : ''}
+${analyticalContext.contextSummary}`;
 
-${datasetProfile ? `
-Dataset Profile:
-- Data Type: ${datasetProfile.dataType} (${(datasetProfile.confidence * 100).toFixed(1)}% confidence)
-- Business Context: ${datasetProfile.businessContext}
-- Analysis Approach: ${datasetProfile.analysisApproach}
-` : ''}
+    // Add profile and health context if available
+    if (datasetProfile) {
+      focusedSystemPrompt += `\n\nDATA PROFILE: ${datasetProfile.dataType} dataset (${(datasetProfile.confidence * 100).toFixed(0)}% confidence)`;
+    }
 
-${healthMetrics ? `
-Health Metrics:
-- Data Quality: ${(healthMetrics.dataQuality * 100).toFixed(1)}%
-- Trend Direction: ${healthMetrics.trendDirection}
-${healthMetrics.criticalIssues && healthMetrics.criticalIssues.length > 0 ? `
-Critical Issues:
-${healthMetrics.criticalIssues.map((issue: string) => `- ${issue}`).join('\n')}
-` : ''}
-${healthMetrics.riskFactors && healthMetrics.riskFactors.length > 0 ? `
-Risk Factors:
-${healthMetrics.riskFactors.map((risk: string) => `- ${risk}`).join('\n')}
-` : ''}
-` : ''}`;
+    if (healthMetrics) {
+      focusedSystemPrompt += `\n\nQUALITY STATUS: ${(healthMetrics.dataQuality * 100).toFixed(0)}% quality, trend: ${healthMetrics.trendDirection}`;
+      
+      if (healthMetrics.criticalIssues && healthMetrics.criticalIssues.length > 0) {
+        focusedSystemPrompt += `\n\nCRITICAL ISSUES:\n${healthMetrics.criticalIssues.map((issue: string) => `- ${issue}`).join('\n')}`;
+      }
+    }
 
-    const finalSystemPrompt = systemPrompt || `${personaPrompt}
+    focusedSystemPrompt += `\n\nINSTRUCTIONS:
+- Analyze the data for meaningful business insights
+- Focus on actionable findings, not data description
+- Identify trends, patterns, and opportunities
+- Provide specific recommendations
+- Keep response concise and valuable
+- Lead with insights, not statistics`;
 
-${basePrompt}
+    const userPrompt = `Analyze this dataset and provide strategic insights based on the data characteristics. Focus on what the data reveals about business performance and opportunities.`;
 
-Please analyze this dataset and provide a comprehensive report based on the data characteristics provided above.`;
-
-    const userPrompt = `Please analyze this dataset and provide a comprehensive report based on the data characteristics provided above.`;
-
-    console.log(`Making request to ${provider} API for report generation...`);
+    console.log(`Making request to ${provider} API for focused analysis...`);
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -277,11 +252,11 @@ Please analyze this dataset and provide a comprehensive report based on the data
       body: JSON.stringify({
         model: model,
         messages: [
-          { role: 'system', content: finalSystemPrompt },
+          { role: 'system', content: focusedSystemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 2048,
-        temperature: 0.3,
+        max_tokens: 1500,
+        temperature: 0.2,
         stream: false
       }),
     });
@@ -299,11 +274,23 @@ Please analyze this dataset and provide a comprehensive report based on the data
     
     const reportContent = data.choices[0].message.content;
 
-    // Return structured response
+    // Calculate completion stats
+    const totalColumns = dataContext.columns.length;
+    const columnTypes = dataContext.columns.reduce((acc, col) => {
+      acc[col.type] = (acc[col.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const dataCompleteness = dataContext.columns.map(col => {
+      const nullCount = col.values.filter(val => val === null || val === undefined || val === '').length;
+      const completeness = col.values.length > 0 ? ((col.values.length - nullCount) / col.values.length) * 100 : 0;
+      return { column: col.name, completeness: Math.round(completeness) };
+    });
+
     return new Response(JSON.stringify({ 
       report: reportContent,
       metadata: {
-        totalRows,
+        totalRows: dataContext.totalRows,
         totalColumns,
         columnTypes,
         dataCompleteness,

@@ -26,36 +26,37 @@ const personas = [
     value: 'general', 
     label: 'General Analysis', 
     icon: BarChart3, 
-    description: 'Comprehensive insights adapted to your data type',
-    getPrompt: (profile: DatasetProfile) => `Analyze this ${profile.dataType} dataset comprehensively. Focus on data quality, trends, patterns, and ${profile.businessContext}. Identify any critical issues, declining trends, or data quality problems. Structure your analysis based on the ${profile.analysisApproach}.`
+    description: 'Comprehensive business intelligence insights'
   },
   { 
     value: 'executive', 
     label: 'Executive', 
     icon: Briefcase, 
-    description: 'Strategic insights for leadership',
-    getPrompt: (profile: DatasetProfile) => `Provide executive-level strategic analysis for this ${profile.dataType} data. Focus on business implications, performance trends, risk assessment, and strategic recommendations. If any declining trends or critical issues are detected, prioritize these in your analysis. Present insights suitable for C-level decision making.`
+    description: 'Strategic insights for leadership decisions'
   },
   { 
     value: 'analyst', 
     label: 'Data Analyst', 
     icon: Brain, 
-    description: 'Technical analysis with statistical insights',
-    getPrompt: (profile: DatasetProfile) => `Perform detailed analytical assessment of this ${profile.dataType} dataset. Focus on statistical analysis, data quality assessment, correlation analysis, trend detection, and anomaly identification. Provide quantitative insights and validate data reliability. Use statistical methods appropriate for ${profile.analysisApproach}.`
+    description: 'Technical analysis with statistical insights'
   },
   { 
-    value: 'operational', 
-    label: 'Operational', 
-    icon: Activity, 
-    description: 'Process and efficiency insights',
-    getPrompt: (profile: DatasetProfile) => `Analyze this ${profile.dataType} data from an operational perspective. Focus on efficiency metrics, process performance, operational KPIs, and process optimization opportunities. Identify bottlenecks, inefficiencies, or operational risks based on the data patterns.`
-  },
-  { 
-    value: 'domain_expert', 
-    label: 'Domain Expert', 
+    value: 'marketing', 
+    label: 'Marketing', 
     icon: TrendingUp, 
-    description: 'Industry-specific insights',
-    getPrompt: (profile: DatasetProfile) => `Provide domain-expert analysis for this ${profile.dataType} dataset. Apply industry best practices, domain-specific KPIs, and specialized knowledge relevant to ${profile.businessContext}. Focus on insights that require deep understanding of this specific domain and industry context.`
+    description: 'Customer and campaign performance insights'
+  },
+  { 
+    value: 'finance', 
+    label: 'Finance', 
+    icon: Calculator, 
+    description: 'Financial performance and cost analysis'
+  },
+  { 
+    value: 'operations', 
+    label: 'Operations', 
+    icon: Activity, 
+    description: 'Process efficiency and operational insights'
   }
 ];
 
@@ -395,50 +396,25 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
     setIsGenerating(true);
 
     try {
-      console.log('Starting report generation with data:', {
+      console.log('Starting optimized report generation with data:', {
         dataLength: filteredData.length,
         columnsLength: columns.length,
         persona: selectedPersona
       });
 
       const datasetProfile = profileDataset(filteredData, columns);
-      
       const healthMetrics = analyzeUniversalHealth(filteredData, columns, datasetProfile);
       
-      const sampleSize = isAdmin ? 200 : 20;
+      // Create optimized data context - smaller sample for faster processing
+      const sampleSize = isAdmin ? 50 : 10;
       const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
       
-      const selectedPersonaConfig = personas.find(p => p.value === selectedPersona);
-      const dynamicPrompt = selectedPersonaConfig?.getPrompt(datasetProfile) || selectedPersonaConfig?.description || '';
-      
-      const systemPrompt = `${dynamicPrompt}
-
-CRITICAL ANALYSIS FRAMEWORK:
-- Dataset Type: ${datasetProfile.dataType} 
-- Quality Level: ${(healthMetrics.dataQuality * 100).toFixed(1)}%
-- Trend Status: ${healthMetrics.trendDirection}
-
-${healthMetrics.criticalIssues.length > 0 ? `
-🚨 PRIORITY: Address these critical issues first:
-${healthMetrics.criticalIssues.map(issue => `- ${issue}`).join('\n')}
-` : ''}
-
-OUTPUT REQUIREMENTS:
-- Adapt analysis depth to data type and business context
-- Use domain-appropriate terminology and KPIs
-- If quality issues exist, discuss data reliability limitations
-- Provide actionable recommendations specific to ${datasetProfile.dataType} domain
-- Structure findings based on ${datasetProfile.analysisApproach}
-- Include confidence levels based on data quality and sample size
-`;
-
-      console.log('Sending request to AI function...');
+      console.log('Sending optimized request to AI function...');
 
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
         body: {
           dataContext: dataContext,
           persona: selectedPersona,
-          systemPrompt: systemPrompt,
           datasetProfile: datasetProfile,
           healthMetrics: healthMetrics
         }
@@ -476,13 +452,13 @@ OUTPUT REQUIREMENTS:
       if (healthMetrics.criticalIssues.length > 0) {
         toast({
           title: "⚠️ Critical Issues Detected",
-          description: `${healthMetrics.criticalIssues.length} issues found in ${datasetProfile.dataType} data`,
+          description: `${healthMetrics.criticalIssues.length} issues found in analysis`,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Report Generated",
-          description: `${datasetProfile.dataType} data analysis complete!`,
+          title: "Analysis Complete",
+          description: `${datasetProfile.dataType} data insights generated successfully!`,
         });
       }
 
@@ -589,25 +565,25 @@ Report Metadata:
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
-            Dynamic AI Analysis
+            AI Data Analysis
             {isAdmin && (
               <Badge variant="default" className="text-xs bg-purple-500">
-                Admin Mode - Unlimited
+                Admin Mode
               </Badge>
             )}
           </h3>
           <div className="flex items-center gap-2">
             {hasEnhancedContext && (
               <Badge variant="default" className="text-xs">
-                Enhanced AI
+                Enhanced Context
               </Badge>
             )}
             <Badge variant="default" className="text-xs bg-blue-600">
-              Smart Data Profiling
+              Optimized Processing
             </Badge>
             <DataSamplingInfo 
               totalRows={filteredData.length} 
-              sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 20} 
+              sampleSize={isAdmin ? 50 : 10} 
               columns={columns}
               analysisType="report"
             />
@@ -620,18 +596,11 @@ Report Metadata:
         </div>
         <div className="space-y-2">
           <p className="text-gray-600">
-            Intelligent analysis that adapts to your data type - automatically detects customer, financial, sales, marketing, operations, HR, or scientific data.
+            Get focused, actionable insights from your data. Analysis adapts to your data type and business context.
             {filteredData.length !== data.length && (
               <span className="font-medium"> Currently analyzing: {filterSummary}</span>
             )}
           </p>
-          <DataSamplingInfo 
-            totalRows={filteredData.length} 
-            sampleSize={isAdmin ? Math.min(filteredData.length, 50000) : 20} 
-            columns={columns}
-            analysisType="report"
-            showDetailedView={true}
-          />
         </div>
       </div>
 
@@ -670,7 +639,7 @@ Report Metadata:
               onClick={generateReport} 
               disabled={isGenerating || (!isAdmin && usesRemaining <= 0)}
               className="flex items-center gap-2"
-              title={(!isAdmin && usesRemaining <= 0) ? "No AI uses remaining" : "Generate adaptive AI analysis"}
+              title={(!isAdmin && usesRemaining <= 0) ? "No AI uses remaining" : "Generate focused data analysis"}
             >
               {isGenerating ? (
                 <>
@@ -680,7 +649,7 @@ Report Metadata:
               ) : (
                 <>
                   <FileText className="h-4 w-4" />
-                  Generate Report
+                  Generate Analysis
                 </>
               )}
             </Button>
@@ -739,7 +708,7 @@ Report Metadata:
 
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="text-lg font-semibold">Dynamic Analysis Report</h4>
+              <h4 className="text-lg font-semibold">AI Analysis Report</h4>
               <p className="text-sm text-gray-600">
                 Generated on {new Date(reportData.metadata.generatedAt).toLocaleString()} • 
                 {personas.find(p => p.value === reportData.metadata.persona)?.label} perspective
