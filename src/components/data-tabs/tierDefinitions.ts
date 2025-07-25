@@ -25,13 +25,12 @@ export const getTierDefinitions = (data: any[], tiles: any[]): Record<string, Ti
   },
   ai: {
     title: "AI Intelligence",
-    description: "Chat, analyze, and predict", 
+    description: "Chat, analyze, and get insights", 
     icon: Bot,
     color: "green",
     tabs: [
       { id: "ai-chat", label: "AI Chat", icon: Bot, badge: null },
-      { id: "ai-report", label: "AI Report", icon: FileText, badge: null },
-      { id: "predictive", label: "Predictive AI", icon: Target, badge: null }
+      { id: "ai-report", label: "AI Report", icon: FileText, badge: null }
     ]
   },
   advanced: {

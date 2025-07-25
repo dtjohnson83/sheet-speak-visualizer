@@ -41,6 +41,15 @@ export interface AgentConfiguration {
   };
   dataFilters?: Record<string, any>;
   analysis_frequency?: 'real_time' | 'hourly' | 'daily' | 'weekly';
+  // Domain context for predictive analytics
+  domainContext?: {
+    domain: string;
+    industry?: string;
+    businessType?: string;
+    keyMetrics?: string[];
+    customContext?: string;
+    dataDescription?: string;
+  };
   // Report automation specific config
   reportConfig?: {
     templateId?: string;
@@ -61,7 +70,11 @@ export type TaskType =
   | 'find_correlations'
   | 'create_visualization'
   | 'report_generation'
-  | 'assess_data_quality';
+  | 'assess_data_quality'
+  | 'predictive_forecast'
+  | 'scenario_analysis'
+  | 'business_prediction'
+  | 'domain_analysis';
 
 export interface AgentTask {
   id: string;
