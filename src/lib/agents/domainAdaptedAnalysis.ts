@@ -39,7 +39,7 @@ export const performDomainAdaptedAnalysis = async (
   domainContext?: DomainContext
 ): Promise<DomainAdaptedAnalysis> => {
   // Perform pre-analysis to understand data characteristics
-  const preAnalysis = PreAnalysisEngine.analyze(data, columns);
+  const preAnalysis = await PreAnalysisEngine.analyzeDataset(data, columns);
   
   // Get domain-specific column mappings and thresholds
   const domainConfig = getDomainConfiguration(domainContext?.domain || 'general');
