@@ -4,6 +4,9 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { AdvancedForecasting, ForecastingConfig, ForecastResult } from '@/lib/ml/advancedForecasting';
 import { BusinessPrediction, BusinessScenario, BusinessHealthMetrics } from './usePredictiveAnalytics';
 import { predictQualityTrend, predictDataVolume } from '@/lib/ml/predictionUtils';
+import { PreAnalysisEngine, PreAnalysisResult } from '@/lib/ml/preAnalysisLayer';
+import { DataValidationEngine, ValidationResult } from '@/lib/ml/dataValidation';
+import { DynamicScenarioGenerator } from '@/lib/ml/dynamicScenarioGenerator';
 
 export interface EnhancedPredictiveAnalyticsResult {
   predictions: BusinessPrediction[];
@@ -27,6 +30,12 @@ export interface EnhancedPredictiveAnalyticsResult {
     expectedImpact: number;
     timeframe: string;
   }>;
+  preAnalysis: PreAnalysisResult;
+  validationResults: {
+    dataQuality: ValidationResult;
+    statisticalMetrics: ValidationResult;
+    overallConfidence: number;
+  };
 }
 
 export const useEnhancedPredictiveAnalytics = () => {
@@ -145,7 +154,8 @@ export const useEnhancedPredictiveAnalytics = () => {
 
   const generateEnhancedPredictions = useCallback(async (
     data: DataRow[],
-    columns: ColumnInfo[]
+    columns: ColumnInfo[],
+    preAnalysis?: PreAnalysisResult
   ): Promise<{ predictions: BusinessPrediction[]; forecastResults: Map<string, ForecastResult> }> => {
     const predictions: BusinessPrediction[] = [];
     const forecastResults = new Map<string, ForecastResult>();
@@ -394,41 +404,77 @@ export const useEnhancedPredictiveAnalytics = () => {
     setError(null);
 
     try {
-      // Step 1: Analyze business health (15%)
+      // Phase 1: Pre-Analysis Layer (20%)
+      console.log('Phase 1: Pre-Analysis Layer');
       setAnalysisProgress(5);
-      const businessHealth = analyzeBusinessHealth(data);
-      setAnalysisProgress(15);
-
-      // Step 2: Generate enhanced predictions (50%)
+      const preAnalysis = await PreAnalysisEngine.analyzeDataset(data, columns);
       setAnalysisProgress(20);
-      const { predictions, forecastResults } = await generateEnhancedPredictions(data, columns);
-      setAnalysisProgress(50);
 
-      // Step 3: Generate scenarios based on forecasts (70%)
-      setAnalysisProgress(55);
-      const scenarios = generateEnhancedScenarios(predictions, businessHealth, forecastResults);
-      setAnalysisProgress(70);
+      // Phase 2: Data Validation (30%)
+      console.log('Phase 2: Data Validation');
+      setAnalysisProgress(25);
+      const dataQuality = DataValidationEngine.validateDataQuality(data, columns);
+      
+      if (!dataQuality.isValid && dataQuality.errors.length > 0) {
+        console.warn('Data quality issues detected:', dataQuality.errors);
+      }
+      setAnalysisProgress(30);
 
-      // Step 4: Generate actionable insights (85%)
+      // Phase 3: Enhanced Predictions with Validation (60%)
+      console.log('Phase 3: Enhanced Predictions');
+      setAnalysisProgress(35);
+      const { predictions, forecastResults } = await generateEnhancedPredictions(data, columns, preAnalysis);
+      
+      // Validate statistical metrics
+      const statisticalMetrics = validatePredictionMetrics(predictions);
+      setAnalysisProgress(60);
+
+      // Phase 4: Dynamic Scenario Generation (75%)
+      console.log('Phase 4: Dynamic Scenario Generation');
+      setAnalysisProgress(65);
+      const scenarios = DynamicScenarioGenerator.generateAdaptiveScenarios(predictions, preAnalysis);
       setAnalysisProgress(75);
-      const insights = generateEnhancedInsights(predictions, businessHealth, forecastResults);
+
+      // Phase 5: Business Health Analysis (85%)
+      console.log('Phase 5: Business Health Analysis');
+      setAnalysisProgress(80);
+      const businessHealth = analyzeEnhancedBusinessHealth(data, preAnalysis);
       setAnalysisProgress(85);
 
-      // Step 5: Generate recommendations (100%)
+      // Phase 6: Context-Aware Recommendations (95%)
+      console.log('Phase 6: Context-Aware Recommendations');
       setAnalysisProgress(90);
-      const recommendations = generateActionableRecommendations(predictions, businessHealth, forecastResults);
-      setAnalysisProgress(100);
+      const insights = generateContextualInsights(predictions, preAnalysis, forecastResults);
+      const recommendations = generateContextAwareRecommendations(predictions, businessHealth, preAnalysis, forecastResults);
+      setAnalysisProgress(95);
 
+      // Calculate overall confidence
+      const overallConfidence = DataValidationEngine.calculateAdaptiveConfidence(
+        dataQuality,
+        statisticalMetrics,
+        data.length,
+        preAnalysis.trendAnalysis.trendStrength
+      );
+
+      setAnalysisProgress(100);
       setLastAnalysis(new Date());
 
       console.log('Enhanced predictive analysis completed successfully');
+      console.log('Overall confidence:', (overallConfidence * 100).toFixed(1) + '%');
+      
       return {
         predictions,
         scenarios,
         insights,
         forecastResults,
         businessHealth,
-        recommendations
+        recommendations,
+        preAnalysis,
+        validationResults: {
+          dataQuality,
+          statisticalMetrics,
+          overallConfidence
+        }
       };
 
     } catch (err) {
@@ -440,7 +486,188 @@ export const useEnhancedPredictiveAnalytics = () => {
       setIsAnalyzing(false);
       setTimeout(() => setAnalysisProgress(0), 1000);
     }
-  }, [analyzeBusinessHealth, generateEnhancedPredictions, generateActionableRecommendations]);
+  }, []);
+
+  // Enhanced helper methods with validation
+  const validatePredictionMetrics = (predictions: BusinessPrediction[]): ValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    predictions.forEach(prediction => {
+      // Validate confidence is within bounds
+      if (prediction.confidence < 0 || prediction.confidence > 1) {
+        errors.push(`Invalid confidence for ${prediction.title}: ${prediction.confidence}`);
+      }
+
+      // Validate prediction values make sense
+      if (prediction.prediction < 0 && prediction.type === 'revenue') {
+        errors.push(`Negative revenue prediction for ${prediction.title}`);
+      }
+
+      // Check metadata if available
+      if (prediction.metadata?.r2Score) {
+        const metricValidation = DataValidationEngine.validateStatisticalMetrics({
+          r2Score: prediction.metadata.r2Score,
+          confidence: prediction.confidence,
+          mae: prediction.metadata.mae,
+          mape: prediction.metadata.mape
+        });
+        
+        errors.push(...metricValidation.errors);
+        warnings.push(...metricValidation.warnings);
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      confidence: Math.max(0.1, 1 - (errors.length * 0.3 + warnings.length * 0.1)),
+      qualityScore: Math.max(0.1, 1 - (errors.length * 0.5 + warnings.length * 0.2))
+    };
+  };
+
+  const analyzeEnhancedBusinessHealth = (data: DataRow[], preAnalysis: PreAnalysisResult): BusinessHealthMetrics => {
+    // Use pre-analysis insights to inform business health
+    const baseHealth = analyzeBusinessHealth(data);
+    
+    // Adjust based on pre-analysis findings
+    let adjustedHealth = { ...baseHealth };
+    
+    // Factor in data quality
+    if (preAnalysis.dataHealth.score < 0.5) {
+      adjustedHealth.overallHealth = adjustedHealth.overallHealth === 'growth' ? 'stable' : 
+                                    adjustedHealth.overallHealth === 'stable' ? 'decline' : 
+                                    adjustedHealth.overallHealth;
+    }
+    
+    // Factor in trend analysis
+    switch (preAnalysis.trendAnalysis.primaryTrend) {
+      case 'strong_negative':
+        adjustedHealth.overallHealth = 'crisis';
+        break;
+      case 'weak_negative':
+        adjustedHealth.overallHealth = adjustedHealth.overallHealth === 'growth' ? 'stable' : 'decline';
+        break;
+      case 'strong_positive':
+        adjustedHealth.overallHealth = adjustedHealth.overallHealth === 'crisis' ? 'decline' : 'growth';
+        break;
+    }
+    
+    return adjustedHealth;
+  };
+
+  const generateContextualInsights = (
+    predictions: BusinessPrediction[], 
+    preAnalysis: PreAnalysisResult, 
+    forecastResults: Map<string, ForecastResult>
+  ) => {
+    const insights = [];
+    
+    // Data-driven insights based on pre-analysis
+    if (preAnalysis.dataHealth.status === 'poor' || preAnalysis.dataHealth.status === 'critical') {
+      insights.push({
+        id: `data_health_${Date.now()}`,
+        title: 'Data Quality Issues Detected',
+        description: `Data health is ${preAnalysis.dataHealth.status}. ${preAnalysis.dataHealth.issues.join('. ')}.`,
+        actionable: true,
+        priority: 'high' as const,
+        confidence: 0.9,
+        impact: 0.3
+      });
+    }
+    
+    // Trend-based insights
+    if (preAnalysis.trendAnalysis.primaryTrend.includes('negative')) {
+      insights.push({
+        id: `trend_warning_${Date.now()}`,
+        title: 'Declining Performance Trend',
+        description: `${preAnalysis.trendAnalysis.primaryTrend.replace('_', ' ')} trend detected with ${(preAnalysis.trendAnalysis.volatility * 100).toFixed(1)}% volatility.`,
+        actionable: true,
+        priority: 'high' as const,
+        confidence: preAnalysis.predictiveReadiness.confidence,
+        impact: 0.4
+      });
+    }
+    
+    // Anomaly insights
+    if (preAnalysis.anomalies.detected && preAnalysis.anomalies.severity === 'high') {
+      insights.push({
+        id: `anomaly_alert_${Date.now()}`,
+        title: 'Data Anomalies Detected',
+        description: `${preAnalysis.anomalies.count} anomalies detected in ${preAnalysis.anomalies.affectedColumns.join(', ')}. This may indicate data quality issues or unusual business events.`,
+        actionable: true,
+        priority: 'medium' as const,
+        confidence: 0.8,
+        impact: 0.2
+      });
+    }
+    
+    return insights;
+  };
+
+  const generateContextAwareRecommendations = (
+    predictions: BusinessPrediction[],
+    businessHealth: BusinessHealthMetrics,
+    preAnalysis: PreAnalysisResult,
+    forecastResults: Map<string, ForecastResult>
+  ) => {
+    const recommendations = [];
+    
+    // Context-aware recommendations based on current state
+    switch (preAnalysis.trendAnalysis.primaryTrend) {
+      case 'strong_negative':
+      case 'weak_negative':
+        recommendations.push({
+          id: `crisis_intervention_${Date.now()}`,
+          title: 'Crisis Intervention Required',
+          description: 'Declining trends detected. Immediate stabilization efforts needed before optimization.',
+          implementation: 'Focus on core operations, reduce costs, retain customers, analyze root causes',
+          expectedImpact: 0.25,
+          timeframe: '30-60 days'
+        });
+        break;
+        
+      case 'stable':
+        if (preAnalysis.predictiveReadiness.score > 0.7) {
+          recommendations.push({
+            id: `optimization_opportunity_${Date.now()}`,
+            title: 'Optimization Opportunities',
+            description: 'Stable trends with good data quality enable optimization initiatives.',
+            implementation: 'Process improvement, efficiency gains, incremental growth strategies',
+            expectedImpact: 0.15,
+            timeframe: '60-90 days'
+          });
+        }
+        break;
+        
+      case 'strong_positive':
+      case 'weak_positive':
+        recommendations.push({
+          id: `scale_growth_${Date.now()}`,
+          title: 'Scale Successful Strategies',
+          description: 'Positive trends detected. Scale successful initiatives while monitoring sustainability.',
+          implementation: 'Increase investment in successful channels, expand capacity, monitor quality',
+          expectedImpact: 0.30,
+          timeframe: '90-180 days'
+        });
+        break;
+    }
+    
+    // Data quality recommendations
+    if (preAnalysis.dataHealth.score < 0.7) {
+      recommendations.push({
+        id: `data_quality_${Date.now()}`,
+        title: 'Improve Data Foundation',
+        description: 'Poor data quality limits prediction accuracy and decision-making capability.',
+        implementation: preAnalysis.dataHealth.recommendations.join(', '),
+        expectedImpact: 0.20,
+        timeframe: '45-90 days'
+      });
+    }
+    
+    return recommendations;
+  };
 
   // Helper methods
   const groupByMonth = (dates: Date[]) => {
@@ -491,23 +718,6 @@ export const useEnhancedPredictiveAnalytics = () => {
     ];
   };
 
-  const generateEnhancedInsights = (
-    predictions: BusinessPrediction[],
-    businessHealth: BusinessHealthMetrics,
-    forecastResults: Map<string, ForecastResult>
-  ) => {
-    return [
-      {
-        id: `enhanced_insight_${Date.now()}`,
-        title: 'ML-Powered Business Health Assessment',
-        description: `Business health is ${businessHealth.overallHealth}. Key risk: ${businessHealth.churnRisk > 0.5 ? 'High churn risk' : 'Revenue stability'}`,
-        actionable: true,
-        priority: 'high' as const,
-        confidence: 0.85,
-        impact: 0.8
-      }
-    ];
-  };
 
   return {
     isAnalyzing,
