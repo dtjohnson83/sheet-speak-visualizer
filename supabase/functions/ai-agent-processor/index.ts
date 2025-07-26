@@ -142,6 +142,9 @@ serve(async (req) => {
           case 'analyze_trends':
             insights = await analyzeTrends(task, supabase);
             break;
+          case 'report_generation':
+            insights = await processReportGeneration(task, supabase, dataContext);
+            break;
           default:
             console.log(`Unknown task type: ${task.task_type}`);
         }

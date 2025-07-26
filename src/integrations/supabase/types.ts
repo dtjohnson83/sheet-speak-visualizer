@@ -1444,6 +1444,211 @@ export type Database = {
           },
         ]
       }
+      report_executions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_path: string | null
+          file_size: number | null
+          generation_time_ms: number | null
+          id: string
+          metadata: Json
+          schedule_id: string | null
+          status: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generation_time_ms?: number | null
+          id?: string
+          metadata?: Json
+          schedule_id?: string | null
+          status?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generation_time_ms?: number | null
+          id?: string
+          metadata?: Json
+          schedule_id?: string | null
+          status?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_report_executions_schedule"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "report_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_report_executions_template"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_metrics: {
+        Row: {
+          avg_generation_time_ms: number
+          created_at: string
+          failed_runs: number
+          id: string
+          last_run_at: string | null
+          successful_runs: number
+          template_id: string
+          total_runs: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_generation_time_ms?: number
+          created_at?: string
+          failed_runs?: number
+          id?: string
+          last_run_at?: string | null
+          successful_runs?: number
+          template_id: string
+          total_runs?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_generation_time_ms?: number
+          created_at?: string
+          failed_runs?: number
+          id?: string
+          last_run_at?: string | null
+          successful_runs?: number
+          template_id?: string
+          total_runs?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_report_metrics_template"
+            columns: ["template_id"]
+            isOneToOne: true
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_schedules: {
+        Row: {
+          created_at: string
+          frequency: string
+          id: string
+          is_active: boolean
+          last_run: string | null
+          next_run: string | null
+          recipients: Json
+          schedule_time: string | null
+          template_id: string
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          next_run?: string | null
+          recipients?: Json
+          schedule_time?: string | null
+          template_id: string
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          next_run?: string | null
+          recipients?: Json
+          schedule_time?: string | null
+          template_id?: string
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_report_schedules_template"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_templates: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          source_dataset_id: string | null
+          status: string
+          template_type: string
+          transformations: Json
+          updated_at: string
+          user_id: string
+          visualizations: Json
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          source_dataset_id?: string | null
+          status?: string
+          template_type?: string
+          transformations?: Json
+          updated_at?: string
+          user_id: string
+          visualizations?: Json
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          source_dataset_id?: string | null
+          status?: string
+          template_type?: string
+          transformations?: Json
+          updated_at?: string
+          user_id?: string
+          visualizations?: Json
+        }
+        Relationships: []
+      }
       resume_parsing_sessions: {
         Row: {
           confidence_scores: Json | null
