@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,24 +20,26 @@ import { ReportScheduler } from './ReportScheduler';
 import { ReportInsights } from './ReportInsights';
 import { useToast } from '@/hooks/use-toast';
 import { useAIAgents } from '@/hooks/useAIAgents';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ReportTemplate {
   id: string;
   name: string;
   description: string;
-  type: 'sales' | 'financial' | 'operational' | 'custom';
-  schedule?: {
-    frequency: 'daily' | 'weekly' | 'monthly';
-    time: string;
-    recipients: string[];
-  };
-  lastRun?: Date;
+  template_type: 'sales' | 'financial' | 'operational' | 'custom' | 'excel' | 'pdf' | 'csv';
+  source_dataset_id?: string;
+  config: any;
   status: 'active' | 'paused' | 'draft';
-  metrics: {
-    totalRuns: number;
-    successRate: number;
-    avgGenerationTime: number;
-  };
+  created_at: string;
+  updated_at: string;
+}
+
+interface ReportMetrics {
+  total_runs: number;
+  successful_runs: number;
+  failed_runs: number;
+  avg_generation_time_ms: number;
+  last_run_at?: string;
 }
 
 export const ReportAutomationAgent = () => {
@@ -45,89 +47,81 @@ export const ReportAutomationAgent = () => {
   const { agents, createTask } = useAIAgents();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [metrics, setMetrics] = useState<Record<string, ReportMetrics>>({});
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for demonstration
-  const [templates] = useState<ReportTemplate[]>([
-    {
-      id: '1',
-      name: 'Weekly Sales Report',
-      description: 'Comprehensive sales performance analysis with trends and forecasts',
-      type: 'sales',
-      schedule: {
-        frequency: 'weekly',
-        time: '09:00',
-        recipients: ['sales@company.com', 'manager@company.com']
-      },
-      lastRun: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      status: 'active',
-      metrics: {
-        totalRuns: 52,
-        successRate: 98.1,
-        avgGenerationTime: 45
-      }
-    },
-    {
-      id: '2',
-      name: 'Monthly Financial Summary',
-      description: 'P&L, cash flow, and budget variance analysis',
-      type: 'financial',
-      schedule: {
-        frequency: 'monthly',
-        time: '08:00',
-        recipients: ['finance@company.com', 'cfo@company.com']
-      },
-      lastRun: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      status: 'active',
-      metrics: {
-        totalRuns: 12,
-        successRate: 100,
-        avgGenerationTime: 120
-      }
-    },
-    {
-      id: '3',
-      name: 'Daily Operations Dashboard',
-      description: 'Key operational metrics and KPI tracking',
-      type: 'operational',
-      status: 'draft',
-      metrics: {
-        totalRuns: 0,
-        successRate: 0,
-        avgGenerationTime: 0
-      }
+  useEffect(() => {
+    loadTemplates();
+    loadMetrics();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('report_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTemplates((data || []) as ReportTemplate[]);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load report templates.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const loadMetrics = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('report_metrics')
+        .select('*');
+
+      if (error) throw error;
+      
+      const metricsMap: Record<string, ReportMetrics> = {};
+      data?.forEach(metric => {
+        metricsMap[metric.template_id] = metric;
+      });
+      setMetrics(metricsMap);
+    } catch (error) {
+      console.error('Error loading metrics:', error);
+    }
+  };
 
   const handleGenerateReport = async (templateId: string) => {
     setIsGenerating(true);
     try {
-      // Example: Get dataset_id from somewhere (e.g., state, props, or assume a default)
-      const datasetId = 'your_dataset_id_here';  // Replace with actual (e.g., from useDataQualityAgent or props)
-      
-      // Find the report agent (assume one exists; adjust if multiple)
-      const reportAgent = agents.find(a => a.type === 'report_automation');
-      if (!reportAgent) throw new Error('No report agent found');
+      // Find the report agent or create one if needed
+      let reportAgent = agents.find(a => a.type === 'report_automation');
+      if (!reportAgent) {
+        toast({
+          title: "No Report Agent",
+          description: "Please create a report automation agent first.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Queue the task
       await createTask({
         agentId: reportAgent.id,
-        datasetId,  // Optional if not tied to dataset
-        taskType: 'report_generation',  // Matches backend switch
+        taskType: 'report_generation',
         parameters: {
-          templateId,  // From button click
-          includeCharts: true,  // From config or UI toggle
-          autoDistribute: false,  // Example; make dynamic
-          recipients: ['email@example.com'],  // From template or form
-          dataset_name: 'Dataset'  // If needed
+          templateId,
+          manualTrigger: true
         }
       });
       
-      // Optionally trigger processor immediately if manual
-      // await triggerProcessor();  // If you want instant processing; import/use useAgentProcessor if needed
-      
       toast({
         title: "Report Queued",
-        description: "Report generation task has been scheduled. Check insights for the file once processed.",
+        description: "Report generation task has been scheduled. Check insights for updates.",
       });
     } catch (error) {
       console.error('Error queuing report:', error);
@@ -160,10 +154,14 @@ export const ReportAutomationAgent = () => {
   };
 
   const activeTemplates = templates.filter(t => t.status === 'active');
-  const totalRuns = templates.reduce((sum, t) => sum + t.metrics.totalRuns, 0);
-  const avgSuccessRate = templates.length > 0 
-    ? templates.reduce((sum, t) => sum + t.metrics.successRate, 0) / templates.length 
+  const totalRuns = Object.values(metrics).reduce((sum, m) => sum + m.total_runs, 0);
+  const avgSuccessRate = Object.values(metrics).length > 0 
+    ? Object.values(metrics).reduce((sum, m) => sum + (m.total_runs > 0 ? (m.successful_runs / m.total_runs) * 100 : 0), 0) / Object.values(metrics).length 
     : 0;
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -233,8 +231,8 @@ export const ReportAutomationAgent = () => {
                 <div className="flex items-center space-x-2">
                   <Clock className="h-5 w-5 text-orange-500" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Next Run</p>
-                    <p className="text-sm font-medium">Today 9:00 AM</p>
+                    <p className="text-sm text-muted-foreground">Templates</p>
+                    <p className="text-2xl font-bold">{templates.length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -248,56 +246,67 @@ export const ReportAutomationAgent = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {templates.map((template) => (
-                  <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-2 rounded-lg bg-blue-500/15">
-                        {getTypeIcon(template.type)}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground">{template.description}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge className={getStatusColor(template.status)}>
-                            {template.status}
-                          </Badge>
-                          {template.schedule && (
-                            <Badge variant="outline">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {template.schedule.frequency}
-                            </Badge>
-                          )}
+                {templates.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileSpreadsheet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No report templates found. Create your first template to get started.</p>
+                    <Button className="mt-4" onClick={() => setActiveTab('templates')}>
+                      Create Template
+                    </Button>
+                  </div>
+                ) : (
+                  templates.map((template) => {
+                    const templateMetrics = metrics[template.id];
+                    const successRate = templateMetrics && templateMetrics.total_runs > 0 
+                      ? ((templateMetrics.successful_runs / templateMetrics.total_runs) * 100).toFixed(1)
+                      : '0';
+
+                    return (
+                      <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 rounded-lg bg-blue-500/15">
+                            {getTypeIcon(template.template_type)}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{template.name}</h4>
+                            <p className="text-sm text-muted-foreground">{template.description}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge className={getStatusColor(template.status)}>
+                                {template.status}
+                              </Badge>
+                              <Badge variant="outline">
+                                {template.template_type}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right text-sm">
+                            <p className="text-muted-foreground">Success Rate</p>
+                            <p className="font-medium">{successRate}%</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleGenerateReport(template.id)}
+                            disabled={isGenerating}
+                          >
+                            {isGenerating ? (
+                              <>
+                                <Clock className="h-4 w-4 mr-2 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-4 w-4 mr-2" />
+                                Run Now
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="text-right text-sm">
-                        <p className="text-muted-foreground">Success Rate</p>
-                        <p className="font-medium">{template.metrics.successRate}%</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleGenerateReport(template.id)}
-                        disabled={isGenerating}
-                      >
-                        {isGenerating ? (
-                          <>
-                            <Clock className="h-4 w-4 mr-2 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-4 w-4 mr-2" />
-                            Run Now
-                          </>
-                        )}
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                )}
               </div>
             </CardContent>
           </Card>

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,65 +20,59 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-interface ExcelTemplate {
+interface ReportTemplate {
   id: string;
   name: string;
   description: string;
-  type: 'sales' | 'financial' | 'operational' | 'custom';
-  sourceFile?: string;
-  columns: string[];
-  transformations: string[];
-  visualizations: string[];
-  createdAt: Date;
+  template_type: string;
+  source_dataset_id?: string;
+  config: any;
+  transformations: any;
+  visualizations: any;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const ReportTemplateManager = () => {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<ExcelTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
+  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Mock templates data
-  const [templates] = useState<ExcelTemplate[]>([
-    {
-      id: '1',
-      name: 'Weekly Sales Report',
-      description: 'Comprehensive sales analysis with regional breakdowns and trend analysis',
-      type: 'sales',
-      sourceFile: 'sales_data_template.xlsx',
-      columns: ['Date', 'Region', 'Product', 'Sales Amount', 'Units Sold'],
-      transformations: ['Pivot by Region', 'Calculate Growth %', 'Add Moving Average'],
-      visualizations: ['Sales Trend Chart', 'Regional Pie Chart', 'Top Products Bar Chart'],
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      name: 'Monthly P&L Statement',
-      description: 'Automated profit and loss statement with variance analysis',
-      type: 'financial',
-      sourceFile: 'financial_template.xlsx',
-      columns: ['Account', 'Actual', 'Budget', 'Prior Year', 'Category'],
-      transformations: ['Calculate Variance %', 'Group by Category', 'Add YoY Comparison'],
-      visualizations: ['Budget vs Actual Chart', 'Variance Waterfall', 'Category Breakdown'],
-      createdAt: new Date('2024-01-10')
-    },
-    {
-      id: '3',
-      name: 'Inventory Dashboard',
-      description: 'Stock levels, turnover rates, and reorder recommendations',
-      type: 'operational',
-      columns: ['SKU', 'Current Stock', 'Reorder Level', 'Last Sale Date', 'Supplier'],
-      transformations: ['Calculate Days Supply', 'Flag Low Stock', 'Rank by Turnover'],
-      visualizations: ['Stock Level Heatmap', 'Turnover Analysis', 'Reorder Alerts'],
-      createdAt: new Date('2024-01-05')
-    }
-  ]);
-
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     description: '',
-    type: 'custom' as const
+    template_type: 'custom' as const
   });
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('report_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load report templates.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -99,7 +92,7 @@ export const ReportTemplateManager = () => {
     }
   };
 
-  const handleCreateTemplate = () => {
+  const handleCreateTemplate = async () => {
     if (!newTemplate.name.trim()) {
       toast({
         title: "Error",
@@ -109,22 +102,78 @@ export const ReportTemplateManager = () => {
       return;
     }
 
-    toast({
-      title: "Template Created",
-      description: `"${newTemplate.name}" template has been created successfully.`,
-    });
-    
-    setNewTemplate({ name: '', description: '', type: 'custom' });
-    setIsCreateDialogOpen(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('report_templates')
+        .insert({
+          name: newTemplate.name,
+          description: newTemplate.description || null,
+          template_type: newTemplate.template_type,
+          config: {},
+          transformations: [],
+          visualizations: [],
+          status: 'draft',
+          user_id: user.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Template Created",
+        description: `"${newTemplate.name}" template has been created successfully.`,
+      });
+      
+      setNewTemplate({ name: '', description: '', template_type: 'custom' });
+      setIsCreateDialogOpen(false);
+      loadTemplates();
+    } catch (error) {
+      console.error('Error creating template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create template. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const { error } = await supabase
+        .from('report_templates')
+        .delete()
+        .eq('id', templateId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Template Deleted",
+        description: "Template has been deleted successfully.",
+      });
+
+      loadTemplates();
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete template.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleUploadExcel = () => {
-    // Simulate file upload
     toast({
       title: "Excel Analysis",
-      description: "Analyzing Excel file structure and creating template...",
+      description: "Excel upload functionality will be available soon.",
     });
   };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -175,8 +224,8 @@ export const ReportTemplateManager = () => {
                 <div>
                   <Label htmlFor="type">Report Type</Label>
                   <Select
-                    value={newTemplate.type}
-                    onValueChange={(value: any) => setNewTemplate(prev => ({ ...prev, type: value }))}
+                    value={newTemplate.template_type}
+                    onValueChange={(value: any) => setNewTemplate(prev => ({ ...prev, template_type: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -185,6 +234,9 @@ export const ReportTemplateManager = () => {
                       <SelectItem value="sales">Sales Report</SelectItem>
                       <SelectItem value="financial">Financial Report</SelectItem>
                       <SelectItem value="operational">Operational Report</SelectItem>
+                      <SelectItem value="excel">Excel Report</SelectItem>
+                      <SelectItem value="pdf">PDF Report</SelectItem>
+                      <SelectItem value="csv">CSV Report</SelectItem>
                       <SelectItem value="custom">Custom Report</SelectItem>
                     </SelectContent>
                   </Select>
@@ -205,80 +257,75 @@ export const ReportTemplateManager = () => {
 
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {templates.map((template) => (
-          <Card key={template.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className={`p-2 rounded-lg ${getTypeColor(template.type)}`}>
-                    {getTypeIcon(template.type)}
+        {templates.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <FileSpreadsheet className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
+            <p className="text-muted-foreground mb-4">Create your first report template to get started.</p>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Template
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+          </div>
+        ) : (
+          templates.map((template) => (
+            <Card key={template.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className={`p-2 rounded-lg ${getTypeColor(template.template_type)}`}>
+                      {getTypeIcon(template.template_type)}
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <Badge className={getTypeColor(template.template_type)}>
+                        {template.template_type}
+                      </Badge>
+                    </div>
                   </div>
+                  <div className="flex items-center space-x-1">
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedTemplate(template)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handleDeleteTemplate(template.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">{template.description || 'No description provided'}</p>
+                
+                <div className="space-y-2">
                   <div>
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                    <Badge className={getTypeColor(template.type)}>
-                      {template.type}
+                    <p className="text-xs font-medium text-muted-foreground">STATUS</p>
+                    <Badge variant="outline" className="text-xs">
+                      {template.status}
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedTemplate(template)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost">
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost">
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{template.description}</p>
-              
-              <div className="space-y-2">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">COLUMNS ({template.columns.length})</p>
-                  <div className="flex flex-wrap gap-1">
-                    {template.columns.slice(0, 3).map((column, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {column}
-                      </Badge>
-                    ))}
-                    {template.columns.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{template.columns.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                </div>
 
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">VISUALIZATIONS ({template.visualizations.length})</p>
-                  <div className="flex flex-wrap gap-1">
-                    {template.visualizations.slice(0, 2).map((viz, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {viz}
-                      </Badge>
-                    ))}
-                    {template.visualizations.length > 2 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{template.visualizations.length - 2} more
-                      </Badge>
-                    )}
-                  </div>
+                <div className="text-xs text-muted-foreground">
+                  Created {new Date(template.created_at).toLocaleDateString()}
                 </div>
-              </div>
-
-              <div className="text-xs text-muted-foreground">
-                Created {template.createdAt.toLocaleDateString()}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Template Details Dialog */}
@@ -287,48 +334,40 @@ export const ReportTemplateManager = () => {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-2">
-                {getTypeIcon(selectedTemplate.type)}
+                {getTypeIcon(selectedTemplate.template_type)}
                 <span>{selectedTemplate.name}</span>
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <p className="text-muted-foreground">{selectedTemplate.description}</p>
+              <p className="text-muted-foreground">{selectedTemplate.description || 'No description provided'}</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium mb-2">Data Columns</h4>
-                  <div className="space-y-1">
-                    {selectedTemplate.columns.map((column, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm">{column}</span>
-                      </div>
-                    ))}
+                  <h4 className="font-medium mb-2">Template Details</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Type:</span>
+                      <Badge>{selectedTemplate.template_type}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Status:</span>
+                      <Badge variant="outline">{selectedTemplate.status}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Created:</span>
+                      <span className="text-sm">{new Date(selectedTemplate.created_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-2">Transformations</h4>
-                  <div className="space-y-1">
-                    {selectedTemplate.transformations.map((transform, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm">{transform}</span>
-                      </div>
-                    ))}
+                  <h4 className="font-medium mb-2">Configuration</h4>
+                  <div className="text-sm text-muted-foreground">
+                    {Object.keys(selectedTemplate.config || {}).length > 0 
+                      ? 'Custom configuration available'
+                      : 'No custom configuration'
+                    }
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2">Visualizations</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {selectedTemplate.visualizations.map((viz, index) => (
-                    <Badge key={index} variant="secondary" className="justify-start">
-                      <BarChart3 className="h-3 w-3 mr-2" />
-                      {viz}
-                    </Badge>
-                  ))}
                 </div>
               </div>
             </div>

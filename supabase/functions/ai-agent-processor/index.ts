@@ -628,3 +628,288 @@ function calculateStandardDeviation(values: number[]): number {
   const variance = squaredDifferences.reduce((sum, val) => sum + val, 0) / values.length;
   return Math.sqrt(variance);
 }
+
+async function processReportGeneration(task: AgentTask, supabase: any, dataContext: any) {
+  const insights = [];
+  
+  try {
+    const { templateId, scheduleId } = task.parameters;
+    
+    // Fetch template configuration
+    const { data: template, error: templateError } = await supabase
+      .from('report_templates')
+      .select('*')
+      .eq('id', templateId)
+      .single();
+        
+    if (templateError || !template) {
+      throw new Error(`Failed to fetch template: ${templateError?.message || 'Template not found'}`);
+    }
+    
+    // Create execution record
+    const { data: execution, error: executionError } = await supabase
+      .from('report_executions')
+      .insert({
+        template_id: templateId,
+        schedule_id: scheduleId,
+        user_id: template.user_id,
+        status: 'processing'
+      })
+      .select()
+      .single();
+        
+    if (executionError) {
+      throw new Error(`Failed to create execution record: ${executionError.message}`);
+    }
+    
+    const startTime = Date.now();
+    
+    // Get dataset if specified
+    let dataset = null;
+    if (template.source_dataset_id) {
+      const { data: datasetData } = await supabase
+        .from('saved_datasets')
+        .select('*')
+        .eq('id', template.source_dataset_id)
+        .single();
+      dataset = datasetData;
+    } else if (dataContext) {
+      dataset = {
+        data: dataContext.data,
+        columns: dataContext.columns,
+        name: dataContext.fileName || 'Dataset'
+      };
+    }
+    
+    if (!dataset) {
+      throw new Error('No dataset available for report generation');
+    }
+    
+    // Generate report based on template type
+    let reportContent;
+    let fileName;
+    let contentType;
+    
+    if (template.template_type === 'excel') {
+      const result = await generateExcelReport(template, dataset);
+      reportContent = result.content;
+      fileName = `${template.name}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    } else if (template.template_type === 'pdf') {
+      const result = await generatePDFReport(template, dataset);
+      reportContent = result.content;
+      fileName = `${template.name}_${new Date().toISOString().split('T')[0]}.pdf`;
+      contentType = 'application/pdf';
+    } else {
+      const result = await generateCSVReport(template, dataset);
+      reportContent = result.content;
+      fileName = `${template.name}_${new Date().toISOString().split('T')[0]}.csv`;
+      contentType = 'text/csv';
+    }
+    
+    // Store file in Supabase storage
+    const filePath = `${template.user_id}/${fileName}`;
+    const { error: uploadError } = await supabase.storage
+      .from('reports')
+      .upload(filePath, reportContent, {
+        contentType: contentType,
+        upsert: true
+      });
+        
+    if (uploadError) {
+      throw new Error(`Failed to upload report: ${uploadError.message}`);
+    }
+    
+    const generationTime = Date.now() - startTime;
+    
+    // Update execution record
+    await supabase
+      .from('report_executions')
+      .update({
+        status: 'completed',
+        file_path: filePath,
+        file_size: typeof reportContent === 'string' ? reportContent.length : reportContent.byteLength,
+        generation_time_ms: generationTime,
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', execution.id);
+    
+    // Update metrics
+    await updateReportMetrics(templateId, true, generationTime, supabase);
+    
+    insights.push({
+      insight_type: 'report_generated',
+      title: 'Report Generated Successfully',
+      description: `${template.name} report has been generated and saved successfully.`,
+      confidence_score: 1.0,
+      priority: 5,
+      data: {
+        templateName: template.name,
+        fileName,
+        filePath,
+        generationTimeMs: generationTime,
+        fileSize: typeof reportContent === 'string' ? reportContent.length : reportContent.byteLength,
+        templateType: template.template_type
+      }
+    });
+    
+  } catch (error) {
+    console.error('Report generation failed:', error);
+    
+    // Update execution record with error
+    if (task.parameters?.templateId) {
+      await supabase
+        .from('report_executions')
+        .update({
+          status: 'failed',
+          error_message: error.message,
+          completed_at: new Date().toISOString()
+        })
+        .eq('template_id', task.parameters.templateId)
+        .eq('status', 'processing');
+        
+      // Update metrics
+      await updateReportMetrics(task.parameters.templateId, false, 0, supabase);
+    }
+    
+    insights.push({
+      insight_type: 'report_error',
+      title: 'Report Generation Failed',
+      description: `Failed to generate report: ${error.message}`,
+      confidence_score: 1.0,
+      priority: 8,
+      data: {
+        error: error.message,
+        templateId: task.parameters?.templateId
+      }
+    });
+  }
+  
+  return insights;
+}
+
+async function generateExcelReport(template: any, dataset: any) {
+  // Simple CSV-like content for now (could be enhanced with proper Excel generation)
+  const data = dataset.data || [];
+  const columns = dataset.columns || [];
+  
+  let csvContent = columns.map(col => col.name || col).join(',') + '\n';
+  
+  for (const row of data) {
+    const rowValues = columns.map(col => {
+      const value = row[col.name || col];
+      return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+    });
+    csvContent += rowValues.join(',') + '\n';
+  }
+  
+  // Apply transformations if specified
+  if (template.transformations && template.transformations.length > 0) {
+    // Could add transformation logic here
+  }
+  
+  return {
+    content: new TextEncoder().encode(csvContent),
+    contentType: 'text/csv'
+  };
+}
+
+async function generatePDFReport(template: any, dataset: any) {
+  // Simple text-based PDF content (could be enhanced with proper PDF generation)
+  const data = dataset.data || [];
+  const columns = dataset.columns || [];
+  
+  let content = `Report: ${template.name}\n`;
+  content += `Generated: ${new Date().toLocaleString()}\n\n`;
+  content += `Dataset: ${dataset.name}\n`;
+  content += `Records: ${data.length}\n`;
+  content += `Columns: ${columns.length}\n\n`;
+  
+  // Add summary statistics
+  for (const col of columns.slice(0, 5)) { // First 5 columns
+    const colName = col.name || col;
+    const values = data.map(row => row[colName]).filter(v => v != null);
+    content += `${colName}: ${values.length} values\n`;
+  }
+  
+  return {
+    content: new TextEncoder().encode(content),
+    contentType: 'text/plain'
+  };
+}
+
+async function generateCSVReport(template: any, dataset: any) {
+  const data = dataset.data || [];
+  const columns = dataset.columns || [];
+  
+  let csvContent = columns.map(col => col.name || col).join(',') + '\n';
+  
+  for (const row of data) {
+    const rowValues = columns.map(col => {
+      const value = row[col.name || col];
+      return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+    });
+    csvContent += rowValues.join(',') + '\n';
+  }
+  
+  return {
+    content: csvContent,
+    contentType: 'text/csv'
+  };
+}
+
+async function updateReportMetrics(templateId: string, success: boolean, generationTime: number, supabase: any) {
+  try {
+    // Get current metrics or create new
+    const { data: currentMetrics } = await supabase
+      .from('report_metrics')
+      .select('*')
+      .eq('template_id', templateId)
+      .single();
+    
+    if (currentMetrics) {
+      // Update existing metrics
+      const newTotalRuns = currentMetrics.total_runs + 1;
+      const newSuccessfulRuns = currentMetrics.successful_runs + (success ? 1 : 0);
+      const newFailedRuns = currentMetrics.failed_runs + (success ? 0 : 1);
+      const newAvgTime = success 
+        ? Math.round((currentMetrics.avg_generation_time_ms * currentMetrics.successful_runs + generationTime) / newSuccessfulRuns)
+        : currentMetrics.avg_generation_time_ms;
+      
+      await supabase
+        .from('report_metrics')
+        .update({
+          total_runs: newTotalRuns,
+          successful_runs: newSuccessfulRuns,
+          failed_runs: newFailedRuns,
+          avg_generation_time_ms: newAvgTime,
+          last_run_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('template_id', templateId);
+    } else {
+      // Create new metrics record
+      const { data: template } = await supabase
+        .from('report_templates')
+        .select('user_id')
+        .eq('id', templateId)
+        .single();
+      
+      if (template) {
+        await supabase
+          .from('report_metrics')
+          .insert({
+            template_id: templateId,
+            user_id: template.user_id,
+            total_runs: 1,
+            successful_runs: success ? 1 : 0,
+            failed_runs: success ? 0 : 1,
+            avg_generation_time_ms: success ? generationTime : 0,
+            last_run_at: new Date().toISOString()
+          });
+      }
+    }
+  } catch (error) {
+    console.error('Failed to update report metrics:', error);
+  }
+}
