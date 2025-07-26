@@ -54,47 +54,69 @@ export const useAgentProcessor = () => {
       throw new Error(`No ${agentId ? 'matching' : 'active'} agents found. Please create an agent first.`);
     }
 
-    // Get available datasets - limit to prevent too many tasks
-    const datasetLimit = agentId ? 5 : 3; // Fewer datasets for batch operations
-    const { data: datasets, error: datasetsError } = await supabase
+    // Get all datasets first to check availability
+    const { data: allDatasets, error: allDatasetsError } = await supabase
       .from('saved_datasets')
       .select('id, name')
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(datasetLimit);
+      .order('updated_at', { ascending: false });
 
-    if (datasetsError) throw datasetsError;
+    if (allDatasetsError) throw allDatasetsError;
 
-    if (!datasets || datasets.length === 0) {
+    if (!allDatasets || allDatasets.length === 0) {
       throw new Error('No datasets available for analysis');
     }
 
     const createdTasks = [];
     const maxTasksPerAgent = agentId ? 5 : 2; // Limit tasks per agent
+    let totalAvailableDatasets = 0;
+    let totalPendingTasks = 0;
 
-    // Create tasks for each agent-dataset combination with deduplication
+    // Create tasks for each agent
     for (const agent of agents) {
       let tasksCreatedForAgent = 0;
+      const taskType = getTaskTypeForAgent(agent.type);
       
-      for (const dataset of datasets) {
-        if (tasksCreatedForAgent >= maxTasksPerAgent) break;
-        
-        const taskType = getTaskTypeForAgent(agent.type);
-        
-        // Check for existing pending tasks with same combination
-        const { data: existingTask } = await supabase
-          .from('agent_tasks')
-          .select('id')
-          .eq('agent_id', agent.id)
-          .eq('dataset_id', dataset.id)
-          .eq('task_type', taskType)
-          .eq('status', 'pending')
-          .maybeSingle();
+      // Get datasets that DON'T have pending tasks for this agent
+      const { data: availableDatasets, error: availableDatasetsError } = await supabase
+        .from('saved_datasets')
+        .select('id, name')
+        .eq('user_id', user.id)
+        .not('id', 'in', `(
+          SELECT dataset_id FROM agent_tasks 
+          WHERE agent_id = '${agent.id}' 
+          AND task_type = '${taskType}' 
+          AND status = 'pending'
+        )`)
+        .order('updated_at', { ascending: false })
+        .limit(maxTasksPerAgent);
 
-        if (existingTask) {
-          console.log(`Task already exists for agent ${agent.name} on dataset ${dataset.name}`);
-          continue; // Skip if task already exists
-        }
+      if (availableDatasetsError) {
+        console.error('Error fetching available datasets:', availableDatasetsError);
+        continue;
+      }
+
+      // Count pending tasks for this agent for logging
+      const { count: pendingCount } = await supabase
+        .from('agent_tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('agent_id', agent.id)
+        .eq('task_type', taskType)
+        .eq('status', 'pending');
+
+      totalPendingTasks += pendingCount || 0;
+      totalAvailableDatasets += availableDatasets?.length || 0;
+
+      console.log(`Agent ${agent.name}: ${availableDatasets?.length || 0} datasets available, ${pendingCount || 0} pending tasks`);
+
+      if (!availableDatasets || availableDatasets.length === 0) {
+        console.log(`No available datasets for agent ${agent.name} (all have pending tasks)`);
+        continue;
+      }
+
+      // Create tasks for available datasets
+      for (const dataset of availableDatasets) {
+        if (tasksCreatedForAgent >= maxTasksPerAgent) break;
         
         const taskData = {
           agent_id: agent.id,
@@ -128,6 +150,27 @@ export const useAgentProcessor = () => {
 
         createdTasks.push(task);
         tasksCreatedForAgent++;
+      }
+    }
+
+    // Add detailed logging for debugging
+    console.log(`Task creation summary: ${createdTasks.length} tasks created, ${totalAvailableDatasets} total available datasets, ${totalPendingTasks} pending tasks`);
+    
+    // Enhanced error information if no tasks were created
+    if (createdTasks.length === 0) {
+      const errorDetails = {
+        total_datasets: allDatasets.length,
+        total_agents: agents.length,
+        pending_tasks: totalPendingTasks,
+        available_combinations: totalAvailableDatasets
+      };
+      
+      console.log('No tasks created - details:', errorDetails);
+      
+      if (totalPendingTasks > 0) {
+        throw new Error(`No new tasks could be created. All ${agents.length} agent(s) have pending tasks for their most recent datasets. ${totalPendingTasks} tasks are currently pending. Wait for current tasks to complete or clear them first.`);
+      } else {
+        throw new Error(`No tasks could be created. Agents: ${agents.length}, Datasets: ${allDatasets.length}. Check that agents and datasets are properly configured.`);
       }
     }
 
