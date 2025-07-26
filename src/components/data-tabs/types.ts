@@ -20,6 +20,7 @@ export interface DataTabsSectionProps {
   data: DataRow[];
   columns: ColumnInfo[];
   fileName: string;
+  worksheetName: string;
   tiles: any[];
   filters: any[];
   currentDatasetId: string;

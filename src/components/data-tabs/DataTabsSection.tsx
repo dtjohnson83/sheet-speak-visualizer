@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from '@/components/ui/tabs';
 import { getTierDefinitions } from './tierDefinitions';
+import { useDatasets } from '@/hooks/useDatasets';
 import { TierSection } from './TierSection';
 import { WorkflowProgressIndicator } from './WorkflowProgressIndicator';
 import { useTabManagement } from './hooks/useTabManagement';
@@ -9,6 +10,7 @@ import { TabContentAI } from './components/TabContentAI';
 import { TabContentCharts } from './components/TabContentCharts';
 import { TabContentDashboard } from './components/TabContentDashboard';
 import { TabContentSources } from './components/TabContentSources';
+import { TabContentSavedDatasets } from './components/TabContentSavedDatasets';
 import { TabContentAgents } from './components/TabContentAgents';
 import { DataTabsSectionProps } from './types';
 
@@ -16,6 +18,7 @@ export const DataTabsSection = ({
   data,
   columns,
   fileName,
+  worksheetName,
   tiles,
   filters,
   currentDatasetId,
@@ -45,9 +48,10 @@ export const DataTabsSection = ({
     toggleTier,
     getTierProgress
   } = useTabManagement(data, tiles, showContextSetup);
+  const { datasets } = useDatasets();
 
   // Get tier definitions
-  const tiers = getTierDefinitions(data, tiles);
+  const tiers = getTierDefinitions(data, tiles, datasets?.length || 0);
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -110,13 +114,23 @@ export const DataTabsSection = ({
         onLoadDashboard={onLoadDashboard}
       />
       
-      <TabContentSources
-        selectedDataSource={selectedDataSource}
-        showDataSourceDialog={showDataSourceDialog}
-        onDataSourceSelect={onDataSourceSelect}
-        onDataSourceDialogChange={onDataSourceDialogChange}
-        onDataLoaded={onDataLoaded}
-      />
+          <TabContentSources
+            selectedDataSource={selectedDataSource}
+            showDataSourceDialog={showDataSourceDialog}
+            onDataSourceSelect={onDataSourceSelect}
+            onDataSourceDialogChange={onDataSourceDialogChange}
+            onDataLoaded={onDataLoaded}
+          />
+
+          <TabContentSavedDatasets
+            data={data}
+            columns={columns}
+            fileName={fileName}
+            worksheetName={worksheetName}
+            onLoadDataset={(dataset) => {
+              onDataLoaded(dataset.data, dataset.columns, dataset.file_name, dataset.worksheet_name);
+            }}
+          />
       
       <TabContentAgents
         data={data}

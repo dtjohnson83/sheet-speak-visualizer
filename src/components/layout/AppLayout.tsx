@@ -127,6 +127,7 @@ export const AppLayout: React.FC = () => {
               data={appState.data}
               columns={appState.columns}
               fileName={displayFileName}
+              worksheetName={appState.worksheetName || ''}
               tiles={appState.tiles}
               filters={appState.filters}
               currentDatasetId={appState.currentDatasetId}

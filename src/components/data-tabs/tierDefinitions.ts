@@ -1,7 +1,7 @@
 import { Database, BarChart3, Layout, Bot, FileText, Shield, Settings, Target, Brain } from 'lucide-react';
 import { TierInfo } from './types';
 
-export const getTierDefinitions = (data: any[], tiles: any[]): Record<string, TierInfo> => ({
+export const getTierDefinitions = (data: any[], tiles: any[], savedDatasetsCount: number = 0): Record<string, TierInfo> => ({
   foundation: {
     title: "Data Foundation",
     description: "Connect and prepare your data",
@@ -9,6 +9,7 @@ export const getTierDefinitions = (data: any[], tiles: any[]): Record<string, Ti
     color: "blue",
     tabs: [
       { id: "data-sources", label: "Data Sources", icon: Database, badge: null },
+      { id: "saved-datasets", label: "Saved Datasets", icon: FileText, badge: savedDatasetsCount > 0 ? savedDatasetsCount : null },
       { id: "preview", label: "Data Preview", icon: Database, badge: data.length > 0 ? data.length : null },
       { id: "smart-integration", label: "Smart Integration", icon: Brain, badge: null }
     ]
