@@ -1,6 +1,9 @@
 
 project_id = "jkgqjeadviqmxwmwwkma"
 
+[functions.ai-agent-processor]
+verify_jwt = false
+
 [functions.ai-data-chat]
 verify_jwt = false
 
