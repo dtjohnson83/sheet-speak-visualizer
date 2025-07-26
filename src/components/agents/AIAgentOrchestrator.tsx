@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
   Bot, 
@@ -8,7 +8,11 @@ import {
   Settings, 
   BarChart3, 
   List,
-  FileSpreadsheet 
+  FileSpreadsheet,
+  Calendar,
+  Bell,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { AgentOverviewTab } from './tabs/AgentOverviewTab';
@@ -16,6 +20,9 @@ import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
 import { ReportAutomationTab } from './tabs/ReportAutomationTab';
+import { SchedulingTab } from './tabs/SchedulingTab';
+import { NotificationsTab } from './tabs/NotificationsTab';
+import { ProgressTab } from './tabs/ProgressTab';
 import { DomainSurvey, DomainContext } from './DomainSurvey';
 import { DataContext } from '@/types/agents';
 
@@ -171,15 +178,21 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     }
   };
 
+  // Calculate notification counts
   const activeAgents = agents.filter(agent => agent.status === 'active').length;
   const pendingTasks = tasks.filter(task => task.status === 'pending').length;
+  const runningTasks = tasks.filter(task => task.status === 'running').length;
   const unreadInsights = insights.filter(insight => !insight.is_read).length;
+  const failedTasks = tasks.filter(task => task.status === 'failed').length;
 
   const tabs = [
     { value: 'overview', label: 'Overview', icon: Activity, badge: agents.length },
     { value: 'management', label: 'Agents', icon: Bot, badge: activeAgents },
+    { value: 'scheduling', label: 'Schedule', icon: Calendar, badge: runningTasks },
+    { value: 'progress', label: 'Progress', icon: Clock, badge: runningTasks },
     { value: 'tasks', label: 'Tasks', icon: List, badge: pendingTasks },
     { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights },
+    { value: 'notifications', label: 'Alerts', icon: Bell, badge: unreadInsights + failedTasks },
     { value: 'report-automation', label: 'Reports', icon: FileSpreadsheet }
   ];
 
@@ -215,7 +228,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-8">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -229,40 +242,62 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           ))}
         </TabsList>
 
-        <AgentOverviewTab
-          agents={agents}
-          onCreateAgent={handleCreateAgent}
-        />
+        <TabsContent value="overview">
+          <AgentOverviewTab
+            agents={agents}
+            onCreateAgent={handleCreateAgent}
+          />
+        </TabsContent>
 
-        <AgentManagementTab
-          agents={agents}
-          onCreateAgent={createAgent}
-          onUpdateStatus={updateAgentStatus}
-          onDeleteAgent={deleteAgent}
-          onDeleteAll={deleteAllAgents}
-          onTriggerProcessor={triggerProcessor}
-        />
+        <TabsContent value="management">
+          <AgentManagementTab
+            agents={agents}
+            onCreateAgent={createAgent}
+            onUpdateStatus={updateAgentStatus}
+            onDeleteAgent={deleteAgent}
+            onDeleteAll={deleteAllAgents}
+            onTriggerProcessor={triggerProcessor}
+          />
+        </TabsContent>
 
-        <TaskManagementTab
-          tasks={tasks}
-          onCreate={createTask}
-          onDelete={deleteTask}
-          onClearAll={clearAllTasks}
-          onScheduleForDataset={scheduleTasksForDataset}
-          isDeletingTask={isDeletingTask}
-          isClearingAllTasks={isClearingAllTasks}
-        />
+        <TabsContent value="scheduling">
+          <SchedulingTab />
+        </TabsContent>
 
-        <InsightManagementTab
-          insights={insights}
-          onMarkRead={markInsightRead}
-          onDelete={deleteInsight}
-          onClearAll={clearAllInsights}
-          isDeletingInsight={isDeletingInsight}
-          isClearingAllInsights={isClearingAllInsights}
-        />
+        <TabsContent value="progress">
+          <ProgressTab />
+        </TabsContent>
 
-        <ReportAutomationTab />
+        <TabsContent value="tasks">
+          <TaskManagementTab
+            tasks={tasks}
+            onCreate={createTask}
+            onDelete={deleteTask}
+            onClearAll={clearAllTasks}
+            onScheduleForDataset={scheduleTasksForDataset}
+            isDeletingTask={isDeletingTask}
+            isClearingAllTasks={isClearingAllTasks}
+          />
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <InsightManagementTab
+            insights={insights}
+            onMarkRead={markInsightRead}
+            onDelete={deleteInsight}
+            onClearAll={clearAllInsights}
+            isDeletingInsight={isDeletingInsight}
+            isClearingAllInsights={isClearingAllInsights}
+          />
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <NotificationsTab />
+        </TabsContent>
+
+        <TabsContent value="report-automation">
+          <ReportAutomationTab />
+        </TabsContent>
       </Tabs>
 
       {/* Domain Survey Modal */}

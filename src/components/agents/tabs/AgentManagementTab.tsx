@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Bot, Play, Pause, Trash2, TrashIcon } from 'lucide-react';
+import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap } from 'lucide-react';
 import { Agent } from '@/types/agents';
 import { CreateAgentDialog } from '../CreateAgentDialog';
 import { formatDistanceToNow } from 'date-fns';
@@ -188,16 +188,69 @@ export const AgentManagementTab = ({
                   </p>
                 )}
                 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-4">
-                    <span>Priority: {agent.priority}</span>
-                    <span>Capabilities: {agent.capabilities.length}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                      <span>Priority: {agent.priority}</span>
+                      <span>Capabilities: {agent.capabilities.length}</span>
+                    </div>
+                    {agent.last_active && (
+                      <span>
+                        Last active {formatDistanceToNow(new Date(agent.last_active), { addSuffix: true })}
+                      </span>
+                    )}
                   </div>
-                  {agent.last_active && (
-                    <span>
-                      Last active {formatDistanceToNow(new Date(agent.last_active), { addSuffix: true })}
-                    </span>
+                  
+                  {/* Next Run Indicator */}
+                  {agent.status === 'active' && agent.configuration?.analysis_frequency && (
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 text-info">
+                        <Clock className="h-3 w-3" />
+                        <span>
+                          Next run: {(() => {
+                            const lastActive = agent.last_active ? new Date(agent.last_active) : new Date();
+                            const frequency = agent.configuration.analysis_frequency;
+                            let nextRun: Date;
+                            
+                            switch (frequency) {
+                              case 'hourly':
+                                nextRun = new Date(lastActive.getTime() + 60 * 60 * 1000);
+                                break;
+                              case 'daily':
+                                nextRun = new Date(lastActive.getTime() + 24 * 60 * 60 * 1000);
+                                break;
+                              case 'weekly':
+                                nextRun = new Date(lastActive.getTime() + 7 * 24 * 60 * 60 * 1000);
+                                break;
+                              default:
+                                nextRun = new Date(lastActive.getTime() + 24 * 60 * 60 * 1000);
+                            }
+                            
+                            return formatDistanceToNow(nextRun, { addSuffix: true });
+                          })()}
+                        </span>
+                      </div>
+                      <Badge variant="secondary" className="text-xs bg-info/20 text-info">
+                        {agent.configuration.analysis_frequency}
+                      </Badge>
+                    </div>
                   )}
+                  
+                  {/* Manual Trigger Button */}
+                  <div className="flex justify-end">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTriggerProcessor();
+                      }}
+                      className="text-xs"
+                    >
+                      <Zap className="h-3 w-3 mr-1" />
+                      Run Now
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
