@@ -81,7 +81,7 @@ serve(async (req) => {
     const requestBody = await req.json().catch(() => ({}));
     const dataContext = requestBody.data_context;
     
-    // Get pending agent tasks
+    // Get pending agent tasks with prioritization (manual tasks first)
     const { data: tasks, error: tasksError } = await supabase
       .from('agent_tasks')
       .select(`
@@ -90,7 +90,8 @@ serve(async (req) => {
       `)
       .eq('status', 'pending')
       .lte('scheduled_at', new Date().toISOString())
-      .limit(5);
+      .order('created_at', { ascending: false }) // Newer tasks first
+      .limit(20); // Increased from 5 to 20 for better throughput
 
     if (tasksError) {
       const sanitizedError = sanitizeError(tasksError);
@@ -142,11 +143,27 @@ serve(async (req) => {
           case 'analyze_trends':
             insights = await analyzeTrends(task, supabase);
             break;
+          case 'assess_data_quality':
+            result = await processDataAnalysis(task, supabase);
+            insights = await generateInsightsFromAnalysis(result, task, supabase);
+            break;
+          case 'predictive_forecast':
+            insights = await generateInsights(task, supabase);
+            break;
+          case 'find_correlations':
+            insights = await generateInsights(task, supabase);
+            break;
+          case 'create_visualization':
+            insights = await generateInsights(task, supabase);
+            break;
           case 'report_generation':
             insights = await processReportGeneration(task, supabase, dataContext);
             break;
           default:
             console.log(`Unknown task type: ${task.task_type}`);
+            // Still process unknown types as basic data analysis
+            result = await processDataAnalysis(task, supabase);
+            insights = await generateInsightsFromAnalysis(result, task, supabase);
         }
 
         // Save insights if generated

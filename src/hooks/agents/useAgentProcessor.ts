@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,8 +33,12 @@ export const useAgentProcessor = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Track last trigger time for cooldown
+  const lastTriggerRef = useRef<number>(0);
+  const COOLDOWN_MS = 10000; // 10 second cooldown
 
-  // Create tasks for active agents with current datasets
+  // Create tasks for active agents with current datasets - with deduplication
   const createTasksForActiveAgents = async (agentId?: string, dataContext?: DataContext) => {
     if (!user?.id) throw new Error('User not authenticated');
 
@@ -49,11 +54,14 @@ export const useAgentProcessor = () => {
       throw new Error(`No ${agentId ? 'matching' : 'active'} agents found. Please create an agent first.`);
     }
 
-    // Get available datasets
+    // Get available datasets - limit to prevent too many tasks
+    const datasetLimit = agentId ? 5 : 3; // Fewer datasets for batch operations
     const { data: datasets, error: datasetsError } = await supabase
       .from('saved_datasets')
       .select('id, name')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(datasetLimit);
 
     if (datasetsError) throw datasetsError;
 
@@ -62,11 +70,31 @@ export const useAgentProcessor = () => {
     }
 
     const createdTasks = [];
+    const maxTasksPerAgent = agentId ? 5 : 2; // Limit tasks per agent
 
-    // Create tasks for each agent-dataset combination
+    // Create tasks for each agent-dataset combination with deduplication
     for (const agent of agents) {
+      let tasksCreatedForAgent = 0;
+      
       for (const dataset of datasets) {
+        if (tasksCreatedForAgent >= maxTasksPerAgent) break;
+        
         const taskType = getTaskTypeForAgent(agent.type);
+        
+        // Check for existing pending tasks with same combination
+        const { data: existingTask } = await supabase
+          .from('agent_tasks')
+          .select('id')
+          .eq('agent_id', agent.id)
+          .eq('dataset_id', dataset.id)
+          .eq('task_type', taskType)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+        if (existingTask) {
+          console.log(`Task already exists for agent ${agent.name} on dataset ${dataset.name}`);
+          continue; // Skip if task already exists
+        }
         
         const taskData = {
           agent_id: agent.id,
@@ -90,20 +118,35 @@ export const useAgentProcessor = () => {
           .single();
 
         if (taskError) {
+          if (taskError.code === '23505') { // Unique constraint violation
+            console.log(`Duplicate task prevented for agent ${agent.name} on dataset ${dataset.name}`);
+            continue;
+          }
           console.error('Failed to create task:', taskError);
           continue;
         }
 
         createdTasks.push(task);
+        tasksCreatedForAgent++;
       }
     }
 
     return createdTasks;
   };
 
-  // Trigger processor mutation with task creation
+  // Trigger processor mutation with task creation and cooldown
   const triggerProcessorMutation = useMutation({
     mutationFn: async ({ agentId, dataContext }: { agentId?: string; dataContext?: DataContext } = {}) => {
+      // Check cooldown to prevent rapid re-triggering
+      const now = Date.now();
+      if (now - lastTriggerRef.current < COOLDOWN_MS) {
+        const remainingCooldown = Math.ceil((COOLDOWN_MS - (now - lastTriggerRef.current)) / 1000);
+        throw new Error(`Please wait ${remainingCooldown} seconds before triggering again`);
+      }
+      
+      // Update last trigger time
+      lastTriggerRef.current = now;
+      
       // First create tasks for active agents
       const createdTasks = await createTasksForActiveAgents(agentId, dataContext);
       

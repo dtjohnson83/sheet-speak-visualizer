@@ -71,11 +71,26 @@ export const useAutoScheduledAgentTasks = () => {
             return;
           }
 
-          // Create tasks for each active agent
+          // Create tasks for each active agent - with deduplication
           const createdTasks = [];
           
           for (const agent of currentAgents) {
             const taskType = getTaskTypeForAgent(agent.type);
+            
+            // Check for existing pending tasks to prevent duplicates
+            const { data: existingTask } = await supabase
+              .from('agent_tasks')
+              .select('id')
+              .eq('agent_id', agent.id)
+              .eq('dataset_id', payload.new.id)
+              .eq('task_type', taskType)
+              .eq('status', 'pending')
+              .maybeSingle();
+
+            if (existingTask) {
+              console.log(`Auto-schedule skipped: Task already exists for agent ${agent.name} on new dataset`);
+              continue;
+            }
             
             try {
               const { data: task, error } = await supabase.from('agent_tasks').insert({
@@ -92,6 +107,10 @@ export const useAutoScheduledAgentTasks = () => {
               }).select().single();
               
               if (error) {
+                if (error.code === '23505') { // Unique constraint violation
+                  console.log(`Auto-schedule duplicate prevented for agent ${agent.name} on new dataset`);
+                  continue;
+                }
                 console.error('Failed to schedule task:', error);
                 continue;
               }
@@ -150,12 +169,30 @@ export const useAutoScheduledAgentTasks = () => {
         const shouldSchedule = checkIfShouldSchedule(agent, frequency);
         
         if (shouldSchedule) {
-          // Schedule tasks for each dataset
-          for (const dataset of datasets) {
+          // Limit datasets for periodic tasks to prevent overload
+          const limitedDatasets = datasets.slice(0, 3); // Max 3 datasets per agent per period
+          
+          // Schedule tasks for limited datasets with deduplication
+          for (const dataset of limitedDatasets) {
             const taskType = getTaskTypeForAgent(agent.type);
             
+            // Check for existing pending tasks to prevent duplicates
+            const { data: existingTask } = await supabase
+              .from('agent_tasks')
+              .select('id')
+              .eq('agent_id', agent.id)
+              .eq('dataset_id', dataset.id)
+              .eq('task_type', taskType)
+              .eq('status', 'pending')
+              .maybeSingle();
+
+            if (existingTask) {
+              console.log(`Periodic schedule skipped: Task already exists for agent ${agent.name}`);
+              continue;
+            }
+            
             try {
-              await supabase.from('agent_tasks').insert({
+              const { data: task, error } = await supabase.from('agent_tasks').insert({
                 agent_id: agent.id,
                 dataset_id: dataset.id,
                 task_type: taskType,
@@ -167,7 +204,16 @@ export const useAutoScheduledAgentTasks = () => {
                   agent_name: agent.name,
                   timestamp: new Date().toISOString()
                 }
-              });
+              }).select().single();
+              
+              if (error) {
+                if (error.code === '23505') { // Unique constraint violation
+                  console.log(`Periodic duplicate prevented for agent ${agent.name} on dataset ${dataset.name}`);
+                  continue;
+                }
+                console.error('Failed to schedule periodic task:', error);
+                continue;
+              }
               
               tasksCreated++;
               console.log(`Scheduled periodic ${taskType} task for agent ${agent.name}`);
