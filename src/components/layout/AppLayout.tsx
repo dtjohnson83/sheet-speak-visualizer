@@ -26,6 +26,8 @@ export const AppLayout: React.FC = () => {
   const { getLatestData, sources } = useRealtimeData();
   const { showSurvey, setContext, closeSurvey, skipSurvey } = useDomainContext();
   
+  console.log('AppLayout: showSurvey state is:', showSurvey);
+  
   // Tutorial progress tracking
   const {
     shouldShowTutorial,
@@ -167,9 +169,18 @@ export const AppLayout: React.FC = () => {
       {/* Domain Survey Modal */}
       <DomainSurvey
         open={showSurvey}
-        onClose={closeSurvey}
-        onComplete={(context) => setContext(context, appState.fileName, appState.worksheetName)}
-        onSkip={skipSurvey}
+        onClose={() => {
+          console.log('DomainSurvey onClose called');
+          closeSurvey();
+        }}
+        onComplete={(context) => {
+          console.log('Survey completed with context:', context);
+          setContext(context, appState.fileName, appState.worksheetName);
+        }}
+        onSkip={() => {
+          console.log('Survey skipped');
+          skipSurvey();
+        }}
       />
     </div>
   );

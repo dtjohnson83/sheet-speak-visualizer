@@ -188,7 +188,10 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => triggerSurvey(true)}
+                onClick={() => {
+                  console.log('Edit context button clicked');
+                  triggerSurvey(true);
+                }}
                 className="h-6 w-6 p-0"
                 title="Edit domain context"
               >
@@ -199,7 +202,11 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => triggerSurvey()}
+              onClick={() => {
+                console.log('Add Context button clicked');
+                console.log('triggerSurvey function:', triggerSurvey);
+                triggerSurvey();
+              }}
               className="text-xs h-6"
             >
               Add Context

@@ -83,8 +83,12 @@ export const useDomainContext = () => {
   }, [domainContext]);
 
   const triggerSurvey = useCallback((force = false) => {
+    console.log('triggerSurvey called with force:', force, 'isContextCollected:', isContextCollected);
     if (force || !isContextCollected) {
+      console.log('Setting showSurvey to true');
       setShowSurvey(true);
+    } else {
+      console.log('Not showing survey - context already collected and force is false');
     }
   }, [isContextCollected]);
 

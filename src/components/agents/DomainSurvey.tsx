@@ -47,6 +47,7 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
   onComplete,
   onSkip
 }) => {
+  console.log('DomainSurvey rendered with open:', open);
   const [step, setStep] = useState(1);
   const [selectedDomain, setSelectedDomain] = useState<string>('');
   const [businessType, setBusinessType] = useState<string>('');
