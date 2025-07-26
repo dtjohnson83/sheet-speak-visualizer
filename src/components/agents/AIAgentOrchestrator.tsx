@@ -256,7 +256,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             onUpdateStatus={updateAgentStatus}
             onDeleteAgent={deleteAgent}
             onDeleteAll={deleteAllAgents}
-            onTriggerProcessor={triggerProcessor}
+            onTriggerProcessor={() => triggerProcessor()}
           />
         </TabsContent>
 

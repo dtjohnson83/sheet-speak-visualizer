@@ -1,5 +1,6 @@
 
 import { useSessionMonitor } from '@/hooks/useSessionMonitor';
+import { useAutoScheduledAgentTasks } from '@/hooks/useAutoScheduledAgentTasks';
 import { AppLayout } from '@/components/layout/AppLayout';
 
 export interface DataRow {
@@ -15,6 +16,9 @@ export interface ColumnInfo {
 const Index = () => {
   // Initialize session monitoring
   useSessionMonitor();
+  
+  // Initialize auto-scheduling for agents
+  useAutoScheduledAgentTasks();
 
   return <AppLayout />;
 };

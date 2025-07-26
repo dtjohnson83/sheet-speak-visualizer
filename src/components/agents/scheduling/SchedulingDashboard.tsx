@@ -88,10 +88,10 @@ export const SchedulingDashboard = () => {
 
   const handleRunNow = async (agentId: string) => {
     try {
-      await triggerProcessor();
+      await triggerProcessor(agentId);
       toast({
         title: "Agent triggered",
-        description: "Manual execution started for the agent",
+        description: "Tasks created and processing started for this agent",
       });
     } catch (error) {
       toast({
