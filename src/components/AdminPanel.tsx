@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, UserPlus, Users, Settings } from 'lucide-react';
+import { Shield, UserPlus, Users, Settings, AlertTriangle, Lock } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -74,18 +75,21 @@ export const AdminPanel = () => {
     setLoading(false);
   };
 
-  const handlePromoteUser = async (userId: string) => {
+  const handlePromoteUser = async (userId: string, userEmail: string) => {
     const success = await promoteToAdmin(userId);
     if (success) {
       toast({
         title: "Success",
-        description: "User promoted to admin successfully.",
+        description: `${userEmail} promoted to admin successfully.`,
       });
       fetchUsers(); // Refresh the list
+      
+      // Log the promotion for security audit
+      console.log(`SECURITY AUDIT: User ${userEmail} (${userId}) promoted to admin by ${user?.email} (${user?.id})`);
     } else {
       toast({
         title: "Error",
-        description: "Failed to promote user to admin.",
+        description: "Failed to promote user to admin. Check console for details.",
         variant: "destructive",
       });
     }
@@ -109,7 +113,7 @@ export const AdminPanel = () => {
     }
   };
 
-  const resetUserUsage = async (userId: string) => {
+  const resetUserUsage = async (userId: string, userEmail: string) => {
     try {
       const { error } = await supabase
         .from('user_usage_tracking')
@@ -120,9 +124,12 @@ export const AdminPanel = () => {
 
       toast({
         title: "Success",
-        description: "User usage reset successfully.",
+        description: `Usage reset for ${userEmail}.`,
       });
       fetchUsers();
+      
+      // Log the usage reset for security audit
+      console.log(`SECURITY AUDIT: Usage reset for user ${userEmail} (${userId}) by ${user?.email} (${user?.id})`);
     } catch (error) {
       console.error('Error resetting usage:', error);
       toast({
@@ -226,21 +233,71 @@ export const AdminPanel = () => {
                   </div>
                   <div className="flex gap-2">
                     {userData.role !== 'admin' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePromoteUser(userData.id)}
-                      >
-                        Make Admin
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                          >
+                            <Shield className="h-3 w-3 mr-1" />
+                            Make Admin
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5 text-amber-500" />
+                              Promote User to Admin
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              You are about to promote <strong>{userData.email}</strong> to admin status. 
+                              This will give them full access to the admin panel and the ability to manage other users.
+                              <br /><br />
+                              <span className="text-red-600 font-medium">This action cannot be undone without admin intervention.</span>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handlePromoteUser(userData.id, userData.email)}
+                              className="bg-amber-600 hover:bg-amber-700"
+                            >
+                              <Lock className="h-4 w-4 mr-2" />
+                              Confirm Promotion
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => resetUserUsage(userData.id)}
-                    >
-                      Reset Usage
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                        >
+                          Reset Usage
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Reset User Usage</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Reset AI usage for <strong>{userData.email}</strong>? This will:
+                            <br />• Set their remaining uses to 3
+                            <br />• Reset their total usage count to 0
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => resetUserUsage(userData.id, userData.email)}
+                          >
+                            Reset Usage
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}

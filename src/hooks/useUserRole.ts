@@ -88,8 +88,19 @@ export const useUserRole = () => {
         return false;
       }
 
-      // Note: Audit logging will be added once the table is created
-      console.log(`Role change: User ${userId} promoted to admin by ${user?.id}`);
+      // Log to audit table
+      try {
+        await supabase
+          .from('user_role_audit_log')
+          .insert({
+            user_id: userId,
+            promoted_by: user?.id,
+            action: 'promote_to_admin'
+          });
+        console.log(`Role change: User ${userId} promoted to admin by ${user?.id}`);
+      } catch (err) {
+        console.warn('Failed to log role change:', err);
+      }
 
       // Refresh current user's role if they promoted themselves
       if (userId === user?.id) {
@@ -140,8 +151,19 @@ export const useUserRole = () => {
         return false;
       }
 
-      // Note: Audit logging will be added once the table is created
-      console.log(`Role change: Admin role removed from user ${userId} by ${user?.id}`);
+      // Log to audit table
+      try {
+        await supabase
+          .from('user_role_audit_log')
+          .insert({
+            user_id: userId,
+            promoted_by: user?.id,
+            action: 'remove_admin_role'
+          });
+        console.log(`Role change: Admin role removed from user ${userId} by ${user?.id}`);
+      } catch (err) {
+        console.warn('Failed to log role change:', err);
+      }
 
       // Refresh current user's role if they demoted themselves
       if (userId === user?.id) {

@@ -21,13 +21,15 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { AdminPanel } from '@/components/AdminPanel';
-import { User, LogOut, Shield } from 'lucide-react';
+import { SecurityDashboard } from '@/components/security/SecurityDashboard';
+import { User, LogOut, Shield, Eye } from 'lucide-react';
 
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const [isLoading, setIsLoading] = useState(false);
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
+  const [securityDashboardOpen, setSecurityDashboardOpen] = useState(false);
 
   const handleSignOut = async () => {
     setIsLoading(true);
@@ -67,20 +69,38 @@ export const UserMenu = () => {
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
-          <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <Shield className="mr-2 h-4 w-4" />
-              <span>Admin Panel</span>
-            </DropdownMenuItem>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Admin Panel</DialogTitle>
-            </DialogHeader>
-            <AdminPanel />
-          </DialogContent>
-        </Dialog>
+        {isAdmin && (
+          <>
+            <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>Admin Panel</span>
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Admin Panel</DialogTitle>
+                </DialogHeader>
+                <AdminPanel />
+              </DialogContent>
+            </Dialog>
+            <Dialog open={securityDashboardOpen} onOpenChange={setSecurityDashboardOpen}>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  <span>Security Dashboard</span>
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Security Dashboard</DialogTitle>
+                </DialogHeader>
+                <SecurityDashboard />
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
           <LogOut className="mr-2 h-4 w-4" />
