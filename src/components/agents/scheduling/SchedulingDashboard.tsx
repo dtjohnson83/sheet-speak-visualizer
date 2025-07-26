@@ -62,8 +62,7 @@ export const SchedulingDashboard = () => {
 
           // Estimate duration based on agent type and dataset count
           const estimatedDuration = agent.type === 'anomaly_detection' ? 5 :
-                                  agent.type === 'trend_analysis' ? 3 :
-                                  agent.type === 'report_automation' ? 10 : 4;
+                                  agent.type === 'trend_analysis' ? 3 : 4;
 
           scheduled.push({
             agentId: agent.id,
@@ -115,7 +114,6 @@ export const SchedulingDashboard = () => {
     switch (type) {
       case 'anomaly_detection': return '⚠️';
       case 'trend_analysis': return '📈';
-      case 'report_automation': return '📊';
       case 'data_quality': return '✅';
       default: return '🤖';
     }

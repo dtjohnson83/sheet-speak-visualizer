@@ -21,8 +21,6 @@ export const useAutoScheduledAgentTasks = () => {
         return 'analyze_trends';
       case 'predictive_analytics':
         return 'predictive_forecast';
-      case 'report_automation':
-        return 'report_generation';
       case 'monitoring':
         return 'analyze_data';
       case 'insight_generation':

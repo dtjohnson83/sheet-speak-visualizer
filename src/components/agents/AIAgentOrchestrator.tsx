@@ -19,7 +19,7 @@ import { AgentOverviewTab } from './tabs/AgentOverviewTab';
 import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
-import { ReportAutomationTab } from './tabs/ReportAutomationTab';
+
 import { SchedulingTab } from './tabs/SchedulingTab';
 import { NotificationsTab } from './tabs/NotificationsTab';
 import { ProgressTab } from './tabs/ProgressTab';
@@ -124,22 +124,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           domainContext,
           dataContext: createDataContext(domainContext)
         }
-      },
-      report_automation: {
-        name: 'Report Automation Agent',
-        description: 'Automates Excel report generation and distribution',
-        type: 'report_automation' as const,
-        capabilities: ['report_generation', 'template_management', 'automated_distribution'],
-        configuration: {
-          schedule: { frequency: 'weekly' as const, time: '08:00' },
-          reportConfig: {
-            outputFormat: 'excel' as const,
-            recipients: [],
-            includeCharts: true,
-            autoDistribute: false
-          },
-          dataContext: createDataContext(domainContext)
-        }
       }
     };
 
@@ -192,8 +176,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     { value: 'progress', label: 'Progress', icon: Clock, badge: runningTasks },
     { value: 'tasks', label: 'Tasks', icon: List, badge: pendingTasks },
     { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights },
-    { value: 'notifications', label: 'Alerts', icon: Bell, badge: unreadInsights + failedTasks },
-    { value: 'report-automation', label: 'Reports', icon: FileSpreadsheet }
+    { value: 'notifications', label: 'Alerts', icon: Bell, badge: unreadInsights + failedTasks }
   ];
 
   if (isLoading) {
@@ -228,7 +211,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-7">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -293,10 +276,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
         <TabsContent value="notifications">
           <NotificationsTab />
-        </TabsContent>
-
-        <TabsContent value="report-automation">
-          <ReportAutomationTab />
         </TabsContent>
       </Tabs>
 

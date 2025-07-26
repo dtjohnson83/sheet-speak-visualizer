@@ -29,7 +29,6 @@ export const AgentOverviewTab = ({ agents, onCreateAgent }: AgentOverviewTabProp
       case 'anomaly_detection': return <AlertTriangle className="h-4 w-4" />;
       case 'trend_analysis': return <TrendingUp className="h-4 w-4" />;
       case 'predictive_analytics': return <BarChart3 className="h-4 w-4" />;
-      case 'report_automation': return <FileSpreadsheet className="h-4 w-4" />;
       default: return <Activity className="h-4 w-4" />;
     }
   };
@@ -40,7 +39,6 @@ export const AgentOverviewTab = ({ agents, onCreateAgent }: AgentOverviewTabProp
       case 'anomaly_detection': return 'bg-red-500/15 text-red-600 dark:text-red-400';
       case 'trend_analysis': return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
       case 'predictive_analytics': return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
-      case 'report_automation': return 'bg-orange-500/15 text-orange-600 dark:text-orange-400';
       default: return 'bg-gray-500/15 text-gray-600 dark:text-gray-400';
     }
   };
@@ -82,13 +80,6 @@ export const AgentOverviewTab = ({ agents, onCreateAgent }: AgentOverviewTabProp
       description: 'Forecasts future trends based on historical data',
       icon: BarChart3,
       color: 'purple'
-    },
-    {
-      type: 'report_automation',
-      name: 'Report Automation',
-      description: 'Automates Excel report generation and distribution',
-      icon: FileSpreadsheet,
-      color: 'orange'
     }
   ];
 

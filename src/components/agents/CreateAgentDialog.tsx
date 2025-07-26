@@ -45,11 +45,6 @@ const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = 
     value: 'predictive_analytics',
     label: 'Predictive Analytics',
     description: 'Creates predictive models and forecasts'
-  },
-  {
-    value: 'report_automation',
-    label: 'Report Automation',
-    description: 'Automates Excel report generation and distribution'
   }
 ];
 

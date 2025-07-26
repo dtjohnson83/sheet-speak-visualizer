@@ -4,7 +4,6 @@ export type AgentType =
   | 'anomaly_detection' 
   | 'trend_analysis' 
   | 'predictive_analytics'
-  | 'report_automation'
   | 'monitoring'
   | 'insight_generation'
   | 'visualization'
