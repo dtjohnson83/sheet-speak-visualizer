@@ -9,6 +9,7 @@ import { Sparkles, Wand2, TrendingUp, Lightbulb, ChevronDown, ChevronUp } from '
 import { useAIChartGeneration, AIChartSuggestion } from '@/hooks/useAIChartGeneration';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useDomainContext } from '@/hooks/useDomainContext';
 
 interface AIChartGeneratorProps {
   data: DataRow[];
@@ -18,6 +19,7 @@ interface AIChartGeneratorProps {
 
 export const AIChartGenerator = ({ data, columns, onApplySuggestion }: AIChartGeneratorProps) => {
   const { isGenerating, lastSuggestion, generateChartFromQuery, suggestOptimalChart, analyzeData } = useAIChartGeneration();
+  const { domainContext, hasContext } = useDomainContext();
   const [query, setQuery] = useState('');
   const [showAnalysis, setShowAnalysis] = useState(false);
 
@@ -40,14 +42,32 @@ export const AIChartGenerator = ({ data, columns, onApplySuggestion }: AIChartGe
 
   const analysis = analyzeData(data, columns);
 
-  // Quick suggestion prompts
-  const quickPrompts = [
-    "Show me trends over time",
-    "Compare categories by value", 
-    "Show the distribution of data",
-    "Find relationships between variables",
-    "Display proportions as percentages"
-  ];
+  // Quick suggestion prompts - customized based on domain context
+  const getQuickPrompts = () => {
+    const basePrompts = [
+      "Show me trends over time",
+      "Compare categories by value", 
+      "Show the distribution of data",
+      "Find relationships between variables",
+      "Display proportions as percentages"
+    ];
+
+    if (!hasContext || !domainContext) return basePrompts;
+
+    // Add domain-specific prompts
+    const domainPrompts: Record<string, string[]> = {
+      finance: ["Show revenue trends", "Compare profit margins", "Analyze cost breakdown"],
+      retail: ["Show sales performance", "Analyze customer segments", "Track conversion rates"],
+      manufacturing: ["Monitor production metrics", "Show quality trends", "Compare efficiency rates"],
+      healthcare: ["Analyze patient outcomes", "Track performance metrics", "Show resource utilization"],
+      marketing: ["Compare campaign performance", "Show engagement trends", "Analyze conversion funnel"]
+    };
+
+    const specific = domainPrompts[domainContext.domain] || [];
+    return [...specific, ...basePrompts];
+  };
+
+  const quickPrompts = getQuickPrompts();
 
   return (
     <Card className="mb-6">
@@ -55,6 +75,11 @@ export const AIChartGenerator = ({ data, columns, onApplySuggestion }: AIChartGe
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-purple-500" />
           AI Chart Generation
+          {hasContext && (
+            <Badge variant="outline" className="text-xs">
+              {domainContext?.domain}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

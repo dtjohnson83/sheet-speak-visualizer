@@ -14,6 +14,8 @@ import { useTutorialProgress } from '@/hooks/useTutorialProgress';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useRealtimeData } from '@/contexts/RealtimeDataContext';
 import { PlatformChatbot } from '@/components/chat/PlatformChatbot';
+import { DomainSurvey } from '@/components/agents/DomainSurvey';
+import { useDomainContext } from '@/hooks/useDomainContext';
 
 export const AppLayout: React.FC = () => {
   const { state: appState } = useAppState();
@@ -22,6 +24,7 @@ export const AppLayout: React.FC = () => {
   const uiActions = useUIActions();
   const { isAdmin, usesRemaining } = useUsageTracking();
   const { getLatestData, sources } = useRealtimeData();
+  const { showSurvey, setContext, closeSurvey, skipSurvey } = useDomainContext();
   
   // Tutorial progress tracking
   const {
@@ -160,6 +163,14 @@ export const AppLayout: React.FC = () => {
       
       {/* Platform Chatbot */}
       <PlatformChatbot />
+      
+      {/* Domain Survey Modal */}
+      <DomainSurvey
+        open={showSurvey}
+        onClose={closeSurvey}
+        onComplete={(context) => setContext(context, appState.fileName, appState.worksheetName)}
+        onSkip={skipSurvey}
+      />
     </div>
   );
 };

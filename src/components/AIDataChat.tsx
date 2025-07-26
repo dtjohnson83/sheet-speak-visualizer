@@ -11,7 +11,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { Send, Bot, User, Sparkles, BarChart3, FileDown, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { useEnhancedAIContext, AIContextData } from '@/hooks/useEnhancedAIContext';
+import { useDomainContext, EnhancedAIContextData } from '@/hooks/useDomainContext';
 import { exportAIChatToPDF } from '@/utils/pdf';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { AIResponseDisclaimer } from '@/components/transparency/AIResponseDisclaimer';
@@ -49,7 +49,7 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
   const { isAdmin } = useUserRole();
-  const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
+  const { buildAIContext, hasContext } = useDomainContext();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -85,13 +85,13 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
         role: 'assistant',
         content: `I'm analyzing your ${fileName || 'dataset'} with ${data.length.toLocaleString()} rows and ${columns.length} columns (${contextualInfo}). Data quality: ${dataQuality}% complete.
 
-${hasEnhancedContext ? '✅ Enhanced business context available for deeper insights.' : '💡 Tip: Set up business context for more relevant analysis.'}
+${hasContext ? '✅ Domain context available for deeper insights.' : '💡 Tip: Complete the domain survey for more relevant analysis.'}
 
 Ask me specific questions about patterns, trends, or relationships in your data!`,
         timestamp: new Date()
       }]);
     }
-  }, [data.length, columns.length, messages.length, fileName, hasEnhancedContext]);
+  }, [data.length, columns.length, messages.length, fileName, hasContext]);
 
   // Update filtered data when source data changes
   useEffect(() => {
@@ -154,7 +154,7 @@ Ask me specific questions about patterns, trends, or relationships in your data!
         dataContextColumns: dataContext.columns.length,
         sampleDataRows: dataContext.sampleData.length,
         totalRows: dataContext.totalRows,
-        hasEnhancedContext: !!dataContext.enhancedContext
+        hasEnhancedContext: !!dataContext.domainContext
       });
 
       const { data: response, error } = await supabase.functions.invoke('ai-data-chat', {
@@ -293,9 +293,9 @@ Ask me specific questions about patterns, trends, or relationships in your data!
                 Export PDF
               </Button>
             )}
-            {hasEnhancedContext && (
+            {hasContext && (
               <Badge variant="default" className="text-xs bg-green-600">
-                Enhanced Context
+                Domain Context
               </Badge>
             )}
             <DataSamplingInfo 

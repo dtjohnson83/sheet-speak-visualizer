@@ -10,6 +10,7 @@ import { WorksheetSelector } from './WorksheetSelector';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { FileErrorMessage } from '@/components/ui/error-message';
 import { detectColumnTypeWithName } from '@/lib/columnTypeDetection';
+import { useDomainContext } from '@/hooks/useDomainContext';
 
 interface SimpleFileUploadProps {
   onDataLoaded: (data: DataRow[], columns: ColumnInfo[], fileName: string, worksheetName?: string) => void;
@@ -41,6 +42,7 @@ export const SimpleFileUpload = ({ onDataLoaded }: SimpleFileUploadProps) => {
   const [showWorksheetSelector, setShowWorksheetSelector] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { triggerSurvey, hasContext } = useDomainContext();
 
   // Using enhanced detection with column name consideration
   const detectColumnType = (columnName: string, values: any[]): 'numeric' | 'date' | 'categorical' | 'text' => {
@@ -117,6 +119,13 @@ export const SimpleFileUpload = ({ onDataLoaded }: SimpleFileUploadProps) => {
     
     setProcessing('complete');
     onDataLoaded(processedData, columns, currentFileName, worksheetData.name);
+    
+    // Trigger domain survey if no context exists
+    if (!hasContext) {
+      setTimeout(() => {
+        triggerSurvey();
+      }, 1000);
+    }
     
     toast({
       title: "Success",

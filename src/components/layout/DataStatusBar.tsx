@@ -5,12 +5,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, Database, AlertCircle } from 'lucide-react';
+import { Save, Database, AlertCircle, Settings } from 'lucide-react';
 import { useDatasets } from '@/hooks/useDatasets';
 import { useAppState } from '@/contexts/AppStateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { DatasetSwitcher } from '@/components/dataset/DatasetSwitcher';
 import { useMultiDatasetActions } from '@/hooks/useMultiDatasetActions';
+import { useDomainContext } from '@/hooks/useDomainContext';
 
 interface DataStatusBarProps {
   displayFileName: string;
@@ -25,6 +26,8 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
   columnsLength,
   realtimeEnabled
 }) => {
+  const { getContextSummary, triggerSurvey } = useDomainContext();
+  const contextSummary = getContextSummary();
   const { user } = useAuth();
   const { state, dispatch } = useAppState();
   const { saveDataset, isSaving } = useDatasets();
@@ -174,6 +177,33 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
                 </div>
               </DialogContent>
             </Dialog>
+          )}
+          
+          {/* Domain Context Status */}
+          {contextSummary ? (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/20 text-xs">
+                {contextSummary.domain}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => triggerSurvey(true)}
+                className="h-6 w-6 p-0"
+                title="Edit domain context"
+              >
+                <Settings className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => triggerSurvey()}
+              className="text-xs h-6"
+            >
+              Add Context
+            </Button>
           )}
           
           <div className="text-xs text-muted-foreground">

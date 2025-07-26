@@ -24,6 +24,7 @@ import { Plus, Bot } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { AgentType } from '@/types/agents';
 import { DatasetSelector } from './DatasetSelector';
+import { useDomainContext } from '@/hooks/useDomainContext';
 
 const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = [
   {
@@ -74,6 +75,7 @@ export const CreateAgentDialog = () => {
   const [selectedDataset, setSelectedDataset] = useState<string>('');
   
   const { createAgent, isCreatingAgent } = useAIAgents();
+  const { domainContext, hasContext } = useDomainContext();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +89,8 @@ export const CreateAgentDialog = () => {
       notification_preferences: {
         in_app: true,
         email: false
-      }
+      },
+      ...(hasContext && { domain_context: domainContext })
     };
 
     createAgent({
@@ -133,6 +136,11 @@ export const CreateAgentDialog = () => {
           </DialogTitle>
           <DialogDescription>
             Set up a new AI agent to automate data analysis tasks
+            {hasContext && (
+              <span className="block text-sm text-green-600 dark:text-green-400 mt-1">
+                ✓ Domain context ({domainContext?.domain}) will be applied
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
         
