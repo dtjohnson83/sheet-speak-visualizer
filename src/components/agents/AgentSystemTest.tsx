@@ -7,7 +7,8 @@ import { useAIAgents } from '@/hooks/useAIAgents';
 import { useDatasets } from '@/hooks/useDatasets';
 import { useToast } from '@/hooks/use-toast';
 import { useAgentTaskCleanup } from '@/hooks/agents/useAgentTaskCleanup';
-import { Zap, Trash2, PlayCircle, Database, AlertTriangle, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Zap, Trash2, PlayCircle, Database, AlertTriangle, RefreshCw, TestTube } from 'lucide-react';
 
 export const AgentSystemTest = () => {
   const { 
@@ -103,6 +104,37 @@ export const AgentSystemTest = () => {
     triggerProcessor();
   };
 
+  const handleDirectFunctionTest = async () => {
+    try {
+      console.log('Testing direct function call...');
+      const { data, error } = await supabase.functions.invoke('ai-agent-processor', {
+        body: { manual_trigger: true, test_call: true }
+      });
+      
+      console.log('Direct function test response:', { data, error });
+      
+      if (error) {
+        toast({
+          title: "Function Test Failed",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Function Test Success",
+          description: `Function is accessible and returned: ${JSON.stringify(data)}`,
+        });
+      }
+    } catch (err) {
+      console.error('Function test error:', err);
+      toast({
+        title: "Function Test Error",
+        description: `${err.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <Card className="mt-4">
       <CardHeader>
@@ -173,6 +205,15 @@ export const AgentSystemTest = () => {
             >
               <Zap className="h-4 w-4 mr-2" />
               {isTriggeringProcessor ? 'Processing...' : 'Trigger Processor'}
+            </Button>
+
+            <Button
+              onClick={handleDirectFunctionTest}
+              variant="outline"
+              size="sm"
+            >
+              <TestTube className="h-4 w-4 mr-2" />
+              Test Function
             </Button>
           </div>
 

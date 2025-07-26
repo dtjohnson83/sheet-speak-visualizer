@@ -209,11 +209,18 @@ export const useAgentProcessor = () => {
         ...(dataContext && { data_context: dataContext })
       };
 
+      console.log('Invoking ai-agent-processor function with body:', body);
+
       const response = await supabase.functions.invoke('ai-agent-processor', {
         body
       });
 
-      if (response.error) throw response.error;
+      console.log('Function response:', response);
+
+      if (response.error) {
+        console.error('Function error:', response.error);
+        throw response.error;
+      }
       
       return {
         ...response.data,
