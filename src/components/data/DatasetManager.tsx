@@ -2,13 +2,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Save, Database, Trash2, Upload } from 'lucide-react';
+import { Save, Database, Trash2, Upload, AlertTriangle } from 'lucide-react';
 import { useDatasets, SavedDataset } from '@/hooks/useDatasets';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppState } from '@/contexts/AppStateContext';
@@ -30,10 +31,12 @@ export const DatasetManager = ({
   onLoadDataset
 }: DatasetManagerProps) => {
   const { user } = useAuth();
-  const { datasets, saveDataset, deleteDataset, isSaving } = useDatasets();
+  const { datasets, saveDataset, deleteDataset, isSaving, isDeleting } = useDatasets();
   const { state, dispatch } = useAppState();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [datasetToDelete, setDatasetToDelete] = useState<SavedDataset | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -82,6 +85,20 @@ export const DatasetManager = ({
     // Also call the original handler for any additional logic
     onLoadDataset(dataset);
     setIsDialogOpen(false);
+  };
+
+  const handleDeleteClick = (dataset: SavedDataset, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDatasetToDelete(dataset);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (datasetToDelete) {
+      deleteDataset(datasetToDelete.id);
+      setDeleteDialogOpen(false);
+      setDatasetToDelete(null);
+    }
   };
 
   if (!user) return null;
@@ -187,13 +204,50 @@ export const DatasetManager = ({
                         <Upload className="h-3 w-3" />
                         Load
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteDataset(dataset.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <AlertDialog open={deleteDialogOpen && datasetToDelete?.id === dataset.id} onOpenChange={setDeleteDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={(e) => handleDeleteClick(dataset, e)}
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5 text-destructive" />
+                              Delete Dataset
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>
+                                Are you sure you want to delete "<strong>{dataset.name}</strong>"?
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                This will permanently delete the dataset ({dataset.row_count.toLocaleString()} rows) 
+                                and <strong>any AI agents configured for this dataset</strong>.
+                              </p>
+                              <p className="text-sm font-medium text-destructive">
+                                This action cannot be undone.
+                              </p>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setDatasetToDelete(null)}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={handleDeleteConfirm}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              disabled={isDeleting}
+                            >
+                              {isDeleting ? 'Deleting...' : 'Delete Dataset'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </Card>

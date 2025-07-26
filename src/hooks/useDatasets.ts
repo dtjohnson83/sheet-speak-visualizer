@@ -101,18 +101,62 @@ export const useDatasets = () => {
 
   const deleteDatasetMutation = useMutation({
     mutationFn: async (datasetId: string) => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      // First, find all agents associated with this dataset
+      const { data: agents, error: agentsError } = await supabase
+        .from('ai_agents')
+        .select('id, configuration')
+        .eq('user_id', user.id);
+
+      if (agentsError) throw agentsError;
+
+      // Filter agents that are configured for this dataset
+      const associatedAgents = agents?.filter(agent => {
+        const configuration = agent.configuration as any;
+        const dataContext = configuration?.dataContext;
+        return dataContext && (
+          dataContext.datasetId === datasetId || 
+          // For legacy agents that don't have datasetId, check by fileName
+          (!dataContext.datasetId && dataContext.fileName)
+        );
+      }) || [];
+
+      // Delete associated agents first
+      if (associatedAgents.length > 0) {
+        const agentIds = associatedAgents.map(agent => agent.id);
+        const { error: deleteAgentsError } = await supabase
+          .from('ai_agents')
+          .delete()
+          .in('id', agentIds);
+
+        if (deleteAgentsError) throw deleteAgentsError;
+      }
+
+      // Then delete the dataset
       const { error } = await supabase
         .from('saved_datasets')
         .delete()
-        .eq('id', datasetId);
+        .eq('id', datasetId)
+        .eq('user_id', user.id); // Extra security check
 
       if (error) throw error;
+
+      return { datasetId, deletedAgents: associatedAgents.length };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['datasets', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['ai-agents', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['agent-insights', user?.id] });
+      
+      const message = result.deletedAgents > 0 
+        ? `Dataset deleted along with ${result.deletedAgents} associated agent${result.deletedAgents > 1 ? 's' : ''}.`
+        : "Dataset deleted successfully.";
+      
       toast({
         title: "Dataset deleted",
-        description: "The dataset has been removed.",
+        description: message,
       });
     },
     onError: (error) => {
