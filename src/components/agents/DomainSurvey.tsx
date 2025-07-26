@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Building2, TrendingUp, Users, ShoppingCart, Factory, Heart, GraduationCap, Home, Globe, SkipForward } from 'lucide-react';
+import { Building2, TrendingUp, Users, ShoppingCart, Factory, Heart, GraduationCap, Home, Globe, SkipForward, Clock, Database, BarChart } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export interface DomainContext {
   domain: string;
@@ -16,6 +17,9 @@ export interface DomainContext {
   keyMetrics?: string[];
   customContext?: string;
   dataDescription?: string;
+  dataType?: 'time_series' | 'transactional' | 'behavioral' | 'financial' | 'operational' | 'mixed';
+  businessObjectives?: string[];
+  analysisGoals?: string[];
 }
 
 interface DomainSurveyProps {
@@ -49,6 +53,9 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
   const [keyMetrics, setKeyMetrics] = useState<string[]>([]);
   const [customContext, setCustomContext] = useState<string>('');
   const [dataDescription, setDataDescription] = useState<string>('');
+  const [dataType, setDataType] = useState<string>('');
+  const [businessObjectives, setBusinessObjectives] = useState<string[]>([]);
+  const [analysisGoals, setAnalysisGoals] = useState<string[]>([]);
 
   const selectedDomainInfo = domains.find(d => d.id === selectedDomain);
 
@@ -57,6 +64,22 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
       prev.includes(metric) 
         ? prev.filter(m => m !== metric)
         : [...prev, metric]
+    );
+  };
+
+  const handleObjectiveToggle = (objective: string) => {
+    setBusinessObjectives(prev => 
+      prev.includes(objective) 
+        ? prev.filter(o => o !== objective)
+        : [...prev, objective]
+    );
+  };
+
+  const handleGoalToggle = (goal: string) => {
+    setAnalysisGoals(prev => 
+      prev.includes(goal) 
+        ? prev.filter(g => g !== goal)
+        : [...prev, goal]
     );
   };
 
@@ -75,6 +98,27 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
     return metricMap[domain] || [];
   };
 
+  const dataTypes = [
+    { id: 'time_series', label: 'Time Series', description: 'Data with timestamps, time-based patterns' },
+    { id: 'transactional', label: 'Transactional', description: 'Sales, orders, financial transactions' },
+    { id: 'behavioral', label: 'Behavioral', description: 'User actions, engagement, interactions' },
+    { id: 'financial', label: 'Financial', description: 'Revenue, costs, financial metrics' },
+    { id: 'operational', label: 'Operational', description: 'Process data, performance metrics' },
+    { id: 'mixed', label: 'Mixed', description: 'Combination of different data types' }
+  ];
+
+  const businessObjectiveOptions = [
+    'Revenue Optimization', 'Cost Reduction', 'Risk Management', 'Customer Growth',
+    'Process Improvement', 'Quality Enhancement', 'Market Expansion', 'Innovation',
+    'Compliance', 'Sustainability'
+  ];
+
+  const analysisGoalOptions = [
+    'Forecasting', 'Trend Analysis', 'Anomaly Detection', 'Pattern Recognition',
+    'Correlation Discovery', 'Scenario Planning', 'Risk Assessment', 'Performance Optimization',
+    'Customer Segmentation', 'Predictive Modeling'
+  ];
+
   const handleComplete = () => {
     const context: DomainContext = {
       domain: selectedDomain,
@@ -82,12 +126,15 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
       keyMetrics: keyMetrics.length > 0 ? keyMetrics : undefined,
       customContext: customContext || undefined,
       dataDescription: dataDescription || undefined,
-      industry: selectedDomainInfo?.label
+      industry: selectedDomainInfo?.label,
+      dataType: dataType as any || undefined,
+      businessObjectives: businessObjectives.length > 0 ? businessObjectives : undefined,
+      analysisGoals: analysisGoals.length > 0 ? analysisGoals : undefined
     };
     onComplete(context);
   };
 
-  const canProceed = selectedDomain && (step === 1 || step === 2 || step === 3);
+  const canProceed = selectedDomain && (step === 1 || step === 2 || step === 3 || step === 4);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -188,8 +235,83 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
 
         {step === 3 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Additional Context</h3>
+            <h3 className="text-lg font-medium">Data Type & Objectives</h3>
             
+            <div className="space-y-3">
+              <Label>What type of data are you working with?</Label>
+              <RadioGroup value={dataType} onValueChange={setDataType}>
+                <div className="grid grid-cols-2 gap-3">
+                  {dataTypes.map((type) => (
+                    <div key={type.id}>
+                      <RadioGroupItem value={type.id} id={type.id} className="sr-only" />
+                      <Label htmlFor={type.id} className="cursor-pointer">
+                        <Card className={`h-full transition-all ${dataType === type.id ? 'ring-2 ring-primary' : ''}`}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Database className="h-4 w-4" />
+                              {type.label}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <CardDescription className="text-xs">
+                              {type.description}
+                            </CardDescription>
+                          </CardContent>
+                        </Card>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Business Objectives (Select all that apply)</Label>
+              <div className="flex flex-wrap gap-2">
+                {businessObjectiveOptions.map((objective) => (
+                  <Badge
+                    key={objective}
+                    variant={businessObjectives.includes(objective) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => handleObjectiveToggle(objective)}
+                  >
+                    {objective}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep(2)}>
+                Back
+              </Button>
+              <Button onClick={() => setStep(4)}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Analysis Goals & Context</h3>
+            
+            <div className="space-y-3">
+              <Label>What analysis goals do you have? (Select all that apply)</Label>
+              <div className="flex flex-wrap gap-2">
+                {analysisGoalOptions.map((goal) => (
+                  <Badge
+                    key={goal}
+                    variant={analysisGoals.includes(goal) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => handleGoalToggle(goal)}
+                  >
+                    {goal}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-3">
               <Label htmlFor="data-description">Describe your data (Optional)</Label>
               <Textarea
@@ -197,7 +319,7 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
                 placeholder="e.g., Monthly sales data from 2020-2024, includes regional breakdowns..."
                 value={dataDescription}
                 onChange={(e) => setDataDescription(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
 
@@ -208,12 +330,12 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
                 placeholder="e.g., Looking to predict seasonal trends, forecast revenue for budget planning..."
                 value={customContext}
                 onChange={(e) => setCustomContext(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
 
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(2)}>
+              <Button variant="outline" onClick={() => setStep(3)}>
                 Back
               </Button>
               <Button onClick={handleComplete}>

@@ -77,6 +77,10 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
     
+    // Get request body to check for data context
+    const requestBody = await req.json().catch(() => ({}));
+    const dataContext = requestBody.data_context;
+    
     // Get pending agent tasks
     const { data: tasks, error: tasksError } = await supabase
       .from('agent_tasks')

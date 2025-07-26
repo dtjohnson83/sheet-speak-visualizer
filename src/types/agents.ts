@@ -28,6 +28,30 @@ export interface Agent {
 // Add AIAgent as an alias for backward compatibility
 export type AIAgent = Agent;
 
+// Enhanced domain context interface
+export interface DomainContext {
+  domain: string;
+  industry?: string;
+  businessType?: string;
+  keyMetrics?: string[];
+  customContext?: string;
+  dataDescription?: string;
+  dataType?: 'time_series' | 'transactional' | 'behavioral' | 'financial' | 'operational' | 'mixed';
+  businessObjectives?: string[];
+  analysisGoals?: string[];
+}
+
+// Data context interface combining dataset info with domain context
+export interface DataContext {
+  data: any[];
+  columns: any[];
+  fileName: string;
+  datasetId?: string;
+  rowCount: number;
+  columnCount: number;
+  domainContext?: DomainContext;
+}
+
 export interface AgentConfiguration {
   schedule?: {
     frequency: 'manual' | 'hourly' | 'daily' | 'weekly' | 'monthly';
@@ -41,15 +65,10 @@ export interface AgentConfiguration {
   };
   dataFilters?: Record<string, any>;
   analysis_frequency?: 'real_time' | 'hourly' | 'daily' | 'weekly';
-  // Domain context for predictive analytics
-  domainContext?: {
-    domain: string;
-    industry?: string;
-    businessType?: string;
-    keyMetrics?: string[];
-    customContext?: string;
-    dataDescription?: string;
-  };
+  // Enhanced domain context for predictive analytics
+  domainContext?: DomainContext;
+  // Data context for agents
+  dataContext?: DataContext;
   // Report automation specific config
   reportConfig?: {
     templateId?: string;
@@ -74,7 +93,10 @@ export type TaskType =
   | 'predictive_forecast'
   | 'scenario_analysis'
   | 'business_prediction'
-  | 'domain_analysis';
+  | 'domain_analysis'
+  | 'domain_aware_prediction'
+  | 'business_forecasting'
+  | 'predictive_modeling';
 
 export interface AgentTask {
   id: string;

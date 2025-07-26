@@ -16,6 +16,8 @@ import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
 import { ReportAutomationTab } from './tabs/ReportAutomationTab';
+import { DomainSurvey, DomainContext } from './DomainSurvey';
+import { DataContext } from '@/types/agents';
 
 interface AIAgentOrchestratorProps {
   data: any[];
@@ -26,6 +28,9 @@ interface AIAgentOrchestratorProps {
 
 export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAgentOrchestratorProps) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showDomainSurvey, setShowDomainSurvey] = useState(false);
+  const [pendingAgentType, setPendingAgentType] = useState<string | null>(null);
+  
   const {
     agents,
     tasks,
@@ -52,7 +57,17 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     isClearingAllInsights
   } = useAIAgents();
 
-  const handleCreateAgent = (type: string) => {
+  // Create data context from orchestrator props
+  const createDataContext = (domainContext?: DomainContext): DataContext => ({
+    data,
+    columns,
+    fileName,
+    rowCount: data.length,
+    columnCount: columns.length,
+    domainContext
+  });
+
+  const createAgentWithConfig = (type: string, domainContext?: DomainContext) => {
     const agentConfig = {
       data_quality: {
         name: 'Data Quality Monitor',
@@ -61,7 +76,8 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
         capabilities: ['data_validation', 'completeness_check', 'accuracy_assessment'],
         configuration: {
           schedule: { frequency: 'daily' as const, time: '09:00' },
-          thresholds: { completeness: 95, accuracy: 98 }
+          thresholds: { completeness: 95, accuracy: 98 },
+          dataContext: createDataContext(domainContext)
         }
       },
       anomaly_detection: {
@@ -71,7 +87,8 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
         capabilities: ['outlier_detection', 'pattern_analysis', 'statistical_monitoring'],
         configuration: {
           schedule: { frequency: 'hourly' as const },
-          thresholds: { sensitivity: 0.95, confidence: 0.8 }
+          thresholds: { sensitivity: 0.95, confidence: 0.8 },
+          dataContext: createDataContext(domainContext)
         }
       },
       trend_analysis: {
@@ -81,17 +98,24 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
         capabilities: ['trend_detection', 'seasonal_analysis', 'forecasting'],
         configuration: {
           schedule: { frequency: 'weekly' as const, time: '10:00' },
-          thresholds: { trend_strength: 0.7, seasonality: 0.6 }
+          thresholds: { trend_strength: 0.7, seasonality: 0.6 },
+          dataContext: createDataContext(domainContext)
         }
       },
       predictive_analytics: {
-        name: 'Predictive Analytics Agent',
-        description: 'Forecasts future trends based on historical data',
+        name: domainContext ? `${domainContext.domain} Predictive Analytics Agent` : 'Predictive Analytics Agent',
+        description: domainContext 
+          ? `Domain-aware forecasting for ${domainContext.industry || domainContext.domain} data`
+          : 'Forecasts future trends based on historical data',
         type: 'predictive_analytics' as const,
-        capabilities: ['forecasting', 'regression_analysis', 'model_training'],
+        capabilities: domainContext 
+          ? ['domain_aware_prediction', 'business_forecasting', 'predictive_modeling', ...(domainContext.analysisGoals || [])]
+          : ['forecasting', 'regression_analysis', 'model_training'],
         configuration: {
           schedule: { frequency: 'weekly' as const, time: '11:00' },
-          thresholds: { accuracy: 0.85, confidence_interval: 0.95 }
+          thresholds: { accuracy: 0.85, confidence_interval: 0.95 },
+          domainContext,
+          dataContext: createDataContext(domainContext)
         }
       },
       report_automation: {
@@ -106,7 +130,8 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             recipients: [],
             includeCharts: true,
             autoDistribute: false
-          }
+          },
+          dataContext: createDataContext(domainContext)
         }
       }
     };
@@ -115,6 +140,34 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     if (config) {
       createAgent(config);
       onAIUsed?.();
+    }
+  };
+
+  const handleCreateAgent = (type: string) => {
+    // For predictive analytics, show domain survey first
+    if (type === 'predictive_analytics') {
+      setPendingAgentType(type);
+      setShowDomainSurvey(true);
+      return;
+    }
+
+    // For other agent types, create directly
+    createAgentWithConfig(type);
+  };
+
+  const handleDomainSurveyComplete = (domainContext: DomainContext) => {
+    setShowDomainSurvey(false);
+    if (pendingAgentType) {
+      createAgentWithConfig(pendingAgentType, domainContext);
+      setPendingAgentType(null);
+    }
+  };
+
+  const handleDomainSurveySkip = () => {
+    setShowDomainSurvey(false);
+    if (pendingAgentType) {
+      createAgentWithConfig(pendingAgentType);
+      setPendingAgentType(null);
     }
   };
 
@@ -211,6 +264,14 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
         <ReportAutomationTab />
       </Tabs>
+
+      {/* Domain Survey Modal */}
+      <DomainSurvey
+        open={showDomainSurvey}
+        onClose={() => setShowDomainSurvey(false)}
+        onComplete={handleDomainSurveyComplete}
+        onSkip={handleDomainSurveySkip}
+      />
     </div>
   );
 };
