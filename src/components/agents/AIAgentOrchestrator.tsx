@@ -223,6 +223,11 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             agents={agents}
             onCreateAgent={handleCreateAgent}
             isCreating={false}
+            currentDataset={{
+              fileName,
+              rowCount: data.length,
+              columnCount: columns.length
+            }}
           />
         </TabsContent>
 

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap } from 'lucide-react';
+import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap, Database, FileText } from 'lucide-react';
 import { Agent } from '@/types/agents';
 import { CreateAgentDialog } from '../CreateAgentDialog';
 import { formatDistanceToNow } from 'date-fns';
@@ -47,6 +47,17 @@ export const AgentManagementTab = ({
 
   const getTypeLabel = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const getDatasetInfo = (agent: Agent) => {
+    const dataContext = agent.configuration?.dataContext;
+    if (!dataContext) return null;
+    
+    return {
+      fileName: dataContext.fileName || 'Unknown Dataset',
+      rowCount: dataContext.rowCount || 0,
+      columnCount: dataContext.columnCount || 0
+    };
   };
 
   const handleToggleAgent = (agent: Agent) => {
@@ -112,26 +123,42 @@ export const AgentManagementTab = ({
               <CreateAgentDialog />
             </div>
           ) : (
-            agents.map((agent) => (
-              <div key={agent.id} className="p-4 border rounded-lg">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{getAgentIcon(agent.type)}</div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium">{agent.name}</h4>
-                        <Badge 
-                          variant="secondary" 
-                          className={getStatusColor(agent.status)}
-                        >
-                          {agent.status}
-                        </Badge>
+            agents.map((agent) => {
+              const datasetInfo = getDatasetInfo(agent);
+              
+              return (
+                <div key={agent.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">{getAgentIcon(agent.type)}</div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{agent.name}</h4>
+                          <Badge 
+                            variant="secondary" 
+                            className={getStatusColor(agent.status)}
+                          >
+                            {agent.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm text-muted-foreground">
+                            {getTypeLabel(agent.type)}
+                          </p>
+                          {datasetInfo && (
+                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                              <Database className="h-3 w-3" />
+                              {datasetInfo.fileName}
+                            </Badge>
+                          )}
+                        </div>
+                        {datasetInfo && (
+                          <p className="text-xs text-muted-foreground">
+                            {datasetInfo.rowCount.toLocaleString()} rows × {datasetInfo.columnCount} columns
+                          </p>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {getTypeLabel(agent.type)}
-                      </p>
                     </div>
-                  </div>
                   <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
@@ -253,7 +280,7 @@ export const AgentManagementTab = ({
                   </div>
                 </div>
               </div>
-            ))
+            )})
           )}
         </div>
       </CardContent>

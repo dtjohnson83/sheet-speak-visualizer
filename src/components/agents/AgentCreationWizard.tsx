@@ -18,9 +18,14 @@ interface AgentCreationWizardProps {
   agents: Agent[];
   onCreateAgent: (type: string) => void;
   isCreating?: boolean;
+  currentDataset?: {
+    fileName: string;
+    rowCount: number;
+    columnCount: number;
+  };
 }
 
-export const AgentCreationWizard = ({ agents, onCreateAgent, isCreating }: AgentCreationWizardProps) => {
+export const AgentCreationWizard = ({ agents, onCreateAgent, isCreating, currentDataset }: AgentCreationWizardProps) => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const getAgentTypeIcon = (type: string) => {
@@ -96,6 +101,14 @@ export const AgentCreationWizard = ({ agents, onCreateAgent, isCreating }: Agent
           <Info className="h-4 w-4" />
           <AlertDescription>
             AI agents work automatically to analyze your data and provide insights. Create an agent below, then use the "Manage" tab to run it and view results in the "Tasks" and "Insights" tabs.
+            {currentDataset && (
+              <div className="mt-2 pt-2 border-t">
+                <span className="font-medium">Creating agents for:</span> {currentDataset.fileName} 
+                <span className="text-muted-foreground ml-2">
+                  ({currentDataset.rowCount.toLocaleString()} rows × {currentDataset.columnCount} columns)
+                </span>
+              </div>
+            )}
           </AlertDescription>
         </Alert>
 
