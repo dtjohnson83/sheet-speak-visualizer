@@ -9,9 +9,17 @@ interface DatasetSelectorProps {
   value?: string;
   onValueChange?: (value: string) => void;
   placeholder?: string;
+  showRowCounts?: boolean;
+  contextLabel?: string;
 }
 
-export const DatasetSelector = ({ value, onValueChange, placeholder = "Select a dataset..." }: DatasetSelectorProps) => {
+export const DatasetSelector = ({ 
+  value, 
+  onValueChange, 
+  placeholder = "Select a dataset...", 
+  showRowCounts = true,
+  contextLabel 
+}: DatasetSelectorProps) => {
   const { datasets } = useDatasets();
   const { state } = useAppState();
 
@@ -21,6 +29,9 @@ export const DatasetSelector = ({ value, onValueChange, placeholder = "Select a 
 
   return (
     <div className="space-y-2">
+      {contextLabel && (
+        <div className="text-sm text-muted-foreground font-medium">{contextLabel}</div>
+      )}
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder={placeholder} />
@@ -46,9 +57,11 @@ export const DatasetSelector = ({ value, onValueChange, placeholder = "Select a 
                 <Database className="h-4 w-4 text-success" />
                 <span className="flex-1">{dataset.name}</span>
                 <div className="flex items-center gap-1">
-                  <Badge variant="outline" className="text-xs">
-                    {dataset.row_count.toLocaleString()} rows
-                  </Badge>
+                  {showRowCounts && (
+                    <Badge variant="outline" className="text-xs">
+                      {dataset.row_count.toLocaleString()} rows
+                    </Badge>
+                  )}
                   <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">
                     Saved
                   </Badge>

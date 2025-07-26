@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
 import { DashboardManager } from '@/components/dashboard/DashboardManager';
+import { DatasetSelector } from '@/components/agents/DatasetSelector';
+import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
 import { FilterCondition } from '@/components/dashboard/DashboardFilters';
@@ -30,8 +32,30 @@ export const TabContentDashboard: React.FC<TabContentDashboardProps> = ({
   onFiltersChange,
   onLoadDashboard
 }) => {
+  const {
+    selectedDataset,
+    availableDatasets,
+    selectDataset,
+    hasDatasets
+  } = useDatasetSelection(data, columns);
+
+  // Use selected dataset data or fallback to props
+  const activeData = selectedDataset?.data || data;
+  const activeColumns = selectedDataset?.columns || columns;
+
   return (
     <TabsContent value="dashboard" className="space-y-4">
+      {hasDatasets && (
+        <Card className="p-4">
+          <DatasetSelector
+            value={selectedDataset?.id || ''}
+            onValueChange={selectDataset}
+            contextLabel="Select dataset for dashboard"
+            placeholder="Choose a dataset for dashboard tiles..."
+          />
+        </Card>
+      )}
+      
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -54,8 +78,8 @@ export const TabContentDashboard: React.FC<TabContentDashboardProps> = ({
       
       <DashboardCanvas
         tiles={tiles}
-        data={data}
-        columns={columns}
+        data={activeData}
+        columns={activeColumns}
         onRemoveTile={onRemoveTile}
         onUpdateTile={onUpdateTile}
         filters={filters}
