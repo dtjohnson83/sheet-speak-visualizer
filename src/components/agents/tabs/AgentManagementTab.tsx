@@ -3,27 +3,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap, Database, FileText } from 'lucide-react';
-import { Agent } from '@/types/agents';
+import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap, Database, FileText, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Agent, AgentTask } from '@/types/agents';
 import { CreateAgentDialog } from '../CreateAgentDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AgentManagementTabProps {
   agents: Agent[];
+  tasks: AgentTask[];
   onCreateAgent: (config: any) => void;
   onUpdateStatus: (params: { agentId: string; status: string }) => void;
   onDeleteAgent: (agentId: string) => void;
   onDeleteAll: () => void;
   onTriggerProcessor: () => void;
+  onClearPendingTasks: () => void;
 }
 
 export const AgentManagementTab = ({ 
   agents, 
+  tasks,
   onCreateAgent,
   onUpdateStatus,
   onDeleteAgent, 
   onDeleteAll,
-  onTriggerProcessor
+  onTriggerProcessor,
+  onClearPendingTasks
 }: AgentManagementTabProps) => {
   const getAgentIcon = (type: string) => {
     switch (type) {
@@ -60,10 +64,54 @@ export const AgentManagementTab = ({
     };
   };
 
+  const getAgentTaskStatus = (agentId: string) => {
+    const agentTasks = tasks.filter(task => task.agent_id === agentId);
+    const pendingTasks = agentTasks.filter(task => task.status === 'pending');
+    const runningTasks = agentTasks.filter(task => task.status === 'running');
+    const failedTasks = agentTasks.filter(task => task.status === 'failed');
+    
+    return {
+      pending: pendingTasks.length,
+      running: runningTasks.length,
+      failed: failedTasks.length,
+      total: agentTasks.length
+    };
+  };
+
+  const getAgentAvailabilityStatus = (agentId: string) => {
+    const taskStatus = getAgentTaskStatus(agentId);
+    if (taskStatus.running > 0) return 'running';
+    if (taskStatus.pending > 0) return 'busy';
+    if (taskStatus.failed > 0) return 'has-errors';
+    return 'available';
+  };
+
+  const getAvailabilityColor = (status: string) => {
+    switch (status) {
+      case 'running': return 'bg-blue-500';
+      case 'busy': return 'bg-warning';
+      case 'has-errors': return 'bg-destructive';
+      case 'available': return 'bg-success';
+      default: return 'bg-muted';
+    }
+  };
+
+  const getAvailabilityIcon = (status: string) => {
+    switch (status) {
+      case 'running': return <Clock className="h-3 w-3" />;
+      case 'busy': return <AlertCircle className="h-3 w-3" />;
+      case 'has-errors': return <XCircle className="h-3 w-3" />;
+      case 'available': return <CheckCircle2 className="h-3 w-3" />;
+      default: return null;
+    }
+  };
+
   const handleToggleAgent = (agent: Agent) => {
     const newStatus = agent.status === 'active' ? 'paused' : 'active';
     onUpdateStatus({ agentId: agent.id, status: newStatus });
   };
+
+  const pendingTaskCount = tasks.filter(task => task.status === 'pending').length;
 
   return (
     <Card>
@@ -79,6 +127,34 @@ export const AgentManagementTab = ({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
+            {pendingTaskCount > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-warning hover:text-warning">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Clear Pending ({pendingTaskCount})
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Pending Tasks</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will clear {pendingTaskCount} pending task{pendingTaskCount > 1 ? 's' : ''}, allowing agents to process new requests. 
+                      This will not affect running or completed tasks.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={onClearPendingTasks}
+                      className="bg-warning text-warning-foreground hover:bg-warning/90"
+                    >
+                      Clear Pending Tasks
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             {agents.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -125,6 +201,8 @@ export const AgentManagementTab = ({
           ) : (
             agents.map((agent) => {
               const datasetInfo = getDatasetInfo(agent);
+              const taskStatus = getAgentTaskStatus(agent.id);
+              const availabilityStatus = getAgentAvailabilityStatus(agent.id);
               
               return (
                 <div key={agent.id} className="p-4 border rounded-lg">
@@ -139,6 +217,15 @@ export const AgentManagementTab = ({
                             className={getStatusColor(agent.status)}
                           >
                             {agent.status}
+                          </Badge>
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs flex items-center gap-1 ${getAvailabilityColor(availabilityStatus)}`}
+                          >
+                            {getAvailabilityIcon(availabilityStatus)}
+                            {availabilityStatus === 'running' ? 'Processing' : 
+                             availabilityStatus === 'busy' ? `${taskStatus.pending} Pending` :
+                             availabilityStatus === 'has-errors' ? `${taskStatus.failed} Failed` : 'Available'}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2 mb-1">
@@ -155,6 +242,11 @@ export const AgentManagementTab = ({
                         {datasetInfo && (
                           <p className="text-xs text-muted-foreground">
                             {datasetInfo.rowCount.toLocaleString()} rows × {datasetInfo.columnCount} columns
+                          </p>
+                        )}
+                        {taskStatus.total > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Tasks: {taskStatus.running} running, {taskStatus.pending} pending, {taskStatus.failed} failed
                           </p>
                         )}
                       </div>

@@ -168,9 +168,11 @@ export const useAgentProcessor = () => {
       console.log('No tasks created - details:', errorDetails);
       
       if (totalPendingTasks > 0) {
-        throw new Error(`${totalPendingTasks} tasks are currently pending. Wait for current tasks to complete or clear them from the Tasks tab to create new ones.`);
+        throw new Error(`All ${agents.length} agent${agents.length > 1 ? 's have' : ' has'} pending tasks (${totalPendingTasks} total). Clear pending tasks or wait for completion before creating new ones.`);
+      } else if (agents.length === 0) {
+        throw new Error('No agents found. Create an AI agent first to start analysis.');
       } else {
-        throw new Error(`No tasks could be created. Check that you have active agents and available datasets.`);
+        throw new Error(`No tasks could be created. Verify you have active agents and available datasets.`);
       }
     }
 
@@ -233,18 +235,22 @@ export const useAgentProcessor = () => {
       });
     },
     onError: (error) => {
-      const isTasksAvailableError = error.message.includes('pending');
-      const isNoAgentsError = error.message.includes('No') && error.message.includes('agents');
+      const isPendingTasksError = error.message.includes('pending tasks');
+      const isNoAgentsError = error.message.includes('No agents found');
+      const isCooldownError = error.message.includes('wait') && error.message.includes('seconds');
       
       let title = "Processing failed";
       let description = error.message;
       
-      if (isTasksAvailableError) {
-        title = "Tasks already pending";
-        description = error.message + " You can clear pending tasks from the Tasks tab if needed.";
+      if (isPendingTasksError) {
+        title = "All agents busy";
+        description = error.message + " Go to the Tasks tab to manage pending tasks.";
       } else if (isNoAgentsError) {
-        title = "No agents found";
-        description = "Create an AI agent first from the Create Agents tab.";
+        title = "No agents available";
+        description = "Create an AI agent first from the Create tab.";
+      } else if (isCooldownError) {
+        title = "Too many requests";
+        description = error.message;
       }
       
       toast({

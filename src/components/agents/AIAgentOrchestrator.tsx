@@ -234,11 +234,13 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
         <TabsContent value="manage">
           <AgentManagementTab
             agents={agents}
+            tasks={tasks}
             onCreateAgent={createAgent}
             onUpdateStatus={updateAgentStatus}
             onDeleteAgent={deleteAgent}
             onDeleteAll={deleteAllAgents}
             onTriggerProcessor={() => triggerProcessor()}
+            onClearPendingTasks={() => clearAllTasks('pending')}
           />
         </TabsContent>
 
