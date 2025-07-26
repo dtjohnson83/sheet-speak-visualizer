@@ -38,7 +38,10 @@ export const useAutoScheduledAgentTasks = () => {
 
   // Listen for new datasets and automatically schedule tasks
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !agents || agents.length === 0) {
+      console.log('Auto-scheduling skipped: no user or no agents available');
+      return;
+    }
 
     const channel = supabase
       .channel('new-datasets-auto-schedule')
@@ -53,10 +56,19 @@ export const useAutoScheduledAgentTasks = () => {
         async (payload) => {
           console.log('New dataset detected for auto-scheduling:', payload.new);
           
-          // Get active agents
-          const activeAgents = agents.filter(agent => agent.status === 'active');
+          // Get active agents (re-fetch to ensure latest data)
+          const { data: currentAgents, error: agentsError } = await supabase
+            .from('ai_agents')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('status', 'active');
+
+          if (agentsError) {
+            console.error('Failed to fetch agents for auto-scheduling:', agentsError);
+            return;
+          }
           
-          if (activeAgents.length === 0) {
+          if (!currentAgents || currentAgents.length === 0) {
             console.log('No active agents found for auto-scheduling');
             return;
           }
@@ -64,7 +76,7 @@ export const useAutoScheduledAgentTasks = () => {
           // Create tasks for each active agent
           const createdTasks = [];
           
-          for (const agent of activeAgents) {
+          for (const agent of currentAgents) {
             const taskType = getTaskTypeForAgent(agent.type);
             
             try {
@@ -115,7 +127,10 @@ export const useAutoScheduledAgentTasks = () => {
 
   // Periodic task scheduler (every hour)
   useEffect(() => {
-    if (!user?.id || agents.length === 0 || datasets.length === 0) return;
+    if (!user?.id || !agents || agents.length === 0 || !datasets || datasets.length === 0) {
+      console.log('Periodic scheduling skipped: missing user, agents, or datasets');
+      return;
+    }
 
     const schedulePeriodicTasks = async () => {
       console.log('Running periodic task scheduler...');

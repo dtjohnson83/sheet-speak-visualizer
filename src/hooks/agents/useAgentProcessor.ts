@@ -48,7 +48,7 @@ export const useAgentProcessor = () => {
     if (agentsError) throw agentsError;
 
     if (!agents || agents.length === 0) {
-      throw new Error('No active agents found');
+      throw new Error(`No ${agentId ? 'matching' : 'active'} agents found. Please create an agent first.`);
     }
 
     // Get available datasets
@@ -149,9 +149,12 @@ export const useAgentProcessor = () => {
       });
     },
     onError: (error) => {
+      const isNoAgentsError = error.message.includes('No') && error.message.includes('agents');
       toast({
-        title: "Failed to trigger processor",
-        description: error.message,
+        title: isNoAgentsError ? "No agents configured" : "Failed to trigger processor",
+        description: isNoAgentsError 
+          ? "Create an AI agent first to start processing data." 
+          : error.message,
         variant: "destructive",
       });
     },
