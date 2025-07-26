@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { useDatasets } from '@/hooks/useDatasets';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Trash2, PlayCircle, Database } from 'lucide-react';
+import { useAgentTaskCleanup } from '@/hooks/agents/useAgentTaskCleanup';
+import { Zap, Trash2, PlayCircle, Database, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export const AgentSystemTest = () => {
   const { 
@@ -19,10 +21,28 @@ export const AgentSystemTest = () => {
   } = useAIAgents();
   const { datasets } = useDatasets();
   const { toast } = useToast();
+  const { 
+    clearStuckTasks, 
+    clearAllTasks: forceCleanAllTasks, 
+    isClearingStuckTasks,
+    isClearingAllTasks: isForceClearingAllTasks 
+  } = useAgentTaskCleanup();
 
   const activeAgents = agents.filter(agent => agent.status === 'active');
   const pendingTasks = tasks.filter(task => task.status === 'pending');
   const runningTasks = tasks.filter(task => task.status === 'running');
+  const stuckTasks = tasks.filter(task => 
+    task.status === 'pending' && 
+    new Date().getTime() - new Date(task.created_at).getTime() > 5 * 60 * 1000 // older than 5 minutes
+  );
+
+  // Auto-clear stuck tasks on component mount
+  useEffect(() => {
+    if (stuckTasks.length > 0) {
+      console.log(`Found ${stuckTasks.length} stuck tasks, auto-clearing...`);
+      clearStuckTasks();
+    }
+  }, [stuckTasks.length, clearStuckTasks]);
 
   const handleCreateTestTasks = async () => {
     if (activeAgents.length === 0) {
@@ -71,6 +91,14 @@ export const AgentSystemTest = () => {
     clearAllTasks('pending');
   };
 
+  const handleForceCleanStuckTasks = () => {
+    clearStuckTasks();
+  };
+
+  const handleForceCleanAllTasks = () => {
+    forceCleanAllTasks('all');
+  };
+
   const handleTriggerProcessor = () => {
     triggerProcessor();
   };
@@ -84,6 +112,26 @@ export const AgentSystemTest = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Stuck Tasks Alert */}
+        {stuckTasks.length > 0 && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              {stuckTasks.length} task{stuckTasks.length > 1 ? 's have' : ' has'} been stuck for over 5 minutes. 
+              This may be blocking new task creation.
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-2"
+                onClick={handleForceCleanStuckTasks}
+                disabled={isClearingStuckTasks}
+              >
+                {isClearingStuckTasks ? 'Clearing...' : 'Clear Stuck Tasks'}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* System Status */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
@@ -105,37 +153,66 @@ export const AgentSystemTest = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={handleCreateTestTasks}
-            variant="outline"
-            size="sm"
-            disabled={activeAgents.length === 0 || datasets.length === 0}
-          >
-            <PlayCircle className="h-4 w-4 mr-2" />
-            Create Test Tasks
-          </Button>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={handleCreateTestTasks}
+              variant="outline"
+              size="sm"
+              disabled={activeAgents.length === 0 || datasets.length === 0}
+            >
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Create Test Tasks
+            </Button>
 
-          <Button
-            onClick={handleClearPendingTasks}
-            variant="outline"
-            size="sm"
-            disabled={pendingTasks.length === 0 || isClearingAllTasks}
-            className="text-warning hover:text-warning"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear Pending ({pendingTasks.length})
-          </Button>
+            <Button
+              onClick={handleTriggerProcessor}
+              variant="default"
+              size="sm"
+              disabled={isTriggeringProcessor || stuckTasks.length > 0}
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              {isTriggeringProcessor ? 'Processing...' : 'Trigger Processor'}
+            </Button>
+          </div>
 
-          <Button
-            onClick={handleTriggerProcessor}
-            variant="default"
-            size="sm"
-            disabled={isTriggeringProcessor}
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            {isTriggeringProcessor ? 'Processing...' : 'Trigger Processor'}
-          </Button>
+          {/* Recovery Actions */}
+          <div className="flex flex-wrap gap-2 pt-2 border-t">
+            <span className="text-sm font-medium text-muted-foreground">Recovery Actions:</span>
+            
+            <Button
+              onClick={handleClearPendingTasks}
+              variant="outline"
+              size="sm"
+              disabled={pendingTasks.length === 0 || isClearingAllTasks}
+              className="text-orange-600 hover:text-orange-700"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear Pending ({pendingTasks.length})
+            </Button>
+
+            <Button
+              onClick={handleForceCleanStuckTasks}
+              variant="outline"
+              size="sm"
+              disabled={stuckTasks.length === 0 || isClearingStuckTasks}
+              className="text-red-600 hover:text-red-700"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              {isClearingStuckTasks ? 'Clearing...' : `Clear Stuck (${stuckTasks.length})`}
+            </Button>
+
+            <Button
+              onClick={handleForceCleanAllTasks}
+              variant="outline"
+              size="sm"
+              disabled={tasks.length === 0 || isForceClearingAllTasks}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isForceClearingAllTasks ? 'Clearing...' : 'Clear All Tasks'}
+            </Button>
+          </div>
         </div>
 
         {/* Agent Status */}
