@@ -77,6 +77,24 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
     
+    console.log('AI Agent Processor started - checking for tasks...');
+    
+    // Auto-cleanup stuck tasks (older than 30 minutes)
+    const { data: stuckTasks } = await supabase
+      .from('agent_tasks')
+      .update({ 
+        status: 'failed', 
+        error_message: 'Task timeout - auto-failed due to being stuck for >30 minutes',
+        completed_at: new Date().toISOString()
+      })
+      .eq('status', 'pending')
+      .lt('created_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
+      .select('id');
+      
+    if (stuckTasks && stuckTasks.length > 0) {
+      console.log(`Auto-failed ${stuckTasks.length} stuck tasks`);
+    }
+    
     // Get request body to check for data context
     const requestBody = await req.json().catch(() => ({}));
     const dataContext = requestBody.data_context;

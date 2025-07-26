@@ -29,6 +29,7 @@ export const AgentManagementTab = ({
   onTriggerProcessor,
   onClearPendingTasks
 }: AgentManagementTabProps) => {
+  // const { clearStuckTasks, isClearingStuckTasks } = useAgentTaskCleanup();
   const getAgentIcon = (type: string) => {
     switch (type) {
       case 'monitoring': return '📊';
