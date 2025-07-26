@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap, Database, FileText, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { Agent, AgentTask } from '@/types/agents';
 import { CreateAgentDialog } from '../CreateAgentDialog';
+import { AgentSystemTest } from '../AgentSystemTest';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AgentManagementTabProps {
@@ -376,6 +377,9 @@ export const AgentManagementTab = ({
             )})
           )}
         </div>
+        
+        {/* System Testing & Recovery Panel */}
+        <AgentSystemTest />
       </CardContent>
     </Card>
   );
