@@ -9,7 +9,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { FileText, Download, Sparkles, User, Briefcase, TrendingUp, Calculator, BarChart3, Brain, FileDown, AlertTriangle, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DataRow, ColumnInfo } from '@/pages/Index';
-import { useEnhancedAIContext } from '@/hooks/useEnhancedAIContext';
+import { useDomainContext } from '@/hooks/useDomainContext';
 import { exportAIReportToPDF } from '@/utils/pdf';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
@@ -69,7 +69,7 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const { toast } = useToast();
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
   const { isAdmin } = useUserRole();
-  const { buildAIContext, hasEnhancedContext } = useEnhancedAIContext();
+  const { buildAIContext, domainContext, isContextCollected } = useDomainContext();
 
   const profileDataset = (data: DataRow[], columns: ColumnInfo[]): DatasetProfile => {
     console.log('=== Smart Dataset Profiling ===');
@@ -416,7 +416,8 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
           dataContext: dataContext,
           persona: selectedPersona,
           datasetProfile: datasetProfile,
-          healthMetrics: healthMetrics
+          healthMetrics: healthMetrics,
+          domainContext: domainContext // Include rich domain survey data
         }
       });
 
@@ -573,9 +574,10 @@ Report Metadata:
             )}
           </h3>
           <div className="flex items-center gap-2">
-            {hasEnhancedContext && (
-              <Badge variant="default" className="text-xs">
-                Enhanced Context
+            {isContextCollected && domainContext && (
+              <Badge variant="secondary" className="text-xs">
+                <Sparkles className="w-3 h-3 mr-1" />
+                {domainContext.domain} Context
               </Badge>
             )}
             <Badge variant="default" className="text-xs bg-blue-600">
@@ -702,6 +704,28 @@ Report Metadata:
                     {reportData.healthMetrics?.trendDirection || 'unknown'}
                   </span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Domain Context Display */}
+          {isContextCollected && domainContext && (
+            <div className="bg-muted/50 border rounded-lg p-4 mb-4">
+              <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                Domain Context
+              </h3>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <div><strong>Domain:</strong> {domainContext.domain}</div>
+                {domainContext.industry && (
+                  <div><strong>Industry:</strong> {domainContext.industry}</div>
+                )}
+                {domainContext.businessObjectives && domainContext.businessObjectives.length > 0 && (
+                  <div><strong>Objectives:</strong> {domainContext.businessObjectives.join(', ')}</div>
+                )}
+                {domainContext.keyMetrics && domainContext.keyMetrics.length > 0 && (
+                  <div><strong>Key Metrics:</strong> {domainContext.keyMetrics.join(', ')}</div>
+                )}
               </div>
             </div>
           )}

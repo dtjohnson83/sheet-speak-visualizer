@@ -88,6 +88,17 @@ interface ReportRequest {
   systemPrompt?: string;
   datasetProfile?: any;
   healthMetrics?: any;
+  domainContext?: {
+    domain: string;
+    industry?: string;
+    businessType?: string;
+    keyMetrics?: string[];
+    customContext?: string;
+    dataDescription?: string;
+    dataType?: string;
+    businessObjectives?: string[];
+    analysisGoals?: string[];
+  };
 }
 
 const personaPrompts = {
@@ -225,7 +236,13 @@ const analyzeTrend = (values: number[]): TrendAnalysis => {
   };
 };
 
-const detectDataDomain = (columns: any[], fileName?: string): string => {
+const detectDataDomain = (columns: any[], fileName?: string, providedDomain?: string): string => {
+  // Prioritize provided domain context from survey
+  if (providedDomain) {
+    console.log('Using provided domain context:', providedDomain);
+    return providedDomain;
+  }
+
   const columnNames = columns.map(col => col.name.toLowerCase());
   const fileNameLower = fileName?.toLowerCase() || '';
   
@@ -463,7 +480,7 @@ serve(async (req) => {
       throw new Error('dataContext is required');
     }
 
-    const { dataContext, persona = 'general', systemPrompt, datasetProfile, healthMetrics }: ReportRequest = requestBody;
+    const { dataContext, persona = 'general', systemPrompt, datasetProfile, healthMetrics, domainContext }: ReportRequest = requestBody;
 
     // Validate dataContext structure
     if (!dataContext.columns || !Array.isArray(dataContext.columns)) {
@@ -510,6 +527,12 @@ serve(async (req) => {
     const analyticalContext = createAnalyticalContext(dataContext);
     const insights = analyticalContext.insights;
 
+    // Use domain context from survey if available
+    if (domainContext) {
+      console.log('Using domain context from survey:', domainContext);
+      insights.domainType = domainContext.domain;
+    }
+
     // Generate domain-specific terminology and urgency matching
     const domainTerminology = insights.domainType;
     const urgencyLevel = insights.businessHealth.score < 0.3 ? 'CRITICAL' : 
@@ -539,6 +562,23 @@ DETAILED COLUMN ANALYSIS WITH TRENDS:
 ${analyticalContext.columnSummaries.join('\n')}
 
 ${analyticalContext.contextSummary}`;
+
+    // Add domain context from survey if available
+    if (domainContext) {
+      enhancedSystemPrompt += `
+
+DOMAIN CONTEXT (from user survey):
+- Business Domain: ${domainContext.domain}
+${domainContext.industry ? `- Industry: ${domainContext.industry}` : ''}
+${domainContext.businessType ? `- Business Type: ${domainContext.businessType}` : ''}
+${domainContext.keyMetrics?.length ? `- Key Metrics: ${domainContext.keyMetrics.join(', ')}` : ''}
+${domainContext.businessObjectives?.length ? `- Business Objectives: ${domainContext.businessObjectives.join(', ')}` : ''}
+${domainContext.analysisGoals?.length ? `- Analysis Goals: ${domainContext.analysisGoals.join(', ')}` : ''}
+${domainContext.dataDescription ? `- Data Description: ${domainContext.dataDescription}` : ''}
+${domainContext.customContext ? `- Additional Context: ${domainContext.customContext}` : ''}
+
+IMPORTANT: Use the domain context above to provide industry-specific insights, terminology, and recommendations. Focus on metrics and objectives relevant to ${domainContext.domain} operations.`;
+    }
 
     // Add confidence and validation context
     enhancedSystemPrompt += `\n\nCONFIDENCE CALIBRATION:
