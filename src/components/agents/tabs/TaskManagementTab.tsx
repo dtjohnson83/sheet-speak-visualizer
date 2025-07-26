@@ -13,7 +13,7 @@ interface TaskManagementTabProps {
   tasks: AgentTask[];
   onCreate: (params: any) => void;
   onDelete: (taskId: string) => void;
-  onClearAll: (status?: 'completed' | 'failed' | 'all') => void;
+  onClearAll: (status?: 'completed' | 'failed' | 'pending' | 'all') => void;
   onScheduleForDataset: (datasetId: string) => void;
   isDeletingTask: boolean;
   isClearingAllTasks: boolean;
@@ -136,6 +136,32 @@ export const TaskManagementTab = ({
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         Clear Failed
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Clear Pending ({pendingTasks})
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Clear Pending Tasks</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete {pendingTasks} pending tasks, allowing new ones to be created. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => onClearAllTasks('pending')}
+                        disabled={isClearingAllTasks}
+                        className="bg-warning text-warning-foreground hover:bg-warning/90"
+                      >
+                        Clear Pending
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

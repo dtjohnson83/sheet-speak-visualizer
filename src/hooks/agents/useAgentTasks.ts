@@ -115,7 +115,7 @@ export const useAgentTasks = () => {
 
   // Clear all tasks mutation
   const clearAllTasksMutation = useMutation({
-    mutationFn: async (status?: 'completed' | 'failed' | 'all') => {
+    mutationFn: async (status?: 'completed' | 'failed' | 'pending' | 'all') => {
       if (!user?.id) return;
       
       let query = supabase
@@ -129,13 +129,18 @@ export const useAgentTasks = () => {
 
       const { error } = await query;
       if (error) throw error;
-      return true;
+      return { status };
     },
-    onSuccess: () => {
+    onSuccess: ({ status }) => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks', user?.id] });
+      
+      const message = status === 'all' 
+        ? 'All tasks cleared successfully'
+        : `${status} tasks cleared successfully`;
+        
       toast({
         title: "Tasks cleared",
-        description: "Selected tasks have been removed.",
+        description: message,
       });
     },
     onError: (error) => {
@@ -155,7 +160,8 @@ export const useAgentTasks = () => {
     isLoading: tasksLoading,
     createTask: createTaskMutation.mutate,
     deleteTask: deleteTaskMutation.mutate,
-    clearAllTasks: clearAllTasksMutation.mutate,
+    clearAllTasks: (status?: 'completed' | 'failed' | 'pending' | 'all') => 
+      clearAllTasksMutation.mutate(status),
     isCreatingTask: createTaskMutation.isPending,
     isDeletingTask: deleteTaskMutation.isPending,
     isClearingAllTasks: clearAllTasksMutation.isPending,

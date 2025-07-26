@@ -35,13 +35,12 @@ export const getTierDefinitions = (data: any[], tiles: any[], savedDatasetsCount
     ]
   },
   advanced: {
-    title: "Advanced Operations",
-    description: "Quality control and automation",
-    icon: Settings,
+    title: "Advanced Operations", 
+    description: "AI agents and automation",
+    icon: Bot,
     color: "amber",
     tabs: [
-      { id: "data-quality", label: "Data Quality", icon: Shield, badge: null },
-      { id: "agents", label: "AI Agents", icon: Settings, badge: null }
+      { id: "agents", label: "AI Agents", icon: Bot, badge: null }
     ]
   }
 });

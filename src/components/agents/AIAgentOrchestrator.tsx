@@ -15,14 +15,10 @@ import {
   Clock
 } from 'lucide-react';
 import { useAIAgents } from '@/hooks/useAIAgents';
-import { AgentOverviewTab } from './tabs/AgentOverviewTab';
+import { AgentCreationWizard } from './AgentCreationWizard';
 import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
-
-import { SchedulingTab } from './tabs/SchedulingTab';
-import { NotificationsTab } from './tabs/NotificationsTab';
-import { ProgressTab } from './tabs/ProgressTab';
 import { DomainSurvey, DomainContext } from './DomainSurvey';
 import { DataContext } from '@/types/agents';
 
@@ -34,7 +30,7 @@ interface AIAgentOrchestratorProps {
 }
 
 export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAgentOrchestratorProps) => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('create');
   const [showDomainSurvey, setShowDomainSurvey] = useState(false);
   const [pendingAgentType, setPendingAgentType] = useState<string | null>(null);
   
@@ -170,13 +166,10 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
   const failedTasks = tasks.filter(task => task.status === 'failed').length;
 
   const tabs = [
-    { value: 'overview', label: 'Overview', icon: Activity, badge: agents.length },
-    { value: 'management', label: 'Agents', icon: Bot, badge: activeAgents },
-    { value: 'scheduling', label: 'Schedule', icon: Calendar, badge: runningTasks },
-    { value: 'progress', label: 'Progress', icon: Clock, badge: runningTasks },
+    { value: 'create', label: 'Create Agents', icon: Bot, badge: null },
+    { value: 'manage', label: 'Manage', icon: Settings, badge: activeAgents },
     { value: 'tasks', label: 'Tasks', icon: List, badge: pendingTasks },
-    { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights },
-    { value: 'notifications', label: 'Alerts', icon: Bell, badge: unreadInsights + failedTasks }
+    { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights }
   ];
 
   if (isLoading) {
@@ -204,14 +197,14 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Manage AI agents that continuously monitor and analyze your data, providing automated insights and quality assessments.
+            Create and manage AI agents that automatically analyze your data. Start by creating agents, then run them to generate insights and monitor data quality.
           </p>
         </CardContent>
       </Card>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -225,14 +218,15 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           ))}
         </TabsList>
 
-        <TabsContent value="overview">
-          <AgentOverviewTab
+        <TabsContent value="create">
+          <AgentCreationWizard
             agents={agents}
             onCreateAgent={handleCreateAgent}
+            isCreating={false}
           />
         </TabsContent>
 
-        <TabsContent value="management">
+        <TabsContent value="manage">
           <AgentManagementTab
             agents={agents}
             onCreateAgent={createAgent}
@@ -241,14 +235,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             onDeleteAll={deleteAllAgents}
             onTriggerProcessor={() => triggerProcessor()}
           />
-        </TabsContent>
-
-        <TabsContent value="scheduling">
-          <SchedulingTab />
-        </TabsContent>
-
-        <TabsContent value="progress">
-          <ProgressTab />
         </TabsContent>
 
         <TabsContent value="tasks">
@@ -272,10 +258,6 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             isDeletingInsight={isDeletingInsight}
             isClearingAllInsights={isClearingAllInsights}
           />
-        </TabsContent>
-
-        <TabsContent value="notifications">
-          <NotificationsTab />
         </TabsContent>
       </Tabs>
 

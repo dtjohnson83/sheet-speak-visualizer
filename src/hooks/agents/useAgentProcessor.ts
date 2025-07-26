@@ -168,9 +168,9 @@ export const useAgentProcessor = () => {
       console.log('No tasks created - details:', errorDetails);
       
       if (totalPendingTasks > 0) {
-        throw new Error(`No new tasks could be created. All ${agents.length} agent(s) have pending tasks for their most recent datasets. ${totalPendingTasks} tasks are currently pending. Wait for current tasks to complete or clear them first.`);
+        throw new Error(`${totalPendingTasks} tasks are currently pending. Wait for current tasks to complete or clear them from the Tasks tab to create new ones.`);
       } else {
-        throw new Error(`No tasks could be created. Agents: ${agents.length}, Datasets: ${allDatasets.length}. Check that agents and datasets are properly configured.`);
+        throw new Error(`No tasks could be created. Check that you have active agents and available datasets.`);
       }
     }
 
@@ -233,12 +233,23 @@ export const useAgentProcessor = () => {
       });
     },
     onError: (error) => {
+      const isTasksAvailableError = error.message.includes('pending');
       const isNoAgentsError = error.message.includes('No') && error.message.includes('agents');
+      
+      let title = "Processing failed";
+      let description = error.message;
+      
+      if (isTasksAvailableError) {
+        title = "Tasks already pending";
+        description = error.message + " You can clear pending tasks from the Tasks tab if needed.";
+      } else if (isNoAgentsError) {
+        title = "No agents found";
+        description = "Create an AI agent first from the Create Agents tab.";
+      }
+      
       toast({
-        title: isNoAgentsError ? "No agents configured" : "Failed to trigger processor",
-        description: isNoAgentsError 
-          ? "Create an AI agent first to start processing data." 
-          : error.message,
+        title,
+        description,
         variant: "destructive",
       });
     },
