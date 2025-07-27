@@ -20,12 +20,11 @@ export const useAgentInsights = () => {
         .from('agent_insights')
         .select(`
           *,
-          ai_agents!inner(user_id)
+          ai_agents!agent_id(user_id)
         `)
         .eq('ai_agents.user_id', user.id)
         .eq('is_archived', false)
-        .order('created_at', { ascending: false })
-        .limit(20);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       
