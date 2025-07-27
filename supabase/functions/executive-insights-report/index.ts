@@ -186,7 +186,7 @@ Focus on business impact and actionable intelligence rather than technical detai
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'grok-beta',
+            model: 'grok-3',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
@@ -492,6 +492,6 @@ ${agents.map(agent => {
 4. **Strategic Planning**: Leverage agent discoveries for data-driven decision making
 
 ---
-*This report was generated using local analysis. For enhanced AI-powered insights, please configure your OpenAI API key.*
+*This report was generated using local analysis. For enhanced AI-powered insights, please configure your X.AI API key.*
   `;
 }
