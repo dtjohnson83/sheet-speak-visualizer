@@ -78,7 +78,7 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
   const generateExecutiveReport = async () => {
     setReportLoading(true);
     try {
-      const { data: reportData } = await supabase.functions.invoke('executive-insights-report', {
+      const { data: reportData, error } = await supabase.functions.invoke('executive-insights-report', {
         body: {
           domainContext: fileName ? `Analysis of ${fileName} dataset` : 'General business intelligence',
           timeframe: 'last_week',
@@ -86,11 +86,19 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
         }
       });
       
+      if (error) throw error;
+      
       setExecutiveReport(reportData);
       setShowExecutiveReport(true);
+      
+      if (reportData?.metadata?.is_fallback) {
+        toast.warning("Report generated with basic analysis. Configure AI API keys for enhanced insights.");
+      } else {
+        toast.success("Executive report generated successfully!");
+      }
     } catch (error) {
       console.error('Failed to generate executive report:', error);
-      toast.error('Failed to generate executive insights report');
+      toast.error(`Failed to generate report: ${error.message || 'Please try again.'}`);
     } finally {
       setReportLoading(false);
     }

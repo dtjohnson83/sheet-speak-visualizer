@@ -135,50 +135,68 @@ Structure the report with:
 
 Focus on business impact and actionable intelligence rather than technical details.`;
 
-    let apiResponse;
+    let reportContent;
+    let apiError = null;
     
-    if (xaiApiKey) {
-      apiResponse = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${xaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'grok-beta',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 3000,
-        }),
-      });
-    } else {
-      apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 3000,
-        }),
-      });
-    }
+    try {
+      let apiResponse;
+      
+      if (xaiApiKey) {
+        console.log('Attempting to use X.AI API...');
+        apiResponse = await fetch('https://api.x.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${xaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'grok-beta',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 3000,
+          }),
+        });
+      } else if (openAIApiKey) {
+        console.log('Attempting to use OpenAI API...');
+        apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4.1-2025-04-14',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 3000,
+          }),
+        });
+      }
 
-    if (!apiResponse.ok) {
-      throw new Error(`AI API error: ${apiResponse.status}`);
+      if (apiResponse && apiResponse.ok) {
+        const aiResult = await apiResponse.json();
+        reportContent = aiResult.choices[0].message.content;
+        console.log('AI report generated successfully');
+      } else {
+        const errorText = apiResponse ? await apiResponse.text() : 'No API response';
+        console.error(`AI API error: ${apiResponse?.status} - ${errorText}`);
+        apiError = `AI API returned ${apiResponse?.status}: ${errorText}`;
+        throw new Error(apiError);
+      }
+    } catch (error) {
+      console.error('AI API call failed:', error);
+      apiError = error.message;
+      
+      // Generate fallback report using local analysis
+      reportContent = generateFallbackReport(insights, tasks, agents, requestData);
+      console.log('Generated fallback report due to AI API failure');
     }
-
-    const aiResult = await apiResponse.json();
-    const reportContent = aiResult.choices[0].message.content;
 
     // Generate summary statistics
     const summaryStats = generateSummaryStats(insights, tasks, agents);
@@ -190,6 +208,8 @@ Focus on business impact and actionable intelligence rather than technical detai
         insights_analyzed: insights.length,
         agents_active: agents.filter(a => a.status === 'active').length,
         critical_issues: insights.filter(i => i.severity === 'critical').length,
+        is_fallback: !!apiError,
+        api_error: apiError,
         ...summaryStats
       },
       raw_data: {
@@ -204,17 +224,55 @@ Focus on business impact and actionable intelligence rather than technical detai
 
   } catch (error) {
     console.error('Error in executive-insights-report function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      report: "Unable to generate executive insights report at this time. Please try again later.",
-      metadata: {
-        generated_at: new Date().toISOString(),
-        error: true
-      }
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    
+    // Try to generate a basic fallback report even on major errors
+    try {
+      const basicReport = `
+# Executive Report - Basic Analysis
+
+## Error Notice
+⚠️ **Report Generation Issue**: ${error.message}
+
+## Available Data Summary
+This is a basic analysis based on available agent data:
+
+- Total insights available: ${insights?.length || 0}
+- Total tasks recorded: ${tasks?.length || 0}  
+- Total agents configured: ${agents?.length || 0}
+
+## Recommendations
+1. Please check your API key configuration
+2. Verify network connectivity
+3. Contact support if the issue persists
+
+*Generated on ${new Date().toISOString()}*
+      `;
+
+      return new Response(JSON.stringify({ 
+        report: basicReport,
+        metadata: {
+          generated_at: new Date().toISOString(),
+          error: true,
+          error_message: error.message,
+          is_fallback: true
+        }
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (fallbackError) {
+      return new Response(JSON.stringify({ 
+        error: error.message,
+        report: "Unable to generate executive insights report at this time. Please try again later.",
+        metadata: {
+          generated_at: new Date().toISOString(),
+          error: true
+        }
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   }
 });
 
@@ -331,4 +389,55 @@ function generateSummaryStats(insights: AgentInsight[], tasks: AgentTask[], agen
     task_success_rate: tasks.length > 0 ? 
       (tasks.filter(t => t.status === 'completed').length / tasks.length) * 100 : 0
   };
+}
+
+function generateFallbackReport(
+  insights: AgentInsight[], 
+  tasks: AgentTask[], 
+  agents: Agent[],
+  requestData: ExecutiveInsightsRequest
+): string {
+  const summaryStats = generateSummaryStats(insights, tasks, agents);
+  const criticalInsights = insights.filter(i => i.severity === 'critical');
+  const recentInsights = insights.slice(0, 10);
+  
+  return `
+# Executive Intelligence Report
+*Generated: ${new Date().toLocaleString()}*
+
+## Executive Summary
+This report analyzes ${insights.length} agent insights, ${tasks.length} tasks, and ${agents.length} AI agents to provide strategic business intelligence.
+
+## Key Metrics
+- **Active Agents**: ${summaryStats.active_agents}/${summaryStats.total_agents}
+- **Task Success Rate**: ${summaryStats.task_success_rate.toFixed(1)}%
+- **Critical Issues**: ${summaryStats.critical_insights}
+- **Unread Insights**: ${summaryStats.unread_insights}
+
+## Critical Issues Requiring Attention
+${criticalInsights.length > 0 ? criticalInsights.slice(0, 5).map(insight => 
+  `### ${insight.title}\n**Severity**: ${insight.severity.toUpperCase()}\n**Description**: ${insight.description}\n**Generated**: ${new Date(insight.created_at).toLocaleDateString()}\n`
+).join('\n') : 'No critical issues identified at this time.'}
+
+## Recent Agent Discoveries
+${recentInsights.map(insight => 
+  `- **${insight.title}** (${insight.severity}): ${insight.description.substring(0, 100)}${insight.description.length > 100 ? '...' : ''}`
+).join('\n')}
+
+## Agent Performance Overview
+${agents.map(agent => {
+  const agentInsights = insights.filter(i => i.agent_id === agent.id);
+  const agentTasks = tasks.filter(t => t.agent_id === agent.id);
+  return `- **${agent.name}** (${agent.type}): ${agentInsights.length} insights, ${agentTasks.filter(t => t.status === 'completed').length} completed tasks`;
+}).join('\n')}
+
+## Recommendations
+1. **Immediate Actions**: Review ${summaryStats.critical_insights} critical issues identified by agents
+2. **Operational Efficiency**: ${summaryStats.task_success_rate < 80 ? 'Investigate task failures to improve agent performance' : 'Agent performance is optimal'}
+3. **Data Management**: Process ${summaryStats.unread_insights} unread insights for complete visibility
+4. **Strategic Planning**: Leverage agent discoveries for data-driven decision making
+
+---
+*This report was generated using local analysis. For enhanced AI-powered insights, please configure your OpenAI API key.*
+  `;
 }
