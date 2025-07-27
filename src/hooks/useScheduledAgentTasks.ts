@@ -83,46 +83,98 @@ export const useScheduledAgentTasks = () => {
     if (!user?.id || agents.length === 0 || datasets.length === 0) return;
 
     const schedulePeriodicTasks = async () => {
+      console.log('Running periodic task scheduler...');
       const activeAgents = agents.filter(agent => 
         agent.status === 'active' && 
         agent.configuration?.analysis_frequency !== 'real_time'
       );
+
+      let tasksCreated = 0;
 
       for (const agent of activeAgents) {
         const frequency = agent.configuration?.analysis_frequency || 'daily';
         const shouldSchedule = checkIfShouldSchedule(agent, frequency);
         
         if (shouldSchedule) {
-          // Schedule tasks for each dataset
-          for (const dataset of datasets) {
-            const taskType = agent.type === 'anomaly_detection' ? 'detect_anomalies' :
-                            agent.type === 'trend_analysis' ? 'analyze_trends' :
-                            agent.type === 'insight_generation' ? 'generate_insights' :
-                            agent.type === 'correlation_discovery' ? 'find_correlations' : 'analyze_data';
-            
-            try {
-              await supabase.from('agent_tasks').insert({
-                agent_id: agent.id,
-                dataset_id: dataset.id,
-                task_type: taskType,
-                parameters: {
-                  auto_scheduled: true,
-                  trigger: 'periodic',
-                  frequency: frequency,
-                  timestamp: new Date().toISOString()
-                }
-              });
-            } catch (error) {
+          const taskType = agent.type === 'anomaly_detection' ? 'detect_anomalies' :
+                          agent.type === 'trend_analysis' ? 'analyze_trends' :
+                          agent.type === 'insight_generation' ? 'generate_insights' :
+                          agent.type === 'correlation_discovery' ? 'find_correlations' :
+                          agent.type === 'data_quality' ? 'assess_data_quality' :
+                          agent.type === 'predictive_analytics' ? 'predictive_forecast' : 'analyze_data';
+
+          // Check for existing pending tasks first to avoid duplicates
+          const { data: existingTasks } = await supabase
+            .from('agent_tasks')
+            .select('id')
+            .eq('agent_id', agent.id)
+            .eq('task_type', taskType)
+            .eq('status', 'pending')
+            .limit(1);
+
+          if (existingTasks && existingTasks.length > 0) {
+            console.log(`Periodic schedule skipped: Task already exists for agent ${agent.name}`);
+            continue;
+          }
+
+          // Find available datasets that don't have pending tasks for this agent
+          const { data: availableDatasets, error: datasetError } = await supabase
+            .from('saved_datasets')
+            .select('id, name')
+            .eq('user_id', user.id)
+            .limit(2);
+
+          if (datasetError) {
+            console.error('Error fetching available datasets:', datasetError);
+            continue;
+          }
+
+          if (!availableDatasets || availableDatasets.length === 0) {
+            continue;
+          }
+
+          // Schedule task for the first available dataset
+          const dataset = availableDatasets[0];
+          
+          try {
+            console.log(`Scheduled periodic ${taskType} task for agent ${agent.name}`);
+            await supabase.from('agent_tasks').insert({
+              agent_id: agent.id,
+              dataset_id: dataset.id,
+              task_type: taskType,
+              parameters: {
+                auto_scheduled: true,
+                trigger: 'periodic',
+                frequency: frequency,
+                timestamp: new Date().toISOString()
+              }
+            });
+            tasksCreated++;
+          } catch (error: any) {
+            if (error?.code === '23505') { // Duplicate key constraint
+              console.log(`Periodic duplicate prevented for agent ${agent.name} on dataset ${dataset.name}`);
+            } else {
               console.error('Failed to schedule periodic task:', error);
             }
           }
         }
       }
+
+      // Auto-trigger processor if tasks were created
+      if (tasksCreated > 0) {
+        console.log(`Auto-triggered processor for ${tasksCreated} periodic tasks`);
+        try {
+          await supabase.functions.invoke('ai-agent-processor', {
+            body: { auto_trigger: true, source: 'periodic' }
+          });
+        } catch (error) {
+          console.error('Failed to auto-trigger processor:', error);
+        }
+      }
     };
 
-    // Initial scheduling and then every hour
-    schedulePeriodicTasks();
-    const interval = setInterval(schedulePeriodicTasks, 60 * 60 * 1000); // 1 hour
+    // Run every 5 minutes instead of every hour to prevent overwhelming
+    const interval = setInterval(schedulePeriodicTasks, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(interval);
   }, [user?.id, agents, datasets]);

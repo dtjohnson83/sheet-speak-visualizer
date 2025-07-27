@@ -47,36 +47,29 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
   onComplete,
   onSkip
 }) => {
-  console.log('DomainSurvey rendered with open:', open);
-  
   // Local state to control dialog visibility and prevent auto-closing
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
   
   // Sync local state with prop, but only open when prop is true
   useEffect(() => {
-    console.log('DomainSurvey: open prop changed to:', open);
-    if (open) {
-      console.log('DomainSurvey: Setting local isOpen to true');
+    if (open && !isOpen) {
       setIsOpen(true);
     }
-  }, [open]);
+  }, [open, isOpen]);
   
   // Handle explicit close actions
   const handleClose = () => {
-    console.log('DomainSurvey: handleClose called');
     setIsOpen(false);
     onClose();
   };
   
   const handleSkip = () => {
-    console.log('DomainSurvey: handleSkip called');
     setIsOpen(false);
     onSkip();
   };
   
   const handleComplete = () => {
-    console.log('DomainSurvey: handleComplete called');
     const context: DomainContext = {
       domain: selectedDomain,
       businessType: businessType || undefined,

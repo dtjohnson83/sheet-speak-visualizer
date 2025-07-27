@@ -27,9 +27,6 @@ export const AppLayout: React.FC = () => {
   const domainContextHook = useDomainContext();
   const { showSurvey, setContext, closeSurvey, skipSurvey, getContextSummary, triggerSurvey } = domainContextHook;
   
-  console.log('AppLayout: showSurvey state is:', showSurvey);
-  console.log('AppLayout: domainContextHook instance:', domainContextHook);
-  
   // Tutorial progress tracking
   const {
     shouldShowTutorial,
@@ -174,18 +171,11 @@ export const AppLayout: React.FC = () => {
       {/* Domain Survey Modal */}
       <DomainSurvey
         open={showSurvey}
-        onClose={() => {
-          console.log('DomainSurvey onClose called from AppLayout');
-          closeSurvey();
-        }}
+        onClose={closeSurvey}
         onComplete={(context) => {
-          console.log('Survey completed with context:', context);
           setContext(context, appState.fileName, appState.worksheetName);
         }}
-        onSkip={() => {
-          console.log('Survey skipped from AppLayout');
-          skipSurvey();
-        }}
+        onSkip={skipSurvey}
       />
     </div>
   );
