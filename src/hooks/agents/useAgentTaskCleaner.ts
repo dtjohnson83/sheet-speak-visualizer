@@ -8,93 +8,136 @@ export const useAgentTaskCleaner = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Clean up all stuck/old tasks
+  // Enhanced cleanup tasks mutation with better error handling
   const cleanupTasksMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('User not authenticated');
 
-      // First get user's agent IDs
-      const { data: userAgents } = await supabase
+      // Get user's agents
+      const { data: agents, error: agentsError } = await supabase
         .from('ai_agents')
         .select('id')
         .eq('user_id', user.id);
 
-      if (!userAgents || userAgents.length === 0) {
-        return [];
+      if (agentsError) throw agentsError;
+
+      if (!agents || agents.length === 0) {
+        return { cleaned: 0, message: "No agents found" };
       }
 
-      const agentIds = userAgents.map(agent => agent.id);
+      const agentIds = agents.map(agent => agent.id);
 
-      // Clean up old pending tasks (older than 30 minutes)
-      const { data: cleanedTasks, error } = await supabase
+      // Update stuck tasks (pending for more than 30 minutes)
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      
+      const { data: stuckTasks, error: selectError } = await supabase
         .from('agent_tasks')
-        .update({ 
-          status: 'failed',
-          error_message: 'Automatically cleaned up - task was stuck for >30 minutes',
-          completed_at: new Date().toISOString()
-        })
+        .select('id')
         .in('agent_id', agentIds)
         .eq('status', 'pending')
-        .lt('created_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
-        .select('id');
+        .lt('created_at', thirtyMinutesAgo.toISOString());
 
-      if (error) throw error;
-      return cleanedTasks || [];
+      if (selectError) throw selectError;
+
+      if (!stuckTasks || stuckTasks.length === 0) {
+        return { cleaned: 0, message: "No stuck tasks found" };
+      }
+
+      const { error: updateError } = await supabase
+        .from('agent_tasks')
+        .update({
+          status: 'failed',
+          error_message: 'Task was stuck in pending state for over 30 minutes and was automatically cleaned up',
+          updated_at: new Date().toISOString()
+        })
+        .in('id', stuckTasks.map(task => task.id));
+
+      if (updateError) throw updateError;
+
+      return { cleaned: stuckTasks.length, message: `Cleaned ${stuckTasks.length} stuck tasks` };
     },
-    onSuccess: (cleanedTasks) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['ai-agents'] });
-      
       toast({
         title: "Tasks Cleaned",
-        description: `Cleaned up ${cleanedTasks.length} stuck tasks`,
+        description: result.message,
       });
     },
     onError: (error) => {
+      console.error('Error cleaning tasks:', error);
       toast({
         title: "Cleanup Failed",
-        description: error.message,
+        description: `Failed to clean tasks: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     },
   });
 
-  // Force process tasks
+  // Enhanced force process mutation with better error handling
   const forceProcessMutation = useMutation({
     mutationFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      // Check if there are any agents
+      const { data: agents, error: agentsError } = await supabase
+        .from('ai_agents')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (agentsError) throw agentsError;
+
+      if (!agents || agents.length === 0) {
+        throw new Error("No active agents found. Please create and activate an agent first.");
+      }
+
+      // Check if there are any datasets
+      const { data: datasets, error: datasetsError } = await supabase
+        .from('saved_datasets')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (datasetsError) throw datasetsError;
+
+      if (!datasets || datasets.length === 0) {
+        throw new Error("No datasets found. Please upload a dataset first.");
+      }
+
+      // Invoke the processor with force processing
       const { data, error } = await supabase.functions.invoke('ai-agent-processor', {
-        body: { 
-          force_process: true, 
-          source: 'manual_cleanup',
-          user_id: user?.id 
-        }
+        body: { force_process: true }
       });
 
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['agent-insights'] });
-      
       toast({
-        title: "Processing Started",
-        description: data?.message || "AI agent processor has been triggered",
+        title: "Processing Triggered",
+        description: "Agent processing has been manually triggered",
       });
     },
     onError: (error) => {
+      console.error('Error forcing process:', error);
       toast({
         title: "Processing Failed",
-        description: error.message,
+        description: `Failed to trigger processing: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     },
   });
 
+  const cleanupTasks = () => cleanupTasksMutation.mutate();
+  const forceProcess = () => forceProcessMutation.mutate();
+  const isCleaningUp = cleanupTasksMutation.isPending;
+  const isProcessing = forceProcessMutation.isPending;
+
   return {
-    cleanupTasks: cleanupTasksMutation.mutate,
-    forceProcess: forceProcessMutation.mutate,
-    isCleaningUp: cleanupTasksMutation.isPending,
-    isProcessing: forceProcessMutation.isPending,
+    cleanupTasks,
+    forceProcess,
+    isCleaningUp,
+    isProcessing,
   };
 };

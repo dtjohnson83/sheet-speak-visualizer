@@ -188,6 +188,26 @@ export const useAgentProcessor = () => {
         const remainingCooldown = Math.ceil((COOLDOWN_MS - (now - lastTriggerRef.current)) / 1000);
         throw new Error(`Please wait ${remainingCooldown} seconds before triggering again`);
       }
+
+      // Pre-flight checks
+      const { data: agents } = await supabase
+        .from('ai_agents')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (!agents || agents.length === 0) {
+        throw new Error('No active agents found. Please create and activate an agent first.');
+      }
+
+      const { data: datasets } = await supabase
+        .from('saved_datasets')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (!datasets || datasets.length === 0) {
+        throw new Error('No datasets available. Please upload a dataset first.');
+      }
       
       // Update last trigger time
       lastTriggerRef.current = now;
@@ -195,8 +215,8 @@ export const useAgentProcessor = () => {
       // First create tasks for active agents
       const createdTasks = await createTasksForActiveAgents(agentId, dataContext);
       
-      if (createdTasks.length === 0) {
-        throw new Error('No tasks could be created');
+      if (!createdTasks || createdTasks.length === 0) {
+        throw new Error('No tasks could be created. Check that agents have valid configurations and try clearing cache.');
       }
 
       // Wait a moment for tasks to be inserted
