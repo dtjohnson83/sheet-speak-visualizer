@@ -82,6 +82,11 @@ export const useDomainContext = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedContext));
   }, [domainContext]);
 
+  // Debug state changes
+  useEffect(() => {
+    console.log('useDomainContext: showSurvey state changed to:', showSurvey);
+  }, [showSurvey]);
+
   const triggerSurvey = useCallback((force = false) => {
     console.log('triggerSurvey called with force:', force, 'isContextCollected:', isContextCollected);
     if (force || !isContextCollected) {

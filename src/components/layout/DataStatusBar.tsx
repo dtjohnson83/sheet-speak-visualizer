@@ -26,7 +26,7 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
   columnsLength,
   realtimeEnabled
 }) => {
-  const { getContextSummary, triggerSurvey } = useDomainContext();
+  const { getContextSummary, triggerSurvey, showSurvey } = useDomainContext();
   const contextSummary = getContextSummary();
   const { user } = useAuth();
   const { state, dispatch } = useAppState();
@@ -177,9 +177,16 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
                 </div>
               </DialogContent>
             </Dialog>
-          )}
-          
-          {/* Domain Context Status */}
+           )}
+           
+           {/* Debug indicator for survey state */}
+           {showSurvey && (
+             <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded text-xs text-green-700">
+               🔍 Survey Active
+             </div>
+           )}
+           
+           {/* Domain Context Status */}
           {contextSummary ? (
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/20 text-xs">
@@ -205,7 +212,12 @@ export const DataStatusBar: React.FC<DataStatusBarProps> = ({
               onClick={() => {
                 console.log('Add Context button clicked');
                 console.log('triggerSurvey function:', triggerSurvey);
+                console.log('showSurvey state before trigger:', showSurvey);
                 triggerSurvey();
+                // Force a re-render check
+                setTimeout(() => {
+                  console.log('showSurvey state after trigger (delayed):', showSurvey);
+                }, 100);
               }}
               className="text-xs h-6"
             >
