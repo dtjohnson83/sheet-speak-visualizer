@@ -64,11 +64,11 @@ export const AgentOutputAggregator: React.FC<AgentOutputAggregatorProps> = ({
       return date > twoWeeksAgo && date <= weekAgo;
     });
 
-    let trends = { direction: 'stable' as const, confidence: 0.5 };
+    let trends: { direction: 'up' | 'down' | 'stable'; confidence: number } = { direction: 'stable', confidence: 0.5 };
     if (recentInsights.length > previousInsights.length * 1.2) {
-      trends = { direction: 'up' as const, confidence: 0.8 };
+      trends = { direction: 'up', confidence: 0.8 };
     } else if (recentInsights.length < previousInsights.length * 0.8) {
-      trends = { direction: 'down' as const, confidence: 0.8 };
+      trends = { direction: 'down', confidence: 0.8 };
     }
 
     // Generate key insights
