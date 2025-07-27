@@ -25,7 +25,7 @@ export const AppLayout: React.FC = () => {
   const { isAdmin, usesRemaining } = useUsageTracking();
   const { getLatestData, sources } = useRealtimeData();
   const domainContextHook = useDomainContext();
-  const { showSurvey, setContext, closeSurvey, skipSurvey } = domainContextHook;
+  const { showSurvey, setContext, closeSurvey, skipSurvey, getContextSummary, triggerSurvey } = domainContextHook;
   
   console.log('AppLayout: showSurvey state is:', showSurvey);
   console.log('AppLayout: domainContextHook instance:', domainContextHook);
@@ -120,11 +120,14 @@ export const AppLayout: React.FC = () => {
 
           {/* Data Context Status Bar - only when data is loaded */}
           {appState.data.length > 0 && (
-            <DataStatusBar 
+            <DataStatusBar
               displayFileName={displayFileName}
               dataLength={appState.data.length}
               columnsLength={appState.columns.length}
-              realtimeEnabled={appState.realtimeEnabled}
+              realtimeEnabled={sources.length > 0}
+              contextSummary={getContextSummary()}
+              triggerSurvey={triggerSurvey}
+              showSurvey={showSurvey}
             />
           )}
 

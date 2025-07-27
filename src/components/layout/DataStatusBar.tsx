@@ -11,23 +11,26 @@ import { useAppState } from '@/contexts/AppStateContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { DatasetSwitcher } from '@/components/dataset/DatasetSwitcher';
 import { useMultiDatasetActions } from '@/hooks/useMultiDatasetActions';
-import { useDomainContext } from '@/hooks/useDomainContext';
-
 interface DataStatusBarProps {
   displayFileName: string;
   dataLength: number;
   columnsLength: number;
   realtimeEnabled: boolean;
+  // Domain context props passed from parent
+  contextSummary?: { domain: string; industry: string } | null;
+  triggerSurvey: (force?: boolean) => void;
+  showSurvey: boolean;
 }
 
 export const DataStatusBar: React.FC<DataStatusBarProps> = ({
   displayFileName,
   dataLength,
   columnsLength,
-  realtimeEnabled
+  realtimeEnabled,
+  contextSummary,
+  triggerSurvey,
+  showSurvey
 }) => {
-  const { getContextSummary, triggerSurvey, showSurvey } = useDomainContext();
-  const contextSummary = getContextSummary();
   const { user } = useAuth();
   const { state, dispatch } = useAppState();
   const { saveDataset, isSaving } = useDatasets();
