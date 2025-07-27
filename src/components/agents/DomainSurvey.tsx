@@ -138,8 +138,8 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
   const canProceed = selectedDomain && (step === 1 || step === 2 || step === 3 || step === 4);
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto"  onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Data Domain Survey</DialogTitle>
           <DialogDescription>
