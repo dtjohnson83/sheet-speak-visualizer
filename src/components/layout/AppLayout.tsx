@@ -24,9 +24,11 @@ export const AppLayout: React.FC = () => {
   const uiActions = useUIActions();
   const { isAdmin, usesRemaining } = useUsageTracking();
   const { getLatestData, sources } = useRealtimeData();
-  const { showSurvey, setContext, closeSurvey, skipSurvey } = useDomainContext();
+  const domainContextHook = useDomainContext();
+  const { showSurvey, setContext, closeSurvey, skipSurvey } = domainContextHook;
   
   console.log('AppLayout: showSurvey state is:', showSurvey);
+  console.log('AppLayout: domainContextHook instance:', domainContextHook);
   
   // Tutorial progress tracking
   const {
@@ -170,7 +172,7 @@ export const AppLayout: React.FC = () => {
       <DomainSurvey
         open={showSurvey}
         onClose={() => {
-          console.log('DomainSurvey onClose called');
+          console.log('DomainSurvey onClose called from AppLayout');
           closeSurvey();
         }}
         onComplete={(context) => {
@@ -178,7 +180,7 @@ export const AppLayout: React.FC = () => {
           setContext(context, appState.fileName, appState.worksheetName);
         }}
         onSkip={() => {
-          console.log('Survey skipped');
+          console.log('Survey skipped from AppLayout');
           skipSurvey();
         }}
       />

@@ -89,19 +89,26 @@ export const useDomainContext = () => {
 
   const triggerSurvey = useCallback((force = false) => {
     console.log('triggerSurvey called with force:', force, 'isContextCollected:', isContextCollected);
+    console.log('Current showSurvey state before setting:', showSurvey);
     if (force || !isContextCollected) {
       console.log('Setting showSurvey to true');
       setShowSurvey(true);
+      // Verify state was set
+      setTimeout(() => {
+        console.log('showSurvey state after timeout verification:', showSurvey);
+      }, 100);
     } else {
       console.log('Not showing survey - context already collected and force is false');
     }
-  }, [isContextCollected]);
+  }, [isContextCollected, showSurvey]);
 
   const closeSurvey = useCallback(() => {
+    console.log('closeSurvey called, setting showSurvey to false');
     setShowSurvey(false);
   }, []);
 
   const skipSurvey = useCallback(() => {
+    console.log('skipSurvey called, setting showSurvey to false and marking collected');
     setShowSurvey(false);
     // Mark as collected to prevent auto-showing again
     setIsContextCollected(true);
