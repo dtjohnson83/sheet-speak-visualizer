@@ -5,7 +5,7 @@ import { DataTabsSection } from '@/components/data-tabs/DataTabsSection';
 import { TutorialOverlay } from '@/components/onboarding/TutorialOverlay';
 import { GettingStartedChecklist } from '@/components/onboarding/GettingStartedChecklist';
 import { ActiveSourceIndicator } from '@/components/realtime/ActiveSourceIndicator';
-import { RealtimeDashboardControls } from '@/components/realtime/RealtimeDashboardControls';
+
 import { useAppState } from '@/contexts/AppStateContext';
 import { useUIState } from '@/contexts/UIStateContext';
 import { useAppActions } from '@/hooks/useAppActions';
@@ -112,8 +112,6 @@ export const AppLayout: React.FC = () => {
             onSourceChange={handleSourceSwitch}
           />
           
-          {/* Always show Real-time Dashboard Controls when data is available */}
-          {appState.data.length > 0 && <RealtimeDashboardControls />}
 
           {/* Data Context Status Bar - only when data is loaded */}
           {appState.data.length > 0 && (
