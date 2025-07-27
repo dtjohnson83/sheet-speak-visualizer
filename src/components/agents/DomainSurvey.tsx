@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,7 +48,49 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
   onSkip
 }) => {
   console.log('DomainSurvey rendered with open:', open);
+  
+  // Local state to control dialog visibility and prevent auto-closing
+  const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
+  
+  // Sync local state with prop, but only open when prop is true
+  useEffect(() => {
+    console.log('DomainSurvey: open prop changed to:', open);
+    if (open) {
+      console.log('DomainSurvey: Setting local isOpen to true');
+      setIsOpen(true);
+    }
+  }, [open]);
+  
+  // Handle explicit close actions
+  const handleClose = () => {
+    console.log('DomainSurvey: handleClose called');
+    setIsOpen(false);
+    onClose();
+  };
+  
+  const handleSkip = () => {
+    console.log('DomainSurvey: handleSkip called');
+    setIsOpen(false);
+    onSkip();
+  };
+  
+  const handleComplete = () => {
+    console.log('DomainSurvey: handleComplete called');
+    const context: DomainContext = {
+      domain: selectedDomain,
+      businessType: businessType || undefined,
+      keyMetrics: keyMetrics.length > 0 ? keyMetrics : undefined,
+      customContext: customContext || undefined,
+      dataDescription: dataDescription || undefined,
+      industry: selectedDomainInfo?.label,
+      dataType: dataType as any || undefined,
+      businessObjectives: businessObjectives.length > 0 ? businessObjectives : undefined,
+      analysisGoals: analysisGoals.length > 0 ? analysisGoals : undefined
+    };
+    setIsOpen(false);
+    onComplete(context);
+  };
   const [selectedDomain, setSelectedDomain] = useState<string>('');
   const [businessType, setBusinessType] = useState<string>('');
   const [keyMetrics, setKeyMetrics] = useState<string[]>([]);
@@ -120,26 +162,13 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
     'Customer Segmentation', 'Predictive Modeling'
   ];
 
-  const handleComplete = () => {
-    const context: DomainContext = {
-      domain: selectedDomain,
-      businessType: businessType || undefined,
-      keyMetrics: keyMetrics.length > 0 ? keyMetrics : undefined,
-      customContext: customContext || undefined,
-      dataDescription: dataDescription || undefined,
-      industry: selectedDomainInfo?.label,
-      dataType: dataType as any || undefined,
-      businessObjectives: businessObjectives.length > 0 ? businessObjectives : undefined,
-      analysisGoals: analysisGoals.length > 0 ? analysisGoals : undefined
-    };
-    onComplete(context);
-  };
+  // Remove the old handleComplete function since we moved it above
 
   const canProceed = selectedDomain && (step === 1 || step === 2 || step === 3 || step === 4);
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto"  onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={isOpen}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Data Domain Survey</DialogTitle>
           <DialogDescription>
@@ -151,7 +180,7 @@ export const DomainSurvey: React.FC<DomainSurveyProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">What domain does your data represent?</h3>
-              <Button variant="ghost" size="sm" onClick={onSkip}>
+              <Button variant="ghost" size="sm" onClick={handleSkip}>
                 <SkipForward className="h-4 w-4 mr-2" />
                 Skip Survey
               </Button>
