@@ -87,56 +87,106 @@ interface RequestBody {
   toneId?: string;
 }
 
-// Tone definitions - All emphasize data accuracy and specificity
+// Query complexity classification
+interface QueryClassification {
+  type: 'simple' | 'complex' | 'strategic' | 'technical';
+  maxTokens: number;
+  responseStructure: string;
+}
+
+function classifyQuery(userQuery: string): QueryClassification {
+  const query = userQuery.toLowerCase();
+  
+  // Simple queries - basic stats, single metrics
+  if (query.includes('how many') || query.includes('what is the') || query.includes('show me') || 
+      query.includes('average') || query.includes('total') || query.includes('count') ||
+      query.includes('maximum') || query.includes('minimum') || query.includes('median')) {
+    return {
+      type: 'simple',
+      maxTokens: 400,
+      responseStructure: 'ANSWER_ONLY'
+    };
+  }
+  
+  // Strategic queries - recommendations, insights, business impact
+  if (query.includes('recommend') || query.includes('strategy') || query.includes('should i') ||
+      query.includes('business impact') || query.includes('opportunity') || query.includes('risk') ||
+      query.includes('improve') || query.includes('optimize') || query.includes('next steps')) {
+    return {
+      type: 'strategic',
+      maxTokens: 800,
+      responseStructure: 'EXECUTIVE_SUMMARY'
+    };
+  }
+  
+  // Technical queries - methodology, calculations, technical details
+  if (query.includes('how did you') || query.includes('methodology') || query.includes('calculate') ||
+      query.includes('algorithm') || query.includes('technical') || query.includes('explain the process')) {
+    return {
+      type: 'technical',
+      maxTokens: 600,
+      responseStructure: 'TECHNICAL_DETAILED'
+    };
+  }
+  
+  // Complex queries - analysis, correlations, trends
+  return {
+    type: 'complex',
+    maxTokens: 600,
+    responseStructure: 'STRUCTURED_ANALYSIS'
+  };
+}
+
+// Business-focused tone definitions
 const TONE_MODIFIERS: Record<string, string> = {
   'direct-efficient': `
-Tone: Direct & Data-Focused
-- Provide specific, data-driven answers
-- Reference actual data values and patterns
-- Use exact numbers and percentages from the dataset
-- Be concise but thorough in analysis`,
+COMMUNICATION STYLE: Direct & Business-Focused
+- Lead with the key finding or answer
+- Use specific data values and percentages
+- Focus on business impact over statistical methods
+- Keep responses concise and actionable`,
   
   'professional-formal': `
-Tone: Professional & Analytical
-- Use precise statistical language
-- Reference specific data points and trends
-- Maintain formal analytical tone
-- Focus on factual observations from the data`,
+COMMUNICATION STYLE: Executive Professional
+- Present findings in executive summary format
+- Use business-appropriate language
+- Reference key metrics and performance indicators
+- Provide clear recommendations`,
   
   'conversational-friendly': `
-Tone: Conversational & Accessible
-- Explain data insights in simple terms
-- Use examples from the actual dataset
-- Make complex patterns easy to understand
-- Stay grounded in the provided data`,
+COMMUNICATION STYLE: Accessible Business Insights
+- Explain findings in plain business language
+- Use analogies and examples from the data
+- Make complex patterns understandable
+- Focus on practical implications`,
   
   'consultative-expert': `
-Tone: Expert Data Consultant
+COMMUNICATION STYLE: Strategic Consultant
 - Provide strategic insights based on data evidence
-- Reference specific metrics and KPIs
-- Offer actionable recommendations backed by data
-- Use business intelligence terminology appropriately`,
+- Reference industry benchmarks when relevant
+- Offer actionable business recommendations
+- Consider broader business context and implications`,
   
   'supportive-educational': `
-Tone: Educational & Explanatory
-- Explain data concepts clearly
-- Use specific examples from the dataset
-- Help users understand what the data shows
-- Guide through analytical thinking process`,
+COMMUNICATION STYLE: Business Coach
+- Guide users through data insights step-by-step
+- Explain what the findings mean for their business
+- Provide educational context when helpful
+- Focus on learning and understanding`,
   
   'urgent-alert': `
-Tone: Alert & Action-Oriented
-- Highlight critical data findings immediately
-- Use specific thresholds and values
-- Focus on actionable data insights
-- Prioritize urgent patterns in the data`,
+COMMUNICATION STYLE: Critical Business Alert
+- Highlight urgent findings immediately at the top
+- Focus on immediate business actions required
+- Use clear, direct language about risks/opportunities
+- Prioritize time-sensitive insights`,
   
   'analytical-neutral': `
-Tone: Objective & Statistical
-- Present data facts without interpretation
-- Use precise statistical measures
-- Reference exact values and distributions
-- Maintain scientific objectivity`
+COMMUNICATION STYLE: Data-Driven Analyst
+- Present objective findings without bias
+- Use precise business metrics and KPIs
+- Focus on factual patterns in the data
+- Maintain professional analytical tone`
 };
 
 // Create optimized data context for AI analysis
@@ -262,30 +312,70 @@ serve(async (req) => {
     // Get tone modifier
     const toneModifier = TONE_MODIFIERS[toneId] || TONE_MODIFIERS['direct-efficient'];
     
-    // Create focused system prompt
-    const systemPrompt = `You are an expert data analyst providing accurate, data-driven insights. Always ground your responses in the actual data provided.
+    // Classify the user's query to determine response approach
+    const userQuery = messages[messages.length - 1]?.content || '';
+    const queryClass = classifyQuery(userQuery);
+    
+    // Create response structure template based on query type
+    const responseStructures: Record<string, string> = {
+      'ANSWER_ONLY': `
+RESPONSE FORMAT:
+🎯 ANSWER: [Direct answer with specific data values]
+📊 KEY DATA: [2-3 supporting data points]
+💡 INSIGHT: [Brief business implication]`,
+
+      'EXECUTIVE_SUMMARY': `
+RESPONSE FORMAT:
+🎯 KEY FINDING: [Main insight in 1 sentence]
+📊 SUPPORTING DATA: [2-3 key metrics with exact values]
+💼 BUSINESS IMPACT: [What this means for business decisions]
+🚀 RECOMMENDED ACTION: [Specific next step]`,
+
+      'STRUCTURED_ANALYSIS': `
+RESPONSE FORMAT:
+🎯 SUMMARY: [Key finding in 1 sentence]
+📊 DATA ANALYSIS: [Supporting evidence with specific values]
+💡 PATTERNS: [Notable trends or relationships]
+🚀 RECOMMENDATIONS: [Actionable next steps]`,
+
+      'TECHNICAL_DETAILED': `
+RESPONSE FORMAT:
+🎯 SUMMARY: [Brief answer]
+🔍 METHODOLOGY: [How the analysis was performed]
+📊 TECHNICAL DETAILS: [Specific calculations or processes]
+⚠️ LIMITATIONS: [Data or methodological constraints]`
+    };
+
+    // Create focused system prompt with response structure
+    const systemPrompt = `You are a business data analyst providing accurate, actionable insights. Ground all responses in the actual data provided.
 
 ${optimizedContext}
 
 ${toneModifier}
 
-ANALYSIS GUIDELINES:
-1. ALWAYS reference specific data values, patterns, and statistics from the provided dataset
-2. Use exact numbers, percentages, and metrics from the actual data
-3. Identify concrete trends and patterns visible in the sample data
-4. Provide actionable insights based on what the data actually shows
-5. When suggesting visualizations, specify exact columns and chart types based on the data structure
-6. If asked about data not present in the sample, clearly state the limitation
-7. Focus on factual observations rather than assumptions
-8. Use the business context to provide relevant interpretations
+${responseStructures[queryClass.responseStructure]}
 
-RESPONSE STRUCTURE:
-- Lead with key data findings
-- Support all claims with specific data points
-- Provide context about data limitations (sample size, completeness)
-- Suggest specific next steps based on the data
+CRITICAL RESPONSE RULES:
+1. START with the direct answer or key finding
+2. Use SPECIFIC data values, percentages, and metrics from the dataset
+3. Focus on BUSINESS IMPACT over statistical methodology
+4. NO lengthy methodology explanations unless specifically requested
+5. NO contradictory statements about data availability
+6. If using sample data, be clear about completeness: "Based on the ${dataContext.sampleData.length} sample rows from ${dataContext.totalRows.toLocaleString()} total rows..."
+7. Keep responses concise and scannable
+8. Use the provided format structure for consistency
 
-Remember: Your credibility depends on accuracy. Only make claims you can support with the provided data.`;
+DATA ACCURACY REQUIREMENTS:
+- Only reference data that exists in the provided dataset
+- Use exact numbers and calculations from the sample
+- When extrapolating to full dataset, clearly state assumptions
+- If data is insufficient for a claim, explicitly state the limitation
+
+BUSINESS COMMUNICATION:
+- Lead with conclusions, not process
+- Focus on actionable insights
+- Use executive-appropriate language
+- Minimize technical jargon unless requested`;
 
     console.log(`Making request to ${provider} API...`);
 
@@ -301,7 +391,7 @@ Remember: Your credibility depends on accuracy. Only make claims you can support
           { role: 'system', content: systemPrompt },
           ...messages
         ],
-        max_tokens: 1000,
+        max_tokens: queryClass.maxTokens,
         temperature: 0.3, // Lower temperature for more consistent, factual responses
         stream: false
       }),
