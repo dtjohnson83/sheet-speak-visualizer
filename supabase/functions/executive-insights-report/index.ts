@@ -62,10 +62,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Get the authenticated user from the Supabase client
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    // Extract and validate authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('User not authenticated - missing authorization header');
+    }
 
-    if (!user) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('Authentication error:', authError);
       throw new Error('User not authenticated');
     }
     
