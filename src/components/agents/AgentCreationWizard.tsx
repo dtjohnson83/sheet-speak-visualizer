@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Agent } from '@/types/agents';
+import { formatNumber } from '@/lib/numberUtils';
 
 interface AgentCreationWizardProps {
   agents: Agent[];
@@ -105,7 +106,7 @@ export const AgentCreationWizard = ({ agents, onCreateAgent, isCreating, current
               <div className="mt-2 pt-2 border-t">
                 <span className="font-medium">Creating agents for:</span> {currentDataset.fileName} 
                 <span className="text-muted-foreground ml-2">
-                  ({currentDataset.rowCount.toLocaleString()} rows × {currentDataset.columnCount} columns)
+                  ({formatNumber(currentDataset.rowCount)} rows × {formatNumber(currentDataset.columnCount)} columns)
                 </span>
               </div>
             )}

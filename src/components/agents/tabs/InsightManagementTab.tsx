@@ -9,6 +9,7 @@ import { Brain, TrendingUp, AlertTriangle, Lightbulb, BarChart, Users, Trash2, T
 import { AgentInsight } from '@/types/agents';
 import { AnomalyDetailViewer } from '@/components/agents/AnomalyDetailViewer';
 import { formatDistanceToNow } from 'date-fns';
+import { formatNumber } from '@/lib/numberUtils';
 
 interface InsightManagementTabProps {
   insights: AgentInsight[];
@@ -55,7 +56,7 @@ export const InsightManagementTab = ({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5" />
-              Insights ({insights.length})
+              Insights ({formatNumber(insights.length)})
             </CardTitle>
             <CardDescription>
               AI-generated insights from your data analysis
@@ -74,14 +75,14 @@ export const InsightManagementTab = ({
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      Clear Read Insights ({readInsights})
+                      Clear Read Insights ({formatNumber(readInsights)})
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Clear Read Insights</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will permanently delete {readInsights} read insights. This action cannot be undone.
+                        This will permanently delete {formatNumber(readInsights)} read insights. This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -106,7 +107,7 @@ export const InsightManagementTab = ({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Clear All Insights</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will permanently delete all {insights.length} insights. This action cannot be undone.
+                        This will permanently delete all {formatNumber(insights.length)} insights. This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -128,15 +129,15 @@ export const InsightManagementTab = ({
         
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{unreadInsights}</div>
+            <div className="text-2xl font-bold text-primary">{formatNumber(unreadInsights)}</div>
             <div className="text-sm text-muted-foreground">Unread</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-muted-foreground">{readInsights}</div>
+            <div className="text-2xl font-bold text-muted-foreground">{formatNumber(readInsights)}</div>
             <div className="text-sm text-muted-foreground">Read</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-destructive">{highPriorityInsights}</div>
+            <div className="text-2xl font-bold text-destructive">{formatNumber(highPriorityInsights)}</div>
             <div className="text-sm text-muted-foreground">High Priority</div>
           </div>
         </div>

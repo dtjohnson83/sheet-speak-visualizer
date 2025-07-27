@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Database, AlertCircle } from 'lucide-react';
 import { useDatasets } from '@/hooks/useDatasets';
 import { useAppState } from '@/contexts/AppStateContext';
+import { formatNumber } from '@/lib/numberUtils';
 
 interface DatasetSelectorProps {
   value?: string;
@@ -59,7 +60,7 @@ export const DatasetSelector = ({
                 <div className="flex items-center gap-1">
                   {showRowCounts && (
                     <Badge variant="outline" className="text-xs">
-                      {dataset.row_count.toLocaleString()} rows
+                      {formatNumber(dataset.row_count)} rows
                     </Badge>
                   )}
                   <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">

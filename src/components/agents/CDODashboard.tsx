@@ -9,6 +9,7 @@ import { AISummaryReport } from '../AISummaryReport';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { formatNumber } from '@/lib/numberUtils';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -151,16 +152,16 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
               </div>
               <div>
                 <span className="text-muted-foreground">Insights Analyzed:</span>
-                <div className="font-medium">{executiveReport.metadata.insights_analyzed}</div>
+                <div className="font-medium">{formatNumber(executiveReport.metadata.insights_analyzed)}</div>
               </div>
               <div>
                 <span className="text-muted-foreground">Active Agents:</span>
-                <div className="font-medium">{executiveReport.metadata.agents_active}</div>
+                <div className="font-medium">{formatNumber(executiveReport.metadata.agents_active)}</div>
               </div>
               <div>
                 <span className="text-muted-foreground">Critical Issues:</span>
                 <div className="font-medium text-destructive">
-                  {executiveReport.metadata.critical_issues}
+                  {formatNumber(executiveReport.metadata.critical_issues)}
                 </div>
               </div>
             </div>
@@ -223,9 +224,9 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeAgents.length}</div>
+            <div className="text-2xl font-bold">{formatNumber(activeAgents.length)}</div>
             <p className="text-xs text-muted-foreground">
-              of {agents.length} total agents
+              of {formatNumber(agents.length)} total agents
             </p>
             <Progress 
               value={(activeAgents.length / Math.max(agents.length, 1)) * 100} 
@@ -242,7 +243,7 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
           <CardContent>
             <div className="text-2xl font-bold">{taskSuccessRate.toFixed(0)}%</div>
             <p className="text-xs text-muted-foreground">
-              {completedTasks.length} of {tasks.length} tasks
+              {formatNumber(completedTasks.length)} of {formatNumber(tasks.length)} tasks
             </p>
             <Progress value={taskSuccessRate} className="mt-2 h-1" />
           </CardContent>
@@ -255,7 +256,7 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${criticalInsights.length > 0 ? 'text-destructive' : 'text-green-500'}`}>
-              {criticalInsights.length}
+              {formatNumber(criticalInsights.length)}
             </div>
             <p className="text-xs text-muted-foreground">
               Requiring immediate attention
@@ -307,7 +308,7 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
               <div className="text-center">
                 <Clock className="h-6 w-6 mx-auto mb-2" />
                 <div className="font-semibold">Review Pending Tasks</div>
-                <div className="text-sm text-muted-foreground">{pendingTasks.length} waiting</div>
+                <div className="text-sm text-muted-foreground">{formatNumber(pendingTasks.length)} waiting</div>
               </div>
             </Button>
 
@@ -315,7 +316,7 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
               <div className="text-center">
                 <Activity className="h-6 w-6 mx-auto mb-2" />
                 <div className="font-semibold">Review New Insights</div>
-                <div className="text-sm text-muted-foreground">{unreadInsights.length} unread</div>
+                <div className="text-sm text-muted-foreground">{formatNumber(unreadInsights.length)} unread</div>
               </div>
             </Button>
 
