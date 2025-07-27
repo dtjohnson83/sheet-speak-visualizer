@@ -73,6 +73,7 @@ export const CreateAgentDialog = () => {
   const [type, setType] = useState<AgentType>('data_quality');
   const [capabilities, setCapabilities] = useState<string[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<string>('');
+  const [scheduleFrequency, setScheduleFrequency] = useState<'manual' | 'hourly' | 'daily' | 'weekly' | 'monthly'>('daily');
   
   const { createAgent, isCreatingAgent } = useAIAgents();
   const { domainContext, hasContext } = useDomainContext();
@@ -83,7 +84,12 @@ export const CreateAgentDialog = () => {
     if (!name.trim() || !type) return;
 
     const configuration = {
-      analysis_frequency: 'daily',
+      analysis_frequency: scheduleFrequency === 'manual' ? 'daily' : scheduleFrequency,
+      schedule: {
+        frequency: scheduleFrequency,
+        time: '09:00',
+        timezone: 'UTC'
+      },
       confidence_threshold: 0.7,
       auto_generate_visualizations: true,
       notification_preferences: {
@@ -107,6 +113,7 @@ export const CreateAgentDialog = () => {
     setType('data_quality');
     setCapabilities([]);
     setSelectedDataset('');
+    setScheduleFrequency('daily');
     setOpen(false);
   };
 
@@ -192,6 +199,22 @@ export const CreateAgentDialog = () => {
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="frequency">Schedule Frequency</Label>
+            <Select value={scheduleFrequency} onValueChange={(value: 'manual' | 'hourly' | 'daily' | 'weekly' | 'monthly') => setScheduleFrequency(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manual">Manual Only</SelectItem>
+                <SelectItem value="hourly">Every Hour</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-3">

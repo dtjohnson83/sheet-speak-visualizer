@@ -56,6 +56,9 @@ export interface AgentConfiguration {
     frequency: 'manual' | 'hourly' | 'daily' | 'weekly' | 'monthly';
     time?: string;
     timezone?: string;
+    business_hours_only?: boolean;
+    weekends_included?: boolean;
+    custom_interval?: number;
   };
   thresholds?: Record<string, number>;
   notifications?: {

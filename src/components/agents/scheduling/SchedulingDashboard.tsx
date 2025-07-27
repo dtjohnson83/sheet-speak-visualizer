@@ -17,6 +17,7 @@ import { useAIAgents } from '@/hooks/useAIAgents';
 import { useDatasets } from '@/hooks/useDatasets';
 import { formatDistanceToNow, addHours, addDays, addWeeks } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { AgentScheduleManager } from './AgentScheduleManager';
 
 interface ScheduledTask {
   agentId: string;
@@ -307,6 +308,9 @@ export const SchedulingDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Enhanced Schedule Management */}
+      <AgentScheduleManager agents={agents} />
     </div>
   );
 };
