@@ -70,12 +70,12 @@ serve(async (req) => {
     const [insightsResult, tasksResult, agentsResult] = await Promise.all([
       supabaseClient
         .from('agent_insights')
-        .select('*, ai_agents!inner(user_id)')
+        .select('*, ai_agents!agent_id(user_id)')
         .eq('ai_agents.user_id', user.id)
         .order('created_at', { ascending: false }),
       supabaseClient
         .from('agent_tasks')
-        .select('*, ai_agents!inner(user_id)')
+        .select('*, ai_agents!agent_id(user_id)')
         .eq('ai_agents.user_id', user.id)
         .order('created_at', { ascending: false }),
       supabaseClient
