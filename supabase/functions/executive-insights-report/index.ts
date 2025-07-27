@@ -12,7 +12,8 @@ interface AgentInsight {
   agent_id: string;
   title: string;
   description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  insight_type: 'quality_issue' | 'anomaly_detected' | 'trend_analysis' | 'recommendation' | 'alert';
+  severity?: 'low' | 'medium' | 'high' | 'critical';
   type: string;
   metadata: any;
   created_at: string;
@@ -50,6 +51,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Initialize variables outside try-catch for error handling
+  let insights: AgentInsight[] = [];
+  let tasks: AgentTask[] = [];
+  let agents: Agent[] = [];
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -66,36 +72,55 @@ serve(async (req) => {
 
     const requestData: ExecutiveInsightsRequest = await req.json();
     
-    // Fetch agent insights, tasks, and agents
-    const [insightsResult, tasksResult, agentsResult] = await Promise.all([
+    // Step 1: Get user's agents first
+    const agentsResult = await supabaseClient
+      .from('ai_agents')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (agentsResult.error) {
+      console.error('Error fetching agents:', agentsResult.error);
+      throw new Error(`Failed to fetch agents: ${agentsResult.error.message}`);
+    }
+
+    agents = agentsResult.data || [];
+    const agentIds = agents.map(agent => agent.id);
+    
+    console.log(`Found ${agents.length} agents for user:`, agentIds);
+
+    // Step 2: Fetch insights and tasks using agent IDs directly
+    const [insightsResult, tasksResult] = await Promise.all([
       supabaseClient
         .from('agent_insights')
-        .select('*, ai_agents!agent_id(user_id)')
-        .eq('ai_agents.user_id', user.id)
+        .select('*')
+        .in('agent_id', agentIds)
+        .eq('is_archived', false)
         .order('created_at', { ascending: false }),
       supabaseClient
         .from('agent_tasks')
-        .select('*, ai_agents!agent_id(user_id)')
-        .eq('ai_agents.user_id', user.id)
-        .order('created_at', { ascending: false }),
-      supabaseClient
-        .from('ai_agents')
         .select('*')
-        .eq('user_id', user.id)
+        .in('agent_id', agentIds)
+        .order('created_at', { ascending: false })
     ]);
 
-    if (insightsResult.error || tasksResult.error || agentsResult.error) {
+    if (insightsResult.error || tasksResult.error) {
       console.error('Database errors:', {
         insights: insightsResult.error,
-        tasks: tasksResult.error, 
-        agents: agentsResult.error
+        tasks: tasksResult.error
       });
-      throw new Error(`Failed to fetch agent data: ${insightsResult.error?.message || tasksResult.error?.message || agentsResult.error?.message}`);
+      throw new Error(`Failed to fetch agent data: ${insightsResult.error?.message || tasksResult.error?.message}`);
     }
 
-    const insights: AgentInsight[] = insightsResult.data || [];
-    const tasks: AgentTask[] = tasksResult.data || [];
-    const agents: Agent[] = agentsResult.data || [];
+    insights = insightsResult.data || [];
+    tasks = tasksResult.data || [];
+    
+    console.log(`Fetched ${insights.length} insights and ${tasks.length} tasks`);
+    
+    // Map insight_type to severity for compatibility
+    insights = insights.map(insight => ({
+      ...insight,
+      severity: insight.severity || mapInsightTypeToSeverity(insight.insight_type)
+    }));
 
     // Generate executive report using AI
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -389,6 +414,24 @@ function generateSummaryStats(insights: AgentInsight[], tasks: AgentTask[], agen
     task_success_rate: tasks.length > 0 ? 
       (tasks.filter(t => t.status === 'completed').length / tasks.length) * 100 : 0
   };
+}
+
+// Helper function to map insight_type to severity
+function mapInsightTypeToSeverity(insightType: string): 'low' | 'medium' | 'high' | 'critical' {
+  switch (insightType) {
+    case 'quality_issue':
+      return 'high';
+    case 'anomaly_detected':
+      return 'critical';
+    case 'alert':
+      return 'high';
+    case 'recommendation':
+      return 'medium';
+    case 'trend_analysis':
+      return 'medium';
+    default:
+      return 'medium';
+  }
 }
 
 function generateFallbackReport(
