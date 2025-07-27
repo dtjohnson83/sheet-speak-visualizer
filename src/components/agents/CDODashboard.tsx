@@ -183,9 +183,12 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
           >
             {dashboardStatus.status.toUpperCase()}
           </Badge>
-          {data.length > 0 && columns.length > 0 && (
-            <Button onClick={() => setShowExecutiveReport(true)}>
-              Generate Executive Report
+          {insights.length > 0 && (
+            <Button 
+              onClick={generateExecutiveReport}
+              disabled={reportLoading}
+            >
+              {reportLoading ? 'Generating...' : 'Generate Executive Report'}
             </Button>
           )}
         </div>

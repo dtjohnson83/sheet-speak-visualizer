@@ -70,13 +70,13 @@ serve(async (req) => {
     const [insightsResult, tasksResult, agentsResult] = await Promise.all([
       supabaseClient
         .from('agent_insights')
-        .select('*')
-        .eq('user_id', user.id)
+        .select('*, ai_agents!inner(user_id)')
+        .eq('ai_agents.user_id', user.id)
         .order('created_at', { ascending: false }),
       supabaseClient
         .from('agent_tasks')
-        .select('*')
-        .eq('user_id', user.id)
+        .select('*, ai_agents!inner(user_id)')
+        .eq('ai_agents.user_id', user.id)
         .order('created_at', { ascending: false }),
       supabaseClient
         .from('ai_agents')
@@ -85,7 +85,12 @@ serve(async (req) => {
     ]);
 
     if (insightsResult.error || tasksResult.error || agentsResult.error) {
-      throw new Error('Failed to fetch agent data');
+      console.error('Database errors:', {
+        insights: insightsResult.error,
+        tasks: tasksResult.error, 
+        agents: agentsResult.error
+      });
+      throw new Error(`Failed to fetch agent data: ${insightsResult.error?.message || tasksResult.error?.message || agentsResult.error?.message}`);
     }
 
     const insights: AgentInsight[] = insightsResult.data || [];
