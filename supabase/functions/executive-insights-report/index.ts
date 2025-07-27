@@ -398,8 +398,8 @@ function extractBusinessIntelligence(insights: AgentInsight[], tasks: AgentTask[
   
   // Analyze insights with data content
   insights.forEach(insight => {
-    if (insight.metadata?.data || insight.metadata?.result) {
-      const data = insight.metadata.data || insight.metadata.result;
+    if (insight.data || insight.metadata?.data) {
+      const data = insight.data || insight.metadata?.data;
       
       // Extract statistical insights
       if (data.statistics) {
@@ -448,10 +448,41 @@ function extractBusinessIntelligence(insights: AgentInsight[], tasks: AgentTask[
     }
   });
   
-  // Task performance insights
+  // Task performance insights with actual results
   const completedTasks = tasks.filter(t => t.status === 'completed');
+  completedTasks.forEach(task => {
+    if (task.result?.statistics) {
+      const stats = task.result.statistics;
+      Object.entries(stats).forEach(([column, metrics]: [string, any]) => {
+        if (metrics && typeof metrics === 'object' && metrics.mean) {
+          if (column.toLowerCase().includes('price')) {
+            const mean = Math.round(metrics.mean);
+            const std = metrics.std ? Math.round(metrics.std) : 0;
+            const variability = std > 0 ? ((std / mean) * 100).toFixed(1) : '0';
+            keyFindings.push(`${column} Analysis: $${mean.toLocaleString()} average value with ${variability}% variability - ${parseFloat(variability) > 30 ? 'high volatility market' : 'stable pricing environment'}`);
+          }
+          if (column.toLowerCase().includes('size') || column.toLowerCase().includes('feet')) {
+            const mean = Math.round(metrics.mean);
+            const max = Math.round(metrics.max);
+            const min = Math.round(metrics.min);
+            keyFindings.push(`${column} Distribution: ${min.toLocaleString()}-${max.toLocaleString()} range (avg: ${mean.toLocaleString()}) indicates ${((max - min) / mean > 1) ? 'diverse portfolio requiring segmented approach' : 'consistent market positioning'}`);
+          }
+          if (column.toLowerCase().includes('year')) {
+            const range = Math.round(metrics.max - metrics.min);
+            const avgAge = new Date().getFullYear() - Math.round(metrics.mean);
+            keyFindings.push(`${column} Insights: ${range}-year span with average age of ${avgAge} years - ${avgAge > 25 ? 'mature inventory requiring modernization strategy' : 'relatively new portfolio'}`);
+          }
+          if (column.toLowerCase().includes('room') || column.toLowerCase().includes('bed')) {
+            const mean = metrics.mean.toFixed(1);
+            keyFindings.push(`${column} Profile: ${mean} average suggests ${parseFloat(mean) > 3 ? 'family-oriented' : 'starter/compact'} market focus`);
+          }
+        }
+      });
+    }
+  });
+  
   if (completedTasks.length > 0) {
-    qualityMetrics.push(`${completedTasks.length} analytical tasks completed successfully`);
+    qualityMetrics.push(`${completedTasks.length} comprehensive analytical tasks completed with actionable insights`);
   }
   
   // Default insights if no specific data found
@@ -472,7 +503,7 @@ function identifyMarketOpportunities(insights: AgentInsight[]) {
   const opportunities: string[] = [];
   
   insights.forEach(insight => {
-    const data = insight.metadata?.data || insight.metadata?.result;
+    const data = insight.data || insight.metadata?.data;
     if (data?.statistics) {
       Object.entries(data.statistics).forEach(([column, metrics]: [string, any]) => {
         if (metrics && typeof metrics === 'object') {
@@ -580,8 +611,8 @@ function extractOperationalInsights(insights: AgentInsight[], tasks: AgentTask[]
 // Extract actionable insights from individual insight data
 function extractActionableInsight(insight: AgentInsight): string {
   // Try to extract specific actionable information from the insight
-  if (insight.metadata?.data?.statistics) {
-    const stats = insight.metadata.data.statistics;
+  if (insight.data?.statistics || insight.metadata?.data?.statistics) {
+    const stats = insight.data?.statistics || insight.metadata?.data?.statistics;
     const columns = Object.keys(stats);
     if (columns.length > 0) {
       return `Review ${columns.length} key metrics showing statistical patterns requiring strategic evaluation`;
