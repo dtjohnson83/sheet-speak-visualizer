@@ -62,13 +62,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabaseClient.auth.getUser(token);
+    // Get the authenticated user from the Supabase client
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
     if (!user) {
-      throw new Error('Unauthorized');
+      throw new Error('User not authenticated');
     }
+    
+    console.log(`Authenticated user: ${user.id}`);
 
     const requestData: ExecutiveInsightsRequest = await req.json();
     
