@@ -443,7 +443,7 @@ async function generateInsights(task: AgentTask, supabase: any) {
 }
 
 async function detectAnomalies(task: AgentTask, supabase: any) {
-  // Detect anomalies in data
+  // Enhanced anomaly detection with actionable details
   if (!task.dataset_id) return [];
 
   const { data: dataset } = await supabase
@@ -458,31 +458,113 @@ async function detectAnomalies(task: AgentTask, supabase: any) {
   const data = dataset.data as any[];
   const columns = dataset.columns as any[];
 
-  // Simple anomaly detection using z-score
+  // Enhanced anomaly detection using z-score with detailed information
   const numericColumns = columns.filter(col => col.type === 'numeric');
   
   for (const column of numericColumns) {
-    const values = data.map(row => Number(row[column.name])).filter(val => !isNaN(val));
+    const values = data.map((row, index) => ({ 
+      value: Number(row[column.name]), 
+      index, 
+      rowData: row 
+    })).filter(item => !isNaN(item.value));
     
     if (values.length > 3) {
-      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-      const std = calculateStandardDeviation(values);
+      const mean = values.reduce((sum, item) => sum + item.value, 0) / values.length;
+      const std = calculateStandardDeviation(values.map(item => item.value));
       
-      const anomalies = values.filter(val => Math.abs(val - mean) > std * 2);
+      // Calculate expected range (mean ± 2 standard deviations)
+      const expectedRange = {
+        min: mean - (2 * std),
+        max: mean + (2 * std)
+      };
       
-      if (anomalies.length > 0) {
+      // Find detailed anomaly information
+      const detailedAnomalies = [];
+      
+      for (const item of values) {
+        const zScore = Math.abs(item.value - mean) / std;
+        
+        if (zScore > 2) {
+          // Determine severity based on z-score
+          let severity: 'low' | 'medium' | 'high';
+          if (zScore > 3) severity = 'high';
+          else if (zScore > 2.5) severity = 'medium';
+          else severity = 'low';
+          
+          // Determine business impact category
+          let businessImpact: 'revenue' | 'operations' | 'quality' | 'risk';
+          if (column.name.toLowerCase().includes('revenue') || column.name.toLowerCase().includes('sales')) {
+            businessImpact = 'revenue';
+          } else if (column.name.toLowerCase().includes('cost') || column.name.toLowerCase().includes('expense')) {
+            businessImpact = 'operations';
+          } else if (column.name.toLowerCase().includes('quality') || column.name.toLowerCase().includes('score')) {
+            businessImpact = 'quality';
+          } else {
+            businessImpact = 'risk';
+          }
+          
+          // Generate investigation steps based on anomaly type
+          const investigationSteps = [
+            `Examine row ${item.index + 1} in the source data`,
+            `Check for data entry errors or system issues on this date/record`,
+            `Compare with historical patterns for ${column.name}`,
+            `Investigate potential external factors affecting this metric`,
+            `Cross-reference with related business events or changes`
+          ];
+          
+          detailedAnomalies.push({
+            value: item.value,
+            expected_range: expectedRange,
+            deviation: zScore,
+            row_index: item.index,
+            row_data: item.rowData,
+            severity,
+            business_impact: businessImpact,
+            recommended_action: severity === 'high' ? 
+              `Immediate investigation required - ${Math.abs(item.value - mean).toFixed(2)} units from expected range` :
+              `Review data point - potential outlier detected`,
+            investigation_steps: investigationSteps,
+            root_cause_category: zScore > 3 ? 'data_quality' : 'external_factor'
+          });
+        }
+      }
+      
+      if (detailedAnomalies.length > 0) {
+        // Assess business impact
+        const highSeverityCount = detailedAnomalies.filter(a => a.severity === 'high').length;
+        const businessImpactAssessment = {
+          category: highSeverityCount > 0 ? 'high' : 
+                   detailedAnomalies.filter(a => a.severity === 'medium').length > 2 ? 'medium' : 'low',
+          type: detailedAnomalies.some(a => a.value > mean) ? 'opportunity' : 'risk',
+          confidence: Math.min(0.95, detailedAnomalies.length / values.length * 10),
+          urgency: highSeverityCount > 0 ? 'immediate' : 
+                  detailedAnomalies.filter(a => a.severity === 'medium').length > 0 ? 'within_day' : 'within_week'
+        };
+        
         insights.push({
           insight_type: 'anomaly',
-          title: `Anomalies Detected in ${column.name}`,
-          description: `Found ${anomalies.length} potential anomalies in ${column.name} that deviate significantly from the mean (${mean.toFixed(2)}).`,
-          confidence_score: 0.8,
-          priority: 7,
+          title: `${detailedAnomalies.length} Anomal${detailedAnomalies.length === 1 ? 'y' : 'ies'} in ${column.name}`,
+          description: `Detailed analysis identified ${detailedAnomalies.length} anomalous data points in ${column.name}. ${highSeverityCount} high-severity anomalies require immediate attention. Values range from ${Math.min(...detailedAnomalies.map(a => a.value)).toFixed(2)} to ${Math.max(...detailedAnomalies.map(a => a.value)).toFixed(2)}, with expected range of ${expectedRange.min.toFixed(2)} to ${expectedRange.max.toFixed(2)}.`,
+          confidence_score: businessImpactAssessment.confidence,
+          priority: businessImpactAssessment.category === 'high' ? 9 : 
+                   businessImpactAssessment.category === 'medium' ? 7 : 5,
           data: { 
             column: column.name, 
-            anomaly_count: anomalies.length, 
-            mean: mean, 
-            std: std,
-            anomalous_values: anomalies.slice(0, 5) // Show first 5
+            anomalies: detailedAnomalies,
+            business_impact: businessImpactAssessment,
+            dataset_size: data.length,
+            historical_context: {
+              similar_incidents: 0, // Could be enhanced with historical data
+              seasonal_pattern: false,
+            },
+            correlations: {
+              related_metrics: numericColumns.filter(c => c.name !== column.name).map(c => c.name).slice(0, 3)
+            },
+            // Legacy fields for backward compatibility
+            anomaly_count: detailedAnomalies.length,
+            mean,
+            std,
+            anomalous_values: detailedAnomalies.map(a => a.value).slice(0, 5)
           }
         });
       }

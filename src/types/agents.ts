@@ -114,6 +114,29 @@ export interface AgentTask {
   task_type: TaskType;
 }
 
+// Enhanced anomaly details for actionable insights
+export interface AnomalyDetail {
+  value: number;
+  expected_range: { min: number; max: number };
+  deviation: number;
+  row_index: number;
+  row_data?: Record<string, any>;
+  severity: 'low' | 'medium' | 'high';
+  business_impact?: 'revenue' | 'operations' | 'quality' | 'risk';
+  recommended_action?: string;
+  investigation_steps?: string[];
+  root_cause_category?: 'data_quality' | 'process_change' | 'external_factor' | 'system_issue' | 'seasonal';
+}
+
+export interface BusinessImpactAssessment {
+  category: 'high' | 'medium' | 'low';
+  type: 'opportunity' | 'risk' | 'neutral';
+  revenue_impact?: number;
+  confidence: number;
+  urgency: 'immediate' | 'within_day' | 'within_week' | 'monitor';
+  stakeholders?: string[];
+}
+
 export interface AgentInsight {
   id: string;
   agent_id: string;
@@ -125,6 +148,23 @@ export interface AgentInsight {
   insight_type: 'trend' | 'anomaly' | 'correlation' | 'recommendation' | 'summary';
   priority: number;
   confidence_score: number;
+  // Enhanced data field for detailed insights
+  data?: {
+    column?: string;
+    anomalies?: AnomalyDetail[];
+    business_impact?: BusinessImpactAssessment;
+    historical_context?: {
+      similar_incidents?: number;
+      last_occurrence?: Date;
+      seasonal_pattern?: boolean;
+    };
+    correlations?: {
+      related_metrics?: string[];
+      correlation_strength?: number;
+    };
+    // Legacy fields for backward compatibility
+    [key: string]: any;
+  };
 }
 
 export interface AgentSummary {

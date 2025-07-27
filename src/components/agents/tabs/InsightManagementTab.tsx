@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Brain, TrendingUp, AlertTriangle, Lightbulb, BarChart, Users, Trash2, TrashIcon, MoreVertical } from 'lucide-react';
 import { AgentInsight } from '@/types/agents';
+import { AnomalyDetailViewer } from '@/components/agents/AnomalyDetailViewer';
 import { formatDistanceToNow } from 'date-fns';
 
 interface InsightManagementTabProps {
@@ -182,6 +183,18 @@ export const InsightManagementTab = ({
                 <p className="text-sm text-muted-foreground mb-3">
                   {insight.description}
                 </p>
+
+                {/* Enhanced Anomaly Details */}
+                {insight.insight_type === 'anomaly' && insight.data?.anomalies && (
+                  <div className="mb-4">
+                    <AnomalyDetailViewer
+                      anomalies={insight.data.anomalies}
+                      column={insight.data.column || 'Unknown Column'}
+                      businessImpact={insight.data.business_impact}
+                      totalRows={insight.data.dataset_size || 0}
+                    />
+                  </div>
+                )}
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
