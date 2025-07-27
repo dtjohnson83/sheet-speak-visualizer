@@ -7,6 +7,8 @@ import { AIAgent, AgentTask, AgentInsight } from '@/types/agents';
 import { AgentOutputAggregator } from './AgentOutputAggregator';
 import { AISummaryReport } from '../AISummaryReport';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -37,6 +39,8 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
   fileName
 }) => {
   const [showExecutiveReport, setShowExecutiveReport] = React.useState(false);
+  const [reportLoading, setReportLoading] = React.useState(false);
+  const [executiveReport, setExecutiveReport] = React.useState<any>(null);
 
   // Calculate key metrics
   const activeAgents = agents.filter(agent => agent.status === 'active');
@@ -70,24 +74,91 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
 
   const dashboardStatus = getDashboardStatus();
 
-  if (showExecutiveReport && data.length > 0 && columns.length > 0) {
+  // Generate executive insights report
+  const generateExecutiveReport = async () => {
+    setReportLoading(true);
+    try {
+      const { data: reportData } = await supabase.functions.invoke('executive-insights-report', {
+        body: {
+          domainContext: fileName ? `Analysis of ${fileName} dataset` : 'General business intelligence',
+          timeframe: 'last_week',
+          focusAreas: ['data_quality', 'business_insights', 'risk_assessment']
+        }
+      });
+      
+      setExecutiveReport(reportData);
+      setShowExecutiveReport(true);
+    } catch (error) {
+      console.error('Failed to generate executive report:', error);
+      toast.error('Failed to generate executive insights report');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  if (showExecutiveReport && executiveReport) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Executive Data Report</h2>
+          <h2 className="text-3xl font-bold flex items-center gap-2">
+            <Brain className="h-8 w-8" />
+            Executive Intelligence Report
+          </h2>
           <Button 
             variant="outline" 
-            onClick={() => setShowExecutiveReport(false)}
+            onClick={() => {
+              setShowExecutiveReport(false);
+              setExecutiveReport(null);
+            }}
           >
             Back to Dashboard
           </Button>
         </div>
-        <AISummaryReport 
-          data={data} 
-          columns={columns} 
-          fileName={fileName}
-          isExecutiveMode={true}
-        />
+        
+        {/* Report Metadata */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Report Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Generated:</span>
+                <div className="font-medium">
+                  {new Date(executiveReport.metadata.generated_at).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Insights Analyzed:</span>
+                <div className="font-medium">{executiveReport.metadata.insights_analyzed}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Active Agents:</span>
+                <div className="font-medium">{executiveReport.metadata.agents_active}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Critical Issues:</span>
+                <div className="font-medium text-destructive">
+                  {executiveReport.metadata.critical_issues}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Executive Report Content */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Executive Intelligence Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose max-w-none">
+              <div className="whitespace-pre-wrap font-mono text-sm bg-muted p-4 rounded-lg">
+                {executiveReport.report}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -227,13 +298,17 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
             <Button 
               variant="outline" 
               className="h-auto p-4"
-              onClick={() => data.length > 0 && setShowExecutiveReport(true)}
-              disabled={data.length === 0}
+              onClick={generateExecutiveReport}
+              disabled={reportLoading || insights.length === 0}
             >
               <div className="text-center">
                 <BarChart3 className="h-6 w-6 mx-auto mb-2" />
-                <div className="font-semibold">Generate Report</div>
-                <div className="text-sm text-muted-foreground">Executive summary</div>
+                <div className="font-semibold">
+                  {reportLoading ? 'Generating...' : 'Generate Intelligence Report'}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Agent insights analysis
+                </div>
               </div>
             </Button>
           </div>
