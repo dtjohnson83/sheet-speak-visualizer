@@ -93,6 +93,9 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
           domainContext: fileName ? `Analysis of ${fileName} dataset` : 'General business intelligence',
           timeframe: 'last_week',
           focusAreas: ['data_quality', 'business_insights', 'risk_assessment']
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
       
