@@ -410,7 +410,7 @@ export const AISummaryReport = ({ data, columns, fileName, isExecutiveMode = fal
       
       // Create optimized data context - smaller sample for faster processing
       const sampleSize = isAdmin ? 50 : 10;
-      const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
+      const dataContext = await buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
       
       console.log('Sending optimized request to AI function...');
 

@@ -130,7 +130,7 @@ Ask me specific questions about patterns, trends, or relationships in your data!
     try {
       // Build comprehensive data context with enhanced statistics
       const sampleSize = isAdmin ? Math.min(100, filteredData.length) : Math.min(10, filteredData.length);
-      const dataContext = buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
+      const dataContext = await buildAIContext(filteredData, columns, fileName, sampleSize, isAdmin);
 
       // Validate data context has required fields
       if (!dataContext.columns || !dataContext.sampleData) {

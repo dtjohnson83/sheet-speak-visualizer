@@ -114,18 +114,29 @@ export const useDomainContext = () => {
   }, []);
 
   // Build AI context with domain information and statistical pre-computation
-  const buildAIContext = useCallback((
+  const buildAIContext = useCallback(async (
     data: DataRow[], 
     columns: ColumnInfo[], 
     fileName?: string,
     sampleSize: number = 10,
     isAdmin: boolean = false
-  ): EnhancedAIContextData => {
-    // Import validation engine
-    const { DataValidationEngine } = require('@/lib/dataAccuracy/DataValidationEngine');
-    
-    // Pre-validate and compute aggregations for fact-checking
-    const validationResult = DataValidationEngine.validateAndPrecompute(data, columns, fileName);
+  ): Promise<EnhancedAIContextData> => {
+    let validationResult;
+    try {
+      // Dynamically import validation engine with error handling
+      const { DataValidationEngine } = await import('@/lib/dataAccuracy/DataValidationEngine');
+      validationResult = DataValidationEngine.validateAndPrecompute(data, columns, fileName);
+    } catch (error) {
+      console.warn('DataValidationEngine not available, using fallback:', error);
+      // Fallback validation result
+      validationResult = {
+        isValid: true,
+        errors: [],
+        warnings: [],
+        aggregations: new Map(),
+        statisticalSummary: { dataQuality: { completeness: 1 } }
+      };
+    }
     
     // For admins: use comprehensive data, for regular users: use optimized sample
     const maxRows = isAdmin ? Math.min(data.length, 10000) : Math.min(sampleSize, data.length);
@@ -161,13 +172,14 @@ export const useDomainContext = () => {
     if (domainContext && isContextCollected) {
       basicContext.domainContext = domainContext;
       
-      // Import domain processor
-      const { DomainContextProcessor } = require('@/lib/domainContext/DomainContextProcessor');
-      
-      // Generate domain-specific analysis framework
-      const domainPrompt = DomainContextProcessor.generateDomainSpecificPrompt(
-        domainContext, data, columns
-      );
+      try {
+        // Dynamically import domain processor with error handling
+        const { DomainContextProcessor } = await import('@/lib/domainContext/DomainContextProcessor');
+        
+        // Generate domain-specific analysis framework
+        const domainPrompt = DomainContextProcessor.generateDomainSpecificPrompt(
+          domainContext, data, columns
+        );
       
       // Enhance column information based on domain
       basicContext.columns = basicContext.columns.map(col => {
@@ -217,13 +229,17 @@ export const useDomainContext = () => {
         return enhanced;
       });
       
-      // Add domain-specific analysis context
-      basicContext.domainAnalysis = {
-        framework: domainPrompt.analysisFramework,
-        keyMetricsFocus: domainPrompt.keyMetricsFocus,
-        riskFactors: domainPrompt.riskFactors,
-        opportunityIndicators: domainPrompt.opportunityIndicators
-      };
+        // Add domain-specific analysis context
+        basicContext.domainAnalysis = {
+          framework: domainPrompt.analysisFramework,
+          keyMetricsFocus: domainPrompt.keyMetricsFocus,
+          riskFactors: domainPrompt.riskFactors,
+          opportunityIndicators: domainPrompt.opportunityIndicators
+        };
+      } catch (error) {
+        console.warn('DomainContextProcessor not available, skipping domain analysis:', error);
+        // Continue without domain-specific analysis
+      }
     }
 
     return basicContext;
