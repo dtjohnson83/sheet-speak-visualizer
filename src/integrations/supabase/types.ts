@@ -494,6 +494,116 @@ export type Database = {
         }
         Relationships: []
       }
+      business_rule_violations: {
+        Row: {
+          baseline_value: number | null
+          created_at: string
+          id: string
+          metric_value: number
+          notification_sent: boolean
+          percentage_change: number | null
+          rule_id: string
+          threshold_value: number
+          user_id: string
+          violation_severity: string
+        }
+        Insert: {
+          baseline_value?: number | null
+          created_at?: string
+          id?: string
+          metric_value: number
+          notification_sent?: boolean
+          percentage_change?: number | null
+          rule_id: string
+          threshold_value: number
+          user_id: string
+          violation_severity?: string
+        }
+        Update: {
+          baseline_value?: number | null
+          created_at?: string
+          id?: string
+          metric_value?: number
+          notification_sent?: boolean
+          percentage_change?: number | null
+          rule_id?: string
+          threshold_value?: number
+          user_id?: string
+          violation_severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_rule_violations_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "business_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_rules: {
+        Row: {
+          agent_id: string
+          alert_frequency: string
+          baseline_calculation: string
+          comparison_type: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          last_evaluation: string | null
+          last_triggered: string | null
+          metric_column: string
+          operator: string
+          rule_name: string
+          threshold_value: number
+          time_window: string
+          trigger_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          alert_frequency?: string
+          baseline_calculation?: string
+          comparison_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_evaluation?: string | null
+          last_triggered?: string | null
+          metric_column: string
+          operator: string
+          rule_name: string
+          threshold_value: number
+          time_window?: string
+          trigger_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          alert_frequency?: string
+          baseline_calculation?: string
+          comparison_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_evaluation?: string | null
+          last_triggered?: string | null
+          metric_column?: string
+          operator?: string
+          rule_name?: string
+          threshold_value?: number
+          time_window?: string
+          trigger_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_chat_messages: {
         Row: {
           content: string

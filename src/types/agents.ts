@@ -7,7 +7,8 @@ export type AgentType =
   | 'monitoring'
   | 'insight_generation'
   | 'visualization'
-  | 'correlation_discovery';
+  | 'correlation_discovery'
+  | 'business_rules';
 
 export interface Agent {
   id: string;
@@ -98,7 +99,8 @@ export type TaskType =
   | 'domain_analysis'
   | 'domain_aware_prediction'
   | 'business_forecasting'
-  | 'predictive_modeling';
+  | 'predictive_modeling'
+  | 'evaluate_business_rules';
 
 export interface AgentTask {
   id: string;
@@ -177,4 +179,39 @@ export interface AgentSummary {
   completed_tasks_today: number;
   unread_insights: number;
   last_activity?: Date;
+}
+
+// Business Rule Configuration interfaces
+export interface BusinessRule {
+  id: string;
+  agent_id: string;
+  user_id: string;
+  rule_name: string;
+  description?: string;
+  metric_column: string;
+  operator: '>' | '<' | '>=' | '<=' | '=' | '!=';
+  threshold_value: number;
+  comparison_type: 'percentage' | 'absolute' | 'trend';
+  time_window: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  baseline_calculation: 'previous_period' | 'moving_average' | 'fixed_value';
+  alert_frequency: 'immediate' | 'daily' | 'weekly';
+  is_active: boolean;
+  last_evaluation?: Date;
+  last_triggered?: Date;
+  trigger_count: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface BusinessRuleViolation {
+  id: string;
+  rule_id: string;
+  user_id: string;
+  metric_value: number;
+  threshold_value: number;
+  percentage_change?: number;
+  baseline_value?: number;
+  violation_severity: 'low' | 'medium' | 'high' | 'critical';
+  notification_sent: boolean;
+  created_at: Date;
 }
