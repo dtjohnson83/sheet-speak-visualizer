@@ -4,6 +4,7 @@ import { useAgentInsights } from './agents/useAgentInsights';
 import { useAgentProcessor } from './agents/useAgentProcessor';
 import { useAgentScheduler } from './agents/useAgentScheduler';
 import { useAgentSummary } from './agents/useAgentSummary';
+import { useBusinessRuleProcessor } from './agents/useBusinessRuleProcessor';
 
 export const useAIAgents = () => {
   const agentsHook = useAgents();
@@ -12,6 +13,7 @@ export const useAIAgents = () => {
   const processorHook = useAgentProcessor();
   const schedulerHook = useAgentScheduler();
   const summaryHook = useAgentSummary();
+  const businessRuleProcessor = useBusinessRuleProcessor();
 
   const scheduleTasksForDataset = (datasetId: string) => {
     return schedulerHook.scheduleTasksForDataset(datasetId, agentsHook.agents);
@@ -57,5 +59,10 @@ export const useAIAgents = () => {
     
     // Scheduler operations
     scheduleTasksForDataset,
+    
+    // Business rule operations
+    processBusinessRules: businessRuleProcessor.processBusinessRules,
+    processBusinessRulesForDataset: businessRuleProcessor.processBusinessRulesForDataset,
+    isProcessingBusinessRules: businessRuleProcessor.isProcessing,
   };
 };

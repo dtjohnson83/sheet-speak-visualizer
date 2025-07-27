@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap, Database, FileText, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Bot, Play, Pause, Trash2, TrashIcon, Clock, Zap, Database, FileText, AlertCircle, CheckCircle2, XCircle, Settings } from 'lucide-react';
 import { Agent, AgentTask } from '@/types/agents';
 import { CreateAgentDialog } from '../CreateAgentDialog';
 import { AgentSystemTest } from '../AgentSystemTest';
@@ -18,6 +18,7 @@ interface AgentManagementTabProps {
   onDeleteAll: () => void;
   onTriggerProcessor: () => void;
   onClearPendingTasks: () => void;
+  onConfigureAgent?: (agent: Agent) => void;
 }
 
 export const AgentManagementTab = ({ 
@@ -28,7 +29,8 @@ export const AgentManagementTab = ({
   onDeleteAgent, 
   onDeleteAll,
   onTriggerProcessor,
-  onClearPendingTasks
+  onClearPendingTasks,
+  onConfigureAgent
 }: AgentManagementTabProps) => {
   // const { clearStuckTasks, isClearingStuckTasks } = useAgentTaskCleanup();
   const getAgentIcon = (type: string) => {
@@ -254,6 +256,14 @@ export const AgentManagementTab = ({
                       </div>
                     </div>
                   <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={() => onConfigureAgent?.(agent)}
+                    >
+                      <Settings className="h-4 w-4 mr-1" />
+                      Configure
+                    </Button>
                     <Button 
                       size="sm" 
                       variant="outline"

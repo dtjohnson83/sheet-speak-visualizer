@@ -21,7 +21,8 @@ import { SchedulingTab } from './tabs/SchedulingTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
 import { DomainSurvey, DomainContext } from './DomainSurvey';
-import { DataContext } from '@/types/agents';
+import { DataContext, Agent } from '@/types/agents';
+import { AgentDetailView } from './AgentDetailView';
 
 interface AIAgentOrchestratorProps {
   data: any[];
@@ -34,6 +35,8 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
   const [activeTab, setActiveTab] = useState('create');
   const [showDomainSurvey, setShowDomainSurvey] = useState(false);
   const [pendingAgentType, setPendingAgentType] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [showAgentDetail, setShowAgentDetail] = useState(false);
   
   const {
     agents,
@@ -159,6 +162,11 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
     }
   };
 
+  const handleConfigureAgent = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setShowAgentDetail(true);
+  };
+
   // Calculate notification counts
   const activeAgents = agents.filter(agent => agent.status === 'active').length;
   const pendingTasks = tasks.filter(task => task.status === 'pending').length;
@@ -243,6 +251,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             onDeleteAll={deleteAllAgents}
             onTriggerProcessor={() => triggerProcessor()}
             onClearPendingTasks={() => clearAllTasks('pending')}
+            onConfigureAgent={handleConfigureAgent}
           />
         </TabsContent>
 
@@ -280,6 +289,14 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
         onClose={() => setShowDomainSurvey(false)}
         onComplete={handleDomainSurveyComplete}
         onSkip={handleDomainSurveySkip}
+      />
+
+      {/* Agent Detail View */}
+      <AgentDetailView
+        agent={selectedAgent}
+        open={showAgentDetail}
+        onClose={() => setShowAgentDetail(false)}
+        columns={columns.map(col => typeof col === 'string' ? col : col.name || col.key || '')}
       />
     </div>
   );
