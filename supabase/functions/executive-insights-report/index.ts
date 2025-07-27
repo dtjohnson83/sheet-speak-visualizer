@@ -59,7 +59,7 @@ serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
     // Get user from JWT token in the request
@@ -100,19 +100,27 @@ serve(async (req) => {
     console.log(`Found ${agents.length} agents for user:`, agentIds);
 
     // Step 2: Fetch insights and tasks using agent IDs directly
-    const [insightsResult, tasksResult] = await Promise.all([
-      supabaseClient
-        .from('agent_insights')
-        .select('*')
-        .in('agent_id', agentIds)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false }),
-      supabaseClient
-        .from('agent_tasks')
-        .select('*')
-        .in('agent_id', agentIds)
-        .order('created_at', { ascending: false })
-    ]);
+    let insightsResult, tasksResult;
+    
+    if (agentIds.length > 0) {
+      console.log('Fetching insights and tasks for agent IDs:', agentIds);
+      [insightsResult, tasksResult] = await Promise.all([
+        supabaseClient
+          .from('agent_insights')
+          .select('*')
+          .in('agent_id', agentIds)
+          .order('created_at', { ascending: false }),
+        supabaseClient
+          .from('agent_tasks')
+          .select('*')
+          .in('agent_id', agentIds)
+          .order('created_at', { ascending: false })
+      ]);
+    } else {
+      console.log('No agents found, skipping insights and tasks fetch');
+      insightsResult = { data: [], error: null };
+      tasksResult = { data: [], error: null };
+    }
 
     if (insightsResult.error || tasksResult.error) {
       console.error('Database errors:', {
@@ -126,6 +134,13 @@ serve(async (req) => {
     tasks = tasksResult.data || [];
     
     console.log(`Fetched ${insights.length} insights and ${tasks.length} tasks`);
+    
+    if (insights.length > 0) {
+      console.log('Sample insight:', insights[0]);
+    }
+    if (tasks.length > 0) {
+      console.log('Sample task:', tasks[0]);
+    }
     
     // Map insight_type to severity for compatibility
     insights = insights.map(insight => ({
@@ -143,33 +158,30 @@ serve(async (req) => {
 
     const executiveContext = generateExecutiveContext(insights, tasks, agents, requestData);
     
-    const systemPrompt = `You are an executive AI assistant generating strategic insights reports based on AI agent discoveries and analysis. Focus on:
+    const systemPrompt = `You are an executive AI assistant generating concise, actionable strategic insights reports. Generate a brief but comprehensive report (max 800 words) focusing on:
 
-1. **Business Impact Assessment**: Quantify the business implications of agent findings
-2. **Strategic Recommendations**: Provide actionable insights for leadership decisions
-3. **Risk & Opportunity Analysis**: Highlight critical risks and growth opportunities
-4. **Agent Performance Summary**: Evaluate the effectiveness of your AI agent workforce
-5. **Trend Analysis**: Identify patterns and emerging issues requiring attention
+1. **Executive Summary**: Key findings and immediate actions (2-3 sentences)
+2. **Critical Issues**: Top 3 priority items requiring attention
+3. **Key Insights**: Most important discoveries from agent analysis
+4. **Recommendations**: 3-5 specific actionable next steps
 
-Generate a comprehensive executive report that transforms technical agent insights into strategic business intelligence. Use clear, business-focused language that executives can act upon immediately.
+Keep the report focused, business-oriented, and avoid verbose explanations. Transform technical agent insights into strategic business intelligence that executives can act upon immediately.
 
-Context: ${requestData.domainContext || 'General business intelligence'}
+Context: ${requestData.domainContext || 'Data analysis'}
 Timeframe: ${requestData.timeframe || 'Current period'}
 Focus Areas: ${requestData.focusAreas?.join(', ') || 'All areas'}`;
 
-    const userPrompt = `Based on the following AI agent intelligence, generate an executive insights report:
+    const userPrompt = `Based on the following AI agent intelligence, generate a concise executive insights report (max 800 words):
 
 ${executiveContext}
 
 Structure the report with:
-1. Executive Summary (key findings and immediate actions)
-2. Critical Issues (high-priority items requiring attention)
-3. Strategic Opportunities (growth and optimization opportunities)
-4. Agent Performance Overview (which agents are providing most value)
-5. Trend Analysis (patterns and emerging issues)
-6. Recommendations (specific actionable next steps)
+1. **Executive Summary** (2-3 sentences with key findings and immediate actions)
+2. **Critical Issues** (Top 3 priority items requiring attention)
+3. **Key Insights** (Most important agent discoveries)
+4. **Recommendations** (3-5 specific actionable next steps)
 
-Focus on business impact and actionable intelligence rather than technical details.`;
+Be concise, business-focused, and actionable. Avoid verbose explanations and focus on insights that drive decisions.`;
 
     let reportContent;
     let apiError = null;
