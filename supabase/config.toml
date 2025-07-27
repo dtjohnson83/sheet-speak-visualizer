@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.ai-summary-report]
 verify_jwt = false
+
+[functions.platform-chatbot]
+verify_jwt = false
