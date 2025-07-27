@@ -45,15 +45,36 @@ export const SystemCacheManager = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
-      // Check for orphaned tasks
-      const { data: orphanedTasks, error: tasksError } = await supabase
-        .from('agent_tasks')
-        .select('id, agent_id')
-        .not('agent_id', 'in', `(
-          SELECT id FROM ai_agents WHERE user_id = '${user.user.id}'
-        )`);
+      // First, get all agent IDs for this user
+      const { data: userAgents, error: agentsError } = await supabase
+        .from('ai_agents')
+        .select('id')
+        .eq('user_id', user.user.id);
 
-      if (tasksError) throw tasksError;
+      if (agentsError) throw agentsError;
+
+      const validAgentIds = userAgents?.map(agent => agent.id) || [];
+      console.log('Valid agent IDs for user:', validAgentIds);
+
+      // Check for orphaned tasks (tasks that don't belong to user's agents)
+      let orphanedTasks = [];
+      if (validAgentIds.length > 0) {
+        const { data: tasks, error: tasksError } = await supabase
+          .from('agent_tasks')
+          .select('id, agent_id')
+          .not('agent_id', 'in', `(${validAgentIds.map(id => `'${id}'`).join(',')})`);
+        
+        if (tasksError) throw tasksError;
+        orphanedTasks = tasks || [];
+      } else {
+        // If no valid agents, all tasks are orphaned
+        const { data: allTasks, error: allTasksError } = await supabase
+          .from('agent_tasks')
+          .select('id, agent_id');
+        
+        if (allTasksError) throw allTasksError;
+        orphanedTasks = allTasks || [];
+      }
 
       // Check for stuck tasks
       const { data: stuckTasks, error: stuckError } = await supabase

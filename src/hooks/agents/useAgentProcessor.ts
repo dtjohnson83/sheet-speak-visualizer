@@ -77,19 +77,36 @@ export const useAgentProcessor = () => {
       let tasksCreatedForAgent = 0;
       const taskType = getTaskTypeForAgent(agent.type);
       
+      // First, get existing pending tasks for this agent and task type
+      const { data: existingTasks, error: existingTasksError } = await supabase
+        .from('agent_tasks')
+        .select('dataset_id')
+        .eq('agent_id', agent.id)
+        .eq('task_type', taskType)
+        .eq('status', 'pending');
+
+      if (existingTasksError) {
+        console.error('Error fetching existing tasks:', existingTasksError);
+        throw existingTasksError;
+      }
+
+      const excludedDatasetIds = existingTasks?.map(task => task.dataset_id) || [];
+      console.log(`Agent ${agent.id}: Found ${excludedDatasetIds.length} pending tasks to exclude:`, excludedDatasetIds);
+
       // Get datasets that DON'T have pending tasks for this agent
-      const { data: availableDatasets, error: availableDatasetsError } = await supabase
+      let datasetsQuery = supabase
         .from('saved_datasets')
         .select('id, name')
         .eq('user_id', user.id)
-        .not('id', 'in', `(
-          SELECT dataset_id FROM agent_tasks 
-          WHERE agent_id = '${agent.id}' 
-          AND task_type = '${taskType}' 
-          AND status = 'pending'
-        )`)
         .order('updated_at', { ascending: false })
         .limit(maxTasksPerAgent);
+
+      // Only apply exclusion if there are datasets to exclude
+      if (excludedDatasetIds.length > 0) {
+        datasetsQuery = datasetsQuery.not('id', 'in', `(${excludedDatasetIds.map(id => `'${id}'`).join(',')})`);
+      }
+
+      const { data: availableDatasets, error: availableDatasetsError } = await datasetsQuery;
 
       if (availableDatasetsError) {
         console.error('Error fetching available datasets:', availableDatasetsError);
