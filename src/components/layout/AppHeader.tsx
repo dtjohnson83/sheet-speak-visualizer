@@ -31,17 +31,20 @@ export const AppHeader = ({ isAdmin, usesRemaining }: AppHeaderProps) => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           {isAdmin ? (
             <Badge variant="secondary" className="text-xs font-medium">
-              Admin - Unlimited AI
+              <span className="hidden sm:inline">Admin - </span>Unlimited AI
             </Badge>
           ) : (
             <Badge variant={usesRemaining > 10 ? "default" : usesRemaining > 5 ? "secondary" : "destructive"} className="text-xs font-medium">
-              {usesRemaining} AI uses left
+              <span className="hidden sm:inline">{usesRemaining} AI uses left</span>
+              <span className="sm:hidden">{usesRemaining} uses</span>
             </Badge>
           )}
-          <FeedbackButton />
+          <div className="hidden sm:block">
+            <FeedbackButton />
+          </div>
           <UserMenu />
           <ThemeToggle />
         </div>

@@ -74,22 +74,22 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">
-              <Activity className="h-4 w-4 mr-2" />
-              Overview
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="overview" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+              <Activity className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="business-rules">
-              <Target className="h-4 w-4 mr-2" />
-              Business Rules
+            <TabsTrigger value="business-rules" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+              <Target className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Rules</span>
             </TabsTrigger>
-            <TabsTrigger value="configuration">
-              <Settings className="h-4 w-4 mr-2" />
-              Configuration
+            <TabsTrigger value="configuration" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+              <Settings className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Config</span>
             </TabsTrigger>
-            <TabsTrigger value="monitoring">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Monitoring
+            <TabsTrigger value="monitoring" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Monitor</span>
             </TabsTrigger>
           </TabsList>
 

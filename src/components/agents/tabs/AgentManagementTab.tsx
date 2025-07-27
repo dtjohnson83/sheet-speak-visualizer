@@ -130,13 +130,14 @@ export const AgentManagementTab = ({
               Manage your automated analysis agents
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
             {pendingTaskCount > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-warning hover:text-warning">
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Clear Pending ({pendingTaskCount})
+                    <AlertCircle className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Clear Pending ({pendingTaskCount})</span>
+                    <span className="sm:hidden">Clear ({pendingTaskCount})</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -163,8 +164,9 @@ export const AgentManagementTab = ({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                    <TrashIcon className="h-4 w-4 mr-2" />
-                    Delete All
+                    <TrashIcon className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Delete All</span>
+                    <span className="sm:hidden">Delete</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -255,29 +257,31 @@ export const AgentManagementTab = ({
                         )}
                       </div>
                     </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <Button 
                       size="sm" 
                       variant="default"
                       onClick={() => onConfigureAgent?.(agent)}
+                      className="flex-shrink-0"
                     >
-                      <Settings className="h-4 w-4 mr-1" />
-                      Configure
+                      <Settings className="h-4 w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Configure</span>
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => handleToggleAgent(agent)}
+                      className="flex-shrink-0"
                     >
                       {agent.status === 'active' ? (
                         <>
-                          <Pause className="h-4 w-4 mr-1" />
-                          Pause
+                          <Pause className="h-4 w-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Pause</span>
                         </>
                       ) : (
                         <>
-                          <Play className="h-4 w-4 mr-1" />
-                          Start
+                          <Play className="h-4 w-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Start</span>
                         </>
                       )}
                     </Button>
@@ -286,7 +290,7 @@ export const AgentManagementTab = ({
                         <Button 
                           size="sm" 
                           variant="outline"
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive flex-shrink-0"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
