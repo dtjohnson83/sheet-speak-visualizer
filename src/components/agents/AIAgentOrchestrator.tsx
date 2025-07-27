@@ -17,6 +17,7 @@ import {
 import { useAIAgents } from '@/hooks/useAIAgents';
 import { AgentCreationWizard } from './AgentCreationWizard';
 import { AgentManagementTab } from './tabs/AgentManagementTab';
+import { SchedulingTab } from './tabs/SchedulingTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
 import { DomainSurvey, DomainContext } from './DomainSurvey';
@@ -168,6 +169,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
   const tabs = [
     { value: 'create', label: 'Create Agents', icon: Bot, badge: null },
     { value: 'manage', label: 'Manage', icon: Settings, badge: activeAgents },
+    { value: 'scheduling', label: 'Scheduling', icon: Calendar, badge: activeAgents },
     { value: 'tasks', label: 'Tasks', icon: List, badge: pendingTasks },
     { value: 'insights', label: 'Insights', icon: BarChart3, badge: unreadInsights }
   ];
@@ -204,7 +206,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -242,6 +244,10 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             onTriggerProcessor={() => triggerProcessor()}
             onClearPendingTasks={() => clearAllTasks('pending')}
           />
+        </TabsContent>
+
+        <TabsContent value="scheduling">
+          <SchedulingTab />
         </TabsContent>
 
         <TabsContent value="tasks">
