@@ -10,8 +10,7 @@ export const getTierDefinitions = (data: any[], tiles: any[], savedDatasetsCount
     tabs: [
       { id: "data-sources", label: "Data Sources", icon: Database, badge: null },
       { id: "saved-datasets", label: "Saved Datasets", icon: FileText, badge: savedDatasetsCount > 0 ? savedDatasetsCount : null },
-      { id: "preview", label: "Data Preview", icon: Database, badge: data.length > 0 ? data.length : null },
-      { id: "smart-integration", label: "Smart Integration", icon: Brain, badge: null }
+      { id: "preview", label: "Data Preview", icon: Database, badge: data.length > 0 ? data.length : null }
     ]
   },
   analysis: {
