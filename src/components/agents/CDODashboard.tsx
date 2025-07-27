@@ -78,17 +78,21 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
   const generateExecutiveReport = async () => {
     setReportLoading(true);
     try {
-      // Get the current session to include authorization header
-      const { data: { session } } = await supabase.auth.getSession();
+      // Get the current session and validate authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        toast.error('Authentication required. Please sign in again.');
+        return;
+      }
+
+      console.log('Calling executive-insights-report with valid session');
       
       const { data: reportData, error } = await supabase.functions.invoke('executive-insights-report', {
         body: {
           domainContext: fileName ? `Analysis of ${fileName} dataset` : 'General business intelligence',
           timeframe: 'last_week',
           focusAreas: ['data_quality', 'business_insights', 'risk_assessment']
-        },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`
         }
       });
       

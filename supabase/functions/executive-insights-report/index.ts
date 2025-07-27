@@ -62,18 +62,21 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Extract and validate authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('User not authenticated - missing authorization header');
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-
+    // Get user from JWT token in the request
+    const authHeader = req.headers.get('Authorization') ?? '';
+    console.log('Auth header present:', !!authHeader);
+    
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    
     if (authError || !user) {
-      console.error('Authentication error:', authError);
-      throw new Error('User not authenticated');
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authentication required', 
+          details: authError?.message || 'Invalid or missing token' 
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     console.log(`Authenticated user: ${user.id}`);
