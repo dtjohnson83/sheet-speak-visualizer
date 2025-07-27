@@ -21,22 +21,26 @@ serve(async (req) => {
       historyLength: conversationHistory.length 
     });
 
-    // Choose AI provider based on available API keys
-    const xaiApiKey = Deno.env.get('XAI_API_KEY');
+    // Choose AI provider based on available API keys (prefer OpenAI for reliability)
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const xaiApiKey = Deno.env.get('XAI_API_KEY');
     
     let aiProvider = null;
     let apiKey = null;
     let apiUrl = null;
+    let model = null;
     
-    if (xaiApiKey) {
-      aiProvider = 'xAI';
-      apiKey = xaiApiKey;
-      apiUrl = 'https://api.x.ai/v1/chat/completions';
-    } else if (openaiApiKey) {
+    // Prefer OpenAI for better reliability
+    if (openaiApiKey) {
       aiProvider = 'OpenAI';
       apiKey = openaiApiKey;
       apiUrl = 'https://api.openai.com/v1/chat/completions';
+      model = 'gpt-4o-mini';
+    } else if (xaiApiKey) {
+      aiProvider = 'xAI';
+      apiKey = xaiApiKey;
+      apiUrl = 'https://api.x.ai/v1/chat/completions';
+      model = 'grok-2-1212'; // Updated to correct xAI model name
     }
     
     if (!aiProvider || !apiKey) {
@@ -115,7 +119,7 @@ Please provide helpful, context-aware assistance based on the user's current loc
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: aiProvider === 'xAI' ? 'grok-beta' : 'gpt-4o-mini',
+        model,
         messages,
         temperature: 0.7,
         max_tokens: 1000
