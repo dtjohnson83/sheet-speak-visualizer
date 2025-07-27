@@ -79,19 +79,21 @@ serve(async (req) => {
     
     console.log('AI Agent Processor started - checking for tasks...');
     
-    // Auto-cleanup stuck tasks (older than 30 minutes)
-    const { data: stuckTasks } = await supabase
+    // Auto-cleanup stuck tasks (older than 45 minutes)
+    const { data: stuckTasks, error: cleanupError } = await supabase
       .from('agent_tasks')
       .update({ 
         status: 'failed', 
-        error_message: 'Task timeout - auto-failed due to being stuck for >30 minutes',
+        error_message: 'Task timeout - auto-failed due to being stuck for >45 minutes',
         completed_at: new Date().toISOString()
       })
       .eq('status', 'pending')
-      .lt('created_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
+      .lt('created_at', new Date(Date.now() - 45 * 60 * 1000).toISOString())
       .select('id');
       
-    if (stuckTasks && stuckTasks.length > 0) {
+    if (cleanupError) {
+      console.error('Error during task cleanup:', cleanupError);
+    } else if (stuckTasks && stuckTasks.length > 0) {
       console.log(`Auto-failed ${stuckTasks.length} stuck tasks`);
     }
     
@@ -99,17 +101,17 @@ serve(async (req) => {
     const requestBody = await req.json().catch(() => ({}));
     const dataContext = requestBody.data_context;
     
-    // Get pending agent tasks with prioritization (manual tasks first)
+    // Get pending agent tasks with error handling
     const { data: tasks, error: tasksError } = await supabase
       .from('agent_tasks')
       .select(`
         *,
-        ai_agents!inner(*)
+        ai_agents!inner(id, name, type, status, user_id)
       `)
       .eq('status', 'pending')
       .lte('scheduled_at', new Date().toISOString())
-      .order('created_at', { ascending: false }) // Newer tasks first
-      .limit(20); // Increased from 5 to 20 for better throughput
+      .order('created_at', { ascending: true }) // Process oldest first
+      .limit(10); // Reduced to prevent overload
 
     if (tasksError) {
       const sanitizedError = sanitizeError(tasksError);
@@ -134,14 +136,19 @@ serve(async (req) => {
       try {
         console.log(`Processing task ${task.id} of type ${task.task_type}`);
         
-        // Mark task as running
-        await supabase
+        // Mark task as running with error handling
+        const { error: updateError } = await supabase
           .from('agent_tasks')
           .update({ 
             status: 'running', 
             started_at: new Date().toISOString() 
           })
           .eq('id', task.id);
+
+        if (updateError) {
+          console.error(`Failed to mark task ${task.id} as running:`, updateError);
+          continue; // Skip this task if we can't update its status
+        }
 
         let result = null;
         let insights = [];

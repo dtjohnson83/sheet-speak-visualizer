@@ -235,9 +235,8 @@ export const useAutoScheduledAgentTasks = () => {
       }
     };
 
-    // Initial scheduling and then every hour
-    schedulePeriodicTasks();
-    const interval = setInterval(schedulePeriodicTasks, 60 * 60 * 1000); // 1 hour
+    // Schedule every 2 hours to reduce conflicts
+    const interval = setInterval(schedulePeriodicTasks, 2 * 60 * 60 * 1000); // 2 hours
 
     return () => clearInterval(interval);
   }, [user?.id, agents, datasets, triggerProcessor]);

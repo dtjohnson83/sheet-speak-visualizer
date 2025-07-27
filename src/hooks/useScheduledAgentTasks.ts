@@ -117,11 +117,12 @@ export const useScheduledAgentTasks = () => {
             continue;
           }
 
-          // Find available datasets that don't have pending tasks for this agent
+          // Find available datasets
           const { data: availableDatasets, error: datasetError } = await supabase
             .from('saved_datasets')
             .select('id, name')
             .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
             .limit(2);
 
           if (datasetError) {
@@ -173,8 +174,8 @@ export const useScheduledAgentTasks = () => {
       }
     };
 
-    // Run every 5 minutes instead of every hour to prevent overwhelming
-    const interval = setInterval(schedulePeriodicTasks, 5 * 60 * 1000); // 5 minutes
+    // Run every 30 minutes to reduce database load and conflicts
+    const interval = setInterval(schedulePeriodicTasks, 30 * 60 * 1000); // 30 minutes
 
     return () => clearInterval(interval);
   }, [user?.id, agents, datasets]);

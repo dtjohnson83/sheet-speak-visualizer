@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Settings, Clock, CheckCircle, XCircle, Loader, Trash2, TrashIcon, MoreVertical } from 'lucide-react';
 import { AgentTask } from '@/types/agents';
 import { formatDistanceToNow } from 'date-fns';
+import { TaskCleanupPanel } from '@/components/agents/TaskCleanupPanel';
 
 interface TaskManagementTabProps {
   tasks: AgentTask[];
@@ -68,18 +69,21 @@ export const TaskManagementTab = ({
   const failedTasks = tasks.filter(task => task.status === 'failed').length;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Task Queue ({tasks.length})
-            </CardTitle>
-            <CardDescription>
-              Monitor agent task execution and progress
-            </CardDescription>
-          </div>
+    <div className="space-y-6">
+      <TaskCleanupPanel />
+      
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Task History ({tasks.length})
+              </CardTitle>
+              <CardDescription>
+                Monitor agent task execution and progress
+              </CardDescription>
+            </div>
           {tasks.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -298,5 +302,6 @@ export const TaskManagementTab = ({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 };
