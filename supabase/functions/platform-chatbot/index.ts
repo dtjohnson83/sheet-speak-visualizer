@@ -57,141 +57,43 @@ serve(async (req) => {
       );
     }
 
-    // Build comprehensive platform knowledge and context
+    // Build context information
     let contextInfo = '';
-    let contextualSuggestions = '';
+    let suggestions = '';
     
     if (context) {
       const { route, component, userWorkflow, dataLoaded, chartType } = context;
-      contextInfo = `
-Current Context:
-- Page: ${route || 'Unknown'}
-- Component: ${component || 'Unknown'}
-- User Workflow: ${userWorkflow || 'General navigation'}
-- Data Status: ${dataLoaded ? 'Data is loaded' : 'No data loaded'}
-- Chart Type: ${chartType || 'None'}
-      `;
+      contextInfo = `Current Context: ${route || 'Unknown'} page, ${dataLoaded ? 'data loaded' : 'no data'}, ${chartType || 'no chart'}`;
 
-      // Generate contextual suggestions based on current state
+      // Contextual suggestions
       if (route === '/app' && !dataLoaded) {
-        contextualSuggestions = `
-CONTEXTUAL SUGGESTIONS FOR CURRENT STATE:
-- Next Steps: Upload your data file to get started
-- Available Options: File upload supports CSV, Excel (.xlsx), and JSON formats
-- Helpful Tips: Demo datasets are available if you want to explore first
-- File Requirements: Maximum 10MB file size, ensure Excel files are saved as .xlsx
-        `;
+        suggestions = 'Next: Upload CSV/Excel/JSON file (max 10MB). Demo datasets available.';
       } else if (route === '/app' && dataLoaded) {
-        contextualSuggestions = `
-CONTEXTUAL SUGGESTIONS FOR CURRENT STATE:
-- Next Steps: Create your first visualization or use AI chat to explore data
-- Available Options: Bar charts, line charts, pie charts, scatter plots, heatmaps
-- Helpful Tips: Start with simple bar or line charts, AI can suggest appropriate chart types
-- Advanced Features: Multiple series support, data filtering, custom color themes
-        `;
+        suggestions = 'Next: Create charts or use AI chat to explore data.';
       } else if (route.includes('charts') && chartType) {
-        contextualSuggestions = `
-CONTEXTUAL SUGGESTIONS FOR CURRENT STATE:
-- Next Steps: Customize colors and formatting, save chart to dashboard
-- Available Options: Multiple series, data labels, axis formatting, color themes
-- Helpful Tips: Data labels make charts more readable, use consistent color palettes
-- Export Options: Save as PNG, PDF, or add to dashboard for sharing
-        `;
+        suggestions = 'Next: Customize colors/formatting, save to dashboard.';
       } else if (route.includes('dashboard')) {
-        contextualSuggestions = `
-CONTEXTUAL SUGGESTIONS FOR CURRENT STATE:
-- Next Steps: Add more charts, configure global filters
-- Available Options: Drag and resize tiles, global filters affect all charts
-- Helpful Tips: Arrange tiles logically, use filters for interactive exploration
-- Advanced Features: Export entire dashboard, share with team members
-        `;
+        suggestions = 'Next: Add more charts, configure global filters.';
       }
     }
 
-    const systemPrompt = `You are an expert platform assistant for a comprehensive data analytics platform. You have deep knowledge of all platform features, workflows, and troubleshooting solutions.
+    const systemPrompt = `You are a platform assistant for a data analytics application.
 
-PLATFORM CAPABILITIES:
+CAPABILITIES:
+- Charts: Bar, line, pie, scatter, heatmap, histogram, treemap
+- Data: Upload CSV/Excel/JSON, connect databases/APIs, preview/validate
+- AI: Natural language data chat, auto-chart generation, quality monitoring agents
+- Dashboard: Drag-drop builder, global filters, real-time updates, export/sharing
 
-📊 CHART TYPES & VISUALIZATION:
-- Bar Charts: Compare categories and values, support stacking and multiple series
-- Line Charts: Show trends over time, multiple series support, data labels
-- Pie Charts: Display proportions and percentages with custom colors
-- Scatter Plots: Reveal correlations between variables, size and color mapping
-- Heatmaps: Visualize data density and patterns with custom color scales
-- Histograms: Show data distribution and frequency analysis
-- Treemaps: Hierarchical data visualization for nested categories
-
-📁 DATA SOURCES & MANAGEMENT:
-- File Upload: CSV, Excel (.xlsx), JSON files up to 10MB
-- Database Connections: PostgreSQL, MySQL with secure authentication
-- API Integrations: REST APIs, Google Sheets, real-time data feeds
-- Data Preview: Column type detection, data validation, sampling
-- Worksheet Selection: Choose specific sheets from Excel workbooks
-- Data Export: Multiple formats with column selection and filtering
-
-🤖 AI-POWERED FEATURES:
-- AI Data Chat: Natural language queries to explore and analyze data
-- AI Chart Generation: Automatic chart suggestions based on data characteristics
-- AI Agents: Automated data quality monitoring, anomaly detection
-- Business Rules: Custom validation and quality checks
-- Predictive Analytics: Forecasting and trend analysis
-- Smart Insights: Automated pattern discovery and recommendations
-
-📋 DASHBOARD & COLLABORATION:
-- Drag-and-Drop Builder: Resizable tiles, custom layouts
-- Global Filters: Interactive filtering across multiple charts
-- Real-time Updates: Live data connections and automatic refresh
-- Export Options: PDF reports, PNG images, data exports
-- Sharing: Team collaboration and dashboard distribution
-
-COMMON WORKFLOWS:
-
-1. DATA ANALYSIS WORKFLOW:
-   Upload Data → Preview & Validate → Create Visualizations → Customize Charts → Save to Dashboard
-
-2. DASHBOARD CREATION:
-   Prepare Data → Create Multiple Charts → Arrange in Dashboard → Add Global Filters → Share/Export
-
-3. AI ASSISTANCE:
-   Upload Data → Use AI Chat for Exploration → Generate AI-Suggested Charts → Set Up Monitoring Agents
-
-TROUBLESHOOTING GUIDE:
-
-🔧 Chart Issues:
-- Empty Charts: Check column selection, verify numeric data types, filter empty rows
-- Formatting Problems: Verify data types, try different chart types, check color themes
-- Performance: Use data sampling for large datasets (>50k rows), apply filters
-
-🔧 Upload Issues:
-- File Errors: Ensure .xlsx format for Excel, check 10MB limit, verify file integrity
-- Slow Loading: Large files take time, consider data sampling or file splitting
-- Format Support: CSV, Excel (.xlsx), JSON only - no password-protected files
-
-🔧 Performance Issues:
-- Slow Response: Close other tabs, use data filtering, consider smaller datasets
-- Memory Problems: Apply data sampling, reduce active charts, clear browser cache
-
-FEATURE EXPLANATIONS:
-- Multiple Series: Add different metrics to the same chart for comparison
-- Data Labels: Show exact values on chart points for precision
-- Stacking: Combine bars/areas to show cumulative totals
-- Axis Formatting: Custom number formats, scales, and labels
-- Color Themes: Consistent palettes across visualizations
-- Real-time Data: Automatic updates from live sources
-- Responsive Design: Charts adapt to different screen sizes
+COMMON ISSUES:
+- Empty charts: Check column selection, data types, filter empty rows
+- Upload fails: Use .xlsx for Excel, check 10MB limit, no password protection
+- Slow performance: Use data sampling for large files, apply filters
 
 ${contextInfo}
-${contextualSuggestions}
+${suggestions}
 
-RESPONSE GUIDELINES:
-- Provide specific, actionable guidance based on the user's current context
-- Reference exact feature names and locations when giving instructions
-- Suggest relevant next steps and alternative approaches
-- Include troubleshooting steps for common issues
-- Be encouraging and highlight platform capabilities
-- Use the contextual information to provide targeted assistance
-
-Respond with helpful, context-aware assistance that leverages the platform's full capabilities.`;
+Be concise and actionable. Focus on their current context and next steps.`;
 
     // Build conversation messages
     const messages = [
