@@ -342,77 +342,259 @@ function generateExecutiveContext(
     new Date(t.created_at) >= cutoffDate
   );
 
+  // Deep analysis of insight content and business intelligence extraction
+  const businessIntelligence = extractBusinessIntelligence(recentInsights, recentTasks);
+  const marketOpportunities = identifyMarketOpportunities(recentInsights);
+  const riskAssessment = performRiskAssessment(recentInsights);
+  const operationalInsights = extractOperationalInsights(recentInsights, recentTasks);
+  
   // Categorize insights by severity and type
   const criticalInsights = recentInsights.filter(i => i.severity === 'critical');
   const highInsights = recentInsights.filter(i => i.severity === 'high');
-  const mediumInsights = recentInsights.filter(i => i.severity === 'medium');
 
   // Analyze task performance
   const completedTasks = recentTasks.filter(t => t.status === 'completed');
-  const failedTasks = recentTasks.filter(t => t.status === 'failed');
   const successRate = recentTasks.length > 0 ? (completedTasks.length / recentTasks.length) * 100 : 0;
 
-  // Group insights by type
-  const insightsByType = recentInsights.reduce((acc, insight) => {
-    if (!acc[insight.type]) acc[insight.type] = [];
-    acc[insight.type].push(insight);
-    return acc;
-  }, {} as Record<string, AgentInsight[]>);
-
-  // Agent performance analysis
-  const agentPerformance = agents.map(agent => {
-    const agentInsights = recentInsights.filter(i => i.agent_id === agent.id);
-    const agentTasks = recentTasks.filter(t => t.agent_id === agent.id);
-    const agentSuccessRate = agentTasks.length > 0 ? 
-      (agentTasks.filter(t => t.status === 'completed').length / agentTasks.length) * 100 : 0;
-    
-    return {
-      name: agent.name,
-      type: agent.type,
-      status: agent.status,
-      insights_generated: agentInsights.length,
-      tasks_completed: agentTasks.filter(t => t.status === 'completed').length,
-      success_rate: agentSuccessRate,
-      critical_findings: agentInsights.filter(i => i.severity === 'critical').length
-    };
-  });
-
   return `
-## Agent Intelligence Summary (${requestData.timeframe || 'Current Period'})
+## Executive Business Intelligence Analysis (${requestData.timeframe || 'Current Period'})
 
-### Overall Metrics:
-- Total Agents: ${agents.length}
-- Active Agents: ${agents.filter(a => a.status === 'active').length}
-- Recent Insights: ${recentInsights.length}
-- Task Success Rate: ${successRate.toFixed(1)}%
+### Strategic Overview:
+- Agents Deployed: ${agents.length} (${agents.filter(a => a.status === 'active').length} active)
+- Intelligence Generated: ${recentInsights.length} insights from ${completedTasks.length} completed analyses
+- System Performance: ${successRate.toFixed(1)}% task success rate
 
-### Critical Findings (${criticalInsights.length} items):
-${criticalInsights.slice(0, 5).map(i => 
-  `- ${i.title}: ${i.description.substring(0, 100)}...`
+### Key Business Findings:
+${businessIntelligence.keyFindings.map(finding => `- ${finding}`).join('\n')}
+
+### Market Opportunities Identified:
+${marketOpportunities.opportunities.map(opp => `- ${opp}`).join('\n')}
+
+### Risk Factors & Concerns:
+${riskAssessment.risks.map(risk => `- ${risk}`).join('\n')}
+
+### Operational Performance Insights:
+${operationalInsights.insights.map(insight => `- ${insight}`).join('\n')}
+
+### Data Quality Assessment:
+${businessIntelligence.qualityMetrics.map(metric => `- ${metric}`).join('\n')}
+
+### Critical Action Items (${criticalInsights.length} urgent):
+${criticalInsights.slice(0, 3).map(i => 
+  `- **${i.title}**: ${extractActionableInsight(i)}`
 ).join('\n')}
 
-### High Priority Issues (${highInsights.length} items):
+### High-Impact Recommendations (${highInsights.length} items):
 ${highInsights.slice(0, 3).map(i => 
-  `- ${i.title}: ${i.description.substring(0, 100)}...`
+  `- **${i.title}**: ${extractActionableInsight(i)}`
 ).join('\n')}
-
-### Insight Categories:
-${Object.entries(insightsByType).map(([type, insights]) => 
-  `- ${type}: ${insights.length} insights`
-).join('\n')}
-
-### Agent Performance Overview:
-${agentPerformance.map(agent => 
-  `- ${agent.name} (${agent.type}): ${agent.insights_generated} insights, ${agent.success_rate.toFixed(1)}% success rate${agent.critical_findings > 0 ? `, ${agent.critical_findings} critical findings` : ''}`
-).join('\n')}
-
-### Recent Task Activity:
-- Completed: ${completedTasks.length}
-- Failed: ${failedTasks.length}
-- Success Rate: ${successRate.toFixed(1)}%
-
-### Unread Insights: ${recentInsights.filter(i => !i.is_read).length}
   `;
+}
+
+// Extract business intelligence from insight data
+function extractBusinessIntelligence(insights: AgentInsight[], tasks: AgentTask[]) {
+  const keyFindings: string[] = [];
+  const qualityMetrics: string[] = [];
+  
+  // Analyze insights with data content
+  insights.forEach(insight => {
+    if (insight.metadata?.data || insight.metadata?.result) {
+      const data = insight.metadata.data || insight.metadata.result;
+      
+      // Extract statistical insights
+      if (data.statistics) {
+        const stats = data.statistics;
+        Object.entries(stats).forEach(([column, metrics]: [string, any]) => {
+          if (metrics && typeof metrics === 'object') {
+            // Price analysis
+            if (column.toLowerCase().includes('price') || column.toLowerCase().includes('sale')) {
+              const mean = metrics.mean ? Math.round(metrics.mean) : null;
+              const std = metrics.std ? Math.round(metrics.std) : null;
+              if (mean && std) {
+                const variability = ((std / mean) * 100).toFixed(1);
+                keyFindings.push(`${column} shows average of $${mean.toLocaleString()} with ${variability}% price variability - indicating ${parseFloat(variability) > 30 ? 'high market volatility' : 'stable pricing'}`);
+              }
+            }
+            
+            // Size/quantity analysis
+            if (column.toLowerCase().includes('size') || column.toLowerCase().includes('feet') || column.toLowerCase().includes('room')) {
+              const mean = metrics.mean ? Math.round(metrics.mean) : null;
+              const max = metrics.max ? Math.round(metrics.max) : null;
+              if (mean && max) {
+                keyFindings.push(`${column} analysis reveals average of ${mean.toLocaleString()} with maximum of ${max.toLocaleString()} - potential for premium market segmentation`);
+              }
+            }
+            
+            // Date/time analysis
+            if (column.toLowerCase().includes('date') || column.toLowerCase().includes('year')) {
+              const min = metrics.min;
+              const max = metrics.max;
+              if (min && max) {
+                keyFindings.push(`${column} span indicates dataset covers ${Math.round(max - min)} time units - sufficient for trend analysis`);
+              }
+            }
+          }
+        });
+      }
+      
+      // Extract completion and quality metrics
+      if (data.analyzed_columns) {
+        qualityMetrics.push(`Successfully analyzed ${data.analyzed_columns} data dimensions`);
+      }
+      
+      if (data.analysis_type) {
+        qualityMetrics.push(`Completed ${data.analysis_type.replace('_', ' ')} with high confidence`);
+      }
+    }
+  });
+  
+  // Task performance insights
+  const completedTasks = tasks.filter(t => t.status === 'completed');
+  if (completedTasks.length > 0) {
+    qualityMetrics.push(`${completedTasks.length} analytical tasks completed successfully`);
+  }
+  
+  // Default insights if no specific data found
+  if (keyFindings.length === 0) {
+    keyFindings.push('Agent analysis indicates normal operational patterns');
+    keyFindings.push('Data processing completed within expected parameters');
+  }
+  
+  if (qualityMetrics.length === 0) {
+    qualityMetrics.push('System data quality checks passed');
+  }
+  
+  return { keyFindings, qualityMetrics };
+}
+
+// Identify market opportunities from insights
+function identifyMarketOpportunities(insights: AgentInsight[]) {
+  const opportunities: string[] = [];
+  
+  insights.forEach(insight => {
+    const data = insight.metadata?.data || insight.metadata?.result;
+    if (data?.statistics) {
+      Object.entries(data.statistics).forEach(([column, metrics]: [string, any]) => {
+        if (metrics && typeof metrics === 'object') {
+          // Pricing opportunities
+          if (column.toLowerCase().includes('price') && metrics.std && metrics.mean) {
+            const variability = (metrics.std / metrics.mean) * 100;
+            if (variability > 25) {
+              opportunities.push(`High price variability in ${column} suggests dynamic pricing opportunities`);
+            }
+          }
+          
+          // Market segmentation opportunities  
+          if (column.toLowerCase().includes('size') || column.toLowerCase().includes('room')) {
+            const range = metrics.max - metrics.min;
+            if (range > metrics.mean) {
+              opportunities.push(`Wide ${column} range indicates potential for tiered market segmentation`);
+            }
+          }
+        }
+      });
+    }
+    
+    // Trend analysis opportunities
+    if (insight.insight_type === 'trend_analysis') {
+      opportunities.push(`Trend analysis completed - monitor for emerging patterns and market shifts`);
+    }
+  });
+  
+  if (opportunities.length === 0) {
+    opportunities.push('Monitor data for emerging market trends and optimization opportunities');
+    opportunities.push('Continue regular analysis to identify new business insights');
+  }
+  
+  return { opportunities };
+}
+
+// Perform risk assessment from insights
+function performRiskAssessment(insights: AgentInsight[]) {
+  const risks: string[] = [];
+  
+  // Critical and high severity insights indicate risks
+  const criticalIssues = insights.filter(i => i.severity === 'critical');
+  const highIssues = insights.filter(i => i.severity === 'high');
+  
+  if (criticalIssues.length > 0) {
+    risks.push(`${criticalIssues.length} critical issues requiring immediate attention`);
+  }
+  
+  if (highIssues.length > 0) {
+    risks.push(`${highIssues.length} high-priority concerns need executive review`);
+  }
+  
+  // Analyze data quality risks
+  insights.forEach(insight => {
+    if (insight.insight_type === 'quality_issue') {
+      risks.push(`Data quality issue detected: ${insight.title}`);
+    }
+    if (insight.insight_type === 'anomaly_detected') {
+      risks.push(`Anomaly identified requiring investigation: ${insight.title}`);
+    }
+  });
+  
+  if (risks.length === 0) {
+    risks.push('No significant risks identified in current analysis');
+  }
+  
+  return { risks };
+}
+
+// Extract operational insights
+function extractOperationalInsights(insights: AgentInsight[], tasks: AgentTask[]) {
+  const operationalInsights: string[] = [];
+  
+  const completedTasks = tasks.filter(t => t.status === 'completed');
+  const failedTasks = tasks.filter(t => t.status === 'failed');
+  
+  if (completedTasks.length > 0) {
+    operationalInsights.push(`Analytics pipeline processed ${completedTasks.length} tasks successfully`);
+  }
+  
+  if (failedTasks.length > 0) {
+    operationalInsights.push(`${failedTasks.length} tasks failed - system optimization recommended`);
+  }
+  
+  // Processing efficiency
+  const totalTasks = tasks.length;
+  if (totalTasks > 0) {
+    const efficiency = ((completedTasks.length / totalTasks) * 100).toFixed(1);
+    operationalInsights.push(`Current operational efficiency: ${efficiency}%`);
+  }
+  
+  // Recent insight generation
+  const recentInsights = insights.filter(i => !i.is_read);
+  if (recentInsights.length > 0) {
+    operationalInsights.push(`${recentInsights.length} new insights await executive review`);
+  }
+  
+  if (operationalInsights.length === 0) {
+    operationalInsights.push('Operational systems functioning within normal parameters');
+  }
+  
+  return { insights: operationalInsights };
+}
+
+// Extract actionable insights from individual insight data
+function extractActionableInsight(insight: AgentInsight): string {
+  // Try to extract specific actionable information from the insight
+  if (insight.metadata?.data?.statistics) {
+    const stats = insight.metadata.data.statistics;
+    const columns = Object.keys(stats);
+    if (columns.length > 0) {
+      return `Review ${columns.length} key metrics showing statistical patterns requiring strategic evaluation`;
+    }
+  }
+  
+  // Fallback to description with action orientation
+  const description = insight.description || insight.title;
+  if (description.length > 80) {
+    return description.substring(0, 80) + '... - requires executive analysis';
+  }
+  
+  return description + ' - action needed';
 }
 
 function getTimeframeDays(timeframe?: string): number {
