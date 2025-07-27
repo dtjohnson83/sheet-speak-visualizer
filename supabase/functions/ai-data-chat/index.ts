@@ -52,11 +52,13 @@ interface DataContext {
     name: string;
     type: string;
     values: any[];
-    description?: string;
     businessMeaning?: string;
     unit?: string;
     isKPI?: boolean;
-    expectedRange?: string;
+    statistics?: any;
+    sampleSize?: number;
+    totalSize?: number;
+    priority?: 'high' | 'medium' | 'low';
   }>;
   sampleData: any[];
   totalRows: number;
@@ -78,6 +80,19 @@ interface DataContext {
     };
     businessRules: string[];
     commonPatterns: string[];
+  };
+  domainContext?: any;
+  preComputedStats?: any;
+  aggregations?: Record<string, any>;
+  dataQuality?: {
+    completeness: number;
+    warnings: string[];
+  };
+  domainAnalysis?: {
+    framework: string;
+    keyMetricsFocus: string[];
+    riskFactors: string[];
+    opportunityIndicators: string[];
   };
 }
 
@@ -103,7 +118,7 @@ function classifyQuery(userQuery: string): QueryClassification {
       query.includes('maximum') || query.includes('minimum') || query.includes('median')) {
     return {
       type: 'simple',
-      maxTokens: 400,
+      maxTokens: 250,
       responseStructure: 'ANSWER_ONLY'
     };
   }
@@ -114,7 +129,7 @@ function classifyQuery(userQuery: string): QueryClassification {
       query.includes('improve') || query.includes('optimize') || query.includes('next steps')) {
     return {
       type: 'strategic',
-      maxTokens: 800,
+      maxTokens: 500,
       responseStructure: 'EXECUTIVE_SUMMARY'
     };
   }
@@ -124,7 +139,7 @@ function classifyQuery(userQuery: string): QueryClassification {
       query.includes('algorithm') || query.includes('technical') || query.includes('explain the process')) {
     return {
       type: 'technical',
-      maxTokens: 600,
+      maxTokens: 350,
       responseStructure: 'TECHNICAL_DETAILED'
     };
   }
@@ -132,7 +147,7 @@ function classifyQuery(userQuery: string): QueryClassification {
   // Complex queries - analysis, correlations, trends
   return {
     type: 'complex',
-    maxTokens: 600,
+    maxTokens: 400,
     responseStructure: 'STRUCTURED_ANALYSIS'
   };
 }
@@ -189,74 +204,137 @@ COMMUNICATION STYLE: Data-Driven Analyst
 - Maintain professional analytical tone`
 };
 
-// Create optimized data context for AI analysis
+// Enhanced data context processing with validation and domain awareness
 function createOptimizedDataContext(dataContext: DataContext): string {
-  const { columns, sampleData, totalRows, fileName, enhancedContext } = dataContext;
+  let contextString = '';
   
-  // Create column summaries with actual statistics
-  const columnSummaries = columns.map(col => {
-    const values = col.values || [];
-    const nonNullValues = values.filter(v => v !== null && v !== undefined && v !== '');
-    const completeness = values.length > 0 ? Math.round((nonNullValues.length / values.length) * 100) : 0;
+  // Dataset overview with accuracy metadata
+  contextString += `DATASET OVERVIEW:\n`;
+  contextString += `Total rows: ${dataContext.totalRows.toLocaleString()}\n`;
+  contextString += `Columns analyzed: ${dataContext.columns.length}\n`;
+  if (dataContext.fileName) {
+    contextString += `Source: ${dataContext.fileName}\n`;
+  }
+  
+  // Add data quality assessment
+  if (dataContext.dataQuality) {
+    contextString += `Data completeness: ${Math.round(dataContext.dataQuality.completeness * 100)}%\n`;
+    if (dataContext.dataQuality.warnings.length > 0) {
+      contextString += `Quality notes: ${dataContext.dataQuality.warnings.slice(0, 2).join('; ')}\n`;
+    }
+  }
+  contextString += '\n';
+
+  // Pre-computed statistical summaries for fact-checking
+  if (dataContext.preComputedStats) {
+    contextString += `PRE-COMPUTED ANALYSIS:\n`;
+    contextString += `Overall trend: ${dataContext.preComputedStats.overallTrend?.direction || 'stable'}\n`;
+    contextString += `Confidence level: ${Math.round((dataContext.preComputedStats.confidenceLevel || 0) * 100)}%\n`;
     
-    let summary = `${col.name} (${col.type})`;
+    // Include critical business metrics
+    if (dataContext.preComputedStats.businessHealth) {
+      contextString += `Business health score: ${Math.round((dataContext.preComputedStats.businessHealth.score || 0) * 100)}%\n`;
+      if (dataContext.preComputedStats.businessHealth.criticalIssues.length > 0) {
+        contextString += `Critical issues: ${dataContext.preComputedStats.businessHealth.criticalIssues.slice(0, 2).join('; ')}\n`;
+      }
+    }
+    contextString += '\n';
+  }
+
+  // Enhanced column analysis with business context
+  contextString += `COLUMN ANALYSIS:\n`;
+  dataContext.columns.forEach(col => {
+    contextString += `${col.name} (${col.type})`;
+    if (col.isKPI) contextString += ` [KEY METRIC]`;
+    if (col.priority) contextString += ` [${col.priority.toUpperCase()} PRIORITY]`;
+    contextString += `:\n`;
     
     if (col.businessMeaning) {
-      summary += ` - ${col.businessMeaning}`;
+      contextString += `  Business meaning: ${col.businessMeaning}\n`;
     }
     
-    if (col.type === 'numeric' && nonNullValues.length > 0) {
-      const nums = nonNullValues.map(v => Number(v)).filter(v => !isNaN(v));
-      if (nums.length > 0) {
-        const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
-        const min = Math.min(...nums);
-        const max = Math.max(...nums);
-        const median = nums.sort((a, b) => a - b)[Math.floor(nums.length / 2)];
-        summary += ` [Range: ${min.toFixed(2)}-${max.toFixed(2)}, Avg: ${avg.toFixed(2)}, Median: ${median.toFixed(2)}]`;
+    // Include pre-computed statistics
+    if (col.statistics) {
+      if (col.type === 'numeric' && col.statistics.average !== undefined) {
+        contextString += `  Average: ${col.statistics.average.toLocaleString()}\n`;
+        contextString += `  Range: ${col.statistics.min.toLocaleString()} to ${col.statistics.max.toLocaleString()}\n`;
+        contextString += `  Total: ${col.statistics.total.toLocaleString()}\n`;
+      } else if (col.statistics.uniqueCount !== undefined) {
+        contextString += `  Unique values: ${col.statistics.uniqueCount}\n`;
+        if (col.statistics.mostCommon) {
+          contextString += `  Most common: ${col.statistics.mostCommon}\n`;
+        }
       }
-    } else if (col.type === 'categorical' && nonNullValues.length > 0) {
-      const uniqueValues = [...new Set(nonNullValues)];
-      const topValues = uniqueValues.slice(0, 5);
-      summary += ` [${uniqueValues.length} unique values: ${topValues.join(', ')}${uniqueValues.length > 5 ? '...' : ''}]`;
     }
     
-    if (completeness < 100) {
-      summary += ` [${completeness}% complete]`;
+    // Sample values for context
+    if (col.values && col.values.length > 0) {
+      const sampleValues = col.values.slice(0, 3);
+      contextString += `  Sample: ${sampleValues.join(', ')}\n`;
     }
     
-    return summary;
+    contextString += '\n';
   });
 
-  // Create sample data representation
-  const sampleDataString = sampleData.length > 0 
-    ? JSON.stringify(sampleData.slice(0, 3), null, 2)
-    : 'No sample data available';
+  // Regional aggregations if available
+  if (dataContext.aggregations?.regional) {
+    contextString += `REGIONAL ANALYSIS:\n`;
+    const regionalData = dataContext.aggregations.regional.slice(0, 5);
+    regionalData.forEach((region: any) => {
+      contextString += `${region.region}: ${region.count} records, trend: ${region.trend}\n`;
+    });
+    contextString += '\n';
+  }
 
-  // Build context string
-  let contextString = `DATASET: ${fileName || 'Unknown'} (${totalRows.toLocaleString()} rows total, analyzing ${sampleData.length} sample rows)
+  // Domain-specific analysis framework
+  if (dataContext.domainAnalysis) {
+    contextString += `DOMAIN-SPECIFIC ANALYSIS FRAMEWORK:\n`;
+    contextString += dataContext.domainAnalysis.framework;
+    contextString += `\nKey metrics focus: ${dataContext.domainAnalysis.keyMetricsFocus.join(', ')}\n`;
+    contextString += `Risk factors to monitor: ${dataContext.domainAnalysis.riskFactors.join(', ')}\n`;
+    contextString += `Opportunity indicators: ${dataContext.domainAnalysis.opportunityIndicators.join(', ')}\n`;
+    contextString += '\n';
+  }
 
-COLUMNS & STATISTICS:
-${columnSummaries.join('\n')}
+  // Enhanced business context
+  if (dataContext.enhancedContext) {
+    contextString += `BUSINESS CONTEXT:\n`;
+    contextString += `Domain: ${dataContext.enhancedContext.businessDomain}\n`;
+    contextString += `Industry: ${dataContext.enhancedContext.industry}\n`;
+    contextString += `Purpose: ${dataContext.enhancedContext.businessPurpose}\n`;
+    
+    if (dataContext.enhancedContext.objectives.length > 0) {
+      contextString += `Business objectives: ${dataContext.enhancedContext.objectives.join(', ')}\n`;
+    }
+    
+    if (dataContext.enhancedContext.keyMetrics.length > 0) {
+      contextString += `KPIs to monitor: ${dataContext.enhancedContext.keyMetrics.join(', ')}\n`;
+    }
+    contextString += '\n';
+  }
 
-SAMPLE DATA:
-${sampleDataString}`;
-
-  // Add enhanced context if available
-  if (enhancedContext) {
-    contextString += `
-
-BUSINESS CONTEXT:
-- Domain: ${enhancedContext.businessDomain}
-- Purpose: ${enhancedContext.businessPurpose}
-- Industry: ${enhancedContext.industry}
-- Time Period: ${enhancedContext.timePeriod}
-- Key Objectives: ${enhancedContext.objectives.join(', ')}
-- Primary Date Column: ${enhancedContext.primaryDateColumn}
-- Key Metrics/KPIs: ${enhancedContext.keyMetrics.join(', ')}
-- Dimensions: ${enhancedContext.dimensions.join(', ')}
-- Measures: ${enhancedContext.measures.join(', ')}
-- Data Quality: ${enhancedContext.dataQuality.completeness}% complete, ${enhancedContext.dataQuality.consistency}% consistent
-- Business Rules: ${enhancedContext.businessRules.join('; ')}`;
+  // Sample data (reduced to avoid token bloat)
+  if (dataContext.sampleData && dataContext.sampleData.length > 0) {
+    contextString += `SAMPLE DATA (${Math.min(dataContext.sampleData.length, 3)} rows for context):\n`;
+    const sampleRows = dataContext.sampleData.slice(0, 3);
+    const keyColumns = dataContext.columns
+      .filter(col => col.isKPI || col.priority === 'high')
+      .slice(0, 5)
+      .map(col => col.name);
+    
+    if (keyColumns.length === 0) {
+      keyColumns.push(...dataContext.columns.slice(0, 5).map(col => col.name));
+    }
+    
+    contextString += keyColumns.join(' | ') + '\n';
+    sampleRows.forEach(row => {
+      const rowValues = keyColumns.map(header => {
+        const value = row[header];
+        return value !== null && value !== undefined ? String(value) : 'null';
+      });
+      contextString += rowValues.join(' | ') + '\n';
+    });
+    contextString += '\n';
   }
 
   return contextString;
@@ -346,36 +424,36 @@ RESPONSE FORMAT:
 ⚠️ LIMITATIONS: [Data or methodological constraints]`
     };
 
-    // Create focused system prompt with response structure
-    const systemPrompt = `You are a business data analyst providing accurate, actionable insights. Ground all responses in the actual data provided.
+    // Build comprehensive system prompt with domain awareness
+    const domainContext = optimizedContext.includes('DOMAIN-SPECIFIC') ? 
+      'Use the provided domain-specific analysis framework and focus on industry-relevant insights.' : 
+      'Provide general business analysis focused on actionable insights.';
 
-${optimizedContext}
+    const systemPrompt = `You are an expert data analyst providing ${queryClass.responseStructure} analysis. ${domainContext}
 
 ${toneModifier}
 
+DATA CONTEXT:
+${optimizedContext}
+
+CRITICAL ANALYSIS REQUIREMENTS:
+- ALL numerical claims MUST be verifiable against the provided pre-computed statistics
+- Use ONLY the data and statistics explicitly provided in the context above
+- If regional data is provided, reference actual regions and their computed metrics
+- Base all conclusions on the pre-computed analysis results shown above
+- Never fabricate statistics or make claims not supported by the provided data
+
 ${responseStructures[queryClass.responseStructure]}
 
-CRITICAL RESPONSE RULES:
-1. START with the direct answer or key finding
-2. Use SPECIFIC data values, percentages, and metrics from the dataset
-3. Focus on BUSINESS IMPACT over statistical methodology
-4. NO lengthy methodology explanations unless specifically requested
-5. NO contradictory statements about data availability
-6. If using sample data, be clear about completeness: "Based on the ${dataContext.sampleData.length} sample rows from ${dataContext.totalRows.toLocaleString()} total rows..."
-7. Keep responses concise and scannable
-8. Use the provided format structure for consistency
+RESPONSE GUIDELINES:
+- Lead with conclusions, not methodology
+- Use business language appropriate for executives
+- Reference specific data points from the pre-computed analysis
+- Focus on business impact and actionable insights
+- Maximum ${queryClass.maxTokens} tokens total
+- When suggesting visualizations, specify exact chart types and column mappings
 
-DATA ACCURACY REQUIREMENTS:
-- Only reference data that exists in the provided dataset
-- Use exact numbers and calculations from the sample
-- When extrapolating to full dataset, clearly state assumptions
-- If data is insufficient for a claim, explicitly state the limitation
-
-BUSINESS COMMUNICATION:
-- Lead with conclusions, not process
-- Focus on actionable insights
-- Use executive-appropriate language
-- Minimize technical jargon unless requested`;
+ACCURACY REQUIREMENT: Every numerical claim must be traceable to the provided pre-computed statistics. Do not extrapolate beyond the given data.`;
 
     console.log(`Making request to ${provider} API...`);
 
