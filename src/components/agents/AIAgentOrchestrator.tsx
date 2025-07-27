@@ -231,13 +231,14 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="relative">
-              <tab.icon className="h-4 w-4 mr-2" />
-              {tab.label}
+            <TabsTrigger key={tab.value} value={tab.value} className="relative p-2 sm:p-3">
+              <tab.icon className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden text-xs">{tab.label.split(' ')[0]}</span>
               {tab.badge !== undefined && tab.badge > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+                <Badge variant="secondary" className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 text-xs">
                   {tab.badge}
                 </Badge>
               )}

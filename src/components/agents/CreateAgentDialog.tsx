@@ -238,11 +238,11 @@ export const CreateAgentDialog = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={isCreatingAgent || !name.trim()}>
+            <Button type="submit" disabled={isCreatingAgent || !name.trim()} className="w-full sm:w-auto">
               {isCreatingAgent ? 'Creating...' : 'Create Agent'}
             </Button>
           </div>

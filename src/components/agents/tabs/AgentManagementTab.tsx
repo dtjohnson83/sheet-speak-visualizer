@@ -212,12 +212,13 @@ export const AgentManagementTab = ({
               
               return (
                 <div key={agent.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{getAgentIcon(agent.type)}</div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium">{agent.name}</h4>
+                  {/* Agent Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="text-2xl flex-shrink-0">{getAgentIcon(agent.type)}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h4 className="font-medium truncate">{agent.name}</h4>
                           <Badge 
                             variant="secondary" 
                             className={getStatusColor(agent.status)}
@@ -229,19 +230,26 @@ export const AgentManagementTab = ({
                             className={`text-xs flex items-center gap-1 ${getAvailabilityColor(availabilityStatus)}`}
                           >
                             {getAvailabilityIcon(availabilityStatus)}
-                            {availabilityStatus === 'running' ? 'Processing' : 
-                             availabilityStatus === 'busy' ? `${taskStatus.pending} Pending` :
-                             availabilityStatus === 'has-errors' ? `${taskStatus.failed} Failed` : 'Available'}
+                            <span className="hidden sm:inline">
+                              {availabilityStatus === 'running' ? 'Processing' : 
+                               availabilityStatus === 'busy' ? `${taskStatus.pending} Pending` :
+                               availabilityStatus === 'has-errors' ? `${taskStatus.failed} Failed` : 'Available'}
+                            </span>
+                            <span className="sm:hidden">
+                              {availabilityStatus === 'running' ? 'Run' : 
+                               availabilityStatus === 'busy' ? taskStatus.pending.toString() :
+                               availabilityStatus === 'has-errors' ? taskStatus.failed.toString() : 'OK'}
+                            </span>
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <p className="text-sm text-muted-foreground">
                             {getTypeLabel(agent.type)}
                           </p>
                           {datasetInfo && (
                             <Badge variant="outline" className="text-xs flex items-center gap-1">
                               <Database className="h-3 w-3" />
-                              {datasetInfo.fileName}
+                              <span className="truncate max-w-[120px]">{datasetInfo.fileName}</span>
                             </Badge>
                           )}
                         </div>
@@ -257,65 +265,67 @@ export const AgentManagementTab = ({
                         )}
                       </div>
                     </div>
-                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    <Button 
-                      size="sm" 
-                      variant="default"
-                      onClick={() => onConfigureAgent?.(agent)}
-                      className="flex-shrink-0"
-                    >
-                      <Settings className="h-4 w-4 sm:mr-1" />
-                      <span className="hidden sm:inline">Configure</span>
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleToggleAgent(agent)}
-                      className="flex-shrink-0"
-                    >
-                      {agent.status === 'active' ? (
-                        <>
-                          <Pause className="h-4 w-4 sm:mr-1" />
-                          <span className="hidden sm:inline">Pause</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4 sm:mr-1" />
-                          <span className="hidden sm:inline">Start</span>
-                        </>
-                      )}
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="text-destructive hover:text-destructive flex-shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Agent</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete "{agent.name}" and all its associated tasks and insights. 
-                            This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => onDeleteAgent(agent.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0">
+                      <Button 
+                        size="mobile-sm" 
+                        variant="default"
+                        onClick={() => onConfigureAgent?.(agent)}
+                        className="sm:size-sm"
+                      >
+                        <Settings className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Configure</span>
+                      </Button>
+                      <Button 
+                        size="mobile-sm" 
+                        variant="outline"
+                        onClick={() => handleToggleAgent(agent)}
+                        className="sm:size-sm"
+                      >
+                        {agent.status === 'active' ? (
+                          <>
+                            <Pause className="h-4 w-4 sm:mr-1" />
+                            <span className="hidden sm:inline">Pause</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 sm:mr-1" />
+                            <span className="hidden sm:inline">Start</span>
+                          </>
+                        )}
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="mobile-icon" 
+                            variant="outline"
+                            className="text-destructive hover:text-destructive sm:size-sm"
                           >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Agent</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete "{agent.name}" and all its associated tasks and insights. 
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => onDeleteAgent(agent.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
-                </div>
                 
                 {agent.description && (
                   <p className="text-sm text-muted-foreground mb-3">
