@@ -135,9 +135,9 @@ export const BusinessRulesTab: React.FC<BusinessRulesTabProps> = ({
                 <div key={violation.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <AlertTriangle className={`h-4 w-4 ${
-                      violation.violation_severity === 'critical' ? 'text-red-500' :
-                      violation.violation_severity === 'high' ? 'text-orange-500' :
-                      violation.violation_severity === 'medium' ? 'text-yellow-500' :
+                      violation.severity === 'critical' ? 'text-red-500' :
+                      violation.severity === 'high' ? 'text-orange-500' :
+                      violation.severity === 'medium' ? 'text-yellow-500' :
                       'text-blue-500'
                     }`} />
                     <div>
@@ -153,12 +153,12 @@ export const BusinessRulesTab: React.FC<BusinessRulesTabProps> = ({
                   </div>
                   <div className="text-right">
                     <Badge variant={
-                      violation.violation_severity === 'critical' ? 'destructive' :
-                      violation.violation_severity === 'high' ? 'destructive' :
-                      violation.violation_severity === 'medium' ? 'secondary' :
+                      violation.severity === 'critical' ? 'destructive' :
+                      violation.severity === 'high' ? 'destructive' :
+                      violation.severity === 'medium' ? 'secondary' :
                       'outline'
                     }>
-                      {violation.violation_severity}
+                      {violation.severity}
                     </Badge>
                     <p className="text-xs text-muted-foreground mt-1">
                       {new Date(violation.created_at).toLocaleString()}

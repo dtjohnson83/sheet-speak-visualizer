@@ -8,7 +8,8 @@ export type AgentType =
   | 'insight_generation'
   | 'visualization'
   | 'correlation_discovery'
-  | 'business_rules';
+  | 'business_rules'
+  | 'executive_summary';
 
 export interface Agent {
   id: string;
@@ -147,7 +148,7 @@ export interface AgentInsight {
   agent_id: string;
   title: string;
   description: string;
-  severity: 'info' | 'warning' | 'error';
+  severity: 'info' | 'warning' | 'error' | 'critical';
   created_at: Date;
   is_read: boolean;
   insight_type: 'trend' | 'anomaly' | 'correlation' | 'recommendation' | 'summary';
@@ -211,7 +212,7 @@ export interface BusinessRuleViolation {
   threshold_value: number;
   percentage_change?: number;
   baseline_value?: number;
-  violation_severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'low' | 'medium' | 'high' | 'critical';
   notification_sent: boolean;
   created_at: Date;
 }

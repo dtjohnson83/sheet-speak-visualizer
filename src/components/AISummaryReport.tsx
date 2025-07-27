@@ -14,11 +14,13 @@ import { exportAIReportToPDF } from '@/utils/pdf';
 import { DataSamplingInfo } from '@/components/transparency/DataSamplingInfo';
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
 import { UnifiedReportData, DatasetProfile, UniversalHealthMetrics } from '@/types/reportTypes';
+import { useAIAgents } from '@/hooks/useAIAgents';
 
 interface AISummaryReportProps {
   data: DataRow[];
   columns: ColumnInfo[];
   fileName?: string;
+  isExecutiveMode?: boolean;
 }
 
 const personas = [
@@ -60,7 +62,7 @@ const personas = [
   }
 ];
 
-export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProps) => {
+export const AISummaryReport = ({ data, columns, fileName, isExecutiveMode = false }: AISummaryReportProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState('general');
   const [reportData, setReportData] = useState<UnifiedReportData | null>(null);
@@ -70,6 +72,7 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
   const { usesRemaining, isLoading: usageLoading, decrementUsage } = useUsageTracking();
   const { isAdmin } = useUserRole();
   const { buildAIContext, domainContext, isContextCollected } = useDomainContext();
+  const { agents, tasks, insights, agentSummary } = useAIAgents();
 
   const profileDataset = (data: DataRow[], columns: ColumnInfo[]): DatasetProfile => {
     console.log('=== Smart Dataset Profiling ===');
@@ -411,14 +414,31 @@ export const AISummaryReport = ({ data, columns, fileName }: AISummaryReportProp
       
       console.log('Sending optimized request to AI function...');
 
+      // Enhanced payload for executive mode
+      const requestBody = {
+        dataContext: dataContext,
+        persona: selectedPersona,
+        datasetProfile: datasetProfile,
+        healthMetrics: healthMetrics,
+        domainContext: domainContext,
+        ...(isExecutiveMode && {
+          agentSummary: agentSummary,
+          multiAgentInsights: {
+            totalAgents: agents.length,
+            activeAgents: agents.filter(a => a.status === 'active').length,
+            totalTasks: tasks.length,
+            completedTasks: tasks.filter(t => t.status === 'completed').length,
+            totalInsights: insights.length,
+            criticalInsights: insights.filter(i => i.severity === 'critical').length,
+            recentInsights: insights.filter(i => 
+              new Date(i.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+            ).length
+          }
+        })
+      };
+
       const { data: response, error } = await supabase.functions.invoke('ai-summary-report', {
-        body: {
-          dataContext: dataContext,
-          persona: selectedPersona,
-          datasetProfile: datasetProfile,
-          healthMetrics: healthMetrics,
-          domainContext: domainContext // Include rich domain survey data
-        }
+        body: requestBody
       });
 
       if (error) {

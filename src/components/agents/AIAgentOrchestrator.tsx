@@ -20,6 +20,7 @@ import { AgentManagementTab } from './tabs/AgentManagementTab';
 import { SchedulingTab } from './tabs/SchedulingTab';
 import { TaskManagementTab } from './tabs/TaskManagementTab';
 import { InsightManagementTab } from './tabs/InsightManagementTab';
+import { ExecutiveSummaryTab } from './tabs/ExecutiveSummaryTab';
 import { DomainSurvey, DomainContext } from './DomainSurvey';
 import { DataContext, Agent } from '@/types/agents';
 import { AgentDetailView } from './AgentDetailView';
@@ -124,6 +125,19 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
           domainContext,
           dataContext: createDataContext(domainContext)
         }
+      },
+      executive_summary: {
+        name: 'AI Chief Data Officer',
+        description: 'Aggregates insights from all agents and provides executive-level reporting',
+        type: 'executive_summary' as const,
+        capabilities: ['multi_agent_aggregation', 'executive_reporting', 'strategic_insights', 'risk_assessment'],
+        configuration: {
+          schedule: { frequency: 'daily' as const, time: '07:00' },
+          thresholds: { riskThreshold: 0.7, healthThreshold: 0.8 },
+          dataContext: createDataContext(domainContext),
+          reportingLevel: 'executive',
+          consolidationScope: 'all_agents'
+        }
       }
     };
 
@@ -174,7 +188,10 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
   const unreadInsights = insights.filter(insight => !insight.is_read).length;
   const failedTasks = tasks.filter(task => task.status === 'failed').length;
 
+  const criticalInsights = insights.filter(insight => insight.severity === 'critical').length;
+  
   const tabs = [
+    { value: 'cdo', label: 'CDO', icon: TrendingUp, badge: criticalInsights },
     { value: 'create', label: 'Create Agents', icon: Bot, badge: null },
     { value: 'manage', label: 'Manage', icon: Settings, badge: activeAgents },
     { value: 'scheduling', label: 'Scheduling', icon: Calendar, badge: activeAgents },
@@ -214,7 +231,7 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="relative">
               <tab.icon className="h-4 w-4 mr-2" />
@@ -227,6 +244,17 @@ export const AIAgentOrchestrator = ({ data, columns, fileName, onAIUsed }: AIAge
             </TabsTrigger>
           ))}
         </TabsList>
+
+        <TabsContent value="cdo">
+          <ExecutiveSummaryTab
+            agents={agents}
+            tasks={tasks}
+            insights={insights}
+            data={data}
+            columns={columns}
+            fileName={fileName}
+          />
+        </TabsContent>
 
         <TabsContent value="create">
           <AgentCreationWizard

@@ -74,7 +74,7 @@ export const useBusinessRules = (agentId?: string) => {
       
       setViolations(data?.map(violation => ({
         ...violation,
-        violation_severity: violation.violation_severity as BusinessRuleViolation['violation_severity'],
+        severity: violation.violation_severity as BusinessRuleViolation['severity'],
         created_at: new Date(violation.created_at),
       })) || []);
     } catch (error) {

@@ -216,7 +216,7 @@ export class BusinessRuleEngine {
           threshold_value: rule.threshold_value,
           percentage_change: result.deviation,
           baseline_value: result.previousValue,
-          violation_severity: result.severity,
+          severity: result.severity,
           notification_sent: false
         });
       }
