@@ -2,9 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataSourceSelector } from './DataSourceSelector';
 import { DataSourceConnectionDialog } from './DataSourceConnectionDialog';
-import { DemoDatasetSelector } from './DemoDatasetSelector';
 import { RealtimeDataConfig } from '@/components/realtime/RealtimeDataConfig';
-import { Database, Wifi, Globe, Settings, Play } from 'lucide-react';
+import { Database, Wifi, Globe, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { useRealtimeData } from '@/contexts/RealtimeDataContext';
@@ -25,7 +24,7 @@ export const DataSourcesTab = ({
   onDataSourceDialogChange,
   onDataLoaded,
 }: DataSourcesTabProps) => {
-  const [activeSubTab, setActiveSubTab] = useState("demo");
+  const [activeSubTab, setActiveSubTab] = useState("static");
   const { latestUpdates, getLatestData, sources } = useRealtimeData();
 
   const handleUseRealtimeDataForVisualization = (sourceId: string) => {
@@ -103,11 +102,7 @@ export const DataSourcesTab = ({
       </div>
 
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="demo" className="flex items-center gap-2">
-            <Play className="h-4 w-4" />
-            Demo Data
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="static" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             Static Sources
@@ -117,14 +112,6 @@ export const DataSourcesTab = ({
             Real-time Sources
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="demo" className="space-y-4">
-          <Card>
-            <CardContent className="p-6">
-              <DemoDatasetSelector onDatasetSelect={onDataLoaded} />
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="static" className="space-y-4">
           <Card>
