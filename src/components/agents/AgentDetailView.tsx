@@ -11,10 +11,12 @@ import {
   Clock,
   Activity,
   Target,
-  TrendingUp
+  TrendingUp,
+  Bell
 } from 'lucide-react';
 import { Agent } from '@/types/agents';
 import { BusinessRulesTab } from './tabs/BusinessRulesTab';
+import { AlertManagementPanel } from './AlertManagementPanel';
 
 interface AgentDetailViewProps {
   agent: Agent | null;
@@ -74,7 +76,7 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
             <TabsTrigger value="overview" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
               <Activity className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Overview</span>
@@ -82,6 +84,10 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
             <TabsTrigger value="business-rules" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
               <Target className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Rules</span>
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+              <Bell className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Alerts</span>
             </TabsTrigger>
             <TabsTrigger value="configuration" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
               <Settings className="h-4 w-4" />
@@ -149,6 +155,10 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
 
           <TabsContent value="business-rules">
             <BusinessRulesTab agent={agent} columns={columns} />
+          </TabsContent>
+
+          <TabsContent value="alerts">
+            <AlertManagementPanel agentId={agent.id} />
           </TabsContent>
 
           <TabsContent value="configuration" className="space-y-4">
