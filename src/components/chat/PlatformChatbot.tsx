@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, X, Send, HelpCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MessageCircle, X, Send, HelpCircle, Code, Cpu } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
 import { logger } from '@/lib/logger';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface ChatMessage {
   id: string;
@@ -26,6 +28,8 @@ interface PlatformContext {
   userWorkflow?: string;
   dataLoaded: boolean;
   chartType?: string;
+  isAdmin?: boolean;
+  chatMode?: 'general' | 'codebase';
 }
 
 export const PlatformChatbot = React.memo(() => {
@@ -33,8 +37,10 @@ export const PlatformChatbot = React.memo(() => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [chatMode, setChatMode] = useState<'general' | 'codebase'>('general');
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
 
   // Get platform context
   const platformContext = React.useMemo<PlatformContext>(() => ({
@@ -42,8 +48,10 @@ export const PlatformChatbot = React.memo(() => {
     dataLoaded: document.querySelector('[data-has-data="true"]') !== null,
     chartType: document.querySelector('[data-chart-type]')?.getAttribute('data-chart-type') || undefined,
     userWorkflow: location.pathname.includes('/dashboard') ? 'dashboard' : 
-                  location.pathname.includes('/charts') ? 'visualization' : 'general'
-  }), [location.pathname]);
+                  location.pathname.includes('/charts') ? 'visualization' : 'general',
+    isAdmin,
+    chatMode
+  }), [location.pathname, isAdmin, chatMode]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,26 +61,47 @@ export const PlatformChatbot = React.memo(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Add welcome message when first opened
+  // Reset messages when switching chat modes
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      const welcomeMessage: ChatMessage = {
-        id: 'welcome',
-        role: 'assistant',
-        content: `Hi! I'm your platform assistant. I can help you with:
+    if (isOpen) {
+      setMessages([]);
+    }
+  }, [chatMode, isOpen]);
+
+  // Add welcome message when first opened or mode changes
+  useEffect(() => {
+    if (isOpen && messages.length === 0 && !roleLoading) {
+      const welcomeContent = chatMode === 'codebase' 
+        ? `Hi! I'm your codebase assistant. I can help you with technical aspects of the platform:
+
+• Component architecture and relationships
+• File structure and organization
+• API endpoints and data flow
+• Database schema and queries
+• Security considerations
+• Performance optimization
+• Implementation details
+
+What technical aspect would you like to explore?`
+        : `Hi! I'm your platform assistant. I can help you with:
 
 • How to use features and workflows
 • Troubleshooting common issues  
 • Discovering new capabilities
 • Navigation and best practices
 
-What would you like to know?`,
+What would you like to know?`;
+
+      const welcomeMessage: ChatMessage = {
+        id: 'welcome',
+        role: 'assistant',
+        content: welcomeContent,
         timestamp: new Date(),
         context: platformContext
       };
       setMessages([welcomeMessage]);
     }
-  }, [isOpen, messages.length, platformContext]);
+  }, [isOpen, messages.length, platformContext, chatMode, roleLoading]);
 
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -137,13 +166,24 @@ What would you like to know?`,
     }
   }, [handleSendMessage]);
 
-  const quickQuestions = React.useMemo(() => [
-    "How do I create a new visualization?",
-    "What chart types are available?", 
-    "How do I upload data?",
-    "How do I save my dashboard?",
-    "What are AI agents?"
-  ], []);
+  const quickQuestions = React.useMemo(() => {
+    if (chatMode === 'codebase') {
+      return [
+        "Show me the component architecture",
+        "How is user authentication implemented?",
+        "What's the database schema structure?", 
+        "How do charts get rendered?",
+        "What are the main API endpoints?"
+      ];
+    }
+    return [
+      "How do I create a new visualization?",
+      "What chart types are available?", 
+      "How do I upload data?",
+      "How do I save my dashboard?",
+      "What are AI agents?"
+    ];
+  }, [chatMode]);
 
   const handleQuickQuestion = useCallback((question: string) => {
     setInputValue(question);
@@ -165,8 +205,12 @@ What would you like to know?`,
     <Card className="fixed bottom-6 right-6 w-96 h-[500px] max-h-[80vh] shadow-xl z-50 flex flex-col overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 flex-shrink-0">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <MessageCircle className="h-5 w-5 text-primary" />
-          Platform Assistant
+          {chatMode === 'codebase' ? (
+            <Code className="h-5 w-5 text-primary" />
+          ) : (
+            <MessageCircle className="h-5 w-5 text-primary" />
+          )}
+          {chatMode === 'codebase' ? 'Codebase Assistant' : 'Platform Assistant'}
         </CardTitle>
         <Button
           variant="ghost"
@@ -179,6 +223,21 @@ What would you like to know?`,
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-4 pt-0 min-h-0">
+        {isAdmin && (
+          <Tabs value={chatMode} onValueChange={(value: 'general' | 'codebase') => setChatMode(value)} className="mb-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="general" className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                General Help
+              </TabsTrigger>
+              <TabsTrigger value="codebase" className="flex items-center gap-2">
+                <Code className="h-4 w-4" />
+                Codebase Chat
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+        
         <ScrollArea className="flex-1 pr-4 min-h-0 max-h-[calc(100vh-200px)]">
           <div className="space-y-4 pb-4">
             {messages.map((message) => (
@@ -241,7 +300,9 @@ What would you like to know?`,
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about the platform..."
+            placeholder={chatMode === 'codebase' 
+              ? "Ask about code architecture, files, APIs..." 
+              : "Ask me anything about the platform..."}
             className="flex-1"
             disabled={isLoading}
           />

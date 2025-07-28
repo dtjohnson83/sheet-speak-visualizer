@@ -15,6 +15,39 @@ serve(async (req) => {
   try {
     const { message, context, conversationHistory = [] } = await req.json();
     
+    // Get authorization header to check admin status
+    const authHeader = req.headers.get('authorization');
+    let isAdmin = false;
+    
+    if (authHeader) {
+      try {
+        // Create Supabase client to verify user role
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Verify JWT and get user
+        const jwt = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(jwt);
+        
+        if (user) {
+          // Check if user has admin role
+          const { data: userRole } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('role', 'admin')
+            .single();
+          
+          isAdmin = !!userRole;
+        }
+      } catch (error) {
+        console.log('Could not verify admin status:', error.message);
+      }
+    }
+    
     console.log('Platform chatbot request:', { 
       message, 
       contextKeys: context ? Object.keys(context) : [],
@@ -60,24 +93,84 @@ serve(async (req) => {
     // Build context information
     let contextInfo = '';
     let suggestions = '';
+    let codebaseContext = '';
     
     if (context) {
-      const { route, component, userWorkflow, dataLoaded, chartType } = context;
+      const { route, component, userWorkflow, dataLoaded, chartType, chatMode } = context;
       contextInfo = `Current Context: ${route || 'Unknown'} page, ${dataLoaded ? 'data loaded' : 'no data'}, ${chartType || 'no chart'}`;
 
-      // Contextual suggestions
-      if (route === '/app' && !dataLoaded) {
-        suggestions = 'Next: Upload CSV/Excel/JSON file (max 10MB). Demo datasets available.';
-      } else if (route === '/app' && dataLoaded) {
-        suggestions = 'Next: Create charts or use AI chat to explore data.';
-      } else if (route.includes('charts') && chartType) {
-        suggestions = 'Next: Customize colors/formatting, save to dashboard.';
-      } else if (route.includes('dashboard')) {
-        suggestions = 'Next: Add more charts, configure global filters.';
+      // Handle codebase chat mode for admin users
+      if (chatMode === 'codebase' && isAdmin) {
+        codebaseContext = `
+CODEBASE KNOWLEDGE (Admin Access):
+
+ARCHITECTURE:
+- React + TypeScript frontend with Tailwind CSS
+- Supabase backend (Auth, Database, Edge Functions)
+- Component structure: src/components/ organized by feature
+- State: React Context + local useState
+- Routing: React Router v6 with protected routes
+- Security: RLS policies, user roles, secure edge functions
+
+KEY DIRECTORIES:
+- src/components/: UI components by feature (charts, dashboard, data, etc.)
+- src/hooks/: Custom React hooks for data management
+- src/lib/: Utilities (chart processing, ML, security, OAuth)
+- supabase/functions/: Edge functions for server logic
+- src/types/: TypeScript definitions
+
+API ENDPOINTS:
+- ai-data-chat: Natural language data queries
+- platform-chatbot: Platform assistance (current function)
+- ai-summary-report: AI-generated reports
+- business-rule-processor: Automated business rules
+
+DATABASE TABLES:
+- user_roles: Role management (admin/user)
+- saved_datasets: User data with metadata
+- ai_agents: AI agent configurations
+- dashboard_tiles: Dashboard layouts
+- analysis_sessions: Session tracking
+
+SECURITY FEATURES:
+- Row Level Security (RLS) for data isolation
+- Role-based access control
+- Edge function API key security
+- OAuth integration
+- Audit logging`;
+      } else {
+        // Regular contextual suggestions for general mode
+        if (route === '/app' && !dataLoaded) {
+          suggestions = 'Next: Upload CSV/Excel/JSON file (max 10MB). Demo datasets available.';
+        } else if (route === '/app' && dataLoaded) {
+          suggestions = 'Next: Create charts or use AI chat to explore data.';
+        } else if (route.includes('charts') && chartType) {
+          suggestions = 'Next: Customize colors/formatting, save to dashboard.';
+        } else if (route.includes('dashboard')) {
+          suggestions = 'Next: Add more charts, configure global filters.';
+        }
       }
     }
 
-    const systemPrompt = `You are a platform assistant for a data analytics application.
+    let systemPrompt = '';
+    
+    if (context?.chatMode === 'codebase' && isAdmin) {
+      systemPrompt = `You are a codebase assistant for a data analytics platform. You have full access to technical details.
+
+${codebaseContext}
+
+As an admin, you can discuss:
+- Component architecture and relationships
+- File organization and code structure  
+- API endpoints and data flow
+- Database schema and RLS policies
+- Security implementations
+- Performance considerations
+- Implementation details and best practices
+
+Be technical and detailed. Reference specific files, functions, and architectural patterns.`;
+    } else {
+      systemPrompt = `You are a platform assistant for a data analytics application.
 
 CAPABILITIES:
 - Charts: Bar, line, pie, scatter, heatmap, histogram, treemap
@@ -94,6 +187,7 @@ ${contextInfo}
 ${suggestions}
 
 Be concise and actionable. Focus on their current context and next steps.`;
+    }
 
     // Build conversation messages
     const messages = [

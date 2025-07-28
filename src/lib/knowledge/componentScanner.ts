@@ -15,11 +15,20 @@ interface WorkflowStep {
   nextSteps?: string[];
 }
 
+interface CodebaseInfo {
+  architecture: Record<string, string>;
+  fileStructure: Record<string, string[]>;
+  apiEndpoints: Record<string, string>;
+  databaseSchema: Record<string, string>;
+  securityFeatures: Record<string, string>;
+}
+
 interface PlatformKnowledge {
   components: ComponentInfo[];
   workflows: Record<string, WorkflowStep[]>;
   features: Record<string, string>;
   troubleshooting: Record<string, { problem: string; solutions: string[] }>;
+  codebase?: CodebaseInfo;
 }
 
 // Component registry - manually curated for security
@@ -116,6 +125,52 @@ const COMPONENT_REGISTRY: ComponentInfo[] = [
     props: ['dataColumns', 'onChartGenerate', 'suggestions']
   }
 ];
+
+// Codebase information (admin only)
+const CODEBASE_KNOWLEDGE: CodebaseInfo = {
+  architecture: {
+    'component-structure': 'React components organized by feature in src/components/, with shared UI components in src/components/ui/',
+    'state-management': 'React Context for global state (AuthContext, AppStateContext), local useState for component state',
+    'routing': 'React Router v6 for client-side routing with protected routes for authenticated users',
+    'styling': 'Tailwind CSS with custom design tokens in index.css and tailwind.config.ts',
+    'data-flow': 'Supabase client for backend communication, custom hooks for data management',
+    'security': 'Row Level Security (RLS) in Supabase, user roles system, secure edge functions'
+  },
+  fileStructure: {
+    'src/components': ['UI components organized by feature', 'Shared components in ui/ subdirectory', 'Charts, dashboards, data management'],
+    'src/hooks': ['Custom React hooks for data fetching', 'User management, agents, datasets', 'Real-time data handling'],
+    'src/lib': ['Utility functions and shared logic', 'Chart processing, data validation', 'Security, OAuth, ML analysis'],
+    'src/pages': ['Route components for navigation', 'Auth, dashboard, guides', 'Landing and about pages'],
+    'supabase/functions': ['Edge functions for server logic', 'AI chat, report generation', 'Business rule processing'],
+    'src/types': ['TypeScript type definitions', 'Component interfaces', 'API response types']
+  },
+  apiEndpoints: {
+    'auth': 'Supabase Auth API for user management, sign in/up/out',
+    'database': 'Supabase REST API with RLS for secure data access',
+    'ai-data-chat': 'Edge function for natural language data queries',
+    'ai-summary-report': 'Edge function for generating AI summaries',
+    'platform-chatbot': 'Edge function for platform assistance',
+    'business-rule-processor': 'Edge function for automated business rules',
+    'executive-insights-report': 'Edge function for executive reporting'
+  },
+  databaseSchema: {
+    'user_roles': 'User role management with admin/user roles',
+    'saved_datasets': 'User uploaded datasets with metadata',
+    'ai_agents': 'AI agent configurations and schedules',
+    'business_rules': 'Business rule definitions and thresholds',
+    'dashboard_tiles': 'Dashboard layout and chart configurations',
+    'analysis_sessions': 'Data analysis session tracking',
+    'oauth_tokens': 'OAuth integration token storage'
+  },
+  securityFeatures: {
+    'rls-policies': 'Row Level Security ensures users only access their own data',
+    'user-roles': 'Role-based access control with admin privileges',
+    'edge-functions': 'Server-side processing with secure API key handling',
+    'oauth-integration': 'Secure third-party authentication',
+    'audit-logging': 'Security event tracking and monitoring',
+    'csp-headers': 'Content Security Policy for XSS protection'
+  }
+};
 
 // Workflow definitions
 const WORKFLOW_DEFINITIONS: Record<string, WorkflowStep[]> = {
@@ -254,7 +309,8 @@ export class ComponentScanner {
       components: COMPONENT_REGISTRY,
       workflows: WORKFLOW_DEFINITIONS,
       features: FEATURE_EXPLANATIONS,
-      troubleshooting: TROUBLESHOOTING_DB
+      troubleshooting: TROUBLESHOOTING_DB,
+      codebase: CODEBASE_KNOWLEDGE
     };
   }
 
@@ -382,6 +438,60 @@ export class ComponentScanner {
     }
 
     return suggestions;
+  }
+
+  // Get codebase information (admin only)
+  getCodebaseInfo(): CodebaseInfo | null {
+    return this.knowledge.codebase || null;
+  }
+
+  // Search codebase knowledge (admin only)
+  searchCodebase(query: string): {
+    architecture: string[];
+    files: string[];
+    apis: string[];
+    database: string[];
+    security: string[];
+  } {
+    if (!this.knowledge.codebase) {
+      return { architecture: [], files: [], apis: [], database: [], security: [] };
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const codebase = this.knowledge.codebase;
+
+    const relevantArchitecture = Object.keys(codebase.architecture).filter(key =>
+      key.toLowerCase().includes(lowerQuery) ||
+      codebase.architecture[key].toLowerCase().includes(lowerQuery)
+    );
+
+    const relevantFiles = Object.keys(codebase.fileStructure).filter(key =>
+      key.toLowerCase().includes(lowerQuery) ||
+      codebase.fileStructure[key].some(desc => desc.toLowerCase().includes(lowerQuery))
+    );
+
+    const relevantApis = Object.keys(codebase.apiEndpoints).filter(key =>
+      key.toLowerCase().includes(lowerQuery) ||
+      codebase.apiEndpoints[key].toLowerCase().includes(lowerQuery)
+    );
+
+    const relevantDatabase = Object.keys(codebase.databaseSchema).filter(key =>
+      key.toLowerCase().includes(lowerQuery) ||
+      codebase.databaseSchema[key].toLowerCase().includes(lowerQuery)
+    );
+
+    const relevantSecurity = Object.keys(codebase.securityFeatures).filter(key =>
+      key.toLowerCase().includes(lowerQuery) ||
+      codebase.securityFeatures[key].toLowerCase().includes(lowerQuery)
+    );
+
+    return {
+      architecture: relevantArchitecture,
+      files: relevantFiles,
+      apis: relevantApis,
+      database: relevantDatabase,
+      security: relevantSecurity
+    };
   }
 }
 
