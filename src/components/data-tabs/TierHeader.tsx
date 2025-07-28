@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { TierInfo, ProgressStatus } from './types';
 
 interface TierHeaderProps {
@@ -9,7 +9,7 @@ interface TierHeaderProps {
 }
 
 export const TierHeader = ({ tier, progress, isExpanded }: TierHeaderProps) => {
-  const progressIcon = progress === 'complete' ? CheckCircle2 : progress === 'active' ? ArrowRight : ChevronRight;
+  const progressIcon = progress === 'complete' ? CheckCircle2 : progress === 'active' ? ChevronRight : ChevronRight;
   const progressColor = progress === 'complete' ? 'text-green-500' : progress === 'active' ? 'text-primary' : 'text-muted-foreground/60';
 
   const getIconStyling = (color: string) => {
