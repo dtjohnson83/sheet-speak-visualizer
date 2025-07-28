@@ -17,6 +17,7 @@ import {
 import { Agent } from '@/types/agents';
 import { BusinessRulesTab } from './tabs/BusinessRulesTab';
 import { AlertManagementPanel } from './AlertManagementPanel';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AgentDetailViewProps {
   agent: Agent | null;
@@ -26,6 +27,8 @@ interface AgentDetailViewProps {
 }
 
 export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailViewProps) => {
+  const isMobile = useIsMobile();
+  
   if (!agent) return null;
 
   const getAgentIcon = (type: string) => {
@@ -62,7 +65,7 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[95vh]' : 'max-w-4xl max-h-[90vh]'} overflow-y-auto ${isMobile ? 'p-4' : ''}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -76,24 +79,39 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
-            <TabsTrigger value="overview" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+          <TabsList className={`w-full ${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-2 sm:grid-cols-5'}`}>
+            <TabsTrigger 
+              value="overview" 
+              className={`flex-col sm:flex-row gap-1 sm:gap-2 ${isMobile ? 'h-8 px-2 text-xs flex-shrink-0 min-w-[80px]' : 'h-auto py-2'}`}
+            >
               <Activity className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="business-rules" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+            <TabsTrigger 
+              value="business-rules" 
+              className={`flex-col sm:flex-row gap-1 sm:gap-2 ${isMobile ? 'h-8 px-2 text-xs flex-shrink-0 min-w-[70px]' : 'h-auto py-2'}`}
+            >
               <Target className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Rules</span>
             </TabsTrigger>
-            <TabsTrigger value="alerts" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+            <TabsTrigger 
+              value="alerts" 
+              className={`flex-col sm:flex-row gap-1 sm:gap-2 ${isMobile ? 'h-8 px-2 text-xs flex-shrink-0 min-w-[70px]' : 'h-auto py-2'}`}
+            >
               <Bell className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Alerts</span>
             </TabsTrigger>
-            <TabsTrigger value="configuration" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+            <TabsTrigger 
+              value="configuration" 
+              className={`flex-col sm:flex-row gap-1 sm:gap-2 ${isMobile ? 'h-8 px-2 text-xs flex-shrink-0 min-w-[70px]' : 'h-auto py-2'}`}
+            >
               <Settings className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Config</span>
             </TabsTrigger>
-            <TabsTrigger value="monitoring" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2">
+            <TabsTrigger 
+              value="monitoring" 
+              className={`flex-col sm:flex-row gap-1 sm:gap-2 ${isMobile ? 'h-8 px-2 text-xs flex-shrink-0 min-w-[80px]' : 'h-auto py-2'}`}
+            >
               <BarChart3 className="h-4 w-4" />
               <span className="text-xs sm:text-sm">Monitor</span>
             </TabsTrigger>
@@ -106,7 +124,7 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
                 <CardDescription>{agent.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
                     <h4 className="font-medium mb-2">Type</h4>
                     <p className="text-sm text-muted-foreground">
@@ -214,7 +232,7 @@ export const AgentDetailView = ({ agent, open, onClose, columns }: AgentDetailVi
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     <div className="p-4 bg-muted rounded-lg text-center">
                       <p className="text-2xl font-bold">N/A</p>
                       <p className="text-sm text-muted-foreground">Tasks Completed</p>
