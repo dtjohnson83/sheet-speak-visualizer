@@ -16,8 +16,11 @@ const Auth = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [activeTab, setActiveTab] = useState('signin');
-  const { signUp, signIn, resetPassword, user } = useAuth();
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const { signUp, signIn, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -26,20 +29,31 @@ const Auth = () => {
     const confirmed = searchParams.get('confirmed');
     const reset = searchParams.get('reset');
     
-    if (confirmed === 'true') {
+    // Check for password reset tokens in URL fragment
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery' && accessToken && refreshToken) {
+      setIsResettingPassword(true);
+      setActiveTab('newPassword');
+      setMessage('');
+      setError('');
+      // Clear the hash from URL for security
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else if (confirmed === 'true') {
       setMessage('Email confirmed! You can now sign in to your account.');
       setActiveTab('signin');
-    }
-    
-    if (reset === 'true') {
+    } else if (reset === 'true') {
       setMessage('Password reset email sent! Check your email for the reset link.');
       setActiveTab('signin');
     }
     
-    if (user && !confirmed && !reset) {
+    if (user && !confirmed && !reset && !isResettingPassword) {
       navigate('/app');
     }
-  }, [user, navigate, searchParams]);
+  }, [user, navigate, searchParams, isResettingPassword]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +124,39 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    const { error } = await updatePassword(newPassword);
+    
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage('Password updated successfully! You are now signed in.');
+      setIsResettingPassword(false);
+      navigate('/app');
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -143,10 +190,11 @@ const Auth = () => {
             )}
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                <TabsTrigger value="reset">Reset Password</TabsTrigger>
+              <TabsList className={`grid w-full ${isResettingPassword ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                {!isResettingPassword && <TabsTrigger value="signin">Sign In</TabsTrigger>}
+                {!isResettingPassword && <TabsTrigger value="signup">Sign Up</TabsTrigger>}
+                {!isResettingPassword && <TabsTrigger value="reset">Reset Password</TabsTrigger>}
+                {isResettingPassword && <TabsTrigger value="newPassword">Set New Password</TabsTrigger>}
               </TabsList>
               
               <TabsContent value="signin">
@@ -283,6 +331,51 @@ const Auth = () => {
                       Back to sign in
                     </button>
                   </div>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="newPassword">
+                <form onSubmit={handleUpdatePassword} className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold">Set New Password</h3>
+                    <p className="text-sm text-muted-foreground">Enter your new password below</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter your new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Updating password...' : 'Update Password'}
+                  </Button>
                 </form>
               </TabsContent>
             </Tabs>
