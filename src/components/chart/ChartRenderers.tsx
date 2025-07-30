@@ -12,9 +12,14 @@ import { HistogramChartRenderer } from './renderers/HistogramChartRenderer';
 import { HeatmapChartRenderer } from './renderers/HeatmapChartRenderer';
 import { TreemapChartRenderer } from './renderers/TreemapChartRenderer';
 import { PlaceholderChartRenderer } from './renderers/PlaceholderChartRenderer';
+import { Chart3DContainer } from './Chart3DContainer';
+import { Bar3DChartRenderer } from './renderers/Bar3DChartRenderer';
+import { Scatter3DChartRenderer } from './renderers/Scatter3DChartRenderer';
+import { Surface3DChartRenderer } from './renderers/Surface3DChartRenderer';
 
 interface ExtendedChartRenderersProps extends ChartRenderersProps {
   aggregationMethod?: AggregationMethod;
+  zColumn?: string;
 }
 
 export const ChartRenderers = ({ 
@@ -31,7 +36,8 @@ export const ChartRenderers = ({
   series, 
   showDataLabels, 
   chartColors,
-  aggregationMethod = 'sum'
+  aggregationMethod = 'sum',
+  zColumn
 }: ExtendedChartRenderersProps) => {
   if (chartType === 'bar') {
     return (
@@ -138,6 +144,52 @@ export const ChartRenderers = ({
         chartColors={chartColors}
         aggregationMethod={aggregationMethod}
       />
+    );
+  }
+
+  // 3D Charts
+  if (chartType === 'bar3d') {
+    return (
+      <Chart3DContainer>
+        <Bar3DChartRenderer
+          data={data}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          zColumn={zColumn}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </Chart3DContainer>
+    );
+  }
+
+  if (chartType === 'scatter3d') {
+    return (
+      <Chart3DContainer>
+        <Scatter3DChartRenderer
+          data={data}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          zColumn={zColumn || stackColumn || 'z'}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </Chart3DContainer>
+    );
+  }
+
+  if (chartType === 'surface3d') {
+    return (
+      <Chart3DContainer>
+        <Surface3DChartRenderer
+          data={data}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          zColumn={zColumn || stackColumn || 'z'}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </Chart3DContainer>
     );
   }
 

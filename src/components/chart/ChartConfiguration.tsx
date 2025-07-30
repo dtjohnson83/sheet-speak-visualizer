@@ -18,6 +18,8 @@ interface ChartConfigurationProps {
   setXColumn: (value: string) => void;
   yColumn: string;
   setYColumn: (value: string) => void;
+  zColumn?: string;
+  setZColumn?: (value: string) => void;
   stackColumn: string;
   setStackColumn: (value: string) => void;
   sankeyTargetColumn: string;
@@ -96,16 +98,18 @@ export const ChartConfiguration = ({
           dataLength={data.length}
         />
 
-        <AxisConfiguration
-          chartType={chartType}
-          xColumn={xColumn}
-          setXColumn={setXColumn}
-          yColumn={yColumn}
-          setYColumn={setYColumn}
-          numericColumns={numericColumns}
-          categoricalColumns={categoricalColumns}
-          dateColumns={dateColumns}
-        />
+      <AxisConfiguration
+        chartType={chartType}
+        xColumn={xColumn}
+        setXColumn={setXColumn}
+        yColumn={yColumn}
+        setYColumn={setYColumn}
+        zColumn={props.zColumn}
+        setZColumn={props.setZColumn}
+        numericColumns={numericColumns}
+        categoricalColumns={categoricalColumns}
+        dateColumns={dateColumns}
+      />
 
         <SpecializedConfiguration
           chartType={chartType}

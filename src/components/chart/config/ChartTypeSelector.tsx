@@ -2,7 +2,7 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { chartTypeInfo } from '@/lib/chartTypeInfo';
-import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, Hash, TrendingUp, PieChart } from 'lucide-react';
+import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, Hash, TrendingUp, PieChart, Box } from 'lucide-react';
 
 interface ChartTypeSelectorProps {
   chartType: string;
@@ -14,15 +14,18 @@ interface ChartTypeSelectorProps {
 }
 
 const chartTypes = [
-  { value: 'bar', label: 'Bar Chart', icon: BarChart3 },
-  { value: 'line', label: 'Line Chart', icon: LineChart },
-  { value: 'area', label: 'Area Chart', icon: AreaChart },
-  { value: 'pie', label: 'Pie Chart', icon: PieChart },
-  { value: 'scatter', label: 'Scatter Plot', icon: ScatterChart },
-  { value: 'heatmap', label: 'Heatmap', icon: Hash },
-  { value: 'histogram', label: 'Histogram', icon: BarChart2 },
-  { value: 'treemap', label: 'Treemap', icon: Square },
-  { value: 'kpi', label: 'KPI Cards', icon: Square },
+  { value: 'bar', label: 'Bar Chart', icon: BarChart3, category: '2D' },
+  { value: 'line', label: 'Line Chart', icon: LineChart, category: '2D' },
+  { value: 'area', label: 'Area Chart', icon: AreaChart, category: '2D' },
+  { value: 'pie', label: 'Pie Chart', icon: PieChart, category: '2D' },
+  { value: 'scatter', label: 'Scatter Plot', icon: ScatterChart, category: '2D' },
+  { value: 'heatmap', label: 'Heatmap', icon: Hash, category: '2D' },
+  { value: 'histogram', label: 'Histogram', icon: BarChart2, category: '2D' },
+  { value: 'treemap', label: 'Treemap', icon: Square, category: '2D' },
+  { value: 'kpi', label: 'KPI Cards', icon: Square, category: '2D' },
+  { value: 'bar3d', label: '3D Bar Chart', icon: Box, category: '3D' },
+  { value: 'scatter3d', label: '3D Scatter Plot', icon: Box, category: '3D' },
+  { value: 'surface3d', label: '3D Surface Plot', icon: Square, category: '3D' },
 ];
 
 export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, yColumn, dataLength }: ChartTypeSelectorProps) => {
@@ -52,13 +55,30 @@ export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, y
           <SelectValue placeholder="Select chart type" />
         </SelectTrigger>
         <SelectContent>
-          {chartTypes.map((type) => {
+          {/* 2D Charts */}
+          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">2D Charts</div>
+          {chartTypes.filter(type => type.category === '2D').map((type) => {
             const IconComponent = type.icon;
             return (
               <SelectItem key={type.value} value={type.value}>
                 <div className="flex items-center gap-2">
                   <IconComponent className="w-4 h-4" />
                   {type.label}
+                </div>
+              </SelectItem>
+            );
+          })}
+          
+          {/* 3D Charts */}
+          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">3D Charts</div>
+          {chartTypes.filter(type => type.category === '3D').map((type) => {
+            const IconComponent = type.icon;
+            return (
+              <SelectItem key={type.value} value={type.value}>
+                <div className="flex items-center gap-2">
+                  <IconComponent className="w-4 h-4" />
+                  {type.label}
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">NEW</span>
                 </div>
               </SelectItem>
             );

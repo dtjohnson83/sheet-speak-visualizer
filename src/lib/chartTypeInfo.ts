@@ -227,6 +227,77 @@ export const chartTypeInfo = {
     bestFor: ['Executive dashboards', 'Key metrics summary', 'Performance monitoring'],
     examples: ['Revenue this month', 'User growth rate', 'Conversion rate'],
     commonMistakes: ['Too many KPIs', 'Missing context']
+  },
+  bar3d: {
+    name: '3D Bar Chart',
+    description: 'Compare values with immersive 3D vertical bars',
+    requiredColumns: ['x', 'y'],
+    optionalColumns: ['z'],
+    category: '3d',
+    icon: 'bar-chart',
+    configurable: {
+      aggregation: true,
+      sorting: true,
+      stacking: false,
+      dataLabels: true,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'categorical' },
+      yAxis: { label: 'Y-axis (Height)', type: 'numeric' }
+    },
+    minDataPoints: 1,
+    bestFor: ['3D data visualization', 'Interactive presentations', 'Immersive analytics'],
+    examples: ['3D sales by region', '3D product performance', '3D survey results'],
+    commonMistakes: ['Too many categories for 3D space', 'Not considering viewing angles']
+  },
+  scatter3d: {
+    name: '3D Scatter Plot',
+    description: 'Explore relationships between three variables in 3D space',
+    requiredColumns: ['x', 'y', 'z'],
+    optionalColumns: [],
+    category: '3d',
+    icon: 'scatter-chart',
+    configurable: {
+      aggregation: false,
+      sorting: false,
+      stacking: false,
+      dataLabels: true,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'numeric' },
+      yAxis: { label: 'Y-axis', type: 'numeric' },
+      additional: [{ label: 'Z-axis', type: 'numeric' }]
+    },
+    minDataPoints: 3,
+    bestFor: ['Multi-dimensional correlations', '3D data exploration', 'Scientific visualization'],
+    examples: ['Height vs weight vs age', '3D clustering analysis', 'Multi-factor relationships'],
+    commonMistakes: ['Too many overlapping points', 'Not all three axes being numeric']
+  },
+  surface3d: {
+    name: '3D Surface Plot',
+    description: 'Visualize continuous data as a 3D surface',
+    requiredColumns: ['x', 'y', 'z'],
+    optionalColumns: [],
+    category: '3d',
+    icon: 'heatmap',
+    configurable: {
+      aggregation: false,
+      sorting: false,
+      stacking: false,
+      dataLabels: false,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'X-axis', type: 'numeric' },
+      yAxis: { label: 'Y-axis', type: 'numeric' },
+      additional: [{ label: 'Z-axis (Height)', type: 'numeric' }]
+    },
+    minDataPoints: 9,
+    bestFor: ['3D continuous data', 'Surface modeling', 'Topographic visualization'],
+    examples: ['Elevation maps', '3D response surfaces', 'Temperature distributions'],
+    commonMistakes: ['Insufficient data points', 'Non-continuous data']
   }
 };
 

@@ -8,6 +8,8 @@ interface AxisConfigurationProps {
   setXColumn: (value: string) => void;
   yColumn: string;
   setYColumn: (value: string) => void;
+  zColumn?: string;
+  setZColumn?: (value: string) => void;
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
   dateColumns: ColumnInfo[];
@@ -19,6 +21,8 @@ export const AxisConfiguration = ({
   setXColumn,
   yColumn,
   setYColumn,
+  zColumn,
+  setZColumn,
   numericColumns,
   categoricalColumns,
   dateColumns
@@ -67,6 +71,25 @@ export const AxisConfiguration = ({
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
               {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
+                <SelectItem key={col.name} value={col.name}>
+                  {col.name} ({col.type})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Z-Axis for 3D charts */}
+      {(chartType === 'scatter3d' || chartType === 'surface3d') && setZColumn && (
+        <div>
+          <label className="block text-sm font-medium mb-2">Z-Axis</label>
+          <Select value={zColumn || ''} onValueChange={setZColumn}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Z column" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              {numericColumns.map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
                 </SelectItem>
