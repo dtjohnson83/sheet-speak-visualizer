@@ -53,6 +53,7 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
             variant="outline"
             onClick={() => setIsAutoRotating(!isAutoRotating)}
             className="bg-background/80 backdrop-blur-sm"
+            data-auto-rotate
           >
             {isAutoRotating ? 'Stop' : 'Auto'}
           </Button>

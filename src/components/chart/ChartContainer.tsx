@@ -58,6 +58,7 @@ export const ChartContainer = React.memo(({
   topXLimit,
   histogramBins
 }: ChartContainerProps) => {
+  const chartRef = React.useRef<HTMLDivElement>(null);
   const numericColumns = React.useMemo(() => 
     columns.filter(col => col.type === 'numeric'), 
     [columns]
@@ -110,7 +111,7 @@ export const ChartContainer = React.memo(({
   }, [chartData, chartType, data.length]);
 
   return (
-    <Card className="p-6 group chart-container">
+    <Card className="p-6 group chart-container" ref={chartRef}>
       <ChartHeader
         chartType={chartType}
         xColumn={xColumn}
@@ -126,6 +127,7 @@ export const ChartContainer = React.memo(({
         onSaveTile={onSaveTile}
         customTitle={customTitle}
         onTitleChange={onTitleChange}
+        chartRef={chartRef}
       />
       
       <div className="w-full overflow-x-auto mt-6">

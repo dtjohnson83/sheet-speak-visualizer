@@ -6,6 +6,7 @@ import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { SankeyData } from '@/lib/chartDataUtils';
 import { useState } from 'react';
+import { ChartShareDialog } from './sharing/ChartShareDialog';
 interface ChartHeaderProps {
   chartType: string;
   xColumn: string;
@@ -21,6 +22,7 @@ interface ChartHeaderProps {
   onSaveTile?: () => void;
   customTitle?: string;
   onTitleChange?: (title: string) => void;
+  chartRef?: React.RefObject<HTMLElement>;
 }
 
 export const ChartHeader = ({
@@ -37,7 +39,8 @@ export const ChartHeader = ({
   chartData,
   onSaveTile,
   customTitle,
-  onTitleChange
+  onTitleChange,
+  chartRef
 }: ChartHeaderProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
@@ -153,6 +156,15 @@ export const ChartHeader = ({
       </div>
       
       <div className="flex items-center gap-2">
+        {xColumn && yColumn && (
+          <ChartShareDialog
+            chartType={chartType}
+            chartTitle={customTitle || getDefaultTitle()}
+            chartData={chartData}
+            chartRef={chartRef}
+            is3D={chartType.includes('3d') || chartType.includes('-3d')}
+          />
+        )}
         
         {xColumn && yColumn && onSaveTile && (
           <Button
