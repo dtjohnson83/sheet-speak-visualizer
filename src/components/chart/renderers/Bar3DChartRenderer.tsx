@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import React, { useMemo, useRef, useState } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { animated, useSpring } from '@react-spring/three';
 
 interface Bar3DChartRendererProps {
   data: any[];
@@ -19,16 +20,63 @@ interface BarProps {
   label?: string;
   value?: number;
   showLabel?: boolean;
+  onHover?: (hovered: boolean, data?: any) => void;
+  onClick?: (data?: any) => void;
+  isSelected?: boolean;
 }
 
-const Bar3D: React.FC<BarProps> = ({ position, scale, color, label, value, showLabel }) => {
-  const meshRef = React.useRef<THREE.Mesh>(null);
+const Bar3D: React.FC<BarProps> = ({ 
+  position, 
+  scale, 
+  color, 
+  label, 
+  value, 
+  showLabel, 
+  onHover, 
+  onClick, 
+  isSelected 
+}) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
+  const [clicked, setClicked] = useState(false);
   
-  useFrame((state) => {
+  // Animated spring for smooth transitions
+  const springs = useSpring({
+    scaleX: hovered ? scale[0] * 1.1 : scale[0],
+    scaleY: hovered ? scale[1] * 1.1 : scale[1], 
+    scaleZ: hovered ? scale[2] * 1.1 : scale[2],
+    rotY: hovered ? Math.PI / 12 : 0,
+    metalness: hovered ? 0.3 : 0.1,
+    roughness: hovered ? 0.2 : 0.4,
+    config: { tension: 300, friction: 10 }
+  });
+
+  const handlePointerOver = (e: any) => {
+    e.stopPropagation();
+    setHovered(true);
+    onHover?.(true, { label, value, position });
+  };
+
+  const handlePointerOut = (e: any) => {
+    e.stopPropagation();
+    setHovered(false);
+    onHover?.(false);
+  };
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    setClicked(!clicked);
+    onClick?.({ label, value, position });
+  };
+
+  useFrame(() => {
     if (meshRef.current) {
-      // Subtle hover animation
-      const hovered = false; // TODO: Add hover detection
-      meshRef.current.scale.setScalar(hovered ? 1.1 : 1);
+      meshRef.current.scale.set(
+        springs.scaleX.get(),
+        springs.scaleY.get(), 
+        springs.scaleZ.get()
+      );
+      meshRef.current.rotation.y = springs.rotY.get();
     }
   });
 
@@ -40,12 +88,31 @@ const Bar3D: React.FC<BarProps> = ({ position, scale, color, label, value, showL
         scale={scale}
         castShadow
         receiveShadow
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        onClick={handleClick}
       >
         <boxGeometry args={[1, 1, 1]} />
-        <meshPhongMaterial color={color} />
+        <meshStandardMaterial 
+          color={hovered ? '#ffffff' : color}
+          metalness={hovered ? 0.3 : 0.1}
+          roughness={hovered ? 0.2 : 0.4}
+          emissive={isSelected ? '#4f46e5' : '#000000'}
+          emissiveIntensity={isSelected ? 0.2 : 0}
+        />
       </mesh>
+
+      {/* Hover tooltip */}
+      {hovered && (
+        <Html position={[position[0], position[1] + scale[1] / 2 + 1, position[2]]}>
+          <div className="bg-background/95 backdrop-blur-sm border rounded-lg p-2 shadow-lg pointer-events-none">
+            <div className="text-sm font-medium text-foreground">{label}</div>
+            <div className="text-xs text-muted-foreground">Value: {value}</div>
+          </div>
+        </Html>
+      )}
       
-      {showLabel && label && (
+      {showLabel && label && !hovered && (
         <Text
           position={[position[0], position[1] + scale[1] / 2 + 0.5, position[2]]}
           fontSize={0.3}
@@ -55,6 +122,14 @@ const Bar3D: React.FC<BarProps> = ({ position, scale, color, label, value, showL
         >
           {label}: {value}
         </Text>
+      )}
+
+      {/* Selection indicator */}
+      {isSelected && (
+        <mesh position={[position[0], -0.05, position[2]]}>
+          <cylinderGeometry args={[0.6, 0.6, 0.05]} />
+          <meshBasicMaterial color="#4f46e5" transparent opacity={0.6} />
+        </mesh>
       )}
     </group>
   );
@@ -68,6 +143,31 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
   chartColors,
   showDataLabels = false
 }) => {
+  const [hoveredBar, setHoveredBar] = useState<string | null>(null);
+  const [selectedBars, setSelectedBars] = useState<Set<string>>(new Set());
+
+  const handleBarHover = (hovered: boolean, data?: any) => {
+    if (hovered && data) {
+      setHoveredBar(`${data.label}-${data.value}`);
+    } else {
+      setHoveredBar(null);
+    }
+  };
+
+  const handleBarClick = (data?: any) => {
+    if (data) {
+      const barId = `${data.label}-${data.value}`;
+      setSelectedBars(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(barId)) {
+          newSet.delete(barId);
+        } else {
+          newSet.add(barId);
+        }
+        return newSet;
+      });
+    }
+  };
   const bars = useMemo(() => {
     if (!data || data.length === 0) return [];
 
@@ -101,17 +201,23 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
       </mesh>
       
       {/* 3D Bars */}
-      {bars.map((bar) => (
-        <Bar3D
-          key={bar.key}
-          position={bar.position}
-          scale={bar.scale}
-          color={bar.color}
-          label={bar.label}
-          value={bar.value}
-          showLabel={showDataLabels}
-        />
-      ))}
+      {bars.map((bar) => {
+        const barId = `${bar.label}-${bar.value}`;
+        return (
+          <Bar3D
+            key={bar.key}
+            position={bar.position}
+            scale={bar.scale}
+            color={bar.color}
+            label={bar.label}
+            value={bar.value}
+            showLabel={showDataLabels}
+            onHover={handleBarHover}
+            onClick={handleBarClick}
+            isSelected={selectedBars.has(barId)}
+          />
+        );
+      })}
       
       {/* Axes */}
       <group>
