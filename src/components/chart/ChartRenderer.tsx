@@ -11,6 +11,7 @@ interface ChartRendererProps {
   chartType: string;
   xColumn: string;
   yColumn: string;
+  zColumn?: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
   valueColumn?: string;
@@ -32,6 +33,7 @@ export const ChartRenderer = ({
   chartType,
   xColumn,
   yColumn,
+  zColumn,
   stackColumn,
   sankeyTargetColumn,
   valueColumn,
@@ -155,11 +157,12 @@ export const ChartRenderer = ({
 
   return (
     <ChartRenderers
-      chartType={chartType}
+      chartType={chartType as any}
       data={data}
       columns={columns}
       xColumn={cleanXColumn}
       yColumn={cleanYColumn}
+      zColumn={zColumn}
       stackColumn={stackColumn}
       sankeyTargetColumn={sankeyTargetColumn}
       valueColumn={valueColumn}

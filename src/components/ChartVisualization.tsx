@@ -30,6 +30,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     chartType,
     xColumn,
     yColumn,
+    zColumn,
     stackColumn,
     sankeyTargetColumn,
     sortColumn,
@@ -48,6 +49,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     setValueColumn,
     setXColumn,
     setYColumn,
+    setZColumn,
     setStackColumn,
     setSankeyTargetColumn,
     setSortColumn,
@@ -123,6 +125,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           setXColumn={setXColumn}
           yColumn={yColumn}
           setYColumn={setYColumn}
+          zColumn={zColumn}
+          setZColumn={setZColumn}
           stackColumn={stackColumn}
           setStackColumn={setStackColumn}
           sankeyTargetColumn={sankeyTargetColumn}
@@ -176,6 +180,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
         chartType={chartType}
         xColumn={xColumn}
         yColumn={yColumn}
+        zColumn={zColumn}
         stackColumn={stackColumn}
         sankeyTargetColumn={sankeyTargetColumn}
         valueColumn={valueColumn}

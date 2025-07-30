@@ -54,6 +54,8 @@ export const ChartConfiguration = ({
   setXColumn,
   yColumn,
   setYColumn,
+  zColumn,
+  setZColumn,
   stackColumn,
   setStackColumn,
   valueColumn,
@@ -75,7 +77,9 @@ export const ChartConfiguration = ({
   numericColumns,
   categoricalColumns,
   dateColumns,
-  data
+  data,
+  sankeyTargetColumn,
+  setSankeyTargetColumn
 }: ChartConfigurationProps) => {
   // Validate current chart configuration
   const validation = validateChartRequirements(
@@ -104,8 +108,8 @@ export const ChartConfiguration = ({
         setXColumn={setXColumn}
         yColumn={yColumn}
         setYColumn={setYColumn}
-        zColumn={props.zColumn}
-        setZColumn={props.setZColumn}
+        zColumn={zColumn}
+        setZColumn={setZColumn}
         numericColumns={numericColumns}
         categoricalColumns={categoricalColumns}
         dateColumns={dateColumns}

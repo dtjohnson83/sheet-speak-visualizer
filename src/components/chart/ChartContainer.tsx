@@ -15,6 +15,7 @@ interface ChartContainerProps {
   chartType: string;
   xColumn: string;
   yColumn: string;
+  zColumn?: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
   valueColumn?: string;
@@ -39,6 +40,7 @@ export const ChartContainer = React.memo(({
   chartType,
   xColumn,
   yColumn,
+  zColumn,
   stackColumn,
   sankeyTargetColumn,
   valueColumn,
@@ -133,6 +135,7 @@ export const ChartContainer = React.memo(({
           chartType={chartType}
           xColumn={xColumn?.trim() || ''}
           yColumn={yColumn?.trim() || ''}
+          zColumn={zColumn}
           stackColumn={stackColumn}
           sankeyTargetColumn={sankeyTargetColumn}
           valueColumn={valueColumn}
