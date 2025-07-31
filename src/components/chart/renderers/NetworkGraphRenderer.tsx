@@ -11,7 +11,7 @@ interface NetworkGraphRendererProps {
   showDataLabels?: boolean;
 }
 
-interface GraphNode {
+interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
   label: string;
   group: string;
@@ -97,10 +97,10 @@ export const NetworkGraphRenderer = ({
     const container = svg.append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    // Create force simulation
-    const simulation = d3.forceSimulation(networkData.nodes as any)
-      .force('link', d3.forceLink(networkData.links)
-        .id((d: any) => d.id)
+    // Create force simulation with proper typing
+    const simulation = d3.forceSimulation<GraphNode>(networkData.nodes)
+      .force('link', d3.forceLink<GraphNode, GraphLink>(networkData.links)
+        .id(d => d.id)
         .distance(100)
         .strength(0.1))
       .force('charge', d3.forceManyBody().strength(-300))

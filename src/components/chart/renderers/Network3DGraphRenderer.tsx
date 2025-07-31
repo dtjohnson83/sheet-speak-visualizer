@@ -59,12 +59,13 @@ const Network3D = ({ networkData, chartColors, showDataLabels }: {
       {/* Render nodes */}
       {networkData.nodes.map((node, index) => (
         <group key={`node-${node.id}`} position={node.position}>
-          <Sphere
-            args={[Math.max(0.1, node.connections * 0.05), 16, 16]}
-            material-color={nodeColor}
-            material-opacity={0.8}
-            material-transparent={true}
-          />
+          <Sphere args={[Math.max(0.1, node.connections * 0.05), 16, 16]}>
+            <meshStandardMaterial 
+              color={nodeColor} 
+              opacity={0.8} 
+              transparent={true} 
+            />
+          </Sphere>
           {showDataLabels && (
             <Text
               position={[0, node.connections * 0.05 + 0.2, 0]}

@@ -19,6 +19,7 @@ import { Surface3DChartRenderer } from './renderers/Surface3DChartRenderer';
 import { NetworkGraphRenderer } from './renderers/NetworkGraphRenderer';
 import { Network3DGraphRenderer } from './renderers/Network3DGraphRenderer';
 import { EntityRelationshipRenderer } from './renderers/EntityRelationshipRenderer';
+import { ChartErrorBoundary } from './renderers/ChartErrorBoundary';
 
 interface ExtendedChartRenderersProps extends ChartRenderersProps {
   aggregationMethod?: AggregationMethod;
@@ -199,40 +200,48 @@ export const ChartRenderers = ({
   // Graph Visualizations
   if (chartType === 'network') {
     return (
-      <NetworkGraphRenderer
-        data={data}
-        columns={columns}
-        xColumn={xColumn}
-        yColumn={yColumn}
-        chartColors={chartColors}
-        showDataLabels={showDataLabels}
-      />
+      <ChartErrorBoundary>
+        <NetworkGraphRenderer
+          data={data}
+          columns={columns}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </ChartErrorBoundary>
     );
   }
 
   if (chartType === 'network3d') {
     return (
-      <Network3DGraphRenderer
-        data={data}
-        columns={columns}
-        xColumn={xColumn}
-        yColumn={yColumn}
-        chartColors={chartColors}
-        showDataLabels={showDataLabels}
-      />
+      <ChartErrorBoundary>
+        <Chart3DContainer height={400}>
+          <Network3DGraphRenderer
+            data={data}
+            columns={columns}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            chartColors={chartColors}
+            showDataLabels={showDataLabels}
+          />
+        </Chart3DContainer>
+      </ChartErrorBoundary>
     );
   }
 
   if (chartType === 'entity-relationship') {
     return (
-      <EntityRelationshipRenderer
-        data={data}
-        columns={columns}
-        xColumn={xColumn}
-        yColumn={yColumn}
-        chartColors={chartColors}
-        showDataLabels={showDataLabels}
-      />
+      <ChartErrorBoundary>
+        <EntityRelationshipRenderer
+          data={data}
+          columns={columns}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </ChartErrorBoundary>
     );
   }
 

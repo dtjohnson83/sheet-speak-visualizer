@@ -11,7 +11,7 @@ interface EntityRelationshipRendererProps {
   showDataLabels?: boolean;
 }
 
-interface Entity {
+interface Entity extends d3.SimulationNodeDatum {
   id: string;
   label: string;
   type: string;
@@ -107,10 +107,10 @@ export const EntityRelationshipRenderer = ({
     const container = svg.append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    // Create force simulation for ER diagram
-    const simulation = d3.forceSimulation(erData.entities as any)
-      .force('link', d3.forceLink(erData.relationships)
-        .id((d: any) => d.id)
+    // Create force simulation for ER diagram with proper typing
+    const simulation = d3.forceSimulation<Entity>(erData.entities)
+      .force('link', d3.forceLink<Entity, Relationship>(erData.relationships)
+        .id(d => d.id)
         .distance(150)
         .strength(0.2))
       .force('charge', d3.forceManyBody().strength(-400))
