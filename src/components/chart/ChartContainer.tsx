@@ -164,6 +164,7 @@ export const ChartContainer = React.memo(({
                 columnFormats={columnFormats}
                 topXLimit={topXLimit}
                 histogramBins={histogramBins}
+                chartRef={chartRef}
               />
             );
           }

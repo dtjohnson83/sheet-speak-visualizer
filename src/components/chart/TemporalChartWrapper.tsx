@@ -1,20 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { ChartRenderers } from './ChartRenderers';
 import { TemporalAnimationConfiguration } from './config/TemporalAnimationConfiguration';
+import { detectTemporalColumns, prepareTemporalAnimationData, TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 import { useTemporalAnimation } from '@/hooks/useTemporalAnimation';
-import { 
-  prepareTemporalAnimationData, 
-  isTemporalDataSuitable, 
-  detectTemporalColumns,
-  TemporalAnimationConfig 
-} from '@/lib/chart/temporalDataProcessor';
-import { ColumnInfo } from '@/pages/Index';
+import { recordTemporalAnimation } from '@/lib/chart/temporalAnimationRecorder';
+import { useToast } from '@/hooks/use-toast';
 import { ChartRenderersProps } from '@/types';
 
-type TemporalChartWrapperProps = ChartRenderersProps;
+interface TemporalChartWrapperProps extends ChartRenderersProps {
+  chartRef?: React.RefObject<HTMLElement>;
+}
 
-export const TemporalChartWrapper = (props: TemporalChartWrapperProps) => {
-  const { data, columns } = props;
+export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props) => {
+  const { data, columns, chartRef } = props;
+  const { toast } = useToast();
   
   const temporalColumns = detectTemporalColumns(columns);
   const hasTemporalData = temporalColumns.length > 0;
@@ -51,6 +50,42 @@ export const TemporalChartWrapper = (props: TemporalChartWrapperProps) => {
     ? state.currentFrameData.data 
     : data;
 
+  const handleRecordAnimation = async () => {
+    if (!chartRef?.current) {
+      toast({
+        title: "Error",
+        description: "Chart not found for recording",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await recordTemporalAnimation(
+        chartRef.current,
+        state,
+        controls,
+        {
+          format: 'mp4',
+          width: 1600,
+          height: 1200,
+          fileName: 'temporal-animation'
+        }
+      );
+      
+      toast({
+        title: "Recording Started",
+        description: "Temporal animation recording in progress...",
+      });
+    } catch (error) {
+      toast({
+        title: "Recording Failed",
+        description: "Failed to record temporal animation",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       {hasTemporalData && (
@@ -63,6 +98,10 @@ export const TemporalChartWrapper = (props: TemporalChartWrapperProps) => {
           onReset={controls.reset}
           currentTimeLabel={state.currentFrameData?.timeLabel}
           progress={state.progress}
+          onRecordAnimation={handleRecordAnimation}
+          chartRef={chartRef}
+          temporalAnimationState={state}
+          temporalAnimationControls={controls}
         />
       )}
       

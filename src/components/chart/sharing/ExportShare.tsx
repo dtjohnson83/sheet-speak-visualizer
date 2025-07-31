@@ -8,6 +8,7 @@ import { Download, Video, Camera, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { exportChart3D } from '../utils/chart3DExporter';
 import { recordChart3DAnimation } from '../utils/chart3DAnimationRecorder';
+import { recordTemporalAnimation } from '@/lib/chart/temporalAnimationRecorder';
 
 interface ExportShareProps {
   chartType: string;
@@ -15,6 +16,9 @@ interface ExportShareProps {
   chartData: any;
   chartRef?: React.RefObject<HTMLElement>;
   is3D?: boolean;
+  isTemporalAnimation?: boolean;
+  temporalAnimationState?: any;
+  temporalAnimationControls?: any;
   onClose: () => void;
 }
 
@@ -24,6 +28,9 @@ export const ExportShare: React.FC<ExportShareProps> = ({
   chartData,
   chartRef,
   is3D,
+  isTemporalAnimation,
+  temporalAnimationState,
+  temporalAnimationControls,
   onClose
 }) => {
   const [exportFormat, setExportFormat] = useState('png');
@@ -65,18 +72,33 @@ export const ExportShare: React.FC<ExportShareProps> = ({
     try {
       const fileName = `${chartTitle.toLowerCase().replace(/\s+/g, '-')}-chart`;
       
-      if (currentFormat.supportsAnimation && is3D) {
+      if (currentFormat.supportsAnimation && (is3D || isTemporalAnimation)) {
         // Export animation
-        await recordChart3DAnimation(
-          chartRef.current,
-          {
-            format: exportFormat as 'gif' | 'mp4',
-            duration: animationDuration,
-            width: currentResolution.width,
-            height: currentResolution.height,
-            fileName
-          }
-        );
+        if (isTemporalAnimation && temporalAnimationState && temporalAnimationControls) {
+          await recordTemporalAnimation(
+            chartRef.current,
+            temporalAnimationState,
+            temporalAnimationControls,
+            {
+              format: exportFormat as 'gif' | 'mp4',
+              duration: animationDuration,
+              width: currentResolution.width,
+              height: currentResolution.height,
+              fileName
+            }
+          );
+        } else if (is3D) {
+          await recordChart3DAnimation(
+            chartRef.current,
+            {
+              format: exportFormat as 'gif' | 'mp4',
+              duration: animationDuration,
+              width: currentResolution.width,
+              height: currentResolution.height,
+              fileName
+            }
+          );
+        }
       } else {
         // Export static image
         if (is3D) {
@@ -148,9 +170,9 @@ export const ExportShare: React.FC<ExportShareProps> = ({
                   <div className="flex items-center gap-2">
                     <format.icon className="h-4 w-4" />
                     {format.name}
-                    {format.supportsAnimation && is3D && (
+                    {format.supportsAnimation && (is3D || isTemporalAnimation) && (
                       <span className="text-xs bg-primary/10 text-primary px-1 rounded">
-                        3D Animation
+                        {is3D ? '3D Animation' : 'Temporal Animation'}
                       </span>
                     )}
                   </div>
@@ -182,7 +204,7 @@ export const ExportShare: React.FC<ExportShareProps> = ({
           />
         </div>
 
-        {currentFormat.supportsAnimation && is3D && (
+        {currentFormat.supportsAnimation && (is3D || isTemporalAnimation) && (
           <div>
             <label className="text-sm font-medium mb-2 block">
               Animation Duration: {animationDuration}s
@@ -200,10 +222,13 @@ export const ExportShare: React.FC<ExportShareProps> = ({
       </Card>
 
       <div className="text-sm text-muted-foreground space-y-1">
-        <p>• {is3D ? '3D charts' : '2D charts'} supported</p>
+        <p>• {is3D ? '3D charts' : isTemporalAnimation ? 'Temporal animation' : '2D charts'} supported</p>
         <p>• File size varies by resolution and complexity</p>
         {currentFormat.supportsAnimation && is3D && (
           <p>• Animation captures 360° rotation with interactions</p>
+        )}
+        {currentFormat.supportsAnimation && isTemporalAnimation && (
+          <p>• Animation captures temporal data progression over time</p>
         )}
       </div>
 

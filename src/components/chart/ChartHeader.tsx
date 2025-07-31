@@ -23,6 +23,9 @@ interface ChartHeaderProps {
   customTitle?: string;
   onTitleChange?: (title: string) => void;
   chartRef?: React.RefObject<HTMLElement>;
+  isTemporalAnimation?: boolean;
+  temporalAnimationState?: any;
+  temporalAnimationControls?: any;
 }
 
 export const ChartHeader = ({
@@ -40,7 +43,10 @@ export const ChartHeader = ({
   onSaveTile,
   customTitle,
   onTitleChange,
-  chartRef
+  chartRef,
+  isTemporalAnimation,
+  temporalAnimationState,
+  temporalAnimationControls
 }: ChartHeaderProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
@@ -163,6 +169,9 @@ export const ChartHeader = ({
             chartData={chartData}
             chartRef={chartRef}
             is3D={chartType.includes('3d') || chartType.includes('-3d')}
+            isTemporalAnimation={isTemporalAnimation}
+            temporalAnimationState={temporalAnimationState}
+            temporalAnimationControls={temporalAnimationControls}
           />
         )}
         

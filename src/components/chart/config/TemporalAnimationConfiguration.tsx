@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar, Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { Calendar, Play, Pause, RotateCcw, Settings, Video } from 'lucide-react';
 import { ColumnInfo } from '@/pages/Index';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { TemporalAnimationConfig, TimeInterval, detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
@@ -20,6 +20,10 @@ interface TemporalAnimationConfigurationProps {
   onReset?: () => void;
   currentTimeLabel?: string;
   progress?: number;
+  onRecordAnimation?: () => void;
+  chartRef?: React.RefObject<HTMLElement>;
+  temporalAnimationState?: any;
+  temporalAnimationControls?: any;
 }
 
 export const TemporalAnimationConfiguration = ({
@@ -30,7 +34,11 @@ export const TemporalAnimationConfiguration = ({
   onTogglePlay,
   onReset,
   currentTimeLabel,
-  progress = 0
+  progress = 0,
+  onRecordAnimation,
+  chartRef,
+  temporalAnimationState,
+  temporalAnimationControls
 }: TemporalAnimationConfigurationProps) => {
   const temporalColumns = detectTemporalColumns(columns);
   const hasTemporalColumns = temporalColumns.length > 0;
@@ -123,6 +131,17 @@ export const TemporalAnimationConfiguration = ({
                   >
                     <RotateCcw className="h-3 w-3" />
                   </Button>
+                  {onRecordAnimation && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={onRecordAnimation}
+                      className="h-8 w-8 p-0"
+                      title="Record Animation"
+                    >
+                      <Video className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">

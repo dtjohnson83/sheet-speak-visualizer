@@ -13,6 +13,9 @@ interface ChartShareDialogProps {
   chartData: any;
   chartRef?: React.RefObject<HTMLElement>;
   is3D?: boolean;
+  isTemporalAnimation?: boolean;
+  temporalAnimationState?: any;
+  temporalAnimationControls?: any;
 }
 
 export const ChartShareDialog: React.FC<ChartShareDialogProps> = ({
@@ -20,7 +23,10 @@ export const ChartShareDialog: React.FC<ChartShareDialogProps> = ({
   chartTitle,
   chartData,
   chartRef,
-  is3D = false
+  is3D = false,
+  isTemporalAnimation = false,
+  temporalAnimationState,
+  temporalAnimationControls
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -73,6 +79,9 @@ export const ChartShareDialog: React.FC<ChartShareDialogProps> = ({
               chartData={chartData}
               chartRef={chartRef}
               is3D={is3D}
+              isTemporalAnimation={isTemporalAnimation}
+              temporalAnimationState={temporalAnimationState}
+              temporalAnimationControls={temporalAnimationControls}
               onClose={() => setIsOpen(false)}
             />
           </TabsContent>
