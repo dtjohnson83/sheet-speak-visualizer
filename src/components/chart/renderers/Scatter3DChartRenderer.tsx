@@ -41,8 +41,8 @@ const Point3D: React.FC<PointProps> = ({
   const [hovered, setHovered] = useState(false);
   
   const springs = useSpring({
-    scale: hovered ? size * 2 : size,
-    emissive: hovered ? 0.3 : isSelected ? 0.2 : 0,
+    scale: hovered ? size * 3 : size,
+    emissive: hovered ? 0.4 : isSelected ? 0.3 : 0.1,
     config: { tension: 300, friction: 10 }
   });
   
@@ -83,12 +83,12 @@ const Point3D: React.FC<PointProps> = ({
         onPointerOut={handlePointerOut}
         onClick={handleClick}
       >
-        <sphereGeometry args={[size, 16, 16]} />
+        <sphereGeometry args={[size, 12, 12]} />
         <meshStandardMaterial 
           color={hovered ? '#ffffff' : color}
-          metalness={hovered ? 0.4 : 0.1}
-          roughness={hovered ? 0.1 : 0.3}
-          emissive={isSelected ? '#4f46e5' : hovered ? '#06b6d4' : '#000000'}
+          metalness={hovered ? 0.6 : 0.2}
+          roughness={hovered ? 0.05 : 0.2}
+          emissive={isSelected ? '#4f46e5' : hovered ? '#06b6d4' : color}
           emissiveIntensity={springs.emissive.get()}
         />
       </mesh>
@@ -184,6 +184,12 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     
     const scale = 3; // Spread points within axis bounds
     
+    // Calculate appropriate dot size based on data density
+    const dataCount = data.length;
+    const baseDotSize = Math.max(0.15, Math.min(0.25, 0.5 / Math.sqrt(dataCount)));
+    
+    console.log(`3D Scatter: Rendering ${dataCount} points with size ${baseDotSize}`);
+    
     return data.map((item, index) => {
       // Center data around origin (0,0,0)
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
@@ -193,7 +199,7 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
       return {
         position: [x, y, z] as [number, number, number],
         color: chartColors[index % chartColors.length],
-        size: 0.1,
+        size: baseDotSize,
         label: `${item[xColumn]}, ${item[yColumn]}, ${item[zColumn]}`,
         key: `point-${index}`
       };
