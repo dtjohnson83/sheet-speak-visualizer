@@ -11,10 +11,7 @@ import {
 import { ColumnInfo } from '@/pages/Index';
 import { ChartRenderersProps } from '@/types';
 
-interface TemporalChartWrapperProps extends ChartRenderersProps {
-  aggregationMethod?: any;
-  zColumn?: string;
-}
+type TemporalChartWrapperProps = ChartRenderersProps;
 
 export const TemporalChartWrapper = (props: TemporalChartWrapperProps) => {
   const { data, columns } = props;

@@ -3,11 +3,13 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { ChartHeader } from './ChartHeader';
 import { ChartRenderer } from './ChartRenderer';
+import { TemporalChartWrapper } from './TemporalChartWrapper';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { ColumnFormat } from '@/lib/columnFormatting';
 import { logChartOperation } from '@/lib/logger';
+import { detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
 
 interface ChartContainerProps {
   data: DataRow[];
@@ -131,27 +133,66 @@ export const ChartContainer = React.memo(({
       />
       
       <div className="w-full overflow-x-auto mt-6">
-        <ChartRenderer
-          data={processedDataForChart}
-          columns={columns}
-          chartType={chartType}
-          xColumn={xColumn?.trim() || ''}
-          yColumn={yColumn?.trim() || ''}
-          zColumn={zColumn}
-          stackColumn={stackColumn}
-          sankeyTargetColumn={sankeyTargetColumn}
-          valueColumn={valueColumn}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          series={series}
-          aggregationMethod={aggregationMethod}
-          showDataLabels={showDataLabels}
-          supportsMultipleSeries={supportsMultipleSeries}
-          chartColors={chartColors}
-          columnFormats={columnFormats}
-          topXLimit={topXLimit}
-          histogramBins={histogramBins}
-        />
+        {(() => {
+          // Check if this chart has temporal data suitable for animation
+          const temporalColumns = detectTemporalColumns(columns);
+          const hasTemporalData = temporalColumns.length > 0;
+          
+          // Chart types that support temporal animation
+          const temporalSupportedTypes = ['bar', 'line', 'area', 'pie'];
+          const supportsTemporalAnimation = temporalSupportedTypes.includes(chartType);
+          
+          if (hasTemporalData && supportsTemporalAnimation) {
+            return (
+              <TemporalChartWrapper
+                data={processedDataForChart}
+                columns={columns}
+                chartType={chartType}
+                xColumn={xColumn?.trim() || ''}
+                yColumn={yColumn?.trim() || ''}
+                zColumn={zColumn}
+                stackColumn={stackColumn}
+                sankeyTargetColumn={sankeyTargetColumn}
+                valueColumn={valueColumn}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                series={series}
+                aggregationMethod={aggregationMethod}
+                showDataLabels={showDataLabels}
+                supportsMultipleSeries={supportsMultipleSeries}
+                chartColors={chartColors}
+                columnFormats={columnFormats}
+                topXLimit={topXLimit}
+                histogramBins={histogramBins}
+              />
+            );
+          }
+          
+          // Fallback to regular chart renderer for non-temporal data
+          return (
+            <ChartRenderer
+              data={processedDataForChart}
+              columns={columns}
+              chartType={chartType}
+              xColumn={xColumn?.trim() || ''}
+              yColumn={yColumn?.trim() || ''}
+              zColumn={zColumn}
+              stackColumn={stackColumn}
+              sankeyTargetColumn={sankeyTargetColumn}
+              valueColumn={valueColumn}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              series={series}
+              aggregationMethod={aggregationMethod}
+              showDataLabels={showDataLabels}
+              supportsMultipleSeries={supportsMultipleSeries}
+              chartColors={chartColors}
+              columnFormats={columnFormats}
+              topXLimit={topXLimit}
+              histogramBins={histogramBins}
+            />
+          );
+        })()}
       </div>
     </Card>
   );

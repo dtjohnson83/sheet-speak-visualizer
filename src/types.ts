@@ -18,4 +18,9 @@ export interface ChartRenderersProps {
   showDataLabels: boolean;
   chartColors: string[];
   aggregationMethod?: AggregationMethod;
+  supportsMultipleSeries?: boolean;
+  columnFormats?: any;
+  topXLimit?: number | null;
+  histogramBins?: number;
+  zColumn?: string;
 }
