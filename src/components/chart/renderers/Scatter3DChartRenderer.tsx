@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useSpring } from '@react-spring/three';
+import { StandardAxes3D } from '../utils/StandardAxes3D';
 
 interface Scatter3DChartRendererProps {
   data: any[];
@@ -181,11 +182,12 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const zMin = Math.min(...zValues);
     const zMax = Math.max(...zValues);
     
-    const scale = 4; // Spread points across 8x8x8 space
+    const scale = 3; // Spread points within axis bounds
     
     return data.map((item, index) => {
+      // Center data around origin (0,0,0)
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
-      const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale - scale / 2;
+      const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale;
       const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
       
       return {
@@ -200,27 +202,15 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
 
   return (
     <>
-      {/* Reference grid */}
-      <group>
-        {/* Grid lines */}
-        {Array.from({ length: 9 }, (_, i) => {
-          const pos = (i - 4) * 0.5;
-          return (
-            <group key={`grid-${i}`}>
-              {/* X-direction lines */}
-              <mesh position={[0, -2, pos]}>
-                <cylinderGeometry args={[0.005, 0.005, 4]} />
-                <meshBasicMaterial color="#ddd" transparent opacity={0.3} />
-              </mesh>
-              {/* Z-direction lines */}
-              <mesh position={[pos, -2, 0]} rotation={[0, 0, Math.PI / 2]}>
-                <cylinderGeometry args={[0.005, 0.005, 4]} />
-                <meshBasicMaterial color="#ddd" transparent opacity={0.3} />
-              </mesh>
-            </group>
-          );
-        })}
-      </group>
+      {/* Standard 3D Axes with origin at (0,0,0) */}
+      <StandardAxes3D 
+        xLabel={xColumn}
+        yLabel={yColumn}
+        zLabel={zColumn}
+        axisLength={4}
+        showGrid={true}
+        showOrigin={true}
+      />
       
       {/* 3D Points */}
       {points.map((point, index) => {
@@ -240,36 +230,6 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
           />
         );
       })}
-      
-      {/* Axes with labels */}
-      <group>
-        {/* X Axis */}
-        <mesh position={[0, -2.5, -2.5]}>
-          <cylinderGeometry args={[0.02, 0.02, 4]} />
-          <meshBasicMaterial color="#e74c3c" />
-        </mesh>
-        <Text position={[2.5, -2.5, -2.5]} fontSize={0.3} color="#e74c3c">
-          {xColumn}
-        </Text>
-        
-        {/* Y Axis */}
-        <mesh position={[-2.5, 0, -2.5]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.02, 0.02, 4]} />
-          <meshBasicMaterial color="#2ecc71" />
-        </mesh>
-        <Text position={[-2.5, 2.5, -2.5]} fontSize={0.3} color="#2ecc71">
-          {yColumn}
-        </Text>
-        
-        {/* Z Axis */}
-        <mesh position={[-2.5, -2.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 4]} />
-          <meshBasicMaterial color="#3498db" />
-        </mesh>
-        <Text position={[-2.5, -2.5, 2.5]} fontSize={0.3} color="#3498db">
-          {zColumn}
-        </Text>
-      </group>
     </>
   );
 };

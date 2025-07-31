@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { animated, useSpring } from '@react-spring/three';
+import { StandardAxes3D } from '../utils/StandardAxes3D';
 
 interface Bar3DChartRendererProps {
   data: any[];
@@ -172,18 +173,22 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
     if (!data || data.length === 0) return [];
 
     const maxValue = Math.max(...data.map(d => Number(d[yColumn]) || 0));
-    const spacing = 2;
+    const gridSize = Math.ceil(Math.sqrt(data.length));
+    const spacing = 3.5 / gridSize; // Fit within axis bounds
     
     return data.map((item, index) => {
       const value = Number(item[yColumn]) || 0;
       const normalizedHeight = (value / maxValue) * 3; // Max height of 3 units
       
-      const x = (index % Math.ceil(Math.sqrt(data.length))) * spacing - (Math.ceil(Math.sqrt(data.length)) * spacing) / 2;
-      const z = Math.floor(index / Math.ceil(Math.sqrt(data.length))) * spacing - (Math.ceil(Math.sqrt(data.length)) * spacing) / 2;
+      // Position bars relative to origin (0,0,0)
+      const row = Math.floor(index / gridSize);
+      const col = index % gridSize;
+      const x = (col - (gridSize - 1) / 2) * spacing;
+      const z = (row - (gridSize - 1) / 2) * spacing;
       
       return {
         position: [x, normalizedHeight / 2, z] as [number, number, number],
-        scale: [0.8, normalizedHeight, 0.8] as [number, number, number],
+        scale: [0.6, normalizedHeight, 0.6] as [number, number, number],
         color: chartColors[index % chartColors.length],
         label: String(item[xColumn]),
         value: value,
@@ -194,11 +199,15 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
 
   return (
     <>
-      {/* Grid floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
-        <planeGeometry args={[20, 20]} />
-        <meshPhongMaterial color="#f0f0f0" transparent opacity={0.3} />
-      </mesh>
+      {/* Standard 3D Axes with origin at (0,0,0) */}
+      <StandardAxes3D 
+        xLabel={xColumn}
+        yLabel={yColumn}
+        zLabel={zColumn || "Category"}
+        axisLength={4}
+        showGrid={true}
+        showOrigin={true}
+      />
       
       {/* 3D Bars */}
       {bars.map((bar) => {
@@ -218,27 +227,6 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
           />
         );
       })}
-      
-      {/* Axes */}
-      <group>
-        {/* X Axis */}
-        <mesh position={[0, 0, -5]}>
-          <cylinderGeometry args={[0.02, 0.02, 10]} />
-          <meshBasicMaterial color="#666" />
-        </mesh>
-        
-        {/* Y Axis */}
-        <mesh position={[-5, 2, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.02, 0.02, 4]} />
-          <meshBasicMaterial color="#666" />
-        </mesh>
-        
-        {/* Z Axis */}
-        <mesh position={[-5, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 10]} />
-          <meshBasicMaterial color="#666" />
-        </mesh>
-      </group>
     </>
   );
 };

@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { StandardAxes3D } from '../utils/StandardAxes3D';
 
 interface Network3DGraphRendererProps {
   data: DataRow[];
@@ -45,6 +46,16 @@ const Network3D = ({ networkData, chartColors, showDataLabels }: {
 
   return (
     <group ref={groupRef}>
+      {/* Standard 3D Axes */}
+      <StandardAxes3D 
+        xLabel="Network X"
+        yLabel="Network Y"
+        zLabel="Network Z"
+        axisLength={4}
+        showGrid={true}
+        showOrigin={true}
+      />
+
       {/* Render links */}
       {networkData.links.map((link, index) => (
         <Line
@@ -130,12 +141,12 @@ export const Network3DGraphRenderer = ({
       }
     });
 
-    // Position nodes in 3D space using force-directed layout
+    // Position nodes in 3D space using force-directed layout centered around origin
     const nodeArray = Array.from(nodes.values());
     const positionedNodes: GraphNode3D[] = nodeArray.map((node, index) => {
       const angle = (index / nodeArray.length) * Math.PI * 2;
-      const radius = Math.min(5, nodeArray.length * 0.3);
-      const height = (Math.random() - 0.5) * 2;
+      const radius = Math.min(1.5, nodeArray.length * 0.1); // Fit within axis bounds
+      const height = (Math.random() - 0.5) * 1.5; // Limit height to axis bounds
       
       return {
         ...node,
