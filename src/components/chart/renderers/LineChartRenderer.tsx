@@ -4,7 +4,10 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { ChartRenderersProps } from '@/types';
 
-interface LineChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'chartColors' | 'showDataLabels'> {}
+interface LineChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'chartColors' | 'showDataLabels'> {
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
+}
 
 export const LineChartRenderer = ({ 
   data, 
@@ -12,7 +15,9 @@ export const LineChartRenderer = ({
   yColumn,
   series, 
   chartColors,
-  showDataLabels
+  showDataLabels,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }: LineChartRendererProps) => {
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const, yAxisId: 'left' }] : [];
@@ -82,6 +87,9 @@ export const LineChartRenderer = ({
                 fill={chartColors[index % chartColors.length]} 
                 yAxisId={s.yAxisId || 'left'}
                 label={showDataLabels ? renderBarDataLabel : false}
+                isAnimationActive={isTemporalAnimated}
+                animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+                animationEasing="ease-out"
               />
             );
           } else {
@@ -95,6 +103,9 @@ export const LineChartRenderer = ({
                 dot={{ r: 4 }}
                 yAxisId={s.yAxisId || 'left'}
                 label={showDataLabels ? renderDataLabel : false}
+                isAnimationActive={isTemporalAnimated}
+                animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+                animationEasing="ease-out"
               />
             );
           }

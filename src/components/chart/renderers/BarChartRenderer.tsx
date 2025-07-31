@@ -3,7 +3,10 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { ChartRenderersProps } from '@/types';
 
-interface BarChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {}
+interface BarChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
+}
 
 export const BarChartRenderer = React.memo(({ 
   data, 
@@ -12,7 +15,9 @@ export const BarChartRenderer = React.memo(({
   series, 
   stackColumn, 
   chartColors,
-  showDataLabels
+  showDataLabels,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }: BarChartRendererProps) => {
   // Always include the base yColumn as the primary series
   const baseSeries = React.useMemo(() => 
@@ -96,6 +101,9 @@ export const BarChartRenderer = React.memo(({
             stackId={stackColumn ? 'stack' : undefined}
             yAxisId={s.yAxisId || 'left'}
             label={showDataLabels ? renderDataLabel : false}
+            isAnimationActive={isTemporalAnimated}
+            animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+            animationEasing="ease-out"
           />
         ))}
       </ComposedChart>

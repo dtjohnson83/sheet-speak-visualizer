@@ -24,24 +24,26 @@ import { ChartErrorBoundary } from './renderers/ChartErrorBoundary';
 interface ExtendedChartRenderersProps extends ChartRenderersProps {
   aggregationMethod?: AggregationMethod;
   zColumn?: string;
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
 }
 
-export const ChartRenderers = ({ 
-  chartType, 
-  data, 
-  columns, 
-  xColumn, 
-  yColumn, 
-  stackColumn, 
-  sankeyTargetColumn, 
-  valueColumn, 
-  sortColumn, 
-  sortDirection, 
-  series, 
-  showDataLabels, 
+export const ChartRenderers = ({
+  data,
+  chartType,
+  columns,
+  xColumn,
+  yColumn,
+  series,
   chartColors,
-  aggregationMethod = 'sum',
-  zColumn
+  showDataLabels,
+  stackColumn,
+  sankeyTargetColumn,
+  valueColumn,
+  aggregationMethod,
+  zColumn,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }: ExtendedChartRenderersProps) => {
   if (chartType === 'bar') {
     return (
@@ -53,6 +55,8 @@ export const ChartRenderers = ({
         stackColumn={stackColumn}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isTemporalAnimated={isTemporalAnimated}
+        animationSpeed={animationSpeed}
       />
     );
   }
@@ -66,6 +70,8 @@ export const ChartRenderers = ({
         series={series}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isTemporalAnimated={isTemporalAnimated}
+        animationSpeed={animationSpeed}
       />
     );
   }
@@ -90,6 +96,8 @@ export const ChartRenderers = ({
         data={data}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isTemporalAnimated={isTemporalAnimated}
+        animationSpeed={animationSpeed}
       />
     );
   }
@@ -113,6 +121,8 @@ export const ChartRenderers = ({
         data={data}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isTemporalAnimated={isTemporalAnimated}
+        animationSpeed={animationSpeed}
       />
     );
   }

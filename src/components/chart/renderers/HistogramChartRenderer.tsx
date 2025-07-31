@@ -4,12 +4,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { ChartRenderersProps } from '@/types';
 
-interface HistogramChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors' | 'showDataLabels'> {}
+interface HistogramChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors' | 'showDataLabels'> {
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
+}
 
 export const HistogramChartRenderer = ({ 
   data, 
   chartColors,
-  showDataLabels
+  showDataLabels,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }: HistogramChartRendererProps) => {
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -39,6 +44,9 @@ export const HistogramChartRenderer = ({
           dataKey="frequency" 
           fill={chartColors[0]} 
           label={showDataLabels ? renderDataLabel : false}
+          isAnimationActive={isTemporalAnimated}
+          animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+          animationEasing="ease-out"
         />
       </BarChart>
     </ResponsiveContainer>

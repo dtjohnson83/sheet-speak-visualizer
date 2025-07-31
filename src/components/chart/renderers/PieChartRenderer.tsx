@@ -8,12 +8,16 @@ interface PieChartRendererProps {
   data: DataRow[];
   chartColors: string[];
   showDataLabels?: boolean;
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
 }
 
 export const PieChartRenderer = ({ 
   data, 
   chartColors,
-  showDataLabels = false 
+  showDataLabels = false,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }: PieChartRendererProps) => {
   if (!data || data.length === 0) {
     return (
@@ -69,6 +73,9 @@ export const PieChartRenderer = ({
             outerRadius={120}
             label={renderLabel}
             labelLine={false}
+            isAnimationActive={isTemporalAnimated}
+            animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+            animationEasing="ease-out"
           >
             {dataWithTotal.map((entry, index) => (
               <Cell 
