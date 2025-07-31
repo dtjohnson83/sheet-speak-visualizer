@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { chartTypeInfo } from '@/lib/chartTypeInfo';
+import { useGraphChartAvailability } from '@/hooks/useGraphChartAvailability';
 import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, Hash, TrendingUp, PieChart, Box } from 'lucide-react';
 
 interface ChartTypeSelectorProps {
@@ -33,6 +35,7 @@ const chartTypes = [
 
 export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, yColumn, dataLength }: ChartTypeSelectorProps) => {
   console.log('ChartTypeSelector - Render with chartType:', chartType);
+  const { canShowGraphCharts, graphChartTypes, reasonUnavailable, availabilityDetails } = useGraphChartAvailability();
   
   const handleChartTypeChange = (newChartType: string) => {
     console.log('ChartTypeSelector - handleChartTypeChange called:', {
@@ -73,15 +76,44 @@ export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, y
           })}
           
           {/* Graph Charts */}
-          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">Graph Visualizations</div>
+          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">
+            Graph Visualizations
+            {!canShowGraphCharts && (
+              <span className="ml-2 text-xs text-orange-600">({reasonUnavailable})</span>
+            )}
+          </div>
           {chartTypes.filter(type => type.category === 'Graph').map((type) => {
             const IconComponent = type.icon;
+            const isGraphChart = graphChartTypes.includes(type.value);
+            const isDisabled = isGraphChart && !canShowGraphCharts;
+            
+            if (isDisabled) {
+              return (
+                <SelectItem key={type.value} value={type.value} disabled>
+                  <div className="flex items-center gap-2 opacity-50">
+                    <IconComponent className="w-4 h-4" />
+                    {type.label}
+                    <Badge variant="outline" className="text-xs ml-auto">
+                      {reasonUnavailable}
+                    </Badge>
+                  </div>
+                </SelectItem>
+              );
+            }
+            
             return (
               <SelectItem key={type.value} value={type.value}>
                 <div className="flex items-center gap-2">
                   <IconComponent className="w-4 h-4" />
                   {type.label}
-                  <span className="ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">AI</span>
+                  <div className="ml-auto flex gap-1">
+                    <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">AI</span>
+                    {canShowGraphCharts && (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                        {availabilityDetails.relationshipCount} rels
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </SelectItem>
             );

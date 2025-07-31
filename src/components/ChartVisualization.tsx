@@ -8,10 +8,13 @@ import { AIChartGenerator } from './chart/AIChartGenerator';
 import { SmartChartDefaults } from './chart/SmartChartDefaults';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useChartConfiguration } from './chart/hooks/useChartConfiguration';
+import { useGraphEnhancedSemanticFusion } from '@/hooks/useGraphEnhancedSemanticFusion';
+import { useGraphChartAvailability } from '@/hooks/useGraphChartAvailability';
+import { convertGraphToChartData, getGraphChartColumns } from '@/lib/graphChartDataProcessor';
 import { Badge } from '@/components/ui/badge';
-import { Zap } from 'lucide-react';
+import { Zap, Network } from 'lucide-react';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -67,9 +70,33 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     handleSaveTile
   } = useChartConfiguration();
 
-  const numericColumns = columns.filter(col => col.type === 'numeric');
-  const categoricalColumns = columns.filter(col => col.type === 'categorical' || col.type === 'text');
-  const dateColumns = columns.filter(col => col.type === 'date');
+  // Graph chart hooks and data processing
+  const { relationships, entities } = useGraphEnhancedSemanticFusion();
+  const { canShowGraphCharts, graphChartTypes } = useGraphChartAvailability();
+
+  // Process data based on chart type - use graph data for graph charts
+  const { chartData, chartColumns } = useMemo(() => {
+    const isGraphChart = graphChartTypes.includes(chartType);
+    
+    if (isGraphChart && canShowGraphCharts) {
+      return {
+        chartData: convertGraphToChartData(chartType as any, relationships, entities),
+        chartColumns: getGraphChartColumns(chartType as any)
+      };
+    }
+    
+    return {
+      chartData: data,
+      chartColumns: columns
+    };
+  }, [chartType, data, columns, relationships, entities, canShowGraphCharts, graphChartTypes]);
+
+  const numericColumns = chartColumns.filter(col => col.type === 'numeric');
+  const categoricalColumns = chartColumns.filter(col => col.type === 'categorical' || col.type === 'text');
+  const dateColumns = chartColumns.filter(col => col.type === 'date');
+  
+  // Show graph chart indicator when using graph data
+  const isUsingGraphData = graphChartTypes.includes(chartType) && canShowGraphCharts;
 
   // Debug logging for series management and column types
   useEffect(() => {
@@ -94,18 +121,26 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold">Data Visualization</h3>
-          {dataSourceName && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              {dataSourceName}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {isUsingGraphData && (
+              <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                <Network className="h-3 w-3" />
+                Cross-Dataset Graph
+              </Badge>
+            )}
+            {dataSourceName && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Zap className="h-3 w-3" />
+                {dataSourceName}
+              </Badge>
+            )}
+          </div>
         </div>
         
         {/* Smart Chart Defaults */}
         <SmartChartDefaults
-          data={data}
-          columns={columns}
+          data={chartData}
+          columns={chartColumns}
           currentChartType={chartType}
           hasUserInteracted={hasUserInteracted}
           onApplyDefaults={handleApplySmartDefaults}
@@ -113,8 +148,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
 
         {/* AI Chart Generator */}
         <AIChartGenerator 
-          data={data}
-          columns={columns}
+          data={chartData}
+          columns={chartColumns}
           onApplySuggestion={handleApplyAISuggestion}
         />
         
@@ -146,11 +181,11 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           setHistogramBins={setHistogramBins}
           aggregationMethod={aggregationMethod}
           setAggregationMethod={setAggregationMethod}
-          columns={columns}
+          columns={chartColumns}
           numericColumns={numericColumns}
           categoricalColumns={categoricalColumns}
           dateColumns={dateColumns}
-          data={data}
+          data={chartData}
         />
 
         <div className="mt-4">
@@ -175,8 +210,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
       </div>
 
       <ChartContainer
-        data={data}
-        columns={columns}
+        data={chartData}
+        columns={chartColumns}
         chartType={chartType}
         xColumn={xColumn}
         yColumn={yColumn}
