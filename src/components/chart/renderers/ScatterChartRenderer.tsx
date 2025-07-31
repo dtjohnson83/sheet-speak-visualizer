@@ -2,6 +2,7 @@
 import React from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
+import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
 
 interface ScatterChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'chartColors' | 'showDataLabels'> {}
@@ -29,7 +30,7 @@ export const ScatterChartRenderer = ({
       <text 
         x={props.cx} 
         y={props.cy - 10} 
-        fill="#666" 
+        fill={getChartTextColor()} 
         textAnchor="middle" 
         fontSize="10"
       >

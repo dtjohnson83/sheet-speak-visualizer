@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { formatTooltipValue } from '@/lib/numberUtils';
+import { getChartTextColor } from '@/lib/chartTheme';
 
 interface TileHistogramChartRendererProps {
   data: DataRow[];
@@ -33,7 +34,7 @@ export const TileHistogramChartRenderer = ({
       <text 
         x={x + width / 2} 
         y={y - 2} 
-        fill="#666" 
+        fill={getChartTextColor()} 
         textAnchor="middle" 
         dy={-3}
         fontSize="8"

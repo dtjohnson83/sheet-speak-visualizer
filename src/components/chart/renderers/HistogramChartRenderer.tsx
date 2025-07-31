@@ -2,6 +2,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
+import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
 
 interface HistogramChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors' | 'showDataLabels'> {
@@ -23,7 +24,7 @@ export const HistogramChartRenderer = ({
       <text 
         x={x + width / 2} 
         y={y - 5} 
-        fill="#666" 
+        fill={getChartTextColor()} 
         textAnchor="middle" 
         dy={-6}
         fontSize="12"

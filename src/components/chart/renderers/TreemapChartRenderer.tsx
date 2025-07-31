@@ -2,6 +2,7 @@
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
+import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
 
 interface TreemapChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors' | 'showDataLabels'> {}
@@ -35,7 +36,7 @@ export const TreemapChartRenderer = ({
               x={x + width / 2} 
               y={y + height / 2 - 5} 
               textAnchor="middle" 
-              fill="#fff" 
+              fill={getChartTextColor(true)} 
               fontSize="12"
               fontWeight="bold"
             >
@@ -45,7 +46,7 @@ export const TreemapChartRenderer = ({
               x={x + width / 2} 
               y={y + height / 2 + 10} 
               textAnchor="middle" 
-              fill="#fff" 
+              fill={getChartTextColor(true)} 
               fontSize="10"
             >
               {formatTooltipValue(value)}

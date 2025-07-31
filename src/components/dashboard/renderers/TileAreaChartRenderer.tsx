@@ -2,6 +2,7 @@
 import React from 'react';
 import { ComposedChart, Bar, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
+import { getChartTextColor } from '@/lib/chartTheme';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
 
@@ -34,7 +35,7 @@ export const TileAreaChartRenderer = ({
       <text 
         x={x} 
         y={y - 10} 
-        fill="#666" 
+        fill={getChartTextColor()} 
         textAnchor="middle" 
         fontSize="12"
       >
@@ -49,7 +50,7 @@ export const TileAreaChartRenderer = ({
       <text 
         x={x + width / 2} 
         y={y - 5} 
-        fill="#666" 
+        fill={getChartTextColor()} 
         textAnchor="middle" 
         dy={-6}
         fontSize="12"

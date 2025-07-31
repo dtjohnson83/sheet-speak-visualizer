@@ -4,6 +4,7 @@ import { Treemap, ResponsiveContainer } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { formatTooltipValue } from '@/lib/numberUtils';
+import { getChartTextColor } from '@/lib/chartTheme';
 
 interface TileTreemapChartRendererProps {
   data: DataRow[];
@@ -49,7 +50,7 @@ export const TileTreemapChartRenderer = ({
               x={x + width / 2} 
               y={y + height / 2 - 3} 
               textAnchor="middle" 
-              fill="#fff" 
+              fill={getChartTextColor(true)} 
               fontSize="8"
               fontWeight="bold"
             >
@@ -59,7 +60,7 @@ export const TileTreemapChartRenderer = ({
               x={x + width / 2} 
               y={y + height / 2 + 8} 
               textAnchor="middle" 
-              fill="#fff" 
+              fill={getChartTextColor(true)} 
               fontSize="6"
             >
               {formatTooltipValue(value)}
