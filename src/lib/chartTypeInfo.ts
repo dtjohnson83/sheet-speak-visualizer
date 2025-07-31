@@ -298,6 +298,75 @@ export const chartTypeInfo = {
     bestFor: ['3D continuous data', 'Surface modeling', 'Topographic visualization'],
     examples: ['Elevation maps', '3D response surfaces', 'Temperature distributions'],
     commonMistakes: ['Insufficient data points', 'Non-continuous data']
+  },
+  network: {
+    name: 'Network Graph',
+    description: 'Visualize relationships and connections between entities',
+    requiredColumns: ['source', 'target'],
+    optionalColumns: ['weight'],
+    category: 'graph',
+    icon: 'network',
+    configurable: {
+      aggregation: true,
+      sorting: false,
+      stacking: false,
+      dataLabels: true,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'Source Entity', type: 'categorical' },
+      yAxis: { label: 'Target Entity', type: 'categorical' }
+    },
+    minDataPoints: 3,
+    bestFor: ['Network analysis', 'Relationship mapping', 'Social network visualization'],
+    examples: ['Social connections', 'Organization charts', 'Workflow dependencies'],
+    commonMistakes: ['Too many isolated nodes', 'Unclear entity relationships']
+  },
+  network3d: {
+    name: '3D Network Graph',
+    description: 'Interactive 3D visualization of network relationships',
+    requiredColumns: ['source', 'target'],
+    optionalColumns: ['weight'],
+    category: 'graph',
+    icon: 'network',
+    configurable: {
+      aggregation: true,
+      sorting: false,
+      stacking: false,
+      dataLabels: true,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'Source Entity', type: 'categorical' },
+      yAxis: { label: 'Target Entity', type: 'categorical' }
+    },
+    minDataPoints: 5,
+    bestFor: ['Complex network exploration', '3D relationship analysis', 'Immersive network visualization'],
+    examples: ['3D social networks', 'System architecture', 'Knowledge graphs'],
+    commonMistakes: ['Overcrowded 3D space', 'Poor camera positioning']
+  },
+  'entity-relationship': {
+    name: 'Entity-Relationship Diagram',
+    description: 'Structured diagram showing entities and their relationships',
+    requiredColumns: ['entity1', 'entity2'],
+    optionalColumns: ['relationship_type'],
+    category: 'graph',
+    icon: 'database',
+    configurable: {
+      aggregation: true,
+      sorting: false,
+      stacking: false,
+      dataLabels: true,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'Primary Entity', type: 'categorical' },
+      yAxis: { label: 'Related Entity', type: 'categorical' }
+    },
+    minDataPoints: 2,
+    bestFor: ['Database design', 'System modeling', 'Knowledge representation'],
+    examples: ['Database schemas', 'Business process models', 'Ontology visualization'],
+    commonMistakes: ['Too many attributes per entity', 'Unclear relationship types']
   }
 };
 

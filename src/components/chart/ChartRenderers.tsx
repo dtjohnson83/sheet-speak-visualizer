@@ -16,6 +16,9 @@ import { Chart3DContainer } from './Chart3DContainer';
 import { Bar3DChartRenderer } from './renderers/Bar3DChartRenderer';
 import { Scatter3DChartRenderer } from './renderers/Scatter3DChartRenderer';
 import { Surface3DChartRenderer } from './renderers/Surface3DChartRenderer';
+import { NetworkGraphRenderer } from './renderers/NetworkGraphRenderer';
+import { Network3DGraphRenderer } from './renderers/Network3DGraphRenderer';
+import { EntityRelationshipRenderer } from './renderers/EntityRelationshipRenderer';
 
 interface ExtendedChartRenderersProps extends ChartRenderersProps {
   aggregationMethod?: AggregationMethod;
@@ -190,6 +193,46 @@ export const ChartRenderers = ({
           showDataLabels={showDataLabels}
         />
       </Chart3DContainer>
+    );
+  }
+
+  // Graph Visualizations
+  if (chartType === 'network') {
+    return (
+      <NetworkGraphRenderer
+        data={data}
+        columns={columns}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
+  if (chartType === 'network3d') {
+    return (
+      <Network3DGraphRenderer
+        data={data}
+        columns={columns}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
+  if (chartType === 'entity-relationship') {
+    return (
+      <EntityRelationshipRenderer
+        data={data}
+        columns={columns}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
     );
   }
 

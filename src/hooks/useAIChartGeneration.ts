@@ -28,11 +28,11 @@ export const useAIChartGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSuggestion, setLastSuggestion] = useState<AIChartSuggestion | null>(null);
 
-  // Valid chart types list
-  const VALID_CHART_TYPES = ['bar', 'line', 'area', 'pie', 'scatter', 'heatmap', 'treemap', 'histogram', 'kpi'] as const;
+  // Valid chart types list including network visualizations
+  const VALID_CHART_TYPES = ['bar', 'line', 'area', 'pie', 'scatter', 'heatmap', 'treemap', 'histogram', 'kpi', 'network', 'network3d', 'entity-relationship'] as const;
   
   // Chart types that support series
-  const MULTI_SERIES_TYPES = ['bar', 'line', 'area', 'scatter'] as const;
+  const MULTI_SERIES_TYPES = ['bar', 'line', 'area', 'scatter', 'network'] as const;
   
   // Chart type to aggregation mapping
   const getDefaultAggregation = (chartType: string): AggregationMethod => {
@@ -42,6 +42,9 @@ export const useAIChartGeneration = () => {
       case 'histogram': return 'count';
       case 'pie':
       case 'treemap': return 'sum'; // Part-of-whole charts
+      case 'network':
+      case 'network3d':
+      case 'entity-relationship': return 'count'; // Graph visualizations
       default: return 'sum';
     }
   };
@@ -301,6 +304,12 @@ export const useAIChartGeneration = () => {
         confidence = 0.75;
       } else if (lowerQuery.includes('hierarchy') || lowerQuery.includes('treemap')) {
         suggestedChartType = 'treemap';
+        confidence = 0.8;
+      } else if (lowerQuery.includes('network') || lowerQuery.includes('graph') || lowerQuery.includes('connections')) {
+        suggestedChartType = 'network';
+        confidence = 0.85;
+      } else if (lowerQuery.includes('entity') || lowerQuery.includes('relationships') || lowerQuery.includes('knowledge')) {
+        suggestedChartType = 'entity-relationship';
         confidence = 0.8;
       }
 

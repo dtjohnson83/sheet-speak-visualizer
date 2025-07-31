@@ -23,6 +23,9 @@ const chartTypes = [
   { value: 'histogram', label: 'Histogram', icon: BarChart2, category: '2D' },
   { value: 'treemap', label: 'Treemap', icon: Square, category: '2D' },
   { value: 'kpi', label: 'KPI Cards', icon: Square, category: '2D' },
+  { value: 'network', label: 'Network Graph', icon: TrendingUp, category: 'Graph' },
+  { value: 'network3d', label: '3D Network', icon: Box, category: 'Graph' },
+  { value: 'entity-relationship', label: 'ER Diagram', icon: Hash, category: 'Graph' },
   { value: 'bar3d', label: '3D Bar Chart', icon: Box, category: '3D' },
   { value: 'scatter3d', label: '3D Scatter Plot', icon: Box, category: '3D' },
   { value: 'surface3d', label: '3D Surface Plot', icon: Square, category: '3D' },
@@ -69,6 +72,21 @@ export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, y
             );
           })}
           
+          {/* Graph Charts */}
+          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">Graph Visualizations</div>
+          {chartTypes.filter(type => type.category === 'Graph').map((type) => {
+            const IconComponent = type.icon;
+            return (
+              <SelectItem key={type.value} value={type.value}>
+                <div className="flex items-center gap-2">
+                  <IconComponent className="w-4 h-4" />
+                  {type.label}
+                  <span className="ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">AI</span>
+                </div>
+              </SelectItem>
+            );
+          })}
+
           {/* 3D Charts */}
           <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">3D Charts</div>
           {chartTypes.filter(type => type.category === '3D').map((type) => {
