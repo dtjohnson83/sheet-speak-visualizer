@@ -24,7 +24,7 @@ export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProp
   showDataLabels
 }) => {
   return (
-    <Chart3DContainer height={200} enableControls={false}>
+    <Chart3DContainer height={200} enableControls={false} tileMode={true}>
       <Scatter3DChartRenderer
         data={data}
         xColumn={xColumn}
@@ -32,6 +32,7 @@ export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProp
         zColumn={zColumn || yColumn}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        tileMode={true}
       />
     </Chart3DContainer>
   );

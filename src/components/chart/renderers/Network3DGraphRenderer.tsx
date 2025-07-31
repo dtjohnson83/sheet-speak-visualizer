@@ -12,6 +12,7 @@ interface Network3DGraphRendererProps {
   yColumn: string;
   chartColors: string[];
   showDataLabels?: boolean;
+  tileMode?: boolean;
 }
 
 interface GraphNode3D {
@@ -28,10 +29,11 @@ interface GraphLink3D {
 }
 
 // 3D Network visualization component
-const Network3D = ({ networkData, chartColors, showDataLabels }: {
+const Network3D = ({ networkData, chartColors, showDataLabels, tileMode }: {
   networkData: { nodes: GraphNode3D[]; links: GraphLink3D[] };
   chartColors: string[];
   showDataLabels: boolean;
+  tileMode: boolean;
 }) => {
   const groupRef = useRef<THREE.Group>(null);
 
@@ -68,28 +70,32 @@ const Network3D = ({ networkData, chartColors, showDataLabels }: {
       ))}
 
       {/* Render nodes */}
-      {networkData.nodes.map((node, index) => (
-        <group key={`node-${node.id}`} position={node.position}>
-          <Sphere args={[Math.max(0.1, node.connections * 0.05), 16, 16]}>
-            <meshStandardMaterial 
-              color={nodeColor} 
-              opacity={0.8} 
-              transparent={true} 
-            />
-          </Sphere>
-          {showDataLabels && (
-            <Text
-              position={[0, node.connections * 0.05 + 0.2, 0]}
-              fontSize={0.2}
-              color="hsl(var(--foreground))"
-              anchorX="center"
-              anchorY="middle"
-            >
-              {node.label.length > 10 ? node.label.substring(0, 10) + '...' : node.label}
-            </Text>
-          )}
-        </group>
-      ))}
+      {networkData.nodes.map((node, index) => {
+        const nodeSize = Math.max(0.1, node.connections * 0.05);
+        const adjustedSize = tileMode ? nodeSize * 2 : nodeSize;
+        return (
+          <group key={`node-${node.id}`} position={node.position}>
+            <Sphere args={[adjustedSize, 16, 16]}>
+              <meshStandardMaterial 
+                color={nodeColor} 
+                opacity={0.8} 
+                transparent={true} 
+              />
+            </Sphere>
+            {showDataLabels && (
+              <Text
+                position={[0, adjustedSize + 0.2, 0]}
+                fontSize={tileMode ? 0.15 : 0.2}
+                color="hsl(var(--foreground))"
+                anchorX="center"
+                anchorY="middle"
+              >
+                {node.label.length > 10 ? node.label.substring(0, 10) + '...' : node.label}
+              </Text>
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 };
@@ -100,7 +106,8 @@ export const Network3DGraphRenderer = ({
   xColumn,
   yColumn,
   chartColors,
-  showDataLabels = true
+  showDataLabels = true,
+  tileMode = false
 }: Network3DGraphRendererProps) => {
   // Transform data into 3D network format
   const networkData = useMemo(() => {
@@ -202,7 +209,8 @@ export const Network3DGraphRenderer = ({
         <Network3D 
           networkData={networkData} 
           chartColors={chartColors} 
-          showDataLabels={showDataLabels} 
+          showDataLabels={showDataLabels}
+          tileMode={tileMode}
         />
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
       </Canvas>

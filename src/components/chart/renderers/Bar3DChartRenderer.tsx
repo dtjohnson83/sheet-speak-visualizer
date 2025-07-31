@@ -13,6 +13,7 @@ interface Bar3DChartRendererProps {
   zColumn?: string;
   chartColors: string[];
   showDataLabels?: boolean;
+  tileMode?: boolean;
 }
 
 interface BarProps {
@@ -143,7 +144,8 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
   yColumn,
   zColumn,
   chartColors,
-  showDataLabels = false
+  showDataLabels = false,
+  tileMode = false
 }) => {
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
   const [selectedBars, setSelectedBars] = useState<Set<string>>(new Set());
@@ -177,6 +179,9 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
     const gridSize = Math.ceil(Math.sqrt(data.length));
     const spacing = 3.5 / gridSize; // Fit within axis bounds
     
+    // Adjust bar width for tile mode
+    const barWidth = tileMode ? Math.min(0.8, 1.2 / gridSize) : 0.6;
+    
     return data.map((item, index) => {
       const value = Number(item[yColumn]) || 0;
       const normalizedHeight = (value / maxValue) * 3; // Max height of 3 units
@@ -189,7 +194,7 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
       
       return {
         position: [x, normalizedHeight / 2, z] as [number, number, number],
-        scale: [0.6, normalizedHeight, 0.6] as [number, number, number],
+        scale: [barWidth, normalizedHeight, barWidth] as [number, number, number],
         color: chartColors[index % chartColors.length],
         label: String(item[xColumn]),
         value: value,

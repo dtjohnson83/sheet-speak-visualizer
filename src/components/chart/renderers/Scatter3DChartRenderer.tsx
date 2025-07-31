@@ -13,6 +13,7 @@ interface Scatter3DChartRendererProps {
   zColumn: string;
   chartColors: string[];
   showDataLabels?: boolean;
+  tileMode?: boolean;
 }
 
 interface PointProps {
@@ -141,7 +142,8 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
   yColumn,
   zColumn,
   chartColors,
-  showDataLabels = false
+  showDataLabels = false,
+  tileMode = false
 }) => {
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [selectedPoints, setSelectedPoints] = useState<Set<string>>(new Set());
@@ -189,7 +191,10 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const dataCount = data.length;
     const baseDotSize = Math.max(0.15, Math.min(0.25, 0.5 / Math.sqrt(dataCount)));
     
-    console.log(`3D Scatter: Rendering ${dataCount} points with size ${baseDotSize}`);
+    // Increase size for tile mode to improve visibility
+    const adjustedDotSize = tileMode ? baseDotSize * 2.5 : baseDotSize;
+    
+    console.log(`3D Scatter: Rendering ${dataCount} points with size ${adjustedDotSize} (tileMode: ${tileMode})`);
     
     return data.map((item, index) => {
       // Center data around origin (0,0,0)
@@ -200,7 +205,7 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
       return {
         position: [x, y, z] as [number, number, number],
         color: chartColors[index % chartColors.length],
-        size: baseDotSize,
+        size: adjustedDotSize,
         label: `${item[xColumn]}, ${item[yColumn]}, ${item[zColumn]}`,
         key: `point-${index}`
       };

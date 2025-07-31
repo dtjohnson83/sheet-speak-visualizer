@@ -10,6 +10,7 @@ interface Surface3DChartRendererProps {
   zColumn: string;
   chartColors: string[];
   showDataLabels?: boolean;
+  tileMode?: boolean;
 }
 
 export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
@@ -18,7 +19,8 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
   yColumn,
   zColumn,
   chartColors,
-  showDataLabels = false
+  showDataLabels = false,
+  tileMode = false
 }) => {
   const { geometry, material } = useMemo(() => {
     if (!data || data.length === 0) {
