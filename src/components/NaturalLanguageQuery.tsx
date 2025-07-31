@@ -1,12 +1,12 @@
-
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Search, Sparkles } from 'lucide-react';
+import { Loader2, Search, Network, Sparkles } from 'lucide-react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { useToast } from '@/hooks/use-toast';
+import { GraphRAGQueryEngine } from '@/components/graph/GraphRAGQueryEngine';
 
 interface NaturalLanguageQueryProps {
   data: DataRow[];
@@ -14,12 +14,39 @@ interface NaturalLanguageQueryProps {
   onQueryResult: (data: DataRow[]) => void;
 }
 
-export const NaturalLanguageQuery = ({ data, columns, onQueryResult }: NaturalLanguageQueryProps) => {
+interface QueryMode {
+  id: 'basic' | 'graph';
+  name: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export const NaturalLanguageQuery: React.FC<NaturalLanguageQueryProps> = ({
+  data,
+  columns,
+  onQueryResult
+}) => {
   const [query, setQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastQuery, setLastQuery] = useState('');
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
+  const [selectedMode, setSelectedMode] = useState<'basic' | 'graph'>('graph');
   const { toast } = useToast();
+
+  const queryModes: QueryMode[] = [
+    {
+      id: 'basic',
+      name: 'Basic Query',
+      description: 'Traditional keyword-based querying',
+      icon: Search
+    },
+    {
+      id: 'graph',
+      name: 'GraphRAG',
+      description: 'AI-powered graph-based intelligent querying',
+      icon: Network
+    }
+  ];
 
   const sampleQueries = [
     "Show me the average of [numeric column]",
@@ -195,81 +222,117 @@ export const NaturalLanguageQuery = ({ data, columns, onQueryResult }: NaturalLa
     });
   };
 
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold mb-2">Natural Language Query</h3>
-        <p className="text-gray-600 mb-4">
-          Ask questions about your data in plain English
-        </p>
-      </div>
+  // Show GraphRAG component when in graph mode
+  if (selectedMode === 'graph') {
+    return <GraphRAGQueryEngine data={data} columns={columns} onQueryResult={onQueryResult} />;
+  }
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <div className="flex-1">
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Search className="h-5 w-5" />
+          Natural Language Query
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Query Mode Selector */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Query Engine:</h4>
+          <div className="flex gap-2">
+            {queryModes.map((mode) => {
+              const IconComponent = mode.icon;
+              return (
+                <Button
+                  key={mode.id}
+                  variant={selectedMode === mode.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedMode(mode.id)}
+                  className="flex items-center gap-2"
+                >
+                  <IconComponent className="h-4 w-4" />
+                  {mode.name}
+                </Button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {queryModes.find(m => m.id === selectedMode)?.description}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
-            placeholder="e.g., Show me the average sales by month"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask questions about your data in plain English..."
             disabled={isProcessing}
-            className="w-full"
+            className="flex-1"
           />
-        </div>
-        <Button type="submit" disabled={isProcessing || !query.trim()}>
-          <Search className="h-4 w-4 mr-2" />
-          {isProcessing ? 'Processing...' : 'Query'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={resetData}
-          disabled={isProcessing}
-        >
-          Reset
-        </Button>
-      </form>
+          <Button 
+            type="submit" 
+            disabled={isProcessing || !query.trim()}
+            size="sm"
+          >
+            {isProcessing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={resetData}
+            size="sm"
+          >
+            Reset
+          </Button>
+        </form>
 
-      {lastQuery && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-blue-500" />
-            <span className="font-medium text-blue-700">Last Query:</span>
-            <span className="text-blue-600">{lastQuery}</span>
+        {lastQuery && (
+          <Card className="p-4 bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-blue-500" />
+              <span className="font-medium text-blue-700">Last Query:</span>
+              <span className="text-blue-600">{lastQuery}</span>
+            </div>
+          </Card>
+        )}
+
+        {queryHistory.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium mb-2">Recent Queries</h4>
+            <div className="flex flex-wrap gap-2">
+              {queryHistory.map((historyQuery, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="cursor-pointer hover:bg-gray-200"
+                  onClick={() => setQuery(historyQuery)}
+                >
+                  {historyQuery}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </Card>
-      )}
+        )}
 
-      {queryHistory.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium mb-2">Recent Queries</h4>
-          <div className="flex flex-wrap gap-2">
-            {queryHistory.map((historyQuery, index) => (
-              <Badge
+          <h4 className="text-sm font-medium mb-2">Sample Queries</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {sampleQueries.map((sample, index) => (
+              <Card 
                 key={index}
-                variant="secondary"
-                className="cursor-pointer hover:bg-gray-200"
-                onClick={() => setQuery(historyQuery)}
+                className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setQuery(sample)}
               >
-                {historyQuery}
-              </Badge>
+                <p className="text-sm text-gray-600">{sample}</p>
+              </Card>
             ))}
           </div>
         </div>
-      )}
-
-      <div>
-        <h4 className="text-sm font-medium mb-2">Sample Queries</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {sampleQueries.map((sample, index) => (
-            <Card 
-              key={index}
-              className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => setQuery(sample)}
-            >
-              <p className="text-sm text-gray-600">{sample}</p>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
