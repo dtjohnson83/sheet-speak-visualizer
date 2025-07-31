@@ -16,6 +16,7 @@ export interface DashboardTileData {
   chartType: string;
   xColumn: string;
   yColumn: string;
+  zColumn?: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
   valueColumn?: string;
@@ -140,6 +141,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
           chartType={tile.chartType}
           xColumn={tile.xColumn}
           yColumn={tile.yColumn}
+          zColumn={tile.zColumn}
           stackColumn={tile.stackColumn}
           sankeyTargetColumn={tile.sankeyTargetColumn}
           valueColumn={tile.valueColumn}

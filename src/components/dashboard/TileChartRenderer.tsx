@@ -13,11 +13,16 @@ import { TileScatterChartRenderer } from './renderers/TileScatterChartRenderer';
 import { TileHeatmapChartRenderer } from './renderers/TileHeatmapChartRenderer';
 import { TileHistogramChartRenderer } from './renderers/TileHistogramChartRenderer';
 import { TileTreemapChartRenderer } from './renderers/TileTreemapChartRenderer';
+import { TileBar3DChartRenderer } from './renderers/TileBar3DChartRenderer';
+import { TileScatter3DChartRenderer } from './renderers/TileScatter3DChartRenderer';
+import { TileSurface3DChartRenderer } from './renderers/TileSurface3DChartRenderer';
+import { TileNetwork3DChartRenderer } from './renderers/TileNetwork3DChartRenderer';
 
 interface TileChartRendererProps {
   chartType: string;
   xColumn: string;
   yColumn: string;
+  zColumn?: string;
   stackColumn?: string;
   sankeyTargetColumn?: string;
   valueColumn?: string;
@@ -34,6 +39,7 @@ export const TileChartRenderer = React.memo(({
   chartType, 
   xColumn, 
   yColumn, 
+  zColumn,
   stackColumn, 
   sankeyTargetColumn, 
   valueColumn, 
@@ -164,6 +170,62 @@ export const TileChartRenderer = React.memo(({
         valueColumn={valueColumn}
         series={effectiveSeries}
         chartColors={chartColors}
+      />
+    );
+  }
+
+  // 3D Charts
+  if (chartType === 'bar3d') {
+    return (
+      <TileBar3DChartRenderer
+        data={data}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        zColumn={zColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
+  if (chartType === 'scatter3d') {
+    return (
+      <TileScatter3DChartRenderer
+        data={data}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        zColumn={zColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
+  if (chartType === 'surface3d') {
+    return (
+      <TileSurface3DChartRenderer
+        data={data}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        zColumn={zColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+      />
+    );
+  }
+
+  if (chartType === 'network3d') {
+    return (
+      <TileNetwork3DChartRenderer
+        data={data}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        effectiveSeries={effectiveSeries}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
       />
     );
   }
