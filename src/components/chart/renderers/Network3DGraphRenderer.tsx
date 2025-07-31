@@ -81,7 +81,7 @@ const Network3D = ({ networkData, chartColors, showDataLabels }: {
             <Text
               position={[0, node.connections * 0.05 + 0.2, 0]}
               fontSize={0.2}
-              color="white"
+              color="hsl(var(--foreground))"
               anchorX="center"
               anchorY="middle"
             >

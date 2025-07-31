@@ -4,6 +4,7 @@ import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useSpring } from '@react-spring/three';
 import { StandardAxes3D } from '../utils/StandardAxes3D';
+import { formatNumber } from '@/lib/numberUtils';
 
 interface Scatter3DChartRendererProps {
   data: any[];
@@ -102,7 +103,7 @@ const Point3D: React.FC<PointProps> = ({
               <div className="text-xs text-muted-foreground space-y-1">
                 {Object.entries(originalData).slice(0, 3).map(([key, value]) => (
                   <div key={key}>
-                    <span className="font-medium">{key}:</span> {String(value)}
+                    <span className="font-medium">{key}:</span> {typeof value === 'number' ? formatNumber(value) : String(value)}
                   </div>
                 ))}
               </div>
@@ -115,7 +116,7 @@ const Point3D: React.FC<PointProps> = ({
         <Text
           position={[position[0], position[1] + size + 0.3, position[2]]}
           fontSize={0.2}
-          color="#333"
+          color="hsl(var(--foreground))"
           anchorX="center"
           anchorY="middle"
         >

@@ -4,6 +4,7 @@ import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { animated, useSpring } from '@react-spring/three';
 import { StandardAxes3D } from '../utils/StandardAxes3D';
+import { formatNumber } from '@/lib/numberUtils';
 
 interface Bar3DChartRendererProps {
   data: any[];
@@ -108,7 +109,7 @@ const Bar3D: React.FC<BarProps> = ({
         <Html position={[position[0], position[1] + scale[1] / 2 + 1, position[2]]}>
           <div className="bg-background/95 backdrop-blur-sm border rounded-lg p-2 shadow-lg pointer-events-none">
             <div className="text-sm font-medium text-foreground">{label}</div>
-            <div className="text-xs text-muted-foreground">Value: {value}</div>
+            <div className="text-xs text-muted-foreground">Value: {formatNumber(value || 0)}</div>
           </div>
         </Html>
       )}
@@ -117,11 +118,11 @@ const Bar3D: React.FC<BarProps> = ({
         <Text
           position={[position[0], position[1] + scale[1] / 2 + 0.5, position[2]]}
           fontSize={0.3}
-          color="#333"
+          color="hsl(var(--foreground))"
           anchorX="center"
           anchorY="middle"
         >
-          {label}: {value}
+          {label}: {formatNumber(value || 0)}
         </Text>
       )}
 

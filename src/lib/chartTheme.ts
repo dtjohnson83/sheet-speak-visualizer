@@ -9,9 +9,9 @@
  */
 export const getChartTextColor = (isOnColoredBackground = false): string => {
   if (isOnColoredBackground) {
-    return 'hsl(var(--chart-text-secondary))';
+    return 'hsl(var(--foreground))';
   }
-  return 'hsl(var(--chart-text))';
+  return 'hsl(var(--foreground))';
 };
 
 /**
@@ -21,7 +21,7 @@ export const getChartTextColor = (isOnColoredBackground = false): string => {
  */
 export const getChartTextClass = (isOnColoredBackground = false): string => {
   if (isOnColoredBackground) {
-    return 'fill-[hsl(var(--chart-text-secondary))]';
+    return 'fill-[hsl(var(--foreground))]';
   }
-  return 'fill-[hsl(var(--chart-text))]';
+  return 'fill-[hsl(var(--foreground))]';
 };
