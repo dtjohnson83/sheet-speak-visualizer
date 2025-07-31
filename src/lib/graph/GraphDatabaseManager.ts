@@ -1,5 +1,4 @@
 import { Driver, Session } from 'neo4j-driver';
-import { createClient } from '@supabase/supabase-js';
 
 export interface GraphNode {
   id: string;
@@ -21,11 +20,6 @@ export interface GraphQueryResult {
 }
 
 export class GraphDatabaseManager {
-  private supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-  );
-
   // In-memory graph storage for now (can be replaced with Neo4j later)
   private nodes: Map<string, GraphNode> = new Map();
   private relationships: Map<string, GraphRelationship> = new Map();
@@ -42,13 +36,10 @@ export class GraphDatabaseManager {
       this.nodesByLabel.get(label)!.add(node.id);
     });
 
-    // Persist to Supabase for backup/sync
-    await this.persistNode(node);
   }
 
   async addRelationship(relationship: GraphRelationship): Promise<void> {
     this.relationships.set(relationship.id, relationship);
-    await this.persistRelationship(relationship);
   }
 
   async getNodesByLabel(label: string): Promise<GraphNode[]> {
@@ -121,37 +112,6 @@ export class GraphDatabaseManager {
     return { nodes, relationships };
   }
 
-  private async persistNode(node: GraphNode): Promise<void> {
-    try {
-      await this.supabase
-        .from('graph_nodes')
-        .upsert({
-          id: node.id,
-          labels: node.labels,
-          properties: node.properties,
-          updated_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.warn('Failed to persist node to Supabase:', error);
-    }
-  }
-
-  private async persistRelationship(relationship: GraphRelationship): Promise<void> {
-    try {
-      await this.supabase
-        .from('graph_relationships')
-        .upsert({
-          id: relationship.id,
-          type: relationship.type,
-          start_node_id: relationship.startNodeId,
-          end_node_id: relationship.endNodeId,
-          properties: relationship.properties,
-          updated_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.warn('Failed to persist relationship to Supabase:', error);
-    }
-  }
 
   async clear(): Promise<void> {
     this.nodes.clear();
