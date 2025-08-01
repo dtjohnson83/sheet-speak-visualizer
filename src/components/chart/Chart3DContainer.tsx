@@ -14,7 +14,7 @@ interface Chart3DContainerProps {
   showEnvironment?: boolean;
   autoRotate?: boolean;
   tileMode?: boolean;
-  
+  isTemporalAnimated?: boolean;
 }
 
 export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
@@ -25,7 +25,7 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
   showEnvironment = false,
   autoRotate = false,
   tileMode = false,
-  
+  isTemporalAnimated = false
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotate);
@@ -43,9 +43,9 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
 
   return (
     <Card className={`overflow-hidden ${className} ${isFullscreen ? 'fixed inset-0 z-50' : ''} ${!height ? 'h-full' : ''}`}>
-      {/* Control Panel - positioned differently for tile mode */}
+      {/* Control Panel - positioned to avoid temporal controls */}
       {enableControls && (
-        <div className={`absolute z-20 flex gap-1 ${tileMode ? 'bottom-2 right-2' : 'top-2 right-2'}`}>
+        <div className={`absolute z-20 flex gap-1 ${tileMode ? 'bottom-2 right-2' : isTemporalAnimated ? 'top-12 right-2' : 'top-2 right-2'}`}>
           <Button
             size={tileMode ? "icon" : "sm"}
             variant="outline"

@@ -166,7 +166,7 @@ export const ChartRenderers = ({
   // 3D Charts
   if (chartType === 'bar3d') {
     return (
-      <Chart3DContainer>
+      <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
         <Bar3DChartRenderer
           data={data}
           xColumn={xColumn}
@@ -183,7 +183,7 @@ export const ChartRenderers = ({
 
   if (chartType === 'scatter3d') {
     return (
-      <Chart3DContainer>
+      <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
         <Scatter3DChartRenderer
           data={data}
           xColumn={xColumn}
@@ -200,7 +200,7 @@ export const ChartRenderers = ({
 
   if (chartType === 'surface3d') {
     return (
-      <Chart3DContainer>
+      <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
         <Surface3DChartRenderer
           data={data}
           xColumn={xColumn}
@@ -234,7 +234,7 @@ export const ChartRenderers = ({
   if (chartType === 'network3d') {
     return (
       <ChartErrorBoundary>
-        <Chart3DContainer height={400}>
+        <Chart3DContainer height={400} isTemporalAnimated={isTemporalAnimated}>
           <Network3DGraphRenderer
             data={data}
             columns={columns}
