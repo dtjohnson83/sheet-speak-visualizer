@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, Stars, Float } from '@react-three/drei';
 import { Card } from '@/components/ui/card';
@@ -27,10 +27,12 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotate);
+  const controlsRef = useRef<any>(null);
 
   const resetCamera = () => {
-    // This would typically trigger a camera reset
-    console.log('Resetting camera position');
+    if (controlsRef.current) {
+      controlsRef.current.reset();
+    }
   };
 
   const toggleFullscreen = () => {
@@ -39,34 +41,38 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
 
   return (
     <Card className={`overflow-hidden ${className} ${isFullscreen ? 'fixed inset-0 z-50' : ''} ${!height ? 'h-full' : ''}`}>
-      {/* Control Panel */}
+      {/* Control Panel - positioned differently for tile mode */}
       {enableControls && (
-        <div className="absolute top-2 right-2 z-10 flex gap-2">
+        <div className={`absolute z-20 flex gap-1 ${tileMode ? 'bottom-2 right-2' : 'top-2 right-2'}`}>
           <Button
-            size="sm"
+            size={tileMode ? "icon" : "sm"}
             variant="outline"
             onClick={resetCamera}
-            className="bg-background/80 backdrop-blur-sm"
+            className={`bg-background/80 backdrop-blur-sm border-border/50 ${tileMode ? 'h-7 w-7 p-0' : ''}`}
+            title="Reset camera"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className={tileMode ? "h-3 w-3" : "h-4 w-4"} />
           </Button>
           <Button
-            size="sm"
+            size={tileMode ? "icon" : "sm"}
             variant="outline"
             onClick={() => setIsAutoRotating(!isAutoRotating)}
-            className="bg-background/80 backdrop-blur-sm"
-            data-auto-rotate
+            className={`bg-background/80 backdrop-blur-sm border-border/50 ${isAutoRotating ? 'bg-primary/20 border-primary/50' : ''} ${tileMode ? 'h-7 w-7 p-0' : ''}`}
+            title={isAutoRotating ? "Stop auto-rotation" : "Start auto-rotation"}
           >
             {isAutoRotating ? 'Stop' : 'Auto'}
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={toggleFullscreen}
-            className="bg-background/80 backdrop-blur-sm"
-          >
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          </Button>
+          {!tileMode && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={toggleFullscreen}
+              className="bg-background/80 backdrop-blur-sm border-border/50"
+              title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
+          )}
         </div>
       )}
 
@@ -122,6 +128,7 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
             
             {/* Enhanced Camera Controls */}
             <OrbitControls
+              ref={controlsRef}
               enableDamping
               dampingFactor={0.05}
               rotateSpeed={0.5}

@@ -80,12 +80,13 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange }: Ti
         </div>
       )}
       
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30 relative">
         <Button
           variant="ghost"
           size="sm"
           onMouseDown={onMouseDown}
-          className="h-6 w-6 p-0 cursor-move"
+          className="h-6 w-6 p-0 cursor-move hover:bg-accent/50"
+          title="Move tile"
         >
           <Move className="h-3 w-3" />
         </Button>
@@ -93,7 +94,8 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange }: Ti
           variant="ghost"
           size="sm"
           onClick={onRemove}
-          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+          title="Remove tile"
         >
           <X className="h-3 w-3" />
         </Button>
