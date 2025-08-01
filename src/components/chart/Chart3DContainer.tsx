@@ -15,6 +15,7 @@ interface Chart3DContainerProps {
   autoRotate?: boolean;
   tileMode?: boolean;
   isTemporalAnimated?: boolean;
+  isMaximized?: boolean;
 }
 
 export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
@@ -25,7 +26,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
   showEnvironment = false,
   autoRotate = false,
   tileMode = false,
-  isTemporalAnimated = false
+  isTemporalAnimated = false,
+  isMaximized = false
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotate);
@@ -44,8 +46,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
   return (
     <Card className={`overflow-hidden ${className} ${isFullscreen ? 'fixed inset-0 z-50' : ''} ${!height ? 'h-full' : ''}`}>
       {/* Control Panel - positioned to avoid temporal controls */}
-      {enableControls && (
-        <div className={`absolute z-20 flex gap-1 ${tileMode ? 'bottom-2 right-2' : isTemporalAnimated ? 'top-12 right-2' : 'top-2 right-2'}`}>
+      {enableControls && (tileMode ? isMaximized : true) && (
+        <div className={`absolute z-20 flex gap-1 ${tileMode && !isMaximized ? 'bottom-2 right-2' : isTemporalAnimated ? 'top-12 right-2' : 'top-2 right-2'}`}>
           <Button
             size={tileMode ? "icon" : "sm"}
             variant="outline"
@@ -64,7 +66,7 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
           >
             {isAutoRotating ? 'Stop' : 'Auto'}
           </Button>
-          {!tileMode && (
+           {(!tileMode || isMaximized) && (
             <Button
               size="sm"
               variant="outline"
@@ -85,8 +87,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
         <Canvas
           shadows
           camera={{ 
-            position: tileMode ? [4, 4, 4] : [8, 8, 8], 
-            fov: tileMode ? 85 : 60 
+            position: (tileMode && !isMaximized) ? [4, 4, 4] : [8, 8, 8], 
+            fov: (tileMode && !isMaximized) ? 85 : 60 
           }}
           gl={{ 
             antialias: true, 
@@ -97,10 +99,10 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
         >
           <Suspense fallback={null}>
             {/* Enhanced Lighting - adjusted for tile mode */}
-            <ambientLight intensity={tileMode ? 0.7 : 0.3} />
+            <ambientLight intensity={(tileMode && !isMaximized) ? 0.7 : 0.3} />
             <directionalLight
               position={[10, 10, 5]}
-              intensity={tileMode ? 2.2 : 1.2}
+              intensity={(tileMode && !isMaximized) ? 2.2 : 1.2}
               castShadow
               shadow-mapSize-width={2048}
               shadow-mapSize-height={2048}
@@ -110,8 +112,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
               shadow-camera-top={10}
               shadow-camera-bottom={-10}
             />
-            <pointLight position={[-10, -10, -10]} intensity={tileMode ? 0.8 : 0.4} color="#4f46e5" />
-            <pointLight position={[10, -5, 10]} intensity={tileMode ? 0.7 : 0.3} color="#06b6d4" />
+            <pointLight position={[-10, -10, -10]} intensity={(tileMode && !isMaximized) ? 0.8 : 0.4} color="#4f46e5" />
+            <pointLight position={[10, -5, 10]} intensity={(tileMode && !isMaximized) ? 0.7 : 0.3} color="#06b6d4" />
             
             {/* Environment */}
             {showEnvironment && (
@@ -138,8 +140,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
               zoomSpeed={0.8}
               panSpeed={0.8}
               maxPolarAngle={Math.PI * 0.75}
-              minDistance={tileMode ? 2 : 5}
-              maxDistance={tileMode ? 15 : 50}
+              minDistance={(tileMode && !isMaximized) ? 2 : 5}
+              maxDistance={(tileMode && !isMaximized) ? 15 : 50}
               autoRotate={isAutoRotating}
               autoRotateSpeed={1}
             />

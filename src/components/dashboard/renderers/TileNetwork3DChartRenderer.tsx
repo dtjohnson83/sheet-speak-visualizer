@@ -11,7 +11,7 @@ interface TileNetwork3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  
+  isMaximized?: boolean;
 }
 
 export const TileNetwork3DChartRenderer: React.FC<TileNetwork3DChartRendererProps> = ({
@@ -21,10 +21,14 @@ export const TileNetwork3DChartRenderer: React.FC<TileNetwork3DChartRendererProp
   effectiveSeries,
   chartColors,
   showDataLabels,
-  
+  isMaximized
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true}>
+    <Chart3DContainer 
+      enableControls={true} 
+      tileMode={true}
+      isMaximized={isMaximized}
+    >
       <Network3DGraphRenderer
         data={data}
         columns={[]}

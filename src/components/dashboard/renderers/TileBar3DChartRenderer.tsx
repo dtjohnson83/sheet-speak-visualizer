@@ -12,7 +12,7 @@ interface TileBar3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  
+  isMaximized?: boolean;
 }
 
 export const TileBar3DChartRenderer: React.FC<TileBar3DChartRendererProps> = ({
@@ -23,10 +23,14 @@ export const TileBar3DChartRenderer: React.FC<TileBar3DChartRendererProps> = ({
   effectiveSeries,
   chartColors,
   showDataLabels,
-  
+  isMaximized
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true}>
+    <Chart3DContainer 
+      enableControls={true} 
+      tileMode={true}
+      isMaximized={isMaximized}
+    >
       <Bar3DChartRenderer
         data={data}
         xColumn={xColumn}

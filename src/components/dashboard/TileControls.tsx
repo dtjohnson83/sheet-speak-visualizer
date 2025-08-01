@@ -2,16 +2,19 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Move, Edit2, Check } from 'lucide-react';
+import { X, Move, Edit2, Check, Maximize, Minimize } from 'lucide-react';
 
 interface TileControlsProps {
   title: string;
   onRemove: () => void;
   onMouseDown: (e: React.MouseEvent) => void;
   onTitleChange?: (title: string) => void;
+  is3DChart?: boolean;
+  isMaximized?: boolean;
+  onMaximizeToggle?: () => void;
 }
 
-export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange }: TileControlsProps) => {
+export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3DChart, isMaximized, onMaximizeToggle }: TileControlsProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
 
@@ -81,15 +84,35 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange }: Ti
       )}
       
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30 relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          onMouseDown={onMouseDown}
-          className="h-6 w-6 p-0 cursor-move hover:bg-accent/50"
-          title="Move tile"
-        >
-          <Move className="h-3 w-3" />
-        </Button>
+        {/* Show maximize button only for 3D charts */}
+        {is3DChart && onMaximizeToggle && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMaximizeToggle();
+            }}
+            className="h-6 w-6 p-0 hover:bg-accent/50"
+            title={isMaximized ? "Exit fullscreen" : "Maximize for better 3D exploration"}
+          >
+            {isMaximized ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
+          </Button>
+        )}
+        
+        {/* Move button - disabled in maximized mode */}
+        {!isMaximized && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onMouseDown={onMouseDown}
+            className="h-6 w-6 p-0 cursor-move hover:bg-accent/50"
+            title="Move tile"
+          >
+            <Move className="h-3 w-3" />
+          </Button>
+        )}
+        
         <Button
           variant="ghost"
           size="sm"

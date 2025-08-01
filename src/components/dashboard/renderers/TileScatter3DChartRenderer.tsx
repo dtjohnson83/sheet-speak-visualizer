@@ -12,7 +12,7 @@ interface TileScatter3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  
+  isMaximized?: boolean;
 }
 
 export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProps> = ({
@@ -23,10 +23,14 @@ export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProp
   effectiveSeries,
   chartColors,
   showDataLabels,
-  
+  isMaximized
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true}>
+    <Chart3DContainer 
+      enableControls={true} 
+      tileMode={true}
+      isMaximized={isMaximized}
+    >
       <Scatter3DChartRenderer
         data={data}
         xColumn={xColumn}

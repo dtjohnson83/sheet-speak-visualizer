@@ -12,7 +12,7 @@ interface TileSurface3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  
+  isMaximized?: boolean;
 }
 
 export const TileSurface3DChartRenderer: React.FC<TileSurface3DChartRendererProps> = ({
@@ -23,10 +23,14 @@ export const TileSurface3DChartRenderer: React.FC<TileSurface3DChartRendererProp
   effectiveSeries,
   chartColors,
   showDataLabels,
-  
+  isMaximized
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true}>
+    <Chart3DContainer 
+      enableControls={true} 
+      tileMode={true}
+      isMaximized={isMaximized}
+    >
       <Surface3DChartRenderer
         data={data}
         xColumn={xColumn}

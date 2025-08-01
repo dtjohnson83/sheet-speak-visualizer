@@ -33,6 +33,7 @@ interface TileChartRendererProps {
   data: DataRow[] | any;
   columns: ColumnInfo[];
   chartColors: string[];
+  isMaximized?: boolean;
 }
 
 export const TileChartRenderer = React.memo(({ 
@@ -49,7 +50,8 @@ export const TileChartRenderer = React.memo(({
   showDataLabels, 
   data, 
   columns, 
-  chartColors 
+  chartColors,
+  isMaximized 
 }: TileChartRendererProps) => {
   const effectiveSeries = React.useMemo(() => 
     getEffectiveSeries(yColumn, series, chartColors, chartType), 
@@ -185,6 +187,7 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isMaximized={isMaximized}
       />
     );
   }
@@ -199,6 +202,7 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isMaximized={isMaximized}
       />
     );
   }
@@ -213,6 +217,7 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isMaximized={isMaximized}
       />
     );
   }
@@ -226,6 +231,7 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        isMaximized={isMaximized}
       />
     );
   }
