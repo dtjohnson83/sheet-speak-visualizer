@@ -6,13 +6,14 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, Play, Pause, RotateCcw, Video, Download, Settings } from 'lucide-react';
+import { Calendar, Clock, Play, Pause, RotateCcw, Video, Download, Settings, Eye } from 'lucide-react';
 import { detectTemporalColumns, prepareTemporalAnimationData, TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 import { useTemporalAnimation } from '@/hooks/useTemporalAnimation';
 import { recordTemporalAnimation } from '@/lib/chart/temporalAnimationRecorder';
 import { useToast } from '@/hooks/use-toast';
 import { ColumnInfo, DataRow } from '@/pages/Index';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { RecordingProgress } from './utils/RecordingProgress';
 
 interface TemporalRecordingInterfaceProps {
   data: DataRow[];
@@ -29,6 +30,9 @@ export const TemporalRecordingInterface: React.FC<TemporalRecordingInterfaceProp
 }) => {
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingProgress, setRecordingProgress] = useState(0);
+  const [recordingFormat, setRecordingFormat] = useState<'mp4' | 'gif'>('mp4');
   
   const temporalColumns = detectTemporalColumns(columns);
   const hasTemporalData = temporalColumns.length > 0;
@@ -66,6 +70,15 @@ export const TemporalRecordingInterface: React.FC<TemporalRecordingInterfaceProp
     onTemporalConfigChange?.(newConfig);
   };
 
+  const handleTestAnimation = () => {
+    controls.reset();
+    controls.play();
+    toast({
+      title: "Animation Preview",
+      description: "Watch the chart to see the temporal animation in action",
+    });
+  };
+
   const handleRecordAnimation = async () => {
     if (!chartRef?.current) {
       toast({
@@ -76,34 +89,75 @@ export const TemporalRecordingInterface: React.FC<TemporalRecordingInterfaceProp
       return;
     }
 
+    if (!temporalConfig.enabled || temporalFrames.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please enable temporal animation first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRecording(true);
+    setRecordingProgress(0);
+
     try {
       await recordTemporalAnimation(
         chartRef.current,
         state,
         controls,
         {
-          format: 'mp4',
+          format: recordingFormat,
           width: 1600,
           height: 1200,
-          fileName: 'temporal-animation'
-        }
+          fileName: `temporal-animation-${Date.now()}`
+        },
+        (progress) => setRecordingProgress(progress * 100)
       );
       
       toast({
-        title: "Recording Started",
-        description: "Temporal animation recording in progress...",
+        title: "Recording Complete",
+        description: `Animation saved as ${recordingFormat.toUpperCase()} file`,
       });
     } catch (error) {
+      console.error('Recording error:', error);
       toast({
         title: "Recording Failed",
-        description: "Failed to record temporal animation",
+        description: "Failed to record temporal animation. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsRecording(false);
+      setRecordingProgress(0);
     }
   };
 
+  // Check if chart type supports temporal animation
+  const supportedChartTypes = ['bar', 'line', 'area', 'pie'];
+  const isChartTypeSupported = true; // Will be passed from parent with actual chartType
+
   if (!hasTemporalData) {
     return null;
+  }
+
+  if (!isChartTypeSupported) {
+    return (
+      <Card className="mb-6 border-l-4 border-l-orange-500">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <Calendar className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Temporal Animation</CardTitle>
+              <CardDescription>
+                Temporal animation is currently supported for Bar, Line, Area, and Pie charts only.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    );
   }
 
   return (
@@ -136,6 +190,15 @@ export const TemporalRecordingInterface: React.FC<TemporalRecordingInterfaceProp
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Recording Progress */}
+        <RecordingProgress 
+          isRecording={isRecording}
+          progress={recordingProgress}
+          currentFrame={state.currentFrame}
+          totalFrames={state.totalFrames}
+          format={recordingFormat}
+        />
+
         {/* Quick Actions Row */}
         <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center space-x-2">
@@ -182,13 +245,36 @@ export const TemporalRecordingInterface: React.FC<TemporalRecordingInterfaceProp
                 </Button>
 
                 <Button
-                  onClick={handleRecordAnimation}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+                  variant="outline"
                   size="sm"
+                  onClick={handleTestAnimation}
+                  className="flex items-center gap-2"
                 >
-                  <Video className="h-4 w-4" />
-                  Record Animation
+                  <Eye className="h-4 w-4" />
+                  Test
                 </Button>
+
+                <div className="flex items-center gap-2">
+                  <Select value={recordingFormat} onValueChange={(value: 'mp4' | 'gif') => setRecordingFormat(value)}>
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mp4">MP4</SelectItem>
+                      <SelectItem value="gif">GIF</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    onClick={handleRecordAnimation}
+                    disabled={isRecording || !temporalConfig.enabled}
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+                    size="sm"
+                  >
+                    <Video className="h-4 w-4" />
+                    Record
+                  </Button>
+                </div>
               </div>
 
               {state.currentFrameData && (

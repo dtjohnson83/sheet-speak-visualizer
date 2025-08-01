@@ -12,11 +12,15 @@ interface TemporalChartWrapperProps extends ChartRenderersProps {
 }
 
 export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props) => {
-  const { data, columns, chartRef } = props;
+  const { data, columns, chartRef, chartType } = props;
   const { toast } = useToast();
   
   const temporalColumns = detectTemporalColumns(columns);
   const hasTemporalData = temporalColumns.length > 0;
+  
+  // Chart types that support temporal animation
+  const supportedChartTypes = ['bar', 'line', 'area', 'pie'];
+  const isChartTypeSupported = chartType ? supportedChartTypes.includes(chartType) : false;
   
   const [temporalConfig, setTemporalConfig] = useState<TemporalAnimationConfig>({
     enabled: false,
@@ -88,7 +92,7 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
 
   return (
     <div className="space-y-4">
-      {hasTemporalData && (
+      {hasTemporalData && isChartTypeSupported && (
         <TemporalAnimationConfiguration
           columns={columns}
           config={temporalConfig}
