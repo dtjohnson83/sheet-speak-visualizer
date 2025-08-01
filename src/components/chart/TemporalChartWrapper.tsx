@@ -95,6 +95,7 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
       {hasTemporalData && isChartTypeSupported && (
         <TemporalAnimationConfiguration
           columns={columns}
+          data={data}
           config={temporalConfig}
           onConfigChange={setTemporalConfig}
           isPlaying={state.isPlaying}

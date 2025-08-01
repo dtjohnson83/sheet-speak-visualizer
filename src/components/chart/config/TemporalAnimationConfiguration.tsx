@@ -6,13 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar, Play, Pause, RotateCcw, Settings, Video } from 'lucide-react';
-import { ColumnInfo } from '@/pages/Index';
+import { Calendar, Play, Pause, RotateCcw, Settings, Video, TestTube } from 'lucide-react';
+import { ColumnInfo, DataRow } from '@/pages/Index';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { TemporalAnimationConfig, TimeInterval, detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
+import { TemporalDataValidation } from './TemporalDataValidation';
 
 interface TemporalAnimationConfigurationProps {
   columns: ColumnInfo[];
+  data: DataRow[];
   config: TemporalAnimationConfig;
   onConfigChange: (config: TemporalAnimationConfig) => void;
   isPlaying?: boolean;
@@ -28,6 +30,7 @@ interface TemporalAnimationConfigurationProps {
 
 export const TemporalAnimationConfiguration = ({
   columns,
+  data,
   config,
   onConfigChange,
   isPlaying = false,
@@ -68,6 +71,17 @@ export const TemporalAnimationConfiguration = ({
 
   const updateConfig = (updates: Partial<TemporalAnimationConfig>) => {
     onConfigChange({ ...config, ...updates });
+  };
+
+  const handleTestAnimation = () => {
+    if (temporalAnimationControls?.reset) {
+      temporalAnimationControls.reset();
+      setTimeout(() => {
+        if (temporalAnimationControls?.play) {
+          temporalAnimationControls.play();
+        }
+      }, 100);
+    }
   };
 
   if (!hasTemporalColumns) {
@@ -131,6 +145,15 @@ export const TemporalAnimationConfiguration = ({
                   >
                     <RotateCcw className="h-3 w-3" />
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleTestAnimation}
+                    className="h-8 w-8 p-0"
+                    title="Test Animation"
+                  >
+                    <TestTube className="h-3 w-3" />
+                  </Button>
                   {onRecordAnimation && (
                     <Button
                       size="sm"
@@ -166,12 +189,21 @@ export const TemporalAnimationConfiguration = ({
               <SelectContent>
                 {temporalColumns.map((col) => (
                   <SelectItem key={col.name} value={col.name}>
-                    {col.name}
+                    {col.name} ({col.type})
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Data Validation */}
+          {config.dateColumn && (
+            <TemporalDataValidation
+              data={data}
+              dateColumn={config.dateColumn}
+              columns={columns}
+            />
+          )}
 
           {/* Time Interval */}
           <div className="space-y-2">

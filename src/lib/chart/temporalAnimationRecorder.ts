@@ -85,6 +85,12 @@ const captureChartFrame = async (
     allowTaint: true
   });
 
+  // Set willReadFrequently attribute for better performance
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    canvas.setAttribute('willReadFrequently', 'true');
+  }
+
   return canvas;
 };
 

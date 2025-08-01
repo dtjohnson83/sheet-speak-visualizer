@@ -74,25 +74,80 @@ const formatTimeLabel = (date: Date, interval: TimeInterval): string => {
   }
 };
 
-const parseDate = (value: any): Date | null => {
+export const parseDate = (value: any): Date | null => {
   if (!value) return null;
   
   try {
-    // Handle various date formats
-    if (value instanceof Date) return value;
-    if (typeof value === 'number') return new Date(value);
+    console.log('Parsing date value:', value, 'Type:', typeof value);
+    
+    // Handle Date objects
+    if (value instanceof Date) {
+      if (isNaN(value.getTime())) return null;
+      return value;
+    }
+    
+    // Handle Excel dates (numbers representing days since 1900-01-01)
+    if (typeof value === 'number') {
+      // Excel date serial number
+      if (value > 1 && value < 2958466) { // Valid Excel date range
+        const excelDate = new Date((value - 25569) * 86400 * 1000);
+        console.log('Excel date converted:', value, '->', excelDate);
+        return isNaN(excelDate.getTime()) ? null : excelDate;
+      }
+      // Unix timestamp
+      if (value > 1000000000 && value < 4000000000) {
+        return new Date(value * 1000);
+      }
+      // Millisecond timestamp
+      if (value > 1000000000000) {
+        return new Date(value);
+      }
+      return new Date(value);
+    }
     
     const str = String(value).trim();
     if (!str) return null;
     
+    console.log('Parsing string date:', str);
+    
     // Try ISO format first
     if (str.includes('T') || str.includes('Z')) {
-      return parseISO(str);
+      const isoDate = parseISO(str);
+      if (!isNaN(isoDate.getTime())) {
+        console.log('ISO date parsed:', str, '->', isoDate);
+        return isoDate;
+      }
     }
     
-    // Try standard date parsing
-    const parsed = new Date(str);
-    return isNaN(parsed.getTime()) ? null : parsed;
+    // Try various common formats
+    const formats = [
+      // ISO formats
+      /^\d{4}-\d{2}-\d{2}$/,
+      /^\d{4}\/\d{2}\/\d{2}$/,
+      // US formats
+      /^\d{1,2}\/\d{1,2}\/\d{4}$/,
+      /^\d{1,2}-\d{1,2}-\d{4}$/,
+      // European formats
+      /^\d{1,2}\.\d{1,2}\.\d{4}$/,
+    ];
+    
+    // Try direct parsing first
+    let parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      console.log('Direct date parsing succeeded:', str, '->', parsed);
+      return parsed;
+    }
+    
+    // Try with different separators if direct parsing failed
+    const dateStr = str.replace(/[\/\-\.]/g, '/');
+    parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      console.log('Normalized date parsing succeeded:', str, '->', parsed);
+      return parsed;
+    }
+    
+    console.log('All date parsing methods failed for:', str);
+    return null;
   } catch (error) {
     console.warn('Failed to parse date:', value, error);
     return null;
@@ -116,6 +171,12 @@ export const prepareTemporalAnimationData = (
   });
 
   // Parse and sort data by date
+  console.log('Sample date values from column', config.dateColumn, ':', data.slice(0, 5).map(row => ({
+    original: row[config.dateColumn],
+    type: typeof row[config.dateColumn],
+    parsed: parseDate(row[config.dateColumn])
+  })));
+
   const parsedData = data
     .map(row => {
       const date = parseDate(row[config.dateColumn]);
@@ -124,8 +185,13 @@ export const prepareTemporalAnimationData = (
     .filter(row => row._parsedDate !== null)
     .sort((a, b) => a._parsedDate!.getTime() - b._parsedDate!.getTime());
 
+  console.log(`Parsed ${parsedData.length} valid dates out of ${data.length} total rows`);
+
   if (!parsedData.length) {
-    console.warn('No valid dates found in data');
+    console.warn('No valid dates found in data. Check date column format and data quality.');
+    console.log('Available columns:', Object.keys(data[0] || {}));
+    console.log('Selected date column:', config.dateColumn);
+    console.log('Sample raw data:', data.slice(0, 3));
     return [];
   }
 
@@ -292,10 +358,19 @@ const applyAggregation = (values: number[], method: AggregationMethod): number =
 };
 
 export const detectTemporalColumns = (columns: ColumnInfo[]): ColumnInfo[] => {
-  return columns.filter(col => 
-    col.type === 'date' || 
-    (col.type === 'text' && /date|time|created|updated|timestamp/i.test(col.name))
-  );
+  console.log('Detecting temporal columns from:', columns);
+  const temporalColumns = columns.filter(col => {
+    const isDateType = col.type === 'date';
+    const isTemporalName = col.type === 'text' && /date|time|created|updated|timestamp|year|month|day/i.test(col.name);
+    const isNumericTemporal = col.type === 'numeric' && /date|time|year|month|day/i.test(col.name);
+    
+    console.log(`Column ${col.name} (${col.type}): isDateType=${isDateType}, isTemporalName=${isTemporalName}, isNumericTemporal=${isNumericTemporal}`);
+    
+    return isDateType || isTemporalName || isNumericTemporal;
+  });
+  
+  console.log('Detected temporal columns:', temporalColumns);
+  return temporalColumns;
 };
 
 export const isTemporalDataSuitable = (
