@@ -236,6 +236,49 @@ export const TileChartRenderer = React.memo(({
     );
   }
 
+  if (chartType === 'map2d') {
+    const TileMap2DRenderer = React.lazy(() => 
+      import('../chart/renderers/TileMap2DChartRenderer')
+        .then(m => ({ default: m.TileMap2DChartRenderer }))
+    );
+    
+    return (
+      <React.Suspense fallback={<div className="text-center p-2 text-xs">Loading map...</div>}>
+        <TileMap2DRenderer
+          data={data}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          seriesColumn={effectiveSeries[0]?.column}
+          colors={chartColors}
+        />
+      </React.Suspense>
+    );
+  }
+
+  if (chartType === 'map3d') {
+    const TileMap2DRenderer = React.lazy(() => 
+      import('../chart/renderers/TileMap2DChartRenderer')
+        .then(m => ({ default: m.TileMap2DChartRenderer }))
+    );
+    
+    return (
+      <React.Suspense fallback={<div className="text-center p-2 text-xs">Loading 3D map...</div>}>
+        <div className="relative w-full h-full">
+          <TileMap2DRenderer
+            data={data}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            seriesColumn={effectiveSeries[0]?.column}
+            colors={chartColors}
+          />
+          <div className="absolute top-2 left-2 bg-primary/80 text-primary-foreground text-xs px-2 py-1 rounded">
+            3D View
+          </div>
+        </div>
+      </React.Suspense>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
       No chart type selected.

@@ -4,6 +4,7 @@ import { SeriesManager } from './chart/SeriesManager';
 import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
+import { GeospatialDataDetector } from './chart/GeospatialDataDetector';
 import { AIChartGenerator } from './chart/AIChartGenerator';
 import { SmartChartDefaults } from './chart/SmartChartDefaults';
 
@@ -160,6 +161,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           onApplyDefaults={handleApplySmartDefaults}
         />
 
+        <GeospatialDataDetector data={chartData} columns={chartColumns} />
+        
         {/* AI Chart Generator */}
         <AIChartGenerator 
           data={chartData}
