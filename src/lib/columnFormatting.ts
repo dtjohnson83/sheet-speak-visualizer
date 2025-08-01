@@ -6,6 +6,18 @@ export type { ColumnFormat };
 export const formatCellValue = (value: any, columnFormat: ColumnFormat): string => {
   if (value === null || value === undefined || value === '') return '';
 
+  // Handle Date objects immediately to prevent React rendering errors
+  if (value instanceof Date) {
+    if (!isNaN(value.getTime())) {
+      if (columnFormat.type === 'date') {
+        const format = columnFormat.dateFormat || 'YYYY-MM-DD';
+        return formatDateForDisplay(value, format);
+      }
+      return formatDateForDisplay(value);
+    }
+    return '';
+  }
+
   try {
     switch (columnFormat.type) {
       case 'numeric': {

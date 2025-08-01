@@ -35,6 +35,14 @@ const getTypeColor = (type: string) => {
 const formatValue = (value: any, column: ColumnInfo, columnFormats: ColumnFormat[]) => {
   if (value === null || value === undefined) return '';
   
+  // Handle Date objects immediately to prevent React rendering errors
+  if (value instanceof Date) {
+    if (!isNaN(value.getTime())) {
+      return formatDateValue(value);
+    }
+    return '';
+  }
+  
   // Check if there's a custom format for this column
   const customFormat = columnFormats.find(f => f.columnName === column.name);
   
@@ -45,11 +53,11 @@ const formatValue = (value: any, column: ColumnInfo, columnFormats: ColumnFormat
   // Default formatting based on column type
   switch (column.type) {
     case 'numeric':
-      return typeof value === 'number' ? value.toLocaleString() : value;
+      return typeof value === 'number' ? value.toLocaleString() : String(value);
     case 'date':
       return formatDateValue(value);
     default:
-      return value.toString();
+      return String(value);
   }
 };
 

@@ -57,6 +57,14 @@ export const convertValueToDate = (value: any): string => {
 export const formatDateForDisplay = (value: any, format: string = 'YYYY-MM-DD'): string => {
   if (value === null || value === undefined || value === '') return '';
   
+  // Handle Date objects directly first to prevent React rendering errors
+  if (value instanceof Date) {
+    if (!isNaN(value.getTime())) {
+      return formatDateObject(value, format);
+    }
+    return '';
+  }
+  
   try {
     // First, ensure we have a proper date
     let dateValue = value;
@@ -79,39 +87,44 @@ export const formatDateForDisplay = (value: any, format: string = 'YYYY-MM-DD'):
     
     if (isNaN(date.getTime())) return String(value);
     
-    switch (format) {
-      case 'MM/DD/YYYY':
-        return date.toLocaleDateString('en-US');
-      case 'DD/MM/YYYY':
-        return date.toLocaleDateString('en-GB');
-      case 'MMM DD, YYYY':
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      case 'MMMM DD, YYYY':
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        });
-      case 'DD MMM YYYY':
-        return date.toLocaleDateString('en-GB', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      case 'YYYY-MM-DD HH:MM':
-        return `${date.toLocaleDateString('en-CA')} ${date.toTimeString().slice(0, 5)}`;
-      case 'MM/DD/YYYY HH:MM':
-        return `${date.toLocaleDateString('en-US')} ${date.toTimeString().slice(0, 5)}`;
-      case 'YYYY-MM-DD':
-      default:
-        return date.toLocaleDateString('en-CA'); // ISO format
-    }
+    return formatDateObject(date, format);
   } catch (error) {
     console.warn('Date formatting error:', error);
     return String(value);
+  }
+};
+
+// Helper function to format Date objects consistently
+const formatDateObject = (date: Date, format: string): string => {
+  switch (format) {
+    case 'MM/DD/YYYY':
+      return date.toLocaleDateString('en-US');
+    case 'DD/MM/YYYY':
+      return date.toLocaleDateString('en-GB');
+    case 'MMM DD, YYYY':
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    case 'MMMM DD, YYYY':
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    case 'DD MMM YYYY':
+      return date.toLocaleDateString('en-GB', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    case 'YYYY-MM-DD HH:MM':
+      return `${date.toLocaleDateString('en-CA')} ${date.toTimeString().slice(0, 5)}`;
+    case 'MM/DD/YYYY HH:MM':
+      return `${date.toLocaleDateString('en-US')} ${date.toTimeString().slice(0, 5)}`;
+    case 'YYYY-MM-DD':
+    default:
+      return date.toLocaleDateString('en-CA'); // ISO format
   }
 };
