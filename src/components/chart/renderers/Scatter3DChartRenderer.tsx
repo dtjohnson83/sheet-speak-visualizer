@@ -192,7 +192,7 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const baseDotSize = Math.max(0.15, Math.min(0.25, 0.5 / Math.sqrt(dataCount)));
     
     // Increase size for tile mode to improve visibility
-    const adjustedDotSize = tileMode ? baseDotSize * 2.5 : baseDotSize;
+    const adjustedDotSize = tileMode ? baseDotSize * 3.5 : baseDotSize;
     
     console.log(`3D Scatter: Rendering ${dataCount} points with size ${adjustedDotSize} (tileMode: ${tileMode})`);
     

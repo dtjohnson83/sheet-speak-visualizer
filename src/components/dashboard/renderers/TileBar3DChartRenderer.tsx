@@ -24,7 +24,7 @@ export const TileBar3DChartRenderer: React.FC<TileBar3DChartRendererProps> = ({
   showDataLabels
 }) => {
   return (
-    <Chart3DContainer height={200} enableControls={false} tileMode={true}>
+    <Chart3DContainer height={200} enableControls={true} tileMode={true}>
       <Bar3DChartRenderer
         data={data}
         xColumn={xColumn}

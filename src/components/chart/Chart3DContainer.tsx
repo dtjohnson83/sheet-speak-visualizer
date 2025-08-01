@@ -74,8 +74,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
         <Canvas
           shadows
           camera={{ 
-            position: tileMode ? [5, 5, 5] : [8, 8, 8], 
-            fov: tileMode ? 75 : 60 
+            position: tileMode ? [4, 4, 4] : [8, 8, 8], 
+            fov: tileMode ? 85 : 60 
           }}
           gl={{ 
             antialias: true, 
@@ -85,10 +85,10 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
         >
           <Suspense fallback={null}>
             {/* Enhanced Lighting - adjusted for tile mode */}
-            <ambientLight intensity={tileMode ? 0.5 : 0.3} />
+            <ambientLight intensity={tileMode ? 0.7 : 0.3} />
             <directionalLight
               position={[10, 10, 5]}
-              intensity={tileMode ? 1.8 : 1.2}
+              intensity={tileMode ? 2.2 : 1.2}
               castShadow
               shadow-mapSize-width={2048}
               shadow-mapSize-height={2048}
@@ -98,8 +98,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
               shadow-camera-top={10}
               shadow-camera-bottom={-10}
             />
-            <pointLight position={[-10, -10, -10]} intensity={tileMode ? 0.6 : 0.4} color="#4f46e5" />
-            <pointLight position={[10, -5, 10]} intensity={tileMode ? 0.5 : 0.3} color="#06b6d4" />
+            <pointLight position={[-10, -10, -10]} intensity={tileMode ? 0.8 : 0.4} color="#4f46e5" />
+            <pointLight position={[10, -5, 10]} intensity={tileMode ? 0.7 : 0.3} color="#06b6d4" />
             
             {/* Environment */}
             {showEnvironment && (
@@ -125,8 +125,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
               zoomSpeed={0.8}
               panSpeed={0.8}
               maxPolarAngle={Math.PI * 0.75}
-              minDistance={tileMode ? 3 : 5}
-              maxDistance={tileMode ? 25 : 50}
+              minDistance={tileMode ? 2 : 5}
+              maxDistance={tileMode ? 15 : 50}
               autoRotate={isAutoRotating}
               autoRotateSpeed={1}
             />

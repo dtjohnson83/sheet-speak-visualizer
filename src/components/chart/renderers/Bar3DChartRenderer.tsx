@@ -118,7 +118,7 @@ const Bar3D: React.FC<BarProps> = ({
       {showLabel && label && !hovered && (
         <Text
           position={[position[0], position[1] + scale[1] / 2 + 0.5, position[2]]}
-          fontSize={0.3}
+          fontSize={0.4}
           color="hsl(var(--foreground))"
           anchorX="center"
           anchorY="middle"
@@ -179,8 +179,8 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
     const gridSize = Math.ceil(Math.sqrt(data.length));
     const spacing = 3.5 / gridSize; // Fit within axis bounds
     
-    // Adjust bar width for tile mode
-    const barWidth = tileMode ? Math.min(0.8, 1.2 / gridSize) : 0.6;
+    // Adjust bar width for tile mode - increased for better visibility
+    const barWidth = tileMode ? Math.min(1.0, 1.5 / gridSize) : 0.6;
     
     return data.map((item, index) => {
       const value = Number(item[yColumn]) || 0;
