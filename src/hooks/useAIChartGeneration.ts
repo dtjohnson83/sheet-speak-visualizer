@@ -29,15 +29,17 @@ export const useAIChartGeneration = () => {
   const [lastSuggestion, setLastSuggestion] = useState<AIChartSuggestion | null>(null);
 
   // Valid chart types list including network visualizations
-  const VALID_CHART_TYPES = ['bar', 'line', 'area', 'pie', 'scatter', 'heatmap', 'treemap', 'histogram', 'kpi', 'network', 'network3d', 'entity-relationship'] as const;
+  const VALID_CHART_TYPES = ['bar', 'line', 'area', 'pie', 'scatter', 'heatmap', 'treemap', 'histogram', 'kpi', 'bar3d', 'scatter3d', 'surface3d', 'network', 'network3d', 'entity-relationship'] as const;
   
-  // Chart types that support series
-  const MULTI_SERIES_TYPES = ['bar', 'line', 'area', 'scatter', 'network'] as const;
+  // Chart types that support series  
+  const MULTI_SERIES_TYPES = ['line', 'area', 'bar', 'scatter', 'bar3d', 'scatter3d'] as const;
   
   // Chart type to aggregation mapping
   const getDefaultAggregation = (chartType: string): AggregationMethod => {
     switch (chartType) {
-      case 'scatter': return 'average'; // Scatter typically shows raw relationships
+      case 'scatter': 
+      case 'scatter3d':
+      case 'surface3d': return 'average'; // 3D charts typically show raw relationships
       case 'count': 
       case 'histogram': return 'count';
       case 'pie':
