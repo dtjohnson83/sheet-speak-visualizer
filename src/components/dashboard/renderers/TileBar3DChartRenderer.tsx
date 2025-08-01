@@ -12,7 +12,7 @@ interface TileBar3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  isRecording?: boolean;
+  
 }
 
 export const TileBar3DChartRenderer: React.FC<TileBar3DChartRendererProps> = ({
@@ -23,10 +23,10 @@ export const TileBar3DChartRenderer: React.FC<TileBar3DChartRendererProps> = ({
   effectiveSeries,
   chartColors,
   showDataLabels,
-  isRecording = false
+  
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true} isRecording={isRecording}>
+    <Chart3DContainer enableControls={true} tileMode={true}>
       <Bar3DChartRenderer
         data={data}
         xColumn={xColumn}

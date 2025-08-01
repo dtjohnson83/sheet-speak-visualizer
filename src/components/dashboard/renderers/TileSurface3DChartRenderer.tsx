@@ -12,7 +12,7 @@ interface TileSurface3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  isRecording?: boolean;
+  
 }
 
 export const TileSurface3DChartRenderer: React.FC<TileSurface3DChartRendererProps> = ({
@@ -23,10 +23,10 @@ export const TileSurface3DChartRenderer: React.FC<TileSurface3DChartRendererProp
   effectiveSeries,
   chartColors,
   showDataLabels,
-  isRecording = false
+  
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true} isRecording={isRecording}>
+    <Chart3DContainer enableControls={true} tileMode={true}>
       <Surface3DChartRenderer
         data={data}
         xColumn={xColumn}

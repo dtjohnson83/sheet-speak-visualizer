@@ -26,7 +26,7 @@ interface ExtendedChartRenderersProps extends ChartRenderersProps {
   zColumn?: string;
   isTemporalAnimated?: boolean;
   animationSpeed?: number;
-  isRecording?: boolean;
+  
 }
 
 export const ChartRenderers = ({
@@ -45,7 +45,7 @@ export const ChartRenderers = ({
   zColumn,
   isTemporalAnimated = false,
   animationSpeed = 1000,
-  isRecording = false
+  
 }: ExtendedChartRenderersProps) => {
   if (chartType === 'bar') {
     return (
@@ -166,7 +166,7 @@ export const ChartRenderers = ({
   // 3D Charts
   if (chartType === 'bar3d') {
     return (
-      <Chart3DContainer isRecording={isRecording}>
+      <Chart3DContainer>
         <Bar3DChartRenderer
           data={data}
           xColumn={xColumn}
@@ -181,7 +181,7 @@ export const ChartRenderers = ({
 
   if (chartType === 'scatter3d') {
     return (
-      <Chart3DContainer isRecording={isRecording}>
+      <Chart3DContainer>
         <Scatter3DChartRenderer
           data={data}
           xColumn={xColumn}
@@ -196,7 +196,7 @@ export const ChartRenderers = ({
 
   if (chartType === 'surface3d') {
     return (
-      <Chart3DContainer isRecording={isRecording}>
+      <Chart3DContainer>
         <Surface3DChartRenderer
           data={data}
           xColumn={xColumn}

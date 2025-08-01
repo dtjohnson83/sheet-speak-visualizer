@@ -3,6 +3,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
+import { ScrollableChartContainer } from '../ScrollableChartContainer';
 
 interface BarChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {
   isTemporalAnimated?: boolean;
@@ -80,34 +81,36 @@ export const BarChartRenderer = React.memo(({
   }, []);
   
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <ComposedChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={xColumn} />
-        <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
-        {needsRightYAxis && (
-          <YAxis 
-            yAxisId="right" 
-            orientation="right" 
-            tickFormatter={formatTooltipValue}
-          />
-        )}
-        <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-        <Legend />
-        {allSeries.map((s, index) => (
-          <Bar 
-            key={s.column} 
-            dataKey={s.column} 
-            fill={chartColors[index % chartColors.length]} 
-            stackId={stackColumn ? 'stack' : undefined}
-            yAxisId={s.yAxisId || 'left'}
-            label={showDataLabels ? renderDataLabel : false}
-            isAnimationActive={isTemporalAnimated}
-            animationDuration={isTemporalAnimated ? animationSpeed : 1500}
-            animationEasing="ease-out"
-          />
-        ))}
-      </ComposedChart>
-    </ResponsiveContainer>
+    <ScrollableChartContainer dataLength={data.length} minWidth={600}>
+      <ResponsiveContainer width="100%" height={400}>
+        <ComposedChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xColumn} />
+          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+          {needsRightYAxis && (
+            <YAxis 
+              yAxisId="right" 
+              orientation="right" 
+              tickFormatter={formatTooltipValue}
+            />
+          )}
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+          {allSeries.map((s, index) => (
+            <Bar 
+              key={s.column} 
+              dataKey={s.column} 
+              fill={chartColors[index % chartColors.length]} 
+              stackId={stackColumn ? 'stack' : undefined}
+              yAxisId={s.yAxisId || 'left'}
+              label={showDataLabels ? renderDataLabel : false}
+              isAnimationActive={isTemporalAnimated}
+              animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+              animationEasing="ease-out"
+            />
+          ))}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </ScrollableChartContainer>
   );
 });

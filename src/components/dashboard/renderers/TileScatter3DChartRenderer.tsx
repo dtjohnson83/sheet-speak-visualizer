@@ -12,7 +12,7 @@ interface TileScatter3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  isRecording?: boolean;
+  
 }
 
 export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProps> = ({
@@ -23,10 +23,10 @@ export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProp
   effectiveSeries,
   chartColors,
   showDataLabels,
-  isRecording = false
+  
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true} isRecording={isRecording}>
+    <Chart3DContainer enableControls={true} tileMode={true}>
       <Scatter3DChartRenderer
         data={data}
         xColumn={xColumn}

@@ -5,7 +5,7 @@ import { TemporalTimelineSlider } from './TemporalTimelineSlider';
 import { AnimatedChartContainer } from './AnimatedChartContainer';
 import { detectTemporalColumns, prepareTemporalAnimationData, TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 import { useTemporalAnimation } from '@/hooks/useTemporalAnimation';
-import { recordTemporalAnimation } from '@/lib/chart/temporalAnimationRecorder';
+
 import { useToast } from '@/hooks/use-toast';
 import { ChartRenderersProps } from '@/types';
 
@@ -16,7 +16,7 @@ interface TemporalChartWrapperProps extends ChartRenderersProps {
 export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props) => {
   const { data, columns, chartRef, chartType } = props;
   const { toast } = useToast();
-  const [isRecording, setIsRecording] = useState(false);
+  
   
   const temporalColumns = detectTemporalColumns(columns);
   const hasTemporalData = temporalColumns.length > 0;
@@ -57,45 +57,6 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
     ? state.currentFrameData.data 
     : data;
 
-  const handleRecordAnimation = async () => {
-    if (!chartRef?.current) {
-      toast({
-        title: "Error",
-        description: "Chart not found for recording",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      setIsRecording(true);
-      
-      await recordTemporalAnimation(
-        chartRef.current,
-        state,
-        controls,
-        {
-          format: 'mp4',
-          width: 1600,
-          height: 1200,
-          fileName: 'temporal-animation'
-        }
-      );
-      
-      toast({
-        title: "Recording Completed",
-        description: "Temporal animation recorded successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Recording Failed",
-        description: "Failed to record temporal animation",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRecording(false);
-    }
-  };
 
   const handleTestAnimation = () => {
     controls.reset();
@@ -118,7 +79,7 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
           onReset={controls.reset}
           currentTimeLabel={state.currentFrameData?.timeLabel}
           progress={state.progress}
-          onRecordAnimation={handleRecordAnimation}
+          
           chartRef={chartRef}
           temporalAnimationState={state}
           temporalAnimationControls={controls}
@@ -136,14 +97,13 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
           temporalConfig={temporalConfig.enabled ? temporalConfig : undefined}
           onTemporalConfigChange={temporalConfig.enabled ? setTemporalConfig : undefined}
           onTest={temporalConfig.enabled ? handleTestAnimation : undefined}
-          onRecord={temporalConfig.enabled ? handleRecordAnimation : undefined}
+          
         >
           <ChartRenderers
             {...props}
             data={chartData}
             isTemporalAnimated={temporalConfig.enabled}
             animationSpeed={temporalConfig.animationSpeed}
-            isRecording={isRecording}
           />
         </AnimatedChartContainer>
         

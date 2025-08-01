@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
+import { ScrollableChartContainer } from '../ScrollableChartContainer';
 
 interface HistogramChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors' | 'showDataLabels'> {
   isTemporalAnimated?: boolean;
@@ -35,21 +36,23 @@ export const HistogramChartRenderer = ({
   };
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="range" />
-        <YAxis tickFormatter={formatTooltipValue} />
-        <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-        <Bar 
-          dataKey="frequency" 
-          fill={chartColors[0]} 
-          label={showDataLabels ? renderDataLabel : false}
-          isAnimationActive={isTemporalAnimated}
-          animationDuration={isTemporalAnimated ? animationSpeed : 1500}
-          animationEasing="ease-out"
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <ScrollableChartContainer dataLength={data.length} minWidth={500}>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="range" />
+          <YAxis tickFormatter={formatTooltipValue} />
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Bar 
+            dataKey="frequency" 
+            fill={chartColors[0]} 
+            label={showDataLabels ? renderDataLabel : false}
+            isAnimationActive={isTemporalAnimated}
+            animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+            animationEasing="ease-out"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </ScrollableChartContainer>
   );
 };

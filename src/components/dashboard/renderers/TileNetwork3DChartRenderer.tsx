@@ -11,7 +11,7 @@ interface TileNetwork3DChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
-  isRecording?: boolean;
+  
 }
 
 export const TileNetwork3DChartRenderer: React.FC<TileNetwork3DChartRendererProps> = ({
@@ -21,10 +21,10 @@ export const TileNetwork3DChartRenderer: React.FC<TileNetwork3DChartRendererProp
   effectiveSeries,
   chartColors,
   showDataLabels,
-  isRecording = false
+  
 }) => {
   return (
-    <Chart3DContainer enableControls={true} tileMode={true} isRecording={isRecording}>
+    <Chart3DContainer enableControls={true} tileMode={true}>
       <Network3DGraphRenderer
         data={data}
         columns={[]}

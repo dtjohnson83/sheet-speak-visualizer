@@ -6,7 +6,7 @@ import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { AIChartGenerator } from './chart/AIChartGenerator';
 import { SmartChartDefaults } from './chart/SmartChartDefaults';
-import { TemporalRecordingInterface } from './chart/TemporalRecordingInterface';
+
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -167,13 +167,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           onApplySuggestion={handleApplyAISuggestion}
         />
 
-        {/* Temporal Recording Interface */}
-        <TemporalRecordingInterface
-          data={chartData}
-          columns={chartColumns}
-          chartRef={chartRef}
-          onTemporalConfigChange={setTemporalConfig}
-        />
         
         <ChartConfiguration
           chartType={chartType}

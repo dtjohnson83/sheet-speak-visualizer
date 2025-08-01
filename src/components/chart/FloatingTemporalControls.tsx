@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw, Settings, Video, TestTube, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, TestTube, ChevronDown, ChevronUp } from 'lucide-react';
 import { TemporalAnimationState, TemporalAnimationControls } from '@/hooks/useTemporalAnimation';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -8,7 +8,6 @@ interface FloatingTemporalControlsProps {
   state: TemporalAnimationState;
   controls: TemporalAnimationControls;
   onTest?: () => void;
-  onRecord?: () => void;
   showAdvanced?: boolean;
   children?: React.ReactNode;
 }
@@ -17,7 +16,6 @@ export const FloatingTemporalControls = ({
   state,
   controls,
   onTest,
-  onRecord,
   showAdvanced = false,
   children
 }: FloatingTemporalControlsProps) => {
@@ -72,18 +70,6 @@ export const FloatingTemporalControls = ({
             </Button>
           )}
 
-          {/* Record Button */}
-          {onRecord && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onRecord}
-              className="h-8 w-8 p-0 hover:bg-destructive/10 text-destructive hover:text-destructive"
-              title="Record Animation"
-            >
-              <Video className="h-3 w-3" />
-            </Button>
-          )}
 
           {/* Advanced Settings Toggle */}
           {showAdvanced && (
@@ -113,12 +99,6 @@ export const FloatingTemporalControls = ({
         {/* Frame Counter */}
         <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
           <span>Frame {state.currentFrame + 1} / {state.totalFrames}</span>
-          {state.isPlaying && (
-            <div className="flex items-center gap-1">
-              <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />
-              <span>Recording</span>
-            </div>
-          )}
         </div>
       </div>
 

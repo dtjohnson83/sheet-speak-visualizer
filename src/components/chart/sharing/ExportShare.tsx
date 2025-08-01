@@ -7,8 +7,6 @@ import { Slider } from '@/components/ui/slider';
 import { Download, Video, Camera, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { exportChart3D } from '../utils/chart3DExporter';
-import { recordChart3DAnimation } from '../utils/chart3DAnimationRecorder';
-import { recordTemporalAnimation } from '@/lib/chart/temporalAnimationRecorder';
 
 interface ExportShareProps {
   chartType: string;
@@ -72,34 +70,8 @@ export const ExportShare: React.FC<ExportShareProps> = ({
     try {
       const fileName = `${chartTitle.toLowerCase().replace(/\s+/g, '-')}-chart`;
       
-      if (currentFormat.supportsAnimation && (is3D || isTemporalAnimation)) {
-        // Export animation
-        if (isTemporalAnimation && temporalAnimationState && temporalAnimationControls) {
-          await recordTemporalAnimation(
-            chartRef.current,
-            temporalAnimationState,
-            temporalAnimationControls,
-            {
-              format: exportFormat as 'gif' | 'mp4',
-              duration: animationDuration,
-              width: currentResolution.width,
-              height: currentResolution.height,
-              fileName
-            }
-          );
-        } else if (is3D) {
-          await recordChart3DAnimation(
-            chartRef.current,
-            {
-              format: exportFormat as 'gif' | 'mp4',
-              duration: animationDuration,
-              width: currentResolution.width,
-              height: currentResolution.height,
-              fileName
-            }
-          );
-        }
-      } else {
+      // Export static image only (animation export removed)
+      {
         // Export static image
         if (is3D) {
           const imageBlob = await exportChart3D(
