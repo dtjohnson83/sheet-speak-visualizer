@@ -6,13 +6,15 @@ import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { AIChartGenerator } from './chart/AIChartGenerator';
 import { SmartChartDefaults } from './chart/SmartChartDefaults';
+import { TemporalRecordingInterface } from './chart/TemporalRecordingInterface';
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useChartConfiguration } from './chart/hooks/useChartConfiguration';
 import { useGraphEnhancedSemanticFusion } from '@/hooks/useGraphEnhancedSemanticFusion';
 import { useGraphChartAvailability } from '@/hooks/useGraphChartAvailability';
 import { convertGraphToChartData, getGraphChartColumns } from '@/lib/graphChartDataProcessor';
+import { detectTemporalColumns, TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 import { Badge } from '@/components/ui/badge';
 import { Zap, Network } from 'lucide-react';
 
@@ -25,6 +27,18 @@ interface ChartVisualizationProps {
 }
 
 export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName }: ChartVisualizationProps) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [temporalConfig, setTemporalConfig] = useState<TemporalAnimationConfig>({
+    enabled: false,
+    dateColumn: '',
+    timeInterval: 'month',
+    animationSpeed: 1000,
+    autoPlay: false,
+    loop: false,
+    aggregationMethod: 'sum',
+    showCumulative: false
+  });
+
   const {
     // State
     customTitle,
@@ -152,6 +166,14 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           columns={chartColumns}
           onApplySuggestion={handleApplyAISuggestion}
         />
+
+        {/* Temporal Recording Interface */}
+        <TemporalRecordingInterface
+          data={chartData}
+          columns={chartColumns}
+          chartRef={chartRef}
+          onTemporalConfigChange={setTemporalConfig}
+        />
         
         <ChartConfiguration
           chartType={chartType}
@@ -209,29 +231,31 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
         )}
       </div>
 
-      <ChartContainer
-        data={chartData}
-        columns={chartColumns}
-        chartType={chartType}
-        xColumn={xColumn}
-        yColumn={yColumn}
-        zColumn={zColumn}
-        stackColumn={stackColumn}
-        sankeyTargetColumn={sankeyTargetColumn}
-        valueColumn={valueColumn}
-        sortColumn={sortColumn}
-        sortDirection={sortDirection}
-        series={series}
-        aggregationMethod={aggregationMethod}
-        showDataLabels={showDataLabels}
-        supportsMultipleSeries={supportsMultipleSeries}
-        chartColors={chartColors}
-        onSaveTile={() => handleSaveTile(onSaveTile)}
-        customTitle={customTitle}
-        onTitleChange={setCustomTitle}
-        columnFormats={columnFormats}
-        histogramBins={histogramBins}
-      />
+      <div ref={chartRef}>
+        <ChartContainer
+          data={chartData}
+          columns={chartColumns}
+          chartType={chartType}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          zColumn={zColumn}
+          stackColumn={stackColumn}
+          sankeyTargetColumn={sankeyTargetColumn}
+          valueColumn={valueColumn}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          series={series}
+          aggregationMethod={aggregationMethod}
+          showDataLabels={showDataLabels}
+          supportsMultipleSeries={supportsMultipleSeries}
+          chartColors={chartColors}
+          onSaveTile={() => handleSaveTile(onSaveTile)}
+          customTitle={customTitle}
+          onTitleChange={setCustomTitle}
+          columnFormats={columnFormats}
+          histogramBins={histogramBins}
+        />
+      </div>
     </div>
   );
 };
