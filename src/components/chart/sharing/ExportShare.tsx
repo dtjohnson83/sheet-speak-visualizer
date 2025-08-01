@@ -42,8 +42,8 @@ export const ExportShare: React.FC<ExportShareProps> = ({
     png: { name: 'PNG Image', icon: FileImage, supportsAnimation: false },
     jpg: { name: 'JPEG Image', icon: FileImage, supportsAnimation: false },
     webp: { name: 'WebP Image', icon: FileImage, supportsAnimation: false },
-    gif: { name: 'Animated GIF', icon: Camera, supportsAnimation: true },
-    mp4: { name: 'MP4 Video', icon: Camera, supportsAnimation: true }
+    gif: { name: 'Export as GIF', icon: Camera, supportsAnimation: true },
+    mp4: { name: 'Export as Video', icon: Camera, supportsAnimation: true }
   };
 
   const resolutionOptions = {
@@ -144,7 +144,7 @@ export const ExportShare: React.FC<ExportShareProps> = ({
                     {format.name}
                     {format.supportsAnimation && (is3D || isTemporalAnimation) && (
                       <span className="text-xs bg-primary/10 text-primary px-1 rounded">
-                        {is3D ? '3D Animation' : 'Temporal Animation'}
+                        {is3D ? 'With 3D Animation' : 'With Data Animation'}
                       </span>
                     )}
                   </div>
@@ -194,13 +194,13 @@ export const ExportShare: React.FC<ExportShareProps> = ({
       </Card>
 
       <div className="text-sm text-muted-foreground space-y-1">
-        <p>• {is3D ? '3D charts' : isTemporalAnimation ? 'Temporal animation' : '2D charts'} supported</p>
+        <p>• {is3D ? '3D charts' : isTemporalAnimation ? 'Charts with data animation' : '2D charts'} supported</p>
         <p>• File size varies by resolution and complexity</p>
         {currentFormat.supportsAnimation && is3D && (
           <p>• Animation captures 360° rotation with interactions</p>
         )}
         {currentFormat.supportsAnimation && isTemporalAnimation && (
-          <p>• Animation captures temporal data progression over time</p>
+          <p>• Animation captures data changes over time</p>
         )}
       </div>
 

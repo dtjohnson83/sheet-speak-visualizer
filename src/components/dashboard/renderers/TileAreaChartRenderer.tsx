@@ -5,6 +5,7 @@ import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
+import { ScrollableChartContainer } from '../../chart/ScrollableChartContainer';
 
 interface TileAreaChartRendererProps {
   data: DataRow[];
@@ -61,44 +62,46 @@ export const TileAreaChartRenderer = ({
   };
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={xColumn} />
-        <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
-        {needsRightYAxis && (
-          <YAxis yAxisId="right" orientation="right" tickFormatter={formatTooltipValue} />
-        )}
-        <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-        <Legend />
-        {effectiveSeries.map((s, index) => {
-          if (s.type === 'bar') {
-            return (
-              <Bar 
-                key={s.column} 
-                dataKey={s.column} 
-                fill={chartColors[index % chartColors.length]} 
-                yAxisId={s.yAxisId || 'left'}
-                label={showDataLabels ? renderBarDataLabel : false}
-              />
-            );
-          } else {
-            return (
-              <Area 
-                key={s.column} 
-                type="monotone" 
-                dataKey={s.column} 
-                stackId={stackColumn ? 'stack' : undefined}
-                stroke={chartColors[index % chartColors.length]} 
-                fill={chartColors[index % chartColors.length]}
-                fillOpacity={0.6}
-                yAxisId={s.yAxisId || 'left'}
-                label={showDataLabels ? renderDataLabel : false}
-              />
-            );
-          }
-        })}
-      </ComposedChart>
-    </ResponsiveContainer>
+    <ScrollableChartContainer dataLength={data.length} minWidth={300}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xColumn} />
+          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+          {needsRightYAxis && (
+            <YAxis yAxisId="right" orientation="right" tickFormatter={formatTooltipValue} />
+          )}
+          <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
+          <Legend />
+          {effectiveSeries.map((s, index) => {
+            if (s.type === 'bar') {
+              return (
+                <Bar 
+                  key={s.column} 
+                  dataKey={s.column} 
+                  fill={chartColors[index % chartColors.length]} 
+                  yAxisId={s.yAxisId || 'left'}
+                  label={showDataLabels ? renderBarDataLabel : false}
+                />
+              );
+            } else {
+              return (
+                <Area 
+                  key={s.column} 
+                  type="monotone" 
+                  dataKey={s.column} 
+                  stackId={stackColumn ? 'stack' : undefined}
+                  stroke={chartColors[index % chartColors.length]} 
+                  fill={chartColors[index % chartColors.length]}
+                  fillOpacity={0.6}
+                  yAxisId={s.yAxisId || 'left'}
+                  label={showDataLabels ? renderDataLabel : false}
+                />
+              );
+            }
+          })}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </ScrollableChartContainer>
   );
 };
