@@ -9,6 +9,10 @@ import { TileControls } from './TileControls';
 import { ResizeHandle } from './ResizeHandle';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { logChartOperation } from '@/lib/logger';
+import { autoMapColumns, generateColumnErrorMessage } from './utils/columnMappingUtils';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export interface DashboardTileData {
   id: string;
@@ -61,6 +65,37 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
     }
   }, [onUpdate, tile.id]);
 
+  // Auto-map columns if they don't exist in the current dataset
+  const columnMapping = React.useMemo(() => {
+    if (!columns || columns.length === 0) {
+      return {
+        xColumn: tile.xColumn,
+        yColumn: tile.yColumn,
+        series: tile.series,
+        mapped: false,
+        missingColumns: []
+      };
+    }
+
+    return autoMapColumns(
+      tile.xColumn,
+      tile.yColumn,
+      tile.series,
+      columns,
+      tile.chartType
+    );
+  }, [tile.xColumn, tile.yColumn, tile.series, tile.chartType, columns]);
+
+  const handleRemapColumns = React.useCallback(() => {
+    if (onUpdate && columnMapping.mapped) {
+      onUpdate(tile.id, {
+        // We can't directly update tile data structure from here
+        // This would require extending the onUpdate interface
+        // For now, just refresh by forcing a re-render
+      });
+    }
+  }, [onUpdate, tile.id, columnMapping.mapped]);
+
   // Process the data using the same pipeline as the main visualization
   const processedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -68,16 +103,19 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
     logChartOperation('tile data processing start', {
       tileId: tile.id,
       chartType: tile.chartType,
-      dataLength: data.length
+      dataLength: data.length,
+      originalColumns: { x: tile.xColumn, y: tile.yColumn },
+      mappedColumns: { x: columnMapping.xColumn, y: columnMapping.yColumn },
+      wasMapped: columnMapping.mapped
     }, 'DashboardTile');
 
     const result = prepareChartData(
       data,
       columns,
       tile.chartType,
-      tile.xColumn,
-      tile.yColumn,
-      tile.series,
+      columnMapping.xColumn,
+      columnMapping.yColumn,
+      columnMapping.series,
       tile.sortColumn || 'none',
       tile.sortDirection || 'desc',
       tile.stackColumn || '',
@@ -96,7 +134,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
     }, 'DashboardTile');
 
     return result;
-  }, [data, columns, tile]);
+  }, [data, columns, tile, columnMapping]);
 
   // For structured data charts (like Sankey), pass the data directly
   // For array-based charts, ensure we have an array
@@ -137,17 +175,50 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
       />
       
       <div className="w-full h-[calc(100%-3rem)] overflow-hidden">
+        {/* Show column mapping warning if columns were auto-mapped */}
+        {columnMapping.mapped && columnMapping.missingColumns.length > 0 && (
+          <Alert className="mb-2 border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-xs">
+              <div className="flex items-center justify-between">
+                <span>
+                  Auto-mapped missing columns: {columnMapping.missingColumns.join(', ')}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRemapColumns}
+                  className="h-6 px-2 text-xs"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Fix
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Show error if no data can be displayed */}
+        {Array.isArray(dataForRenderer) && dataForRenderer.length === 0 && data.length > 0 && (
+          <Alert className="mb-2 border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-xs">
+              {generateColumnErrorMessage(columnMapping.missingColumns, columns)}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <TileChartRenderer
           chartType={tile.chartType}
-          xColumn={tile.xColumn}
-          yColumn={tile.yColumn}
+          xColumn={columnMapping.xColumn}
+          yColumn={columnMapping.yColumn}
           zColumn={tile.zColumn}
           stackColumn={tile.stackColumn}
           sankeyTargetColumn={tile.sankeyTargetColumn}
           valueColumn={tile.valueColumn}
           sortColumn={tile.sortColumn}
           sortDirection={tile.sortDirection}
-          series={tile.series}
+          series={columnMapping.series}
           showDataLabels={tile.showDataLabels}
           data={dataForRenderer}
           columns={columns}

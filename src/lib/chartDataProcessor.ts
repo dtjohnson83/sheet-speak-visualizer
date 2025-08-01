@@ -53,7 +53,15 @@ export const prepareChartData = (
   const yCol = columns.find(col => col.name?.trim() === cleanYColumn);
 
   if (!xCol || (!yCol && chartType !== 'histogram')) {
-    console.log('prepareChartData - Column definitions not found', { xCol, yCol, availableColumns: columns.map(c => c.name) });
+    console.warn('prepareChartData - Column definitions not found', { 
+      requestedX: cleanXColumn,
+      requestedY: cleanYColumn,
+      foundX: !!xCol,
+      foundY: !!yCol,
+      chartType,
+      availableColumns: columns.map(c => c.name),
+      columnTypes: columns.map(c => ({ name: c.name, type: c.type }))
+    });
     return [];
   }
 
