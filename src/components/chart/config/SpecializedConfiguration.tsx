@@ -26,15 +26,36 @@ export const SpecializedConfiguration = ({
   numericColumns,
   categoricalColumns
 }: SpecializedConfigurationProps) => {
-  const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey';
+  const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey' || chartType === 'map2d' || chartType === 'map3d';
+  const needsSeriesColumn = chartType === 'map2d' || chartType === 'map3d';
   const isHistogram = chartType === 'histogram';
 
   return (
     <>
+      {needsSeriesColumn && (
+        <div>
+          <label className="block text-sm font-medium mb-2">Series Column (Group By)</label>
+          <Select value={stackColumn} onValueChange={setStackColumn}>
+            <SelectTrigger className="bg-white dark:bg-gray-800">
+              <SelectValue placeholder="Select column for grouping" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-gray-800 border shadow-lg z-50 max-h-60 overflow-y-auto">
+              {categoricalColumns.map((col) => (
+                <SelectItem key={col.name} value={col.name}>
+                  {col.name} ({col.type})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {needsValueColumn && (
         <div>
           <label className="block text-sm font-medium mb-2">
-            {chartType === 'heatmap' ? 'Value (Intensity)' : 'Value (Flow)'}
+            {chartType === 'heatmap' ? 'Value (Intensity)' : 
+             chartType === 'map2d' || chartType === 'map3d' ? 'Value Column (Marker Size/Color)' : 
+             'Value (Flow)'}
           </label>
           <Select value={valueColumn} onValueChange={setValueColumn}>
             <SelectTrigger className="bg-white dark:bg-gray-800">

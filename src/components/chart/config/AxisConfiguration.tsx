@@ -28,6 +28,7 @@ export const AxisConfiguration = ({
   dateColumns
 }: AxisConfigurationProps) => {
   const isHistogram = chartType === 'histogram';
+  const isGeoChart = chartType === 'map2d' || chartType === 'map3d';
   console.log('AxisConfiguration - Column filtering:', {
     chartType,
     numericCount: numericColumns.length,
@@ -44,14 +45,20 @@ export const AxisConfiguration = ({
     <>
       <div>
         <label className="block text-sm font-medium mb-2">
-          {chartType === 'sankey' ? 'Source' : isHistogram ? 'Column to Analyze' : 'X-Axis'}
+          {chartType === 'sankey' ? 'Source' : 
+           isHistogram ? 'Column to Analyze' : 
+           isGeoChart ? 'Longitude' : 
+           'X-Axis'}
         </label>
         <Select value={xColumn} onValueChange={setXColumn}>
           <SelectTrigger>
             <SelectValue placeholder="Select column" />
           </SelectTrigger>
           <SelectContent className="max-h-60 overflow-y-auto">
-            {(isHistogram ? numericColumns : chartType === 'scatter' ? [...numericColumns, ...dateColumns] : [...categoricalColumns, ...dateColumns, ...numericColumns]).map((col) => (
+            {(isHistogram ? numericColumns : 
+              isGeoChart ? numericColumns :
+              chartType === 'scatter' ? [...numericColumns, ...dateColumns] : 
+              [...categoricalColumns, ...dateColumns, ...numericColumns]).map((col) => (
               <SelectItem key={col.name} value={col.name}>
                 {col.name} ({col.type})
               </SelectItem>
@@ -63,14 +70,20 @@ export const AxisConfiguration = ({
       {!isHistogram && (
         <div>
           <label className="block text-sm font-medium mb-2">
-            {chartType === 'sankey' ? 'Target' : chartType === 'heatmap' ? 'Y-Axis' : 'Y-Axis'}
+            {chartType === 'sankey' ? 'Target' : 
+             chartType === 'heatmap' ? 'Y-Axis' : 
+             isGeoChart ? 'Latitude' : 
+             'Y-Axis'}
           </label>
           <Select value={yColumn} onValueChange={setYColumn}>
             <SelectTrigger>
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
-              {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : chartType === 'sankey' ? categoricalColumns : numericColumns).map((col) => (
+            {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : 
+              chartType === 'sankey' ? categoricalColumns : 
+              isGeoChart ? numericColumns :
+              numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
                 </SelectItem>
@@ -81,9 +94,11 @@ export const AxisConfiguration = ({
       )}
 
       {/* Z-Axis for 3D charts */}
-      {(chartType === 'scatter3d' || chartType === 'surface3d') && setZColumn && (
+      {(chartType === 'scatter3d' || chartType === 'surface3d' || chartType === 'map3d') && setZColumn && (
         <div>
-          <label className="block text-sm font-medium mb-2">Z-Axis</label>
+          <label className="block text-sm font-medium mb-2">
+            {chartType === 'map3d' ? 'Height/Elevation' : 'Z-Axis'}
+          </label>
           <Select value={zColumn || ''} onValueChange={setZColumn}>
             <SelectTrigger>
               <SelectValue placeholder="Select Z column" />

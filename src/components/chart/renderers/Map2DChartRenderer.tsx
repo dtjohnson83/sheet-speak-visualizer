@@ -145,7 +145,7 @@ export const Map2DChartRenderer = ({
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapboxAccessToken={process.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNtNXE5M2F6ODBwdGIya3M4YTB5dTZoNDAifQ.placeholder'}
+        mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNtNXE5M2F6ODBwdGIya3M4YTB5dTZoNDAifQ.placeholder'}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
         attributionControl={false}
