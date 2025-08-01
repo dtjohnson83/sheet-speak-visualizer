@@ -13,6 +13,8 @@ interface Network3DGraphRendererProps {
   chartColors: string[];
   showDataLabels?: boolean;
   tileMode?: boolean;
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
 }
 
 interface GraphNode3D {

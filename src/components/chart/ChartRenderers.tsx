@@ -174,6 +174,8 @@ export const ChartRenderers = ({
           zColumn={zColumn}
           chartColors={chartColors}
           showDataLabels={showDataLabels}
+          isTemporalAnimated={isTemporalAnimated}
+          animationSpeed={animationSpeed}
         />
       </Chart3DContainer>
     );
@@ -189,6 +191,8 @@ export const ChartRenderers = ({
           zColumn={zColumn || stackColumn || 'z'}
           chartColors={chartColors}
           showDataLabels={showDataLabels}
+          isTemporalAnimated={isTemporalAnimated}
+          animationSpeed={animationSpeed}
         />
       </Chart3DContainer>
     );
@@ -204,6 +208,8 @@ export const ChartRenderers = ({
           zColumn={zColumn || stackColumn || 'z'}
           chartColors={chartColors}
           showDataLabels={showDataLabels}
+          isTemporalAnimated={isTemporalAnimated}
+          animationSpeed={animationSpeed}
         />
       </Chart3DContainer>
     );
@@ -236,6 +242,8 @@ export const ChartRenderers = ({
             yColumn={yColumn}
             chartColors={chartColors}
             showDataLabels={showDataLabels}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
           />
         </Chart3DContainer>
       </ChartErrorBoundary>

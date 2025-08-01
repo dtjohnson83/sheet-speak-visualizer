@@ -11,6 +11,8 @@ interface Surface3DChartRendererProps {
   chartColors: string[];
   showDataLabels?: boolean;
   tileMode?: boolean;
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
 }
 
 export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({

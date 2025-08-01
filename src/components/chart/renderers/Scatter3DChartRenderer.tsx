@@ -14,6 +14,8 @@ interface Scatter3DChartRendererProps {
   chartColors: string[];
   showDataLabels?: boolean;
   tileMode?: boolean;
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
 }
 
 interface PointProps {
