@@ -1,8 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { animated, useSpring } from '@react-spring/three';
 import { StandardAxes3D } from '../utils/StandardAxes3D';
 import { formatNumber } from '@/lib/numberUtils';
 
@@ -46,19 +45,64 @@ const Bar3D: React.FC<BarProps> = ({
   animationSpeed = 1000
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
   
-  // Animated spring for smooth transitions
-  const springs = useSpring({
-    scale: hovered ? [scale[0] * 1.1, scale[1] * 1.1, scale[2] * 1.1] : scale,
-    position: position,
-    rotY: hovered ? Math.PI / 12 : 0,
-    metalness: hovered ? 0.3 : 0.1,
-    roughness: hovered ? 0.2 : 0.4,
-    config: isTemporalAnimated 
-      ? { duration: animationSpeed * 0.8 } // Smooth temporal transitions
-      : { tension: 300, friction: 10 } // Quick hover animations
+  // Target values for animation
+  const targetScale = useRef(new THREE.Vector3(...scale));
+  const currentScale = useRef(new THREE.Vector3(...scale));
+  const targetRotation = useRef(0);
+  const currentRotation = useRef(0);
+  const targetMaterial = useRef({ metalness: 0.1, roughness: 0.4 });
+  const currentMaterial = useRef({ metalness: 0.1, roughness: 0.4 });
+  
+  // Update targets when props change
+  React.useEffect(() => {
+    targetScale.current.set(...scale);
+  }, [scale]);
+  
+  // Update targets when hover state changes
+  React.useEffect(() => {
+    if (hovered) {
+      targetScale.current.set(scale[0] * 1.1, scale[1] * 1.1, scale[2] * 1.1);
+      targetRotation.current = Math.PI / 12;
+      targetMaterial.current = { metalness: 0.3, roughness: 0.2 };
+    } else {
+      targetScale.current.set(...scale);
+      targetRotation.current = 0;
+      targetMaterial.current = { metalness: 0.1, roughness: 0.4 };
+    }
+  }, [hovered, scale]);
+  
+  // Manual animation using useFrame
+  useFrame((state, delta) => {
+    if (meshRef.current && materialRef.current) {
+      const speed = isTemporalAnimated ? delta * (1000 / animationSpeed) : delta * 8;
+      
+      // Animate scale
+      currentScale.current.lerp(targetScale.current, speed);
+      meshRef.current.scale.copy(currentScale.current);
+      
+      // Animate rotation
+      currentRotation.current = THREE.MathUtils.lerp(currentRotation.current, targetRotation.current, speed);
+      meshRef.current.rotation.y = currentRotation.current;
+      
+      // Animate material properties
+      currentMaterial.current.metalness = THREE.MathUtils.lerp(
+        currentMaterial.current.metalness, 
+        targetMaterial.current.metalness, 
+        speed
+      );
+      currentMaterial.current.roughness = THREE.MathUtils.lerp(
+        currentMaterial.current.roughness, 
+        targetMaterial.current.roughness, 
+        speed
+      );
+      
+      materialRef.current.metalness = currentMaterial.current.metalness;
+      materialRef.current.roughness = currentMaterial.current.roughness;
+    }
   });
 
   const handlePointerOver = (e: any) => {
@@ -79,25 +123,11 @@ const Bar3D: React.FC<BarProps> = ({
     onClick?.({ label, value, position });
   };
 
-  // Remove manual frame updates since we're using animated components
-  // useFrame(() => {
-  //   if (meshRef.current) {
-  //     meshRef.current.scale.set(
-  //       springs.scaleX.get(),
-  //       springs.scaleY.get(), 
-  //       springs.scaleZ.get()
-  //     );
-  //     meshRef.current.rotation.y = springs.rotY.get();
-  //   }
-  // });
-
   return (
     <group>
-      <animated.mesh
+      <mesh
         ref={meshRef}
-        position={springs.position as any}
-        scale={springs.scale as any}
-        rotation-y={springs.rotY}
+        position={position}
         castShadow
         receiveShadow
         onPointerOver={handlePointerOver}
@@ -105,14 +135,13 @@ const Bar3D: React.FC<BarProps> = ({
         onClick={handleClick}
       >
         <boxGeometry args={[1, 1, 1]} />
-        <animated.meshStandardMaterial 
+        <meshStandardMaterial 
+          ref={materialRef}
           color={hovered ? '#ffffff' : color}
-          metalness={springs.metalness}
-          roughness={springs.roughness}
           emissive={isSelected ? '#4f46e5' : '#000000'}
           emissiveIntensity={isSelected ? 0.2 : 0}
         />
-      </animated.mesh>
+      </mesh>
 
       {/* Hover tooltip */}
       {hovered && (
