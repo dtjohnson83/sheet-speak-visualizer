@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { ChartRenderers } from './ChartRenderers';
 import { TemporalAnimationConfiguration } from './config/TemporalAnimationConfiguration';
+import { TemporalTimelineSlider } from './TemporalTimelineSlider';
+import { AnimatedChartContainer } from './AnimatedChartContainer';
 import { detectTemporalColumns, prepareTemporalAnimationData, TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 import { useTemporalAnimation } from '@/hooks/useTemporalAnimation';
 import { recordTemporalAnimation } from '@/lib/chart/temporalAnimationRecorder';
@@ -110,12 +112,26 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
         />
       )}
       
-      <ChartRenderers
-        {...props}
-        data={chartData}
+      <AnimatedChartContainer
         isTemporalAnimated={temporalConfig.enabled}
-        animationSpeed={temporalConfig.animationSpeed}
-      />
+        animationState={state}
+        className="relative"
+      >
+        <ChartRenderers
+          {...props}
+          data={chartData}
+          isTemporalAnimated={temporalConfig.enabled}
+          animationSpeed={temporalConfig.animationSpeed}
+        />
+      </AnimatedChartContainer>
+      
+      {temporalConfig.enabled && isConfigured && (
+        <TemporalTimelineSlider
+          state={state}
+          controls={controls}
+          className="mt-4"
+        />
+      )}
     </div>
   );
 };

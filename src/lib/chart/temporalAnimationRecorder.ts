@@ -73,20 +73,32 @@ const captureChartFrame = async (
   width: number,
   height: number
 ): Promise<HTMLCanvasElement> => {
-  // Use html2canvas to capture the chart
+  // Find the actual chart content (recharts container or canvas)
+  const chartElement = container.querySelector('.recharts-wrapper') || 
+                      container.querySelector('canvas') ||
+                      container.querySelector('[data-chart]') ||
+                      container;
+  
+  // Use html2canvas to capture only the chart area
   const html2canvas = (await import('html2canvas')).default;
   
-  const canvas = await html2canvas(container, {
+  const canvas = await html2canvas(chartElement as HTMLElement, {
     width,
     height,
     scale: 1,
     backgroundColor: null,
     useCORS: true,
-    allowTaint: true
+    allowTaint: true,
+    ignoreElements: (element) => {
+      // Ignore control buttons and UI elements
+      return element.tagName === 'BUTTON' || 
+             element.classList.contains('temporal-controls') ||
+             element.getAttribute('data-ignore-recording') === 'true';
+    }
   });
 
   // Set willReadFrequently attribute for better performance
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (ctx) {
     canvas.setAttribute('willReadFrequently', 'true');
   }
