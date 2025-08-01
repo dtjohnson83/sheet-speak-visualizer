@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { chartTypeInfo } from '@/lib/chartTypeInfo';
 import { useGraphChartAvailability } from '@/hooks/useGraphChartAvailability';
-import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, Hash, TrendingUp, PieChart, Box } from 'lucide-react';
+import { BarChart3, LineChart, AreaChart, ScatterChart, Square, BarChart2, Hash, TrendingUp, PieChart, Box, MapPin, Mountain } from 'lucide-react';
 
 interface ChartTypeSelectorProps {
   chartType: string;
@@ -31,6 +31,8 @@ const chartTypes = [
   { value: 'bar3d', label: '3D Bar Chart', icon: Box, category: '3D' },
   { value: 'scatter3d', label: '3D Scatter Plot', icon: Box, category: '3D' },
   { value: 'surface3d', label: '3D Surface Plot', icon: Square, category: '3D' },
+  { value: 'map2d', label: '2D Map', icon: MapPin, category: 'geospatial' },
+  { value: 'map3d', label: '3D Map', icon: Mountain, category: 'geospatial' }
 ];
 
 export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, yColumn, dataLength }: ChartTypeSelectorProps) => {

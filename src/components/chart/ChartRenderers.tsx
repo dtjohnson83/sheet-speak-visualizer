@@ -265,5 +265,21 @@ export const ChartRenderers = ({
     );
   }
 
+  if (chartType === 'map2d') {
+    return (
+      <ChartErrorBoundary>
+        <div className="text-center p-4">Map 2D visualization coming soon...</div>
+      </ChartErrorBoundary>
+    );
+  }
+
+  if (chartType === 'map3d') {
+    return (
+      <ChartErrorBoundary>
+        <div className="text-center p-4">Map 3D visualization coming soon...</div>
+      </ChartErrorBoundary>
+    );
+  }
+
   return <PlaceholderChartRenderer message="Select a chart type to visualize your data." />;
 };
