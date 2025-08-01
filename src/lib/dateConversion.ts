@@ -20,6 +20,14 @@ export const isExcelDateSerial = (value: number): boolean => {
 export const convertValueToDate = (value: any): string => {
   if (value === null || value === undefined || value === '') return '';
   
+  // Handle JavaScript Date objects (from XLSX cellDates: true)
+  if (value instanceof Date) {
+    if (!isNaN(value.getTime())) {
+      return value.toISOString();
+    }
+    return String(value);
+  }
+  
   const num = Number(value);
   
   // If it's a number and looks like an Excel date serial, convert it

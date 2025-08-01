@@ -176,7 +176,7 @@ export const SimpleFileUpload = ({ onDataLoaded }: SimpleFileUploadProps) => {
         if (!data) return;
 
         try {
-          const workbook = XLSX.read(data, { type: 'binary' });
+          const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
           processExcelFile(workbook, file.name);
         } catch (parseError) {
           setError('Failed to parse the spreadsheet. The file may be corrupted.');

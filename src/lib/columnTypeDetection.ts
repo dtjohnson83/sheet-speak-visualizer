@@ -14,7 +14,8 @@ export const isDateColumnName = (columnName: string): boolean => {
     'expires', 'expired', 'due', 'deadline',
     'published', 'release', 'launch', 'opened', 'closed',
     'registered', 'joined', 'signed', 'last_login',
-    'effective', 'valid', 'from', 'to', 'until'
+    'effective', 'valid', 'from', 'to', 'until',
+    'day', 'month', 'year', 'period', 'when', 'at'
   ];
   
   // Check if column name contains any date keywords
@@ -96,6 +97,11 @@ export const detectColumnTypeWithName = (
 const hasAnyDateLikeValues = (values: any[]): boolean => {
   // More lenient date detection when column name suggests date
   const dateIndicators = values.filter(v => {
+    // Check for JavaScript Date objects first (from XLSX cellDates: true)
+    if (v instanceof Date && !isNaN(v.getTime())) {
+      return true;
+    }
+    
     const str = String(v).trim();
     
     // Check for common date patterns
@@ -135,6 +141,12 @@ const hasAnyDateLikeValues = (values: any[]): boolean => {
  * Standard date detection (stricter)
  */
 const hasDateLikeValues = (values: any[]): boolean => {
+  // Check for JavaScript Date objects (from XLSX cellDates: true)
+  const dateObjects = values.filter(v => v instanceof Date && !isNaN(v.getTime()));
+  if (dateObjects.length > values.length * 0.5) {
+    return true;
+  }
+  
   // Check for Excel date serials
   const potentialDateSerials = values.filter(v => {
     const num = Number(v);
