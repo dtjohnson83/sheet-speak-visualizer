@@ -220,11 +220,11 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
     const spacing = 3.5 / gridSize; // Fit within axis bounds
     
     // Adjust bar width for tile mode - increased for better visibility
-    const barWidth = tileMode ? Math.min(1.0, 1.5 / gridSize) : 0.6;
+    const barWidth = tileMode ? Math.min(1.2, 2.0 / gridSize) : 0.6;
     
     return data.map((item, index) => {
       const value = Number(item[yColumn]) || 0;
-      const normalizedHeight = (value / maxValue) * 3; // Max height of 3 units
+      const normalizedHeight = (value / maxValue) * 4; // Max height of 4 units for better vertical space usage
       
       // Position bars relative to origin (0,0,0)
       const row = Math.floor(index / gridSize);
@@ -234,7 +234,7 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
       
       return {
         position: [x, normalizedHeight / 2, z] as [number, number, number],
-        scale: [barWidth, normalizedHeight, barWidth] as [number, number, number],
+        scale: [barWidth, Math.max(0.1, normalizedHeight), barWidth] as [number, number, number],
         color: chartColors[index % chartColors.length],
         label: String(item[xColumn]),
         value: value,

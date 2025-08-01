@@ -58,15 +58,15 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
         
         if (dataIndex < data.length) {
           const item = data[dataIndex];
-          // Center surface around origin
+          // Better utilize vertical space with full 4-unit height range
           const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
-          const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * 2; // Height from origin
+          const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * 4; // Use full 4-unit height range
           const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
           
           vertices.push(x, y, z);
           
-          // Color based on height
-          const colorIndex = Math.floor((y / 2) * (chartColors.length - 1));
+          // Color based on height (adjusted for new 4-unit range)
+          const colorIndex = Math.floor((y / 4) * (chartColors.length - 1));
           const color = new THREE.Color(chartColors[Math.max(0, Math.min(colorIndex, chartColors.length - 1))]);
           colors.push(color.r, color.g, color.b);
         } else {

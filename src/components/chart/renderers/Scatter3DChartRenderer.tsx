@@ -189,19 +189,19 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const zMin = Math.min(...zValues);
     const zMax = Math.max(...zValues);
     
-    const scale = 3; // Spread points within axis bounds
+    const scale = 4; // Use full 4-unit axis range for better space utilization
     
     // Calculate appropriate dot size based on data density
     const dataCount = data.length;
-    const baseDotSize = Math.max(0.15, Math.min(0.25, 0.5 / Math.sqrt(dataCount)));
+    const baseDotSize = Math.max(0.2, Math.min(0.3, 0.6 / Math.sqrt(dataCount)));
     
     // Increase size for tile mode to improve visibility
-    const adjustedDotSize = tileMode ? baseDotSize * 3.5 : baseDotSize;
+    const adjustedDotSize = tileMode ? baseDotSize * 4.0 : baseDotSize;
     
     console.log(`3D Scatter: Rendering ${dataCount} points with size ${adjustedDotSize} (tileMode: ${tileMode})`);
     
     return data.map((item, index) => {
-      // Center data around origin (0,0,0)
+      // Better utilize vertical space with full 4-unit height range
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
       const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale;
       const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;

@@ -87,8 +87,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
         <Canvas
           shadows
           camera={{ 
-            position: (tileMode && !isMaximized) ? [4, 4, 4] : [8, 8, 8], 
-            fov: (tileMode && !isMaximized) ? 85 : 60 
+            position: (tileMode && !isMaximized) ? [3, 3, 3] : isMaximized ? [4, 4, 4] : [5, 5, 5], 
+            fov: (tileMode && !isMaximized) ? 75 : isMaximized ? 60 : 50 
           }}
           gl={{ 
             antialias: true, 
@@ -140,8 +140,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
               zoomSpeed={0.8}
               panSpeed={0.8}
               maxPolarAngle={Math.PI * 0.75}
-              minDistance={(tileMode && !isMaximized) ? 2 : 5}
-              maxDistance={(tileMode && !isMaximized) ? 15 : 50}
+              minDistance={(tileMode && !isMaximized) ? 1.5 : isMaximized ? 2 : 3}
+              maxDistance={(tileMode && !isMaximized) ? 8 : isMaximized ? 15 : 25}
               autoRotate={isAutoRotating}
               autoRotateSpeed={1}
             />
