@@ -14,6 +14,7 @@ interface Chart3DContainerProps {
   showEnvironment?: boolean;
   autoRotate?: boolean;
   tileMode?: boolean;
+  isRecording?: boolean;
 }
 
 export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
@@ -23,7 +24,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
   enableControls = true,
   showEnvironment = false,
   autoRotate = false,
-  tileMode = false
+  tileMode = false,
+  isRecording = false
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotate);
@@ -89,7 +91,8 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
           gl={{ 
             antialias: true, 
             alpha: true,
-            powerPreference: "high-performance"
+            powerPreference: "high-performance",
+            preserveDrawingBuffer: isRecording
           }}
         >
           <Suspense fallback={null}>

@@ -73,13 +73,22 @@ const captureChartFrame = async (
   width: number,
   height: number
 ): Promise<HTMLCanvasElement> => {
-  // Find the actual chart content (recharts container or canvas)
+  // Check if this is a 3D chart with WebGL canvas
+  const webglCanvas = container.querySelector('canvas');
+  
+  if (webglCanvas) {
+    const gl = webglCanvas.getContext('webgl') || webglCanvas.getContext('webgl2');
+    if (gl) {
+      // Use WebGL direct pixel reading for 3D charts
+      return await captureWebGLFrame(webglCanvas, width, height);
+    }
+  }
+  
+  // Fallback to html2canvas for 2D charts
   const chartElement = container.querySelector('.recharts-wrapper') || 
-                      container.querySelector('canvas') ||
                       container.querySelector('[data-chart]') ||
                       container;
   
-  // Use html2canvas to capture only the chart area
   const html2canvas = (await import('html2canvas')).default;
   
   const canvas = await html2canvas(chartElement as HTMLElement, {
@@ -90,20 +99,60 @@ const captureChartFrame = async (
     useCORS: true,
     allowTaint: true,
     ignoreElements: (element) => {
-      // Ignore control buttons and UI elements
       return element.tagName === 'BUTTON' || 
              element.classList.contains('temporal-controls') ||
              element.getAttribute('data-ignore-recording') === 'true';
     }
   });
 
-  // Set willReadFrequently attribute for better performance
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (ctx) {
     canvas.setAttribute('willReadFrequently', 'true');
   }
 
   return canvas;
+};
+
+const captureWebGLFrame = async (
+  sourceCanvas: HTMLCanvasElement,
+  targetWidth: number,
+  targetHeight: number
+): Promise<HTMLCanvasElement> => {
+  const gl = sourceCanvas.getContext('webgl') || sourceCanvas.getContext('webgl2');
+  if (!gl) {
+    throw new Error('WebGL context not available');
+  }
+
+  // Create output canvas
+  const outputCanvas = document.createElement('canvas');
+  outputCanvas.width = targetWidth;
+  outputCanvas.height = targetHeight;
+  const ctx = outputCanvas.getContext('2d')!;
+
+  // Set white background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+  // Calculate scaling to maintain aspect ratio
+  const scaleX = targetWidth / sourceCanvas.width;
+  const scaleY = targetHeight / sourceCanvas.height;
+  const scale = Math.min(scaleX, scaleY);
+  
+  const scaledWidth = sourceCanvas.width * scale;
+  const scaledHeight = sourceCanvas.height * scale;
+  const offsetX = (targetWidth - scaledWidth) / 2;
+  const offsetY = (targetHeight - scaledHeight) / 2;
+
+  // Draw the WebGL canvas content to our output canvas
+  ctx.drawImage(
+    sourceCanvas,
+    offsetX,
+    offsetY,
+    scaledWidth,
+    scaledHeight
+  );
+
+  return outputCanvas;
 };
 
 const createGIFFromCanvases = async (

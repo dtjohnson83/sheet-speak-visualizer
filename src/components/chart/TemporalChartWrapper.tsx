@@ -16,6 +16,7 @@ interface TemporalChartWrapperProps extends ChartRenderersProps {
 export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props) => {
   const { data, columns, chartRef, chartType } = props;
   const { toast } = useToast();
+  const [isRecording, setIsRecording] = useState(false);
   
   const temporalColumns = detectTemporalColumns(columns);
   const hasTemporalData = temporalColumns.length > 0;
@@ -67,6 +68,8 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
     }
 
     try {
+      setIsRecording(true);
+      
       await recordTemporalAnimation(
         chartRef.current,
         state,
@@ -80,8 +83,8 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
       );
       
       toast({
-        title: "Recording Started",
-        description: "Temporal animation recording in progress...",
+        title: "Recording Completed",
+        description: "Temporal animation recorded successfully",
       });
     } catch (error) {
       toast({
@@ -89,6 +92,8 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
         description: "Failed to record temporal animation",
         variant: "destructive"
       });
+    } finally {
+      setIsRecording(false);
     }
   };
 
@@ -138,6 +143,7 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
             data={chartData}
             isTemporalAnimated={temporalConfig.enabled}
             animationSpeed={temporalConfig.animationSpeed}
+            isRecording={isRecording}
           />
         </AnimatedChartContainer>
         
