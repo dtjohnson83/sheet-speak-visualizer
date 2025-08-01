@@ -188,10 +188,27 @@ export const prepareTemporalAnimationData = (
   console.log(`Parsed ${parsedData.length} valid dates out of ${data.length} total rows`);
 
   if (!parsedData.length) {
-    console.warn('No valid dates found in data. Check date column format and data quality.');
-    console.log('Available columns:', Object.keys(data[0] || {}));
-    console.log('Selected date column:', config.dateColumn);
-    console.log('Sample raw data:', data.slice(0, 3));
+    console.error('❌ TEMPORAL DATA ERROR: No valid dates found in data');
+    console.log('📊 Data Analysis:');
+    console.log('  - Total rows:', data.length);
+    console.log('  - Available columns:', Object.keys(data[0] || {}));
+    console.log('  - Selected date column:', config.dateColumn);
+    console.log('  - Column exists:', config.dateColumn in (data[0] || {}));
+    console.log('  - Sample values from date column:', data.slice(0, 10).map(row => row[config.dateColumn]));
+    console.log('  - Value types:', data.slice(0, 5).map(row => typeof row[config.dateColumn]));
+    console.log('📋 Troubleshooting:');
+    console.log('  1. Verify date column name is correct');
+    console.log('  2. Check if date values are in recognized format');
+    console.log('  3. Ensure date column contains actual date data');
+    console.log('📈 Sample raw data:', data.slice(0, 3));
+    
+    // Show detailed parsing attempts for debugging
+    console.log('🔍 Detailed parsing attempts:');
+    data.slice(0, 5).forEach((row, index) => {
+      const value = row[config.dateColumn];
+      console.log(`  Row ${index}: "${value}" (${typeof value}) -> ${parseDate(value)}`);
+    });
+    
     return [];
   }
 
@@ -358,18 +375,34 @@ const applyAggregation = (values: number[], method: AggregationMethod): number =
 };
 
 export const detectTemporalColumns = (columns: ColumnInfo[]): ColumnInfo[] => {
-  console.log('Detecting temporal columns from:', columns);
+  console.log('🔍 Detecting temporal columns from:', columns.map(col => `${col.name} (${col.type})`));
+  
   const temporalColumns = columns.filter(col => {
     const isDateType = col.type === 'date';
-    const isTemporalName = col.type === 'text' && /date|time|created|updated|timestamp|year|month|day/i.test(col.name);
-    const isNumericTemporal = col.type === 'numeric' && /date|time|year|month|day/i.test(col.name);
+    const isTemporalName = col.type === 'text' && /date|time|created|updated|timestamp|year|month|day|period/i.test(col.name);
+    const isNumericTemporal = col.type === 'numeric' && /date|time|year|month|day|timestamp|epoch/i.test(col.name);
     
-    console.log(`Column ${col.name} (${col.type}): isDateType=${isDateType}, isTemporalName=${isTemporalName}, isNumericTemporal=${isNumericTemporal}`);
+    // Additional check for common date patterns in column names
+    const hasDatePattern = /\b(date|time|when|created|updated|timestamp|period|year|month|day)\b/i.test(col.name);
     
-    return isDateType || isTemporalName || isNumericTemporal;
+    console.log(`  Column "${col.name}" (${col.type}):`, {
+      isDateType,
+      isTemporalName,
+      isNumericTemporal,
+      hasDatePattern,
+      detected: isDateType || isTemporalName || isNumericTemporal || (col.type !== 'numeric' && hasDatePattern)
+    });
+    
+    return isDateType || isTemporalName || isNumericTemporal || (col.type !== 'numeric' && hasDatePattern);
   });
   
-  console.log('Detected temporal columns:', temporalColumns);
+  console.log('✅ Detected temporal columns:', temporalColumns.map(col => `${col.name} (${col.type})`));
+  
+  if (temporalColumns.length === 0) {
+    console.log('⚠️ No temporal columns detected. Available columns:', columns.map(col => `${col.name} (${col.type})`));
+    console.log('💡 Try columns with names containing: date, time, created, updated, timestamp, year, month, day, period');
+  }
+  
   return temporalColumns;
 };
 

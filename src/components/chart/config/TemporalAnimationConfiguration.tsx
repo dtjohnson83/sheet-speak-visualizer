@@ -11,6 +11,7 @@ import { ColumnInfo, DataRow } from '@/pages/Index';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { TemporalAnimationConfig, TimeInterval, detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
 import { TemporalDataValidation } from './TemporalDataValidation';
+import { TemporalDebugger } from '../TemporalDebugger';
 
 interface TemporalAnimationConfigurationProps {
   columns: ColumnInfo[];
@@ -203,11 +204,18 @@ export const TemporalAnimationConfiguration = ({
 
           {/* Data Validation */}
           {config.dateColumn && (
-            <TemporalDataValidation
-              data={data}
-              dateColumn={config.dateColumn}
-              columns={columns}
-            />
+            <>
+              <TemporalDataValidation
+                data={data}
+                dateColumn={config.dateColumn}
+                columns={columns}
+              />
+              <TemporalDebugger
+                data={data}
+                columns={columns}
+                selectedDateColumn={config.dateColumn}
+              />
+            </>
           )}
 
           {/* Time Interval */}

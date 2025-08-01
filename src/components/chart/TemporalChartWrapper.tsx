@@ -21,7 +21,7 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
   const hasTemporalData = temporalColumns.length > 0;
   
   // Chart types that support temporal animation
-  const supportedChartTypes = ['bar', 'line', 'area', 'pie'];
+  const supportedChartTypes = ['bar', 'line', 'area', 'pie', 'scatter', 'bar3d', 'scatter3d', 'surface3d'];
   const isChartTypeSupported = chartType ? supportedChartTypes.includes(chartType) : false;
   
   const [temporalConfig, setTemporalConfig] = useState<TemporalAnimationConfig>({
