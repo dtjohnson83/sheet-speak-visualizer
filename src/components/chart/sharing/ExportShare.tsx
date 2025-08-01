@@ -42,8 +42,8 @@ export const ExportShare: React.FC<ExportShareProps> = ({
     png: { name: 'PNG Image', icon: FileImage, supportsAnimation: false },
     jpg: { name: 'JPEG Image', icon: FileImage, supportsAnimation: false },
     webp: { name: 'WebP Image', icon: FileImage, supportsAnimation: false },
-    gif: { name: 'Animated GIF', icon: Video, supportsAnimation: true },
-    mp4: { name: 'MP4 Video', icon: Video, supportsAnimation: true }
+    gif: { name: 'Animated GIF', icon: Camera, supportsAnimation: true },
+    mp4: { name: 'MP4 Video', icon: Camera, supportsAnimation: true }
   };
 
   const resolutionOptions = {

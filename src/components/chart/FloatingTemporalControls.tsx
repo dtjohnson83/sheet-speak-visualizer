@@ -39,6 +39,7 @@ export const FloatingTemporalControls = ({
             variant="ghost"
             onClick={controls.togglePlay}
             className="h-8 w-8 p-0 hover:bg-primary/10"
+            title={state.isPlaying ? "Pause Animation" : "Play Animation"}
           >
             {state.isPlaying ? (
               <Pause className="h-3 w-3" />
@@ -53,6 +54,7 @@ export const FloatingTemporalControls = ({
             variant="ghost"
             onClick={controls.reset}
             className="h-8 w-8 p-0 hover:bg-primary/10"
+            title="Reset Animation to Start"
           >
             <RotateCcw className="h-3 w-3" />
           </Button>
@@ -64,7 +66,7 @@ export const FloatingTemporalControls = ({
               variant="ghost"
               onClick={onTest}
               className="h-8 w-8 p-0 hover:bg-primary/10"
-              title="Test Animation"
+              title="Test Animation Settings"
             >
               <TestTube className="h-3 w-3" />
             </Button>
@@ -79,7 +81,7 @@ export const FloatingTemporalControls = ({
                   size="sm"
                   variant="ghost"
                   className="h-8 w-8 p-0 hover:bg-primary/10"
-                  title="Advanced Settings"
+                  title="Animation Settings"
                 >
                   <Settings className="h-3 w-3" />
                 </Button>

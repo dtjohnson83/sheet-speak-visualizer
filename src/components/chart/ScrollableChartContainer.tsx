@@ -15,10 +15,10 @@ export const ScrollableChartContainer: React.FC<ScrollableChartContainerProps> =
 }) => {
   // Calculate optimal width based on data points
   const calculateOptimalWidth = () => {
-    if (dataLength <= 10) return '100%';
+    if (dataLength <= 6) return '100%';
     
-    // For charts with many data points, give each point at least 60px
-    const calculatedWidth = Math.max(minWidth, dataLength * 60);
+    // For charts with many data points, give each point at least 80px for better readability
+    const calculatedWidth = Math.max(minWidth, dataLength * 80);
     return `${calculatedWidth}px`;
   };
 
