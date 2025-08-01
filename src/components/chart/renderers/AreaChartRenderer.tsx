@@ -62,7 +62,7 @@ export const AreaChartRenderer = ({
   };
   
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={600}>
+    <ScrollableChartContainer dataLength={data.length} minWidth={400}>
       <ResponsiveContainer width="100%" height={400}>
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />

@@ -41,7 +41,7 @@ export const ScatterChartRenderer = ({
   };
 
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={500}>
+    <ScrollableChartContainer dataLength={data.length} minWidth={400}>
       <ResponsiveContainer width="100%" height={400}>
         <ScatterChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
