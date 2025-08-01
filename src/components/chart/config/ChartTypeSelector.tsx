@@ -135,6 +135,21 @@ export const ChartTypeSelector = ({ chartType, setChartType, columns, xColumn, y
               </SelectItem>
             );
           })}
+
+          {/* Geospatial Maps */}
+          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">Geospatial Maps</div>
+          {chartTypes.filter(type => type.category === 'geospatial').map((type) => {
+            const IconComponent = type.icon;
+            return (
+              <SelectItem key={type.value} value={type.value}>
+                <div className="flex items-center gap-2">
+                  <IconComponent className="w-4 h-4" />
+                  {type.label}
+                  <span className="ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">NEW</span>
+                </div>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     </div>

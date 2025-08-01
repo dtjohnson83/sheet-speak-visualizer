@@ -268,7 +268,21 @@ export const ChartRenderers = ({
   if (chartType === 'map2d') {
     return (
       <ChartErrorBoundary>
-        <div className="text-center p-4">Map 2D visualization coming soon...</div>
+        <React.Suspense fallback={<div className="text-center p-4">Loading map...</div>}>
+          {(() => {
+            const Map2DChartRenderer = React.lazy(() => import('./renderers/Map2DChartRenderer').then(m => ({ default: m.Map2DChartRenderer })));
+            return (
+              <Map2DChartRenderer
+                data={data}
+                xColumn={xColumn}
+                yColumn={yColumn}
+                seriesColumn={series[0]?.column}
+                colors={chartColors}
+                showDataLabels={showDataLabels}
+              />
+            );
+          })()}
+        </React.Suspense>
       </ChartErrorBoundary>
     );
   }
@@ -276,7 +290,22 @@ export const ChartRenderers = ({
   if (chartType === 'map3d') {
     return (
       <ChartErrorBoundary>
-        <div className="text-center p-4">Map 3D visualization coming soon...</div>
+        <React.Suspense fallback={<div className="text-center p-4">Loading 3D map...</div>}>
+          {(() => {
+            const Map3DChartRenderer = React.lazy(() => import('./renderers/Map3DChartRenderer').then(m => ({ default: m.Map3DChartRenderer })));
+            return (
+              <Map3DChartRenderer
+                data={data}
+                xColumn={xColumn}
+                yColumn={yColumn}
+                zColumn={zColumn}
+                seriesColumn={series[0]?.column}
+                colors={chartColors}
+                showDataLabels={showDataLabels}
+              />
+            );
+          })()}
+        </React.Suspense>
       </ChartErrorBoundary>
     );
   }
