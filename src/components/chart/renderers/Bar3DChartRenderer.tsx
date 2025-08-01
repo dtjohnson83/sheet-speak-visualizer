@@ -28,6 +28,8 @@ interface BarProps {
   onHover?: (hovered: boolean, data?: any) => void;
   onClick?: (data?: any) => void;
   isSelected?: boolean;
+  isTemporalAnimated?: boolean;
+  animationSpeed?: number;
 }
 
 const Bar3D: React.FC<BarProps> = ({ 
@@ -39,7 +41,9 @@ const Bar3D: React.FC<BarProps> = ({
   showLabel, 
   onHover, 
   onClick, 
-  isSelected 
+  isSelected,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -47,13 +51,14 @@ const Bar3D: React.FC<BarProps> = ({
   
   // Animated spring for smooth transitions
   const springs = useSpring({
-    scaleX: hovered ? scale[0] * 1.1 : scale[0],
-    scaleY: hovered ? scale[1] * 1.1 : scale[1], 
-    scaleZ: hovered ? scale[2] * 1.1 : scale[2],
+    scale: hovered ? [scale[0] * 1.1, scale[1] * 1.1, scale[2] * 1.1] : scale,
+    position: position,
     rotY: hovered ? Math.PI / 12 : 0,
     metalness: hovered ? 0.3 : 0.1,
     roughness: hovered ? 0.2 : 0.4,
-    config: { tension: 300, friction: 10 }
+    config: isTemporalAnimated 
+      ? { duration: animationSpeed * 0.8 } // Smooth temporal transitions
+      : { tension: 300, friction: 10 } // Quick hover animations
   });
 
   const handlePointerOver = (e: any) => {
@@ -74,23 +79,25 @@ const Bar3D: React.FC<BarProps> = ({
     onClick?.({ label, value, position });
   };
 
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.scale.set(
-        springs.scaleX.get(),
-        springs.scaleY.get(), 
-        springs.scaleZ.get()
-      );
-      meshRef.current.rotation.y = springs.rotY.get();
-    }
-  });
+  // Remove manual frame updates since we're using animated components
+  // useFrame(() => {
+  //   if (meshRef.current) {
+  //     meshRef.current.scale.set(
+  //       springs.scaleX.get(),
+  //       springs.scaleY.get(), 
+  //       springs.scaleZ.get()
+  //     );
+  //     meshRef.current.rotation.y = springs.rotY.get();
+  //   }
+  // });
 
   return (
     <group>
-      <mesh
+      <animated.mesh
         ref={meshRef}
-        position={position}
-        scale={scale}
+        position={springs.position as any}
+        scale={springs.scale as any}
+        rotation-y={springs.rotY}
         castShadow
         receiveShadow
         onPointerOver={handlePointerOver}
@@ -98,14 +105,14 @@ const Bar3D: React.FC<BarProps> = ({
         onClick={handleClick}
       >
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial 
+        <animated.meshStandardMaterial 
           color={hovered ? '#ffffff' : color}
-          metalness={hovered ? 0.3 : 0.1}
-          roughness={hovered ? 0.2 : 0.4}
+          metalness={springs.metalness}
+          roughness={springs.roughness}
           emissive={isSelected ? '#4f46e5' : '#000000'}
           emissiveIntensity={isSelected ? 0.2 : 0}
         />
-      </mesh>
+      </animated.mesh>
 
       {/* Hover tooltip */}
       {hovered && (
@@ -147,7 +154,9 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
   zColumn,
   chartColors,
   showDataLabels = false,
-  tileMode = false
+  tileMode = false,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }) => {
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
   const [selectedBars, setSelectedBars] = useState<Set<string>>(new Set());
@@ -232,6 +241,8 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
             onHover={handleBarHover}
             onClick={handleBarClick}
             isSelected={selectedBars.has(barId)}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
           />
         );
       })}

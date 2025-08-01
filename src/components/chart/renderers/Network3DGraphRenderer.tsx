@@ -109,7 +109,9 @@ export const Network3DGraphRenderer = ({
   yColumn,
   chartColors,
   showDataLabels = true,
-  tileMode = false
+  tileMode = false,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }: Network3DGraphRendererProps) => {
   // Transform data into 3D network format
   const networkData = useMemo(() => {

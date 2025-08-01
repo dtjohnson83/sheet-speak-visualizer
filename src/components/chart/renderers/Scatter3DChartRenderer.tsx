@@ -145,7 +145,9 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
   zColumn,
   chartColors,
   showDataLabels = false,
-  tileMode = false
+  tileMode = false,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }) => {
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [selectedPoints, setSelectedPoints] = useState<Set<string>>(new Set());

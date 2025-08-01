@@ -22,7 +22,9 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
   zColumn,
   chartColors,
   showDataLabels = false,
-  tileMode = false
+  tileMode = false,
+  isTemporalAnimated = false,
+  animationSpeed = 1000
 }) => {
   const { geometry, material } = useMemo(() => {
     if (!data || data.length === 0) {
