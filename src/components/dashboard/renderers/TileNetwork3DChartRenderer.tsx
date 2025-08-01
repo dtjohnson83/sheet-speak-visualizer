@@ -22,7 +22,7 @@ export const TileNetwork3DChartRenderer: React.FC<TileNetwork3DChartRendererProp
   showDataLabels
 }) => {
   return (
-    <Chart3DContainer height={200} enableControls={true} tileMode={true}>
+    <Chart3DContainer enableControls={true} tileMode={true}>
       <Network3DGraphRenderer
         data={data}
         columns={[]}

@@ -24,7 +24,7 @@ export const TileSurface3DChartRenderer: React.FC<TileSurface3DChartRendererProp
   showDataLabels
 }) => {
   return (
-    <Chart3DContainer height={200} enableControls={true} tileMode={true}>
+    <Chart3DContainer enableControls={true} tileMode={true}>
       <Surface3DChartRenderer
         data={data}
         xColumn={xColumn}

@@ -38,7 +38,7 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
   };
 
   return (
-    <Card className={`overflow-hidden ${className} ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <Card className={`overflow-hidden ${className} ${isFullscreen ? 'fixed inset-0 z-50' : ''} ${!height ? 'h-full' : ''}`}>
       {/* Control Panel */}
       {enableControls && (
         <div className="absolute top-2 right-2 z-10 flex gap-2">
@@ -70,7 +70,10 @@ export const Chart3DContainer: React.FC<Chart3DContainerProps> = ({
         </div>
       )}
 
-      <div style={{ height: isFullscreen ? '100vh' : `${height}px` }}>
+      <div 
+        className={!height ? 'h-full' : ''}
+        style={{ height: isFullscreen ? '100vh' : height ? `${height}px` : '100%' }}
+      >
         <Canvas
           shadows
           camera={{ 
