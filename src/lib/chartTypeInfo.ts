@@ -367,6 +367,53 @@ export const chartTypeInfo = {
     bestFor: ['Database design', 'System modeling', 'Knowledge representation'],
     examples: ['Database schemas', 'Business process models', 'Ontology visualization'],
     commonMistakes: ['Too many attributes per entity', 'Unclear relationship types']
+  },
+  map2d: {
+    name: '2D Map',
+    description: 'Interactive 2D geographic visualization with point plotting and choropleth mapping',
+    requiredColumns: ['x', 'y'],
+    optionalColumns: ['series', 'value'],
+    category: 'geospatial',
+    icon: 'map-pin',
+    configurable: {
+      aggregation: false,
+      series: true,
+      temporal: true,
+      colors: true,
+      dataLabels: false
+    },
+    requirements: {
+      xAxis: { label: 'Longitude', type: 'numeric' },
+      yAxis: { label: 'Latitude', type: 'numeric' }
+    },
+    minDataPoints: 1,
+    bestFor: ['Geographic data analysis', 'Location-based insights', 'Regional comparisons'],
+    examples: ['Store locations', 'Sales by region', 'Population distribution'],
+    commonMistakes: ['Invalid coordinate ranges', 'Missing geographic context']
+  },
+  map3d: {
+    name: '3D Map',
+    description: 'Immersive 3D geographic visualization with terrain and elevation mapping',
+    requiredColumns: ['x', 'y'],
+    optionalColumns: ['z', 'series', 'value'],
+    category: 'geospatial',
+    icon: 'mountain',
+    configurable: {
+      aggregation: false,
+      series: true,
+      temporal: true,
+      colors: true,
+      dataLabels: false
+    },
+    requirements: {
+      xAxis: { label: 'Longitude', type: 'numeric' },
+      yAxis: { label: 'Latitude', type: 'numeric' },
+      additional: [{ label: 'Elevation/Value', type: 'numeric' }]
+    },
+    minDataPoints: 1,
+    bestFor: ['3D geographic analysis', 'Elevation data', 'Multi-dimensional location data'],
+    examples: ['Elevation maps', 'Building heights', '3D population density'],
+    commonMistakes: ['Invalid coordinate ranges', 'Poor elevation scaling', 'Overwhelming 3D effects']
   }
 };
 
