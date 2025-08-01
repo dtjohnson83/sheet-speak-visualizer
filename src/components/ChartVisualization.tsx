@@ -5,6 +5,8 @@ import { ChartConfiguration } from './chart/ChartConfiguration';
 import { AggregationConfiguration } from './chart/AggregationConfiguration';
 import { ChartContainer } from './chart/ChartContainer';
 import { GeospatialDataDetector } from './chart/GeospatialDataDetector';
+import { GeoChartValidator } from './chart/GeoChartValidator';
+import { MapboxIntegration } from './chart/MapboxIntegration';
 import { AIChartGenerator } from './chart/AIChartGenerator';
 import { SmartChartDefaults } from './chart/SmartChartDefaults';
 
@@ -29,6 +31,7 @@ interface ChartVisualizationProps {
 
 export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName }: ChartVisualizationProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
+  const [mapboxApiKey, setMapboxApiKey] = useState<string>('');
   const [temporalConfig, setTemporalConfig] = useState<TemporalAnimationConfig>({
     enabled: false,
     dateColumn: '',
@@ -112,6 +115,20 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
   
   // Show graph chart indicator when using graph data
   const isUsingGraphData = graphChartTypes.includes(chartType) && canShowGraphCharts;
+  
+  // Check if current chart is a geospatial chart
+  const isGeoChart = chartType === 'map2d' || chartType === 'map3d';
+  const needsMapboxKey = isGeoChart && !mapboxApiKey && !import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+  // Auto-fix for geographic columns
+  const handleGeoAutoFix = (suggestions: { longitudeColumn?: string; latitudeColumn?: string }) => {
+    if (suggestions.longitudeColumn) {
+      setXColumn(suggestions.longitudeColumn);
+    }
+    if (suggestions.latitudeColumn) {
+      setYColumn(suggestions.latitudeColumn);
+    }
+  };
 
   // Debug logging for series management and column types
   useEffect(() => {
@@ -170,6 +187,26 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           onApplySuggestion={handleApplyAISuggestion}
         />
 
+        {/* Mapbox Configuration for map charts */}
+        {isGeoChart && (
+          <MapboxIntegration
+            onApiKeySet={setMapboxApiKey}
+            currentApiKey={mapboxApiKey}
+            isRequired={needsMapboxKey}
+          />
+        )}
+
+        {/* Geographic Data Validation */}
+        {isGeoChart && xColumn && yColumn && (
+          <GeoChartValidator
+            data={chartData}
+            columns={chartColumns}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            chartType={chartType as 'map2d' | 'map3d'}
+            onAutoFix={handleGeoAutoFix}
+          />
+        )}
         
         <ChartConfiguration
           chartType={chartType}
