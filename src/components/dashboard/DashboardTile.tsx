@@ -180,7 +180,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
   }, 'DashboardTile');
 
   const tileContent = (
-    <div className="w-full h-[calc(100%-3rem)] overflow-hidden">
+    <div className={`w-full overflow-hidden ${is3DChart ? 'h-[calc(100%-2.5rem)]' : 'h-[calc(100%-3rem)]'}`}>
       {/* Show column mapping warning if columns were auto-mapped */}
       {columnMapping.mapped && columnMapping.missingColumns.length > 0 && (
         <Alert className="mb-2 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
@@ -244,7 +244,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
         />
         
         {/* Maximized tile */}
-        <Card className="fixed inset-4 z-50 p-4 shadow-2xl bg-background border">
+        <Card className="fixed inset-4 z-50 p-4 shadow-2xl bg-background border min-h-[600px]">
           <TileControls
             title={tile.title}
             onRemove={() => onRemove(tile.id)}
@@ -255,7 +255,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
             onMaximizeToggle={handleMaximizeToggle}
           />
           
-          <div className="w-full h-[calc(100%-3rem)] overflow-hidden">
+          <div className="w-full h-[calc(100%-3rem)] min-h-[500px] overflow-hidden">
             <TileChartRenderer
               chartType={tile.chartType}
               xColumn={columnMapping.xColumn}
