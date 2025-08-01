@@ -1,18 +1,34 @@
 import React from 'react';
-import { TemporalAnimationState } from '@/hooks/useTemporalAnimation';
+import { TemporalAnimationState, TemporalAnimationControls } from '@/hooks/useTemporalAnimation';
+import { FloatingTemporalControls } from './FloatingTemporalControls';
+import { CompactTemporalSettings } from './CompactTemporalSettings';
+import { ColumnInfo } from '@/pages/Index';
+import { TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 
 interface AnimatedChartContainerProps {
   children: React.ReactNode;
   isTemporalAnimated?: boolean;
   animationState?: TemporalAnimationState;
+  animationControls?: TemporalAnimationControls;
   className?: string;
+  columns?: ColumnInfo[];
+  temporalConfig?: TemporalAnimationConfig;
+  onTemporalConfigChange?: (config: TemporalAnimationConfig) => void;
+  onTest?: () => void;
+  onRecord?: () => void;
 }
 
 export const AnimatedChartContainer = ({
   children,
   isTemporalAnimated,
   animationState,
-  className = ''
+  animationControls,
+  className = '',
+  columns,
+  temporalConfig,
+  onTemporalConfigChange,
+  onTest,
+  onRecord
 }: AnimatedChartContainerProps) => {
   const isAnimating = isTemporalAnimated && animationState?.isPlaying;
   
@@ -25,26 +41,23 @@ export const AnimatedChartContainer = ({
         ${className}
       `}
     >
-      {/* Animation indicator */}
-      {isTemporalAnimated && (
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-          <div className={`
-            w-2 h-2 rounded-full transition-all duration-300
-            ${isAnimating ? 'bg-red-500 animate-pulse' : 'bg-primary/50'}
-          `} />
-          <span className="text-xs bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-foreground">
-            {isAnimating ? 'Recording' : 'Temporal'}
-          </span>
-        </div>
-      )}
-      
-      {/* Current time display */}
-      {isTemporalAnimated && animationState?.currentFrameData?.timeLabel && (
-        <div className="absolute top-2 left-2 z-10">
-          <div className="bg-background/90 backdrop-blur-sm px-3 py-1 rounded text-sm font-medium text-foreground border">
-            {animationState.currentFrameData.timeLabel}
-          </div>
-        </div>
+      {/* Floating Temporal Controls */}
+      {isTemporalAnimated && animationState && animationControls && (
+        <FloatingTemporalControls
+          state={animationState}
+          controls={animationControls}
+          onTest={onTest}
+          onRecord={onRecord}
+          showAdvanced={!!columns && !!temporalConfig && !!onTemporalConfigChange}
+        >
+          {columns && temporalConfig && onTemporalConfigChange && (
+            <CompactTemporalSettings
+              columns={columns}
+              config={temporalConfig}
+              onConfigChange={onTemporalConfigChange}
+            />
+          )}
+        </FloatingTemporalControls>
       )}
       
       {/* Chart content */}

@@ -92,9 +92,17 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
     }
   };
 
+  const handleTestAnimation = () => {
+    controls.reset();
+    setTimeout(() => {
+      controls.play();
+    }, 100);
+  };
+
   return (
     <div className="space-y-4">
-      {hasTemporalData && isChartTypeSupported && (
+      {/* Minimal Configuration Panel - Only show if not enabled */}
+      {hasTemporalData && isChartTypeSupported && !temporalConfig.enabled && (
         <TemporalAnimationConfiguration
           columns={columns}
           data={data}
@@ -112,26 +120,36 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
         />
       )}
       
-      <AnimatedChartContainer
-        isTemporalAnimated={temporalConfig.enabled}
-        animationState={state}
-        className="relative"
-      >
-        <ChartRenderers
-          {...props}
-          data={chartData}
+      {/* Chart with Integrated Controls */}
+      <div className="space-y-2">
+        <AnimatedChartContainer
           isTemporalAnimated={temporalConfig.enabled}
-          animationSpeed={temporalConfig.animationSpeed}
-        />
-      </AnimatedChartContainer>
-      
-      {temporalConfig.enabled && isConfigured && (
-        <TemporalTimelineSlider
-          state={state}
-          controls={controls}
-          className="mt-4"
-        />
-      )}
+          animationState={state}
+          animationControls={controls}
+          className="relative"
+          columns={temporalConfig.enabled ? columns : undefined}
+          temporalConfig={temporalConfig.enabled ? temporalConfig : undefined}
+          onTemporalConfigChange={temporalConfig.enabled ? setTemporalConfig : undefined}
+          onTest={temporalConfig.enabled ? handleTestAnimation : undefined}
+          onRecord={temporalConfig.enabled ? handleRecordAnimation : undefined}
+        >
+          <ChartRenderers
+            {...props}
+            data={chartData}
+            isTemporalAnimated={temporalConfig.enabled}
+            animationSpeed={temporalConfig.animationSpeed}
+          />
+        </AnimatedChartContainer>
+        
+        {/* Timeline Slider - Directly under chart with minimal gap */}
+        {temporalConfig.enabled && isConfigured && (
+          <TemporalTimelineSlider
+            state={state}
+            controls={controls}
+            className="mt-1"
+          />
+        )}
+      </div>
     </div>
   );
 };

@@ -32,13 +32,24 @@ export const TemporalTimelineSlider = ({ state, controls, className }: TemporalT
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Timeline</span>
-        <span>{state.currentFrame + 1} / {state.totalFrames}</span>
+    <div className={`bg-background/80 backdrop-blur-sm border rounded-lg p-3 space-y-2 ${className}`}>
+      {/* Timeline Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-foreground">Timeline</span>
+          {state.currentFrameData.timestamp && (
+            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+              {formatTimeLabel(state.currentFrameData.timestamp)}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {state.currentFrame + 1} / {state.totalFrames}
+        </span>
       </div>
       
-      <div className="space-y-1">
+      {/* Timeline Slider */}
+      <div className="space-y-2">
         <Slider
           value={[state.currentFrame]}
           onValueChange={handleSliderChange}
@@ -48,29 +59,32 @@ export const TemporalTimelineSlider = ({ state, controls, className }: TemporalT
           className="w-full"
         />
         
+        {/* Timeline Labels */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Start</span>
-          {state.currentFrameData.timestamp && (
-            <span className="font-medium text-foreground">
-              {formatTimeLabel(state.currentFrameData.timestamp)}
-            </span>
-          )}
           <span>End</span>
         </div>
       </div>
       
-      <div className="flex items-center justify-center gap-2 text-xs">
+      {/* Navigation Buttons */}
+      <div className="flex items-center justify-between">
         <button
           onClick={controls.previousFrame}
           disabled={state.currentFrame === 0}
-          className="px-2 py-1 rounded bg-secondary hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           ← Prev
         </button>
+        
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <div className="w-1 h-1 bg-primary rounded-full" />
+          <span>Frame {state.currentFrame + 1}</span>
+        </div>
+        
         <button
           onClick={controls.nextFrame}
           disabled={state.currentFrame === state.totalFrames - 1}
-          className="px-2 py-1 rounded bg-secondary hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Next →
         </button>
