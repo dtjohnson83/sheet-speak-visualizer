@@ -11,6 +11,7 @@ import { ChartRenderersProps } from '@/types';
 
 interface TemporalChartWrapperProps extends ChartRenderersProps {
   chartRef?: React.RefObject<HTMLElement>;
+  mapboxApiKey?: string;
 }
 
 export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props) => {

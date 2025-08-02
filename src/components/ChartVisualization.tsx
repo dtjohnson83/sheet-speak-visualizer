@@ -287,6 +287,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           onTitleChange={setCustomTitle}
           columnFormats={columnFormats}
           histogramBins={histogramBins}
+          mapboxApiKey={mapboxApiKey}
         />
       </div>
     </div>

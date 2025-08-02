@@ -25,6 +25,7 @@ interface ChartRendererProps {
   columnFormats?: ColumnFormat[];
   topXLimit?: number | null;
   histogramBins?: number;
+  mapboxApiKey?: string;
 }
 
 export const ChartRenderer = ({
@@ -46,7 +47,8 @@ export const ChartRenderer = ({
   chartColors,
   columnFormats,
   topXLimit,
-  histogramBins
+  histogramBins,
+  mapboxApiKey
 }: ChartRendererProps) => {
   console.log('ChartRenderer - Rendering with data:', {
     chartType,
@@ -172,6 +174,7 @@ export const ChartRenderer = ({
       showDataLabels={showDataLabels}
       chartColors={chartColors}
       aggregationMethod={aggregationMethod}
+      mapboxApiKey={mapboxApiKey}
     />
   );
 };

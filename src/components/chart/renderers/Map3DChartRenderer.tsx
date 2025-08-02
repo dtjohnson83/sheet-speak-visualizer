@@ -17,6 +17,7 @@ interface Map3DChartRendererProps {
   colors: string[];
   showDataLabels?: boolean;
   title?: string;
+  mapboxApiKey?: string;
 }
 
 export const Map3DChartRenderer = ({
@@ -28,11 +29,16 @@ export const Map3DChartRenderer = ({
   valueColumn,
   colors,
   showDataLabels = false,
-  title
+  title,
+  mapboxApiKey
 }: Map3DChartRendererProps) => {
   const mapRef = useRef<any>(null);
   const [selectedPoint, setSelectedPoint] = useState<DataRow | null>(null);
   const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/light-v11');
+  
+  // Get the effective API key
+  const effectiveApiKey = mapboxApiKey || import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || localStorage.getItem('mapbox_api_key');
+  const isApiKeyMissing = !effectiveApiKey || effectiveApiKey.includes('placeholder');
   const [viewState, setViewState] = useState({
     longitude: 0,
     latitude: 0,
@@ -138,6 +144,23 @@ export const Map3DChartRenderer = ({
     setSelectedPoint(point);
   };
 
+  // Check for API key issues first
+  if (isApiKeyMissing) {
+    return (
+      <Card className="p-8 text-center">
+        <Mountain className="mx-auto h-12 w-12 text-destructive mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Mapbox API Key Required</h3>
+        <p className="text-muted-foreground mb-4">
+          Please configure your Mapbox API key to display the 3D map.
+        </p>
+        <div className="text-sm text-muted-foreground space-y-2">
+          <p>1. Get your free API key from <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Mapbox</a></p>
+          <p>2. Use the configuration panel above to set your API key</p>
+        </div>
+      </Card>
+    );
+  }
+
   if (validData.length === 0) {
     return (
       <Card className="p-8 text-center">
@@ -204,7 +227,7 @@ export const Map3DChartRenderer = ({
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || localStorage.getItem('mapbox_api_key') || 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNtNXE5M2F6ODBwdGIyk3M4YTB5dTZoNDAifQ.placeholder'}
+        mapboxAccessToken={effectiveApiKey}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
         attributionControl={false}

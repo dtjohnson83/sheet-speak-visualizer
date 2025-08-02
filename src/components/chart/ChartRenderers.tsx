@@ -26,7 +26,7 @@ interface ExtendedChartRenderersProps extends ChartRenderersProps {
   zColumn?: string;
   isTemporalAnimated?: boolean;
   animationSpeed?: number;
-  
+  mapboxApiKey?: string;
 }
 
 export const ChartRenderers = ({
@@ -45,7 +45,7 @@ export const ChartRenderers = ({
   zColumn,
   isTemporalAnimated = false,
   animationSpeed = 1000,
-  
+  mapboxApiKey
 }: ExtendedChartRenderersProps) => {
   if (chartType === 'bar') {
     return (
@@ -279,6 +279,7 @@ export const ChartRenderers = ({
                 seriesColumn={series[0]?.column}
                 colors={chartColors}
                 showDataLabels={showDataLabels}
+                mapboxApiKey={mapboxApiKey}
               />
             );
           })()}
@@ -302,6 +303,7 @@ export const ChartRenderers = ({
                 seriesColumn={series[0]?.column}
                 colors={chartColors}
                 showDataLabels={showDataLabels}
+                mapboxApiKey={mapboxApiKey}
               />
             );
           })()}
