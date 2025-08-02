@@ -43,6 +43,14 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     showCumulative: false
   });
 
+  // Initialize Mapbox API key from localStorage on mount
+  useEffect(() => {
+    const storedKey = localStorage.getItem('mapbox_api_key');
+    if (storedKey) {
+      setMapboxApiKey(storedKey);
+    }
+  }, []);
+
   const {
     // State
     customTitle,
