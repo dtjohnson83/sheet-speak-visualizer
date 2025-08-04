@@ -4,6 +4,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DatasetSelector } from '@/components/agents/DatasetSelector';
+import { GraphMLDashboard } from '@/components/agents/GraphMLDashboard';
 import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -53,6 +54,14 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
           onAIUsed={onAIUsed}
         />
       </div>
+      
+      <Card className="mt-4">
+        <GraphMLDashboard
+          data={activeData}
+          columns={activeColumns}
+          fileName={activeFileName}
+        />
+      </Card>
     </TabsContent>
   );
 };
