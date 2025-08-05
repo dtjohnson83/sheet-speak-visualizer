@@ -1,6 +1,7 @@
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { QuestionAnalysis, VisualizationSpec, VisualizationType } from './QuestionProcessor';
 import { SimpleGraphAnalyzer, SimpleGraphInsight } from '@/lib/analytics/SimpleGraphAnalyzer';
+import { parseDate, detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
 
 export interface ChartData {
   labels: string[];
@@ -97,12 +98,39 @@ export class VisualizationEngine {
       return this.createFallbackData(data, columns);
     }
 
-    const processed = data.map(row => ({
-      x: row[chartConfig.xAxis!],
-      y: this.parseNumericValue(row[chartConfig.yAxis!]),
-      group: chartConfig.groupBy ? row[chartConfig.groupBy] : 'default',
-      original: row
-    })).filter(item => item.y !== null);
+    // Check if x-axis is a temporal column
+    const temporalColumns = detectTemporalColumns(columns, data);
+    const isXAxisTemporal = temporalColumns.some(col => col.name === chartConfig.xAxis);
+
+    const processed = data.map(row => {
+      let xValue = row[chartConfig.xAxis!];
+      
+      // Parse date values if x-axis is temporal
+      if (isXAxisTemporal) {
+        const parsedDate = parseDate(xValue);
+        if (parsedDate) {
+          xValue = parsedDate.toISOString(); // Use ISO string for consistent sorting
+        }
+      }
+      
+      return {
+        x: xValue,
+        y: this.parseNumericValue(row[chartConfig.yAxis!]),
+        group: chartConfig.groupBy ? row[chartConfig.groupBy] : 'default',
+        original: row,
+        parsedDate: isXAxisTemporal ? parseDate(row[chartConfig.xAxis!]) : null
+      };
+    }).filter(item => item.y !== null && (isXAxisTemporal ? item.parsedDate !== null : true));
+
+    // Sort by date if x-axis is temporal
+    if (isXAxisTemporal) {
+      processed.sort((a, b) => {
+        if (a.parsedDate && b.parsedDate) {
+          return a.parsedDate.getTime() - b.parsedDate.getTime();
+        }
+        return 0;
+      });
+    }
 
     const summary = this.calculateSummaryStatistics(processed);
 
@@ -243,16 +271,15 @@ export class VisualizationEngine {
   }
 
   private generateLineChartData(processed: any[], filled: boolean = false): ChartData {
-    // Sort by x value and keep individual points
-    const sorted = processed.sort((a, b) => {
-      if (typeof a.x === 'string' && typeof b.x === 'string') {
-        return a.x.localeCompare(b.x);
+    // Data is already sorted in processDataForVisualization if temporal
+    const labels = processed.map(item => {
+      // Format date labels for better readability if it's a date
+      if (item.parsedDate) {
+        return item.parsedDate.toLocaleDateString();
       }
-      return Number(a.x) - Number(b.x);
+      return String(item.x);
     });
-
-    const labels = sorted.map(item => String(item.x));
-    const data = sorted.map(item => item.y);
+    const data = processed.map(item => item.y);
 
     return {
       labels,

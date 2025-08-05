@@ -1,4 +1,5 @@
 import { DataRow, ColumnInfo } from '@/pages/Index';
+import { detectTemporalColumns, parseDate } from '@/lib/chart/temporalDataProcessor';
 
 export type QuestionIntent = 
   | 'trend_analysis'
@@ -382,25 +383,47 @@ export class QuestionProcessor {
   }
 
   private generateChartConfig(analysis: QuestionAnalysis, columns: ColumnInfo[]): VisualizationSpec['chartConfig'] {
-    const { metrics, dimensions, suggestedVisualization } = analysis;
+    const { metrics, dimensions, suggestedVisualization, intent } = analysis;
     
     const numericColumns = columns.filter(col => col.type === 'numeric');
     const categoricalColumns = columns.filter(col => col.type === 'categorical');
+    
+    // Detect temporal columns using the temporal data processor
+    const temporalColumns = detectTemporalColumns(columns);
     
     const config: VisualizationSpec['chartConfig'] = {
       aggregation: 'sum'
     };
 
-    if (suggestedVisualization === 'scatter_plot' && numericColumns.length >= 2) {
+    // For trend analysis and forecasting, prioritize temporal columns
+    if ((intent === 'trend_analysis' || intent === 'forecasting') && temporalColumns.length > 0) {
+      config.xAxis = temporalColumns[0].name; // Use date column for x-axis
+      if (numericColumns.length > 0) {
+        config.yAxis = numericColumns[0]?.name; // Use numeric column for y-axis
+      }
+      if (categoricalColumns.length > 0) {
+        config.groupBy = categoricalColumns[0]?.name; // Group by category if available
+        config.colorBy = categoricalColumns[0]?.name;
+      }
+    }
+    // For scatter plots, use two numeric columns
+    else if (suggestedVisualization === 'scatter_plot' && numericColumns.length >= 2) {
       config.xAxis = numericColumns[0]?.name;
       config.yAxis = numericColumns[1]?.name;
-    } else if (categoricalColumns.length > 0 && numericColumns.length > 0) {
+    }
+    // Default: categorical x-axis, numeric y-axis
+    else if (categoricalColumns.length > 0 && numericColumns.length > 0) {
       config.xAxis = categoricalColumns[0]?.name;
       config.yAxis = numericColumns[0]?.name;
       config.groupBy = categoricalColumns[0]?.name;
     }
+    // Fallback: if we have temporal data but no clear intent, still prioritize it
+    else if (temporalColumns.length > 0 && numericColumns.length > 0) {
+      config.xAxis = temporalColumns[0].name;
+      config.yAxis = numericColumns[0]?.name;
+    }
 
-    if (dimensions.length > 0) {
+    if (dimensions.length > 0 && !config.colorBy) {
       config.colorBy = dimensions[0];
     }
 
