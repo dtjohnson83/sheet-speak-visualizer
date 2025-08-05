@@ -97,12 +97,32 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
     );
   }
 
+  // Get analysis details for transparency
+  const getDataAnalysisDetails = () => {
+    const numericColumns = columns.filter(col => col.type === 'numeric');
+    const textColumns = columns.filter(col => col.type === 'text');
+    const entityColumns = textColumns.slice(0, 3); // Primary entity identification columns
+    const valueColumns = numericColumns.slice(0, 5); // Primary value columns for relationships
+    
+    return {
+      totalRows: data.length,
+      totalColumns: columns.length,
+      numericColumns: numericColumns.length,
+      textColumns: textColumns.length,
+      primaryEntityColumns: entityColumns.map(col => col.name),
+      primaryValueColumns: valueColumns.map(col => col.name),
+      analysisScope: `${entityColumns.length} entity types, ${valueColumns.length} value dimensions`
+    };
+  };
+
+  const analysisDetails = getDataAnalysisDetails();
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-2">
               <Brain className="h-6 w-6 text-primary" />
               <CardTitle>Graph Machine Learning Dashboard</CardTitle>
@@ -110,21 +130,53 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
             <Button 
               onClick={runGraphMLAnalysis}
               disabled={isAnalyzing}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 w-full lg:w-auto"
             >
               <Network className="h-4 w-4" />
               <span>{isAnalyzing ? 'Analyzing...' : 'Run GraphML Analysis'}</span>
             </Button>
+          </div>
+          
+          {/* Data Analysis Overview */}
+          <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+            <h4 className="text-sm font-semibold mb-3 flex items-center">
+              <Network className="h-4 w-4 mr-2" />
+              Analysis Configuration
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Dataset Size:</span>
+                <p className="font-medium">{analysisDetails.totalRows} rows × {analysisDetails.totalColumns} columns</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Entity Fields:</span>
+                <p className="font-medium">{analysisDetails.primaryEntityColumns.join(', ') || 'Auto-detected'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Value Fields:</span>
+                <p className="font-medium">{analysisDetails.primaryValueColumns.join(', ') || 'All numeric'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Graph Scope:</span>
+                <p className="font-medium">{analysisDetails.analysisScope}</p>
+              </div>
+            </div>
+            <div className="mt-3 text-xs text-muted-foreground">
+              <p><strong>Analysis Process:</strong> Creates knowledge graph from entity relationships → Calculates node embeddings & centrality → Detects communities & anomalies → Generates ML predictions</p>
+            </div>
           </div>
         </CardHeader>
         {isAnalyzing && (
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Analyzing graph structure and patterns...</span>
+                <span>Building knowledge graph and analyzing patterns...</span>
                 <span>{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
+              <div className="text-xs text-muted-foreground mt-2">
+                Processing: {progress < 30 ? 'Entity extraction' : progress < 60 ? 'Relationship mapping' : progress < 80 ? 'ML model training' : 'Generating insights'}
+              </div>
             </div>
           </CardContent>
         )}
