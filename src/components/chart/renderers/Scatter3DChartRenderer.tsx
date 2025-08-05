@@ -52,8 +52,12 @@ const Point3D: React.FC<PointProps> = ({
   
   useFrame((state) => {
     if (meshRef.current) {
-      // Gentle floating animation
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.02;
+      // Set base position from data, then add gentle floating animation as offset
+      meshRef.current.position.set(
+        position[0],
+        position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.02,
+        position[2]
+      );
       
       // Apply spring animations
       meshRef.current.scale.setScalar(springs.scale.get());
@@ -189,6 +193,14 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const zMin = Math.min(...zValues);
     const zMax = Math.max(...zValues);
     
+    // Debug logging for data ranges
+    console.log(`3D Scatter Debug - Data ranges:`, {
+      x: { min: xMin, max: xMax, column: xColumn },
+      y: { min: yMin, max: yMax, column: yColumn },
+      z: { min: zMin, max: zMax, column: zColumn },
+      sameZY: zColumn === yColumn
+    });
+    
     const scale = 4; // Use full 4-unit axis range for better space utilization
     
     // Calculate appropriate dot size based on data density
@@ -204,17 +216,26 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
       // Better utilize vertical space with full 4-unit height range
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
       const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale;
-      const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+      
+      // Handle Z-axis: when zColumn same as yColumn, spread points along Z for visibility
+      let z: number;
+      if (zColumn === yColumn) {
+        // Create a spread along Z-axis for 2D data in 3D space
+        z = (index / (data.length - 1) - 0.5) * scale * 0.3; // 30% of scale range
+      } else {
+        z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+      }
       
       return {
         position: [x, y, z] as [number, number, number],
         color: chartColors[index % chartColors.length],
         size: adjustedDotSize,
         label: `${item[xColumn]}, ${item[yColumn]}, ${item[zColumn]}`,
-        key: `point-${index}`
+        key: `point-${index}`,
+        originalData: item
       };
     });
-  }, [data, xColumn, yColumn, zColumn, chartColors]);
+  }, [data, xColumn, yColumn, zColumn, chartColors, tileMode]);
 
   return (
     <>
