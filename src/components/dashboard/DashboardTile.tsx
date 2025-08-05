@@ -30,6 +30,8 @@ export interface DashboardTileData {
   showDataLabels?: boolean;
   position: { x: number; y: number };
   size: { width: number; height: number };
+  datasetId?: string;
+  datasetName?: string;
 }
 
 interface DashboardTileProps {
@@ -38,9 +40,10 @@ interface DashboardTileProps {
   columns: ColumnInfo[];
   onRemove: (id: string) => void;
   onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number }; title?: string }) => void;
+  currentDatasetName?: string;
 }
 
-export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpdate }: DashboardTileProps) => {
+export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpdate, currentDatasetName }: DashboardTileProps) => {
   const [isMaximized, setIsMaximized] = useState(false);
   
   const chartColors = React.useMemo(() => [
@@ -232,6 +235,8 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
             is3DChart={is3DChart}
             isMaximized={isMaximized}
             onMaximizeToggle={handleMaximizeToggle}
+            datasetName={tile.datasetName}
+            currentDatasetName={currentDatasetName}
           />
           
           <div className="w-full h-[calc(100%-3rem)] min-h-[500px] overflow-hidden">
@@ -281,6 +286,8 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
         is3DChart={is3DChart}
         isMaximized={isMaximized}
         onMaximizeToggle={handleMaximizeToggle}
+        datasetName={tile.datasetName}
+        currentDatasetName={currentDatasetName}
       />
       
       {tileContent}

@@ -54,7 +54,10 @@ export const useChartConfiguration = () => {
   };
 
   // Handle save tile functionality
-  const handleSaveTile = (onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void) => {
+  const handleSaveTile = (
+    onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void,
+    dataSourceName?: string
+  ) => {
     if (!chartState.xColumn || (!chartState.yColumn && chartState.chartType !== 'histogram') || !onSaveTile) return;
     
     const defaultTitle = `${chartState.chartType.charAt(0).toUpperCase() + chartState.chartType.slice(1).replace('-', ' ')} - ${chartState.xColumn}${chartState.yColumn ? ` vs ${chartState.yColumn}` : ''}`;
@@ -71,13 +74,15 @@ export const useChartConfiguration = () => {
       sortColumn: chartState.sortColumn,
       sortDirection: chartState.sortDirection,
       series: chartState.series,
-      showDataLabels: chartState.showDataLabels
+      showDataLabels: chartState.showDataLabels,
+      datasetName: dataSourceName
     };
 
     console.log('ChartConfiguration - handleSaveTile - Preparing tile data:', {
       chartType: chartState.chartType,
       sankeyTargetColumn: chartState.sankeyTargetColumn,
       valueColumn,
+      dataSourceName,
       fullTileData: tileData
     });
     

@@ -48,6 +48,7 @@ export const DashboardCanvas = ({
             columns={columns}
             onRemove={onRemoveTile}
             onUpdate={onUpdateTile}
+            currentDatasetName={data.length > 0 ? 'Current Dataset' : undefined}
           />
         ))}
         

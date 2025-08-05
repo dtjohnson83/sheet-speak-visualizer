@@ -298,7 +298,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           showDataLabels={showDataLabels}
           supportsMultipleSeries={supportsMultipleSeries}
           chartColors={chartColors}
-          onSaveTile={() => handleSaveTile(onSaveTile)}
+          onSaveTile={() => handleSaveTile(onSaveTile, dataSourceName)}
           customTitle={customTitle}
           onTitleChange={setCustomTitle}
           columnFormats={columnFormats}

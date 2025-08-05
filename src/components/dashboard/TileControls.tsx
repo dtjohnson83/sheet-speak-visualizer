@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Move, Edit2, Check, Maximize, Minimize } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { X, Move, Edit2, Check, Maximize, Minimize, Database } from 'lucide-react';
 
 interface TileControlsProps {
   title: string;
@@ -12,9 +13,11 @@ interface TileControlsProps {
   is3DChart?: boolean;
   isMaximized?: boolean;
   onMaximizeToggle?: () => void;
+  datasetName?: string;
+  currentDatasetName?: string;
 }
 
-export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3DChart, isMaximized, onMaximizeToggle }: TileControlsProps) => {
+export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3DChart, isMaximized, onMaximizeToggle, datasetName, currentDatasetName }: TileControlsProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
 
@@ -45,84 +48,103 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3D
     }
   };
 
+  // Check if tile dataset differs from current dataset
+  const isDatasetMismatch = datasetName && currentDatasetName && datasetName !== currentDatasetName;
+
   return (
-    <div className="flex items-center justify-between mb-3">
-      {isEditingTitle ? (
-        <div className="flex items-center gap-1 flex-1 mr-2">
-          <Input
-            value={tempTitle}
-            onChange={(e) => setTempTitle(e.target.value)}
-            onKeyDown={handleKeyPress}
-            className="text-sm font-medium h-6 px-2"
-            placeholder="Enter title"
-            autoFocus
-            onClick={(e) => e.stopPropagation()}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSaveTitle}
-            className="h-6 w-6 p-0"
-          >
-            <Check className="h-3 w-3" />
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-1 flex-1">
-          <h4 className="tile-title text-sm font-medium truncate">{title}</h4>
-          {onTitleChange && (
+    <div className="mb-3">
+      <div className="flex items-center justify-between">
+        {isEditingTitle ? (
+          <div className="flex items-center gap-1 flex-1 mr-2">
+            <Input
+              value={tempTitle}
+              onChange={(e) => setTempTitle(e.target.value)}
+              onKeyDown={handleKeyPress}
+              className="text-sm font-medium h-6 px-2"
+              placeholder="Enter title"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleStartEdit}
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={handleSaveTitle}
+              className="h-6 w-6 p-0"
             >
-              <Edit2 className="h-3 w-3" />
+              <Check className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 flex-1">
+            <h4 className="tile-title text-sm font-medium truncate">{title}</h4>
+            {onTitleChange && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleStartEdit}
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Edit2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
+        
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30 relative">
+          {/* Show maximize button only for 3D charts */}
+          {is3DChart && onMaximizeToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMaximizeToggle();
+              }}
+              className="h-6 w-6 p-0 hover:bg-accent/50"
+              title={isMaximized ? "Exit fullscreen" : "Maximize for better 3D exploration"}
+            >
+              {isMaximized ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
             </Button>
           )}
+          
+          {/* Move button - disabled in maximized mode */}
+          {!isMaximized && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onMouseDown={onMouseDown}
+              className="h-6 w-6 p-0 cursor-move hover:bg-accent/50"
+              title="Move tile"
+            >
+              <Move className="h-3 w-3" />
+            </Button>
+          )}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+            title="Remove tile"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Dataset indicator */}
+      {datasetName && (
+        <div className="mt-1">
+          <Badge 
+            variant={isDatasetMismatch ? "destructive" : "secondary"}
+            className="text-xs flex items-center gap-1 w-fit"
+          >
+            <Database className="h-2 w-2" />
+            {datasetName}
+            {isDatasetMismatch && " (different data)"}
+          </Badge>
         </div>
       )}
-      
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30 relative">
-        {/* Show maximize button only for 3D charts */}
-        {is3DChart && onMaximizeToggle && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMaximizeToggle();
-            }}
-            className="h-6 w-6 p-0 hover:bg-accent/50"
-            title={isMaximized ? "Exit fullscreen" : "Maximize for better 3D exploration"}
-          >
-            {isMaximized ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
-          </Button>
-        )}
-        
-        {/* Move button - disabled in maximized mode */}
-        {!isMaximized && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onMouseDown={onMouseDown}
-            className="h-6 w-6 p-0 cursor-move hover:bg-accent/50"
-            title="Move tile"
-          >
-            <Move className="h-3 w-3" />
-          </Button>
-        )}
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
-          title="Remove tile"
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      </div>
     </div>
   );
 };
