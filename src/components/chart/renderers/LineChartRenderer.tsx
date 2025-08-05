@@ -9,6 +9,8 @@ import { ScrollableChartContainer } from '../ScrollableChartContainer';
 interface LineChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'chartColors' | 'showDataLabels'> {
   isTemporalAnimated?: boolean;
   animationSpeed?: number;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 export const LineChartRenderer = ({ 
@@ -19,7 +21,9 @@ export const LineChartRenderer = ({
   chartColors,
   showDataLabels,
   isTemporalAnimated = false,
-  animationSpeed = 1000
+  animationSpeed = 1000,
+  xAxisLabel,
+  yAxisLabel
 }: LineChartRendererProps) => {
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const, yAxisId: 'left' }] : [];
@@ -70,8 +74,8 @@ export const LineChartRenderer = ({
       <ResponsiveContainer width="100%" height={400}>
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+          <XAxis dataKey={xColumn} label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined} />
+          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined} />
           {needsRightYAxis && (
             <YAxis 
               yAxisId="right" 

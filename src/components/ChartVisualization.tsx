@@ -69,6 +69,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     showDataLabels,
     selectedPalette,
     histogramBins,
+    xAxisLabel,
+    yAxisLabel,
     chartColors,
     supportsMultipleSeries,
     supportsDataLabels,
@@ -88,6 +90,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     setShowDataLabels,
     setSelectedPalette,
     setHistogramBins,
+    setXAxisLabel,
+    setYAxisLabel,
     
     // Handlers
     handleChartTypeChange,
@@ -242,6 +246,10 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           setSelectedPalette={setSelectedPalette}
           histogramBins={histogramBins}
           setHistogramBins={setHistogramBins}
+          xAxisLabel={xAxisLabel}
+          setXAxisLabel={setXAxisLabel}
+          yAxisLabel={yAxisLabel}
+          setYAxisLabel={setYAxisLabel}
           aggregationMethod={aggregationMethod}
           setAggregationMethod={setAggregationMethod}
           columns={chartColumns}

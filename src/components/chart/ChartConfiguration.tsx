@@ -3,6 +3,7 @@ import React from 'react';
 import { ColumnInfo } from '@/pages/Index';
 import { ChartTypeSelector } from './config/ChartTypeSelector';
 import { AxisConfiguration } from './config/AxisConfiguration';
+import { AxisLabelConfiguration } from './config/AxisLabelConfiguration';
 import { SpecializedConfiguration } from './config/SpecializedConfiguration';
 import { SortConfiguration } from './config/SortConfiguration';
 import { StyleConfiguration } from './config/StyleConfiguration';
@@ -38,6 +39,10 @@ interface ChartConfigurationProps {
   setSelectedPalette: (value: string) => void;
   histogramBins: number;
   setHistogramBins: (value: number) => void;
+  xAxisLabel: string;
+  setXAxisLabel: (value: string) => void;
+  yAxisLabel: string;
+  setYAxisLabel: (value: string) => void;
   aggregationMethod: AggregationMethod;
   setAggregationMethod: (value: AggregationMethod) => void;
   columns: ColumnInfo[];
@@ -71,6 +76,10 @@ export const ChartConfiguration = ({
   setSelectedPalette,
   histogramBins,
   setHistogramBins,
+  xAxisLabel,
+  setXAxisLabel,
+  yAxisLabel,
+  setYAxisLabel,
   aggregationMethod,
   setAggregationMethod,
   columns,
@@ -176,6 +185,16 @@ export const ChartConfiguration = ({
         yColumn={yColumn}
         chartType={chartType}
         numericColumns={numericColumns}
+      />
+
+      <AxisLabelConfiguration
+        xColumn={xColumn}
+        yColumn={yColumn}
+        xAxisLabel={xAxisLabel}
+        setXAxisLabel={setXAxisLabel}
+        yAxisLabel={yAxisLabel}
+        setYAxisLabel={setYAxisLabel}
+        chartType={chartType}
       />
 
       <StyleConfiguration

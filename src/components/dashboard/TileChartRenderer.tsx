@@ -74,6 +74,8 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
       />
     );
   }
@@ -86,6 +88,8 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
       />
     );
   }
@@ -99,6 +103,8 @@ export const TileChartRenderer = React.memo(({
         effectiveSeries={effectiveSeries}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
       />
     );
   }

@@ -26,6 +26,8 @@ export const useChartState = () => {
   const [showDataLabels, setShowDataLabels] = useState<boolean>(false);
   const [selectedPalette, setSelectedPalette] = useState<string>('Default');
   const [histogramBins, setHistogramBins] = useState<number>(10);
+  const [xAxisLabel, setXAxisLabel] = useState<string>('');
+  const [yAxisLabel, setYAxisLabel] = useState<string>('');
 
   // Get colors from selected palette
   const getChartColors = () => {
@@ -109,6 +111,10 @@ export const useChartState = () => {
     setSelectedPalette,
     histogramBins,
     setHistogramBins,
+    xAxisLabel,
+    setXAxisLabel,
+    yAxisLabel,
+    setYAxisLabel,
     chartColors,
     supportsMultipleSeries,
     supportsDataLabels

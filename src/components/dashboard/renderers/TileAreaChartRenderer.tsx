@@ -14,6 +14,8 @@ interface TileAreaChartRendererProps {
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
   showDataLabels?: boolean;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 export const TileAreaChartRenderer = ({ 
@@ -22,7 +24,9 @@ export const TileAreaChartRenderer = ({
   stackColumn, 
   effectiveSeries, 
   chartColors, 
-  showDataLabels 
+  showDataLabels,
+  xAxisLabel,
+  yAxisLabel
 }: TileAreaChartRendererProps) => {
   // Check if we need a right Y-axis
   const needsRightYAxis = effectiveSeries.some(s => s.yAxisId === 'right');
@@ -66,8 +70,8 @@ export const TileAreaChartRenderer = ({
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+          <XAxis dataKey={xColumn} label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined} />
+          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined} />
           {needsRightYAxis && (
             <YAxis yAxisId="right" orientation="right" tickFormatter={formatTooltipValue} />
           )}
