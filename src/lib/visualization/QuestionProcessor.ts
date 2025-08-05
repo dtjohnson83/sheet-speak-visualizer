@@ -10,7 +10,10 @@ export type QuestionIntent =
   | 'relationship_mapping'
   | 'forecasting'
   | 'segmentation'
-  | 'risk_assessment';
+  | 'risk_assessment'
+  | 'connections'
+  | 'patterns'
+  | 'groups';
 
 export type VisualizationType = 
   | 'line_chart'
@@ -93,6 +96,18 @@ export class QuestionProcessor {
         'network', 'connections', 'relationships', 'interactions', 'flows',
         'dependencies', 'hierarchy', 'structure', 'ecosystem', 'map'
       ],
+      connections: [
+        'connect', 'linked', 'related', 'connected', 'associations', 'ties',
+        'bonds', 'links', 'relations', 'join', 'bridge'
+      ],
+      patterns: [
+        'pattern', 'repeating', 'recurring', 'similar', 'consistent', 'regular',
+        'common', 'typical', 'standard', 'usual', 'frequent'
+      ],
+      groups: [
+        'group', 'cluster', 'similar', 'alike', 'together', 'category',
+        'type', 'kind', 'sort', 'class', 'set'
+      ],
       forecasting: [
         'predict', 'forecast', 'future', 'projection', 'estimate', 'expect',
         'anticipate', 'outlook', 'prospect', 'tendency', 'likelihood'
@@ -115,6 +130,9 @@ export class QuestionProcessor {
       anomaly_detection: ['scatter_plot', 'line_chart'],
       performance_metrics: ['gauge_chart', 'bar_chart'],
       relationship_mapping: ['network_graph', 'heatmap'],
+      connections: ['bar_chart', 'line_chart'],
+      patterns: ['line_chart', 'scatter_plot'],
+      groups: ['pie_chart', 'bar_chart'],
       forecasting: ['line_chart', 'area_chart'],
       segmentation: ['pie_chart', 'treemap', 'bar_chart'],
       risk_assessment: ['heatmap', 'gauge_chart', 'bar_chart']
@@ -315,6 +333,9 @@ export class QuestionProcessor {
       anomaly_detection: `Identifying unusual patterns in ${entities.join(', ')} that may indicate opportunities or risks.`,
       performance_metrics: `Evaluating key performance indicators for ${entities.join(', ')} to assess business health.`,
       relationship_mapping: `Mapping connections and dependencies between ${entities.join(', ')} to optimize operations.`,
+      connections: `Identifying how ${entities.join(', ')} are connected to reveal important relationships.`,
+      patterns: `Finding recurring patterns in ${entities.join(', ')} to understand business processes.`,
+      groups: `Discovering natural groupings in ${entities.join(', ')} for better organization and analysis.`,
       forecasting: `Predicting future trends in ${entities.join(', ')} to support strategic planning.`,
       segmentation: `Grouping ${entities.join(', ')} into meaningful segments for targeted strategies.`,
       risk_assessment: `Assessing potential risks and vulnerabilities in ${entities.join(', ')} operations.`
@@ -339,6 +360,9 @@ export class QuestionProcessor {
       anomaly_detection: `${primaryEntity} Anomaly Detection`,
       performance_metrics: `${primaryEntity} Performance Dashboard`,
       relationship_mapping: `${primaryEntity} Network Analysis`,
+      connections: `${primaryEntity} Connections`,
+      patterns: `${primaryEntity} Pattern Analysis`,
+      groups: `${primaryEntity} Groups`,
       forecasting: `${primaryEntity} Forecast Analysis`,
       segmentation: `${primaryEntity} Segmentation Analysis`,
       risk_assessment: `${primaryEntity} Risk Assessment`
@@ -445,6 +469,21 @@ export class QuestionProcessor {
         'Optimize network connections and dependencies',
         'Identify key influencers and leverage their impact',
         'Strengthen critical relationships and reduce single points of failure'
+      ],
+      connections: [
+        'Investigate why certain items are connected',
+        'Use connection patterns to improve processes',
+        'Focus on the most important connections for your business'
+      ],
+      patterns: [
+        'Look for recurring patterns that could be automated',
+        'Use pattern insights to predict future behavior',
+        'Address any negative patterns you discover'
+      ],
+      groups: [
+        'Use groups to create targeted strategies',
+        'Focus resources on the most important groups',
+        'Consider treating each group differently'
       ],
       forecasting: [
         'Use forecasts for strategic planning and resource allocation',

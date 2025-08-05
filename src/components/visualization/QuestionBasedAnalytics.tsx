@@ -38,6 +38,7 @@ import {
 } from 'chart.js';
 import { QuestionProcessor, QuestionAnalysis } from '@/lib/visualization/QuestionProcessor';
 import { VisualizationEngine, ProcessedVisualization } from '@/lib/visualization/VisualizationEngine';
+import { SimpleGraphInsight } from '@/lib/analytics/SimpleGraphAnalyzer';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -67,6 +68,7 @@ interface AnalyticsSession {
   question: string;
   analysis: QuestionAnalysis;
   visualization: ProcessedVisualization;
+  graphInsights?: SimpleGraphInsight[];
   timestamp: Date;
 }
 
@@ -107,7 +109,13 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
     if (categoricalColumns.length > 0) {
       questions.push(`Compare performance by ${categoricalColumns[0].name}`);
       questions.push(`What is the breakdown of ${categoricalColumns[0].name}?`);
+      questions.push(`How are different ${categoricalColumns[0].name} connected?`);
     }
+
+    // Add relationship and pattern questions
+    questions.push('What groups or clusters exist in my data?');
+    questions.push('Are there any unusual patterns or outliers?');
+    questions.push('What connections can you find in the data?');
 
     if (numericColumns.length >= 2) {
       questions.push(`Is there a correlation between ${numericColumns[0].name} and ${numericColumns[1].name}?`);
@@ -141,6 +149,9 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
       // Add automated insights
       const additionalInsights = visualizationEngine.generateAutomatedInsights(visualization);
       visualization.metadata.insights.push(...additionalInsights);
+      
+      // Generate graph insights for relationship questions
+      const graphInsights = visualizationEngine.generateGraphInsights(data, columns, question);
 
       // Create session
       const session: AnalyticsSession = {
@@ -148,6 +159,7 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
         question: question.trim(),
         analysis,
         visualization,
+        graphInsights: graphInsights.length > 0 ? graphInsights : undefined,
         timestamp: new Date()
       };
 
@@ -363,11 +375,14 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="visualization" className="space-y-4">
-              <TabsList>
+              <TabsList className={`${activeSession.graphInsights && activeSession.graphInsights.length > 0 ? 'grid-cols-5' : 'grid-cols-4'} grid w-full`}>
                 <TabsTrigger value="visualization">Visualization</TabsTrigger>
                 <TabsTrigger value="insights">Insights</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
                 <TabsTrigger value="impact">Business Impact</TabsTrigger>
+                {activeSession.graphInsights && activeSession.graphInsights.length > 0 && (
+                  <TabsTrigger value="graph-insights">Patterns & Groups</TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="visualization" className="space-y-4">
@@ -475,6 +490,35 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
                   <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>{activeSession.analysis.businessContext}</p>
                 </div>
               </TabsContent>
+
+              {activeSession.graphInsights && activeSession.graphInsights.length > 0 && (
+                <TabsContent value="graph-insights" className="space-y-4">
+                  <div className="space-y-4">
+                    {activeSession.graphInsights.map((insight, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          {insight.type === 'connections' && <Users className="h-4 w-4 text-blue-500" />}
+                          {insight.type === 'patterns' && <TrendingUp className="h-4 w-4 text-green-500" />}
+                          {insight.type === 'groups' && <BarChart3 className="h-4 w-4 text-purple-500" />}
+                          {insight.type === 'outliers' && <AlertTriangle className="h-4 w-4 text-orange-500" />}
+                          <h4 className="font-medium">{insight.title}</h4>
+                          <Badge variant="secondary" className="ml-auto">
+                            {Math.round(insight.confidence * 100)}% confidence
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{insight.description}</p>
+                        <div className="space-y-1">
+                          {insight.examples.map((example, exIndex) => (
+                            <div key={exIndex} className="text-xs p-2 bg-muted/50 rounded">
+                              {example}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
           </CardContent>
         </Card>

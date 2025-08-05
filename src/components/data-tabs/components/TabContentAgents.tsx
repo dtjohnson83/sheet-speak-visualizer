@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DatasetSelector } from '@/components/agents/DatasetSelector';
-import { GraphMLDashboard } from '@/components/agents/GraphMLDashboard';
+
 import { BusinessGraphMLDashboard } from '@/components/agents/BusinessGraphMLDashboard';
 import { ProcessMiningDashboard } from '@/components/agents/ProcessMiningDashboard';
 import { QuestionBasedAnalytics } from '@/components/visualization/QuestionBasedAnalytics';
@@ -59,9 +59,8 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
       </div>
       
       <Tabs defaultValue="question-analytics" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 gap-1">
           <TabsTrigger value="question-analytics">Question Analytics</TabsTrigger>
-          <TabsTrigger value="graph-ml">Graph ML Analytics</TabsTrigger>
           <TabsTrigger value="business-graph-ml">Business Intelligence</TabsTrigger>
           <TabsTrigger value="process-mining">Process Mining</TabsTrigger>
         </TabsList>
@@ -71,14 +70,6 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
             data={activeData}
             columns={activeColumns}
             datasetName={activeFileName}
-          />
-        </TabsContent>
-
-        <TabsContent value="graph-ml">
-          <GraphMLDashboard
-            data={activeData}
-            columns={activeColumns}
-            fileName={activeFileName}
           />
         </TabsContent>
 

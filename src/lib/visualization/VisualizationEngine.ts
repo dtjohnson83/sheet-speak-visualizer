@@ -1,5 +1,6 @@
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { QuestionAnalysis, VisualizationSpec, VisualizationType } from './QuestionProcessor';
+import { SimpleGraphAnalyzer, SimpleGraphInsight } from '@/lib/analytics/SimpleGraphAnalyzer';
 
 export interface ChartData {
   labels: string[];
@@ -56,6 +57,7 @@ export class VisualizationEngine {
     '#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
     '#8B5A5A', '#6366F1', '#06B6D4', '#84CC16', '#F97316'
   ];
+  private graphAnalyzer = new SimpleGraphAnalyzer();
 
   async generateVisualization(
     analysis: QuestionAnalysis,
@@ -414,6 +416,40 @@ export class VisualizationEngine {
     }
 
     return insights;
+  }
+
+  generateGraphInsights(
+    data: DataRow[], 
+    columns: ColumnInfo[], 
+    intent: string
+  ): SimpleGraphInsight[] {
+    const allInsights: SimpleGraphInsight[] = [];
+    
+    // Generate different types of insights based on intent
+    if (intent.includes('connect') || intent.includes('relation')) {
+      allInsights.push(...this.graphAnalyzer.analyzeForConnections(data, columns));
+    }
+    
+    if (intent.includes('pattern') || intent.includes('trend')) {
+      allInsights.push(...this.graphAnalyzer.analyzeForPatterns(data, columns));
+    }
+    
+    if (intent.includes('group') || intent.includes('cluster') || intent.includes('similar')) {
+      allInsights.push(...this.graphAnalyzer.analyzeForGroups(data, columns));
+    }
+    
+    if (intent.includes('outlier') || intent.includes('unusual') || intent.includes('anomal')) {
+      allInsights.push(...this.graphAnalyzer.analyzeForOutliers(data, columns));
+    }
+    
+    // If no specific intent matched, provide a mix of insights
+    if (allInsights.length === 0) {
+      allInsights.push(...this.graphAnalyzer.analyzeForGroups(data, columns));
+      allInsights.push(...this.graphAnalyzer.analyzeForPatterns(data, columns));
+      allInsights.push(...this.graphAnalyzer.analyzeForOutliers(data, columns));
+    }
+    
+    return allInsights.sort((a, b) => b.confidence - a.confidence);
   }
 
   private analyzePieChart(chartData: ChartData, metadata: any): string[] {
