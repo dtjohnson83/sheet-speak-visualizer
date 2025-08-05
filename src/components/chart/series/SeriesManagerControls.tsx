@@ -12,7 +12,7 @@ interface SeriesManagerControlsProps {
   yColumn: string;
   series: SeriesConfig[];
   onUpdateColumn: (id: string, column: string) => void;
-  onUpdateType: (id: string, type: 'bar' | 'line') => void;
+  onUpdateType: (id: string, type: 'bar' | 'line' | 'area') => void;
   onUpdateAggregation: (id: string, aggregationMethod: AggregationMethod) => void;
   onUpdateYAxis: (id: string, yAxisId: string) => void;
   onRemove: (id: string) => void;
@@ -54,14 +54,15 @@ export const SeriesManagerControls = ({
       </Select>
       <Select 
         value={seriesConfig.type} 
-        onValueChange={(value: 'bar' | 'line') => onUpdateType(seriesConfig.id, value)}
+        onValueChange={(value: 'bar' | 'line' | 'area') => onUpdateType(seriesConfig.id, value)}
       >
-        <SelectTrigger className="w-20">
+        <SelectTrigger className="w-24">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="bar">Bar</SelectItem>
           <SelectItem value="line">Line</SelectItem>
+          <SelectItem value="area">Area</SelectItem>
         </SelectContent>
       </Select>
       <Select 

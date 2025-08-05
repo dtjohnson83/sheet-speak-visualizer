@@ -28,8 +28,8 @@ export const SeriesManagerHeader = ({
     if (numericColumns.length === 1 && yColumn) {
       return "Only one numeric column available (already used as Y-axis)";
     }
-    if (seriesLength >= 1) {
-      return "Maximum of one additional series allowed";
+    if (seriesLength >= 5) {
+      return "Maximum of 5 additional series allowed";
     }
     if (!availableColumns.length) {
       return "All available numeric columns are already used";
@@ -40,7 +40,7 @@ export const SeriesManagerHeader = ({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <h4 className="text-sm font-medium">Additional Series (Max: 1)</h4>
+        <h4 className="text-sm font-medium">Additional Series ({seriesLength}/5)</h4>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -48,8 +48,8 @@ export const SeriesManagerHeader = ({
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-xs max-w-48">
-                Add one additional data series to compare different metrics on the same chart. 
-                Only works with Bar, Line, and Scatter charts.
+                Add up to 5 additional data series to compare different metrics on the same chart. 
+                Works with Bar, Line, Area, and Scatter charts.
               </p>
             </TooltipContent>
           </Tooltip>

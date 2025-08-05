@@ -24,5 +24,7 @@ export const getAvailableSeriesColumns = (
 };
 
 export const canAddNewSeries = (availableColumns: ColumnInfo[], seriesLength: number) => {
-  return availableColumns.length > 0 && seriesLength < 1;
+  // Allow up to 5 additional series or until we run out of columns
+  const maxSeries = 5;
+  return availableColumns.length > 0 && seriesLength < maxSeries;
 };

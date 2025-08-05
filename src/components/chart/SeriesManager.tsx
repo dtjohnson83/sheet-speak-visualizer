@@ -53,7 +53,8 @@ export const SeriesManager = React.memo(({
       color: chartColors[(series.length + 1) % chartColors.length],
       type: 'bar',
       aggregationMethod: 'sum',
-      yAxisId: 'right'
+      // Alternate between left and right Y-axis for better visualization
+      yAxisId: series.length % 2 === 0 ? 'right' : 'left'
     };
     
     logUserInteraction('series added', newSeries, 'SeriesManager');
@@ -70,7 +71,7 @@ export const SeriesManager = React.memo(({
     setSeries(series.map(s => s.id === id ? { ...s, column } : s));
   }, [series, setSeries]);
 
-  const updateSeriesType = React.useCallback((id: string, type: 'bar' | 'line') => {
+  const updateSeriesType = React.useCallback((id: string, type: 'bar' | 'line' | 'area') => {
     logUserInteraction('series type updated', { id, type }, 'SeriesManager');
     setSeries(series.map(s => s.id === id ? { ...s, type } : s));
   }, [series, setSeries]);
