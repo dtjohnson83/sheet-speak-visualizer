@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DatasetSelector } from '@/components/agents/DatasetSelector';
 import { GraphMLDashboard } from '@/components/agents/GraphMLDashboard';
+import { BusinessGraphMLDashboard } from '@/components/agents/BusinessGraphMLDashboard';
 import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
