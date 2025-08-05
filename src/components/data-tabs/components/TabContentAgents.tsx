@@ -7,6 +7,7 @@ import { DatasetSelector } from '@/components/agents/DatasetSelector';
 import { BusinessGraphMLDashboard } from '@/components/agents/BusinessGraphMLDashboard';
 import { ProcessMiningDashboard } from '@/components/agents/ProcessMiningDashboard';
 import { QuestionBasedAnalytics } from '@/components/visualization/QuestionBasedAnalytics';
+import { GraphAnalysisTab } from './GraphAnalysisTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -59,10 +60,11 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
       </div>
       
       <Tabs defaultValue="question-analytics" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-1 gap-1">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           <TabsTrigger value="question-analytics">Question Analytics</TabsTrigger>
-          {/* <TabsTrigger value="business-graph-ml">Business Intelligence</TabsTrigger>
-          <TabsTrigger value="process-mining">Process Mining</TabsTrigger> */}
+          <TabsTrigger value="graph-analysis">Graph Analysis</TabsTrigger>
+          <TabsTrigger value="business-intelligence">Business Intelligence</TabsTrigger>
+          <TabsTrigger value="process-mining">Process Mining</TabsTrigger>
         </TabsList>
 
         <TabsContent value="question-analytics">
@@ -73,7 +75,15 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
           />
         </TabsContent>
 
-        {/* <TabsContent value="business-graph-ml">
+        <TabsContent value="graph-analysis">
+          <GraphAnalysisTab
+            data={activeData}
+            columns={activeColumns}
+            fileName={activeFileName}
+          />
+        </TabsContent>
+
+        <TabsContent value="business-intelligence">
           <BusinessGraphMLDashboard
             data={activeData}
             columns={activeColumns}
@@ -87,7 +97,7 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
             columns={activeColumns}
             datasetId={activeFileName}
           />
-        </TabsContent> */}
+        </TabsContent>
       </Tabs>
     </TabsContent>
   );

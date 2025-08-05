@@ -34,9 +34,9 @@ export const getTierDefinitions = (data: any[], tiles: any[], savedDatasetsCount
     ]
   },
   advanced: {
-    title: "Advanced Operations", 
-    description: "AI agents and automation",
-    icon: Bot,
+    title: "Graph & ML Analytics", 
+    description: "Advanced graph analysis and machine learning",
+    icon: Brain,
     color: "amber",
     tabs: [
       { id: "agents", label: "AI Agents", icon: Bot, badge: null }
