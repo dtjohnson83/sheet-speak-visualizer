@@ -124,6 +124,28 @@ export class BusinessIntelligenceTranslator {
         'community_detection': ['Optimize production scheduling', 'Implement lean manufacturing principles', 'Design cross-training programs']
       }
     });
+
+    // HR & Human Resources Template
+    this.domainTemplates.set('hr', {
+      name: 'Human Resources',
+      industry: 'hr',
+      kpis: ['employee_satisfaction', 'retention_rate', 'productivity_score', 'training_effectiveness', 'performance_rating'],
+      riskFactors: ['talent_retention', 'skills_gap', 'employee_burnout', 'compliance_risk'],
+      opportunityAreas: ['talent_development', 'performance_optimization', 'culture_improvement', 'succession_planning'],
+      stakeholderTypes: ['HR Director', 'Department Manager', 'Training Manager', 'Executive Team', 'Team Lead'],
+      businessLanguage: {
+        'node_centrality': 'employee influence score',
+        'clustering_coefficient': 'team collaboration strength',
+        'anomaly_detection': 'performance deviation alert',
+        'link_prediction': 'mentorship opportunity',
+        'community_detection': 'team dynamics analysis'
+      },
+      actionTemplates: {
+        'high_centrality_nodes': ['Develop leadership pathway for influential employees', 'Create mentorship programs', 'Implement knowledge sharing initiatives'],
+        'anomaly_detection': ['Conduct performance review', 'Provide targeted support', 'Investigate workload balance'],
+        'community_detection': ['Optimize team structure', 'Design cross-functional projects', 'Implement team building programs']
+      }
+    });
   }
 
   translateToBusinessInsight(

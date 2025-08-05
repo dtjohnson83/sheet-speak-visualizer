@@ -6,6 +6,8 @@ import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DatasetSelector } from '@/components/agents/DatasetSelector';
 import { GraphMLDashboard } from '@/components/agents/GraphMLDashboard';
 import { BusinessGraphMLDashboard } from '@/components/agents/BusinessGraphMLDashboard';
+import { ProcessMiningDashboard } from '@/components/agents/ProcessMiningDashboard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 
@@ -56,13 +58,37 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
         />
       </div>
       
-      <Card className="mt-4">
-        <GraphMLDashboard
-          data={activeData}
-          columns={activeColumns}
-          fileName={activeFileName}
-        />
-      </Card>
+      <Tabs defaultValue="graph-ml" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="graph-ml">Graph ML Analytics</TabsTrigger>
+          <TabsTrigger value="business-graph-ml">Business Intelligence</TabsTrigger>
+          <TabsTrigger value="process-mining">Process Mining</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="graph-ml">
+          <GraphMLDashboard
+            data={activeData}
+            columns={activeColumns}
+            fileName={activeFileName}
+          />
+        </TabsContent>
+
+        <TabsContent value="business-graph-ml">
+          <BusinessGraphMLDashboard
+            data={activeData}
+            columns={activeColumns}
+            datasetId={activeFileName}
+          />
+        </TabsContent>
+
+        <TabsContent value="process-mining">
+          <ProcessMiningDashboard
+            data={activeData}
+            columns={activeColumns}
+            datasetId={activeFileName}
+          />
+        </TabsContent>
+      </Tabs>
     </TabsContent>
   );
 };
