@@ -31,10 +31,10 @@ export const BarChartRenderer = React.memo(({
     [yColumn]
   );
   
-  // For bar charts, force all series to be bar type to prevent mixed rendering
+  // For bar charts, force all series to be bar type and filter out yColumn to prevent duplication
   const forcedBarSeries = React.useMemo(() => 
-    series.map(s => ({ ...s, type: 'bar' as const })), 
-    [series]
+    series.filter(s => s.column !== yColumn).map(s => ({ ...s, type: 'bar' as const })), 
+    [series, yColumn]
   );
   
   // Combine base series with forced bar series

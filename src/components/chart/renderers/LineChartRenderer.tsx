@@ -28,11 +28,14 @@ export const LineChartRenderer = ({
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'line' as const, yAxisId: 'left' }] : [];
   
+  // Filter out yColumn from additional series to prevent duplication
+  const filteredSeries = series.filter(s => s.column !== yColumn);
+  
   // Combine base series with additional series
-  const allSeries = [...baseSeries, ...series];
+  const allSeries = [...baseSeries, ...filteredSeries];
   
   // Check if we need a right Y-axis
-  const needsRightYAxis = series.some(s => s.yAxisId === 'right');
+  const needsRightYAxis = filteredSeries.some(s => s.yAxisId === 'right');
   
   // Check if we have mixed chart types (line + bar)
   const hasMixedTypes = allSeries.some(s => s.type === 'bar');
