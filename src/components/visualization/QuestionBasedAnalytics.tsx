@@ -20,7 +20,8 @@ import {
   Users,
   DollarSign,
   Sparkles,
-  Send
+  Send,
+  Layout
 } from 'lucide-react';
 import { Line, Bar, Pie, Scatter } from 'react-chartjs-2';
 import {
@@ -60,7 +61,9 @@ ChartJS.register(
 interface QuestionBasedAnalyticsProps {
   data: DataRow[];
   columns: ColumnInfo[];
-  datasetName: string;
+  datasetName?: string;
+  onAddTile?: (tile: any) => void;
+  onAIUsed?: () => void;
 }
 
 interface AnalyticsSession {
@@ -75,7 +78,9 @@ interface AnalyticsSession {
 export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
   data,
   columns,
-  datasetName
+  datasetName = "dataset",
+  onAddTile,
+  onAIUsed
 }) => {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
@@ -361,6 +366,23 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
                 {activeSession.visualization.title}
               </CardTitle>
               <div className="flex items-center gap-2">
+                {onAddTile && (
+                  <Button
+                    size="sm"
+                    onClick={() => onAddTile({
+                      id: `tile-${Date.now()}`,
+                      type: activeSession.visualization.type,
+                      title: activeSession.visualization.title,
+                      chartData: activeSession.visualization.chartData,
+                      question: activeSession.question,
+                      insights: activeSession.visualization.metadata.insights,
+                      timestamp: new Date()
+                    })}
+                  >
+                    <Layout className="h-4 w-4 mr-1" />
+                    Save to Dashboard
+                  </Button>
+                )}
                 <Badge variant={getPriorityColor(activeSession.visualization.businessImpact.priority)}>
                   {activeSession.visualization.businessImpact.priority.toUpperCase()}
                 </Badge>

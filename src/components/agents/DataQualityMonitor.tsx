@@ -9,7 +9,7 @@ import { QualityHeatmap } from './data-quality/QualityHeatmap';
 import { DataQualityReport, DataQualityScore } from './data-quality/types';
 import { QualityReportExporter } from './data-quality/QualityReportExporter';
 import { QualityReportScheduler } from './data-quality/QualityReportScheduler';
-import { RealTimeMonitor } from './data-quality/RealTimeMonitor';
+
 import { MLQualityAnalyzer } from './data-quality/MLQualityAnalyzer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -58,7 +58,7 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="realtime">Real-time</TabsTrigger>
+            
             <TabsTrigger value="ml">ML Analysis</TabsTrigger>
             <TabsTrigger value="heatmap">Issues Heatmap</TabsTrigger>
             <TabsTrigger value="trends">Quality Trends</TabsTrigger>
@@ -81,15 +81,6 @@ export const DataQualityMonitor = ({ data, columns, onReportGenerated }: DataQua
             )}
           </TabsContent>
           
-          <TabsContent value="realtime" className="space-y-6">
-            <RealTimeMonitor 
-              onQualityUpdate={(score, issues) => {
-                // Update the main quality score when real-time data comes in
-                // This allows the real-time monitor to feed back to the main system
-              }}
-              isAnalyzing={isAnalyzing}
-            />
-          </TabsContent>
           
           <TabsContent value="ml" className="space-y-6">
             <MLQualityAnalyzer 
