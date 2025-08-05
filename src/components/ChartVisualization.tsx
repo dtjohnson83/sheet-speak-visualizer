@@ -304,6 +304,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           columnFormats={columnFormats}
           histogramBins={histogramBins}
           mapboxApiKey={mapboxApiKey}
+          xAxisLabel={xAxisLabel}
+          yAxisLabel={yAxisLabel}
         />
       </div>
     </div>

@@ -11,11 +11,13 @@ import { ChartRenderersProps } from '@/types';
 
 interface TemporalChartWrapperProps extends ChartRenderersProps {
   chartRef?: React.RefObject<HTMLElement>;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
   mapboxApiKey?: string;
 }
 
 export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props) => {
-  const { data, columns, chartRef, chartType } = props;
+  const { data, columns, chartRef, xAxisLabel, yAxisLabel, chartType, ...chartProps } = props;
   const { toast } = useToast();
   
   
@@ -93,10 +95,14 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
           onTemporalConfigChange={temporalConfig.enabled ? setTemporalConfig : undefined}
         >
           <ChartRenderers
-            {...props}
+            {...chartProps}
             data={chartData}
+            columns={columns}
+            chartType={chartType}
             isTemporalAnimated={temporalConfig.enabled}
             animationSpeed={temporalConfig.animationSpeed}
+            xAxisLabel={xAxisLabel}
+            yAxisLabel={yAxisLabel}
           />
         </AnimatedChartContainer>
         

@@ -35,6 +35,8 @@ interface ChartContainerProps {
   topXLimit?: number | null;
   histogramBins?: number;
   mapboxApiKey?: string;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 export const ChartContainer = React.memo(({
@@ -60,7 +62,9 @@ export const ChartContainer = React.memo(({
   columnFormats,
   topXLimit,
   histogramBins,
-  mapboxApiKey
+  mapboxApiKey,
+  xAxisLabel,
+  yAxisLabel
 }: ChartContainerProps) => {
   const chartRef = React.useRef<HTMLDivElement>(null);
   const numericColumns = React.useMemo(() => 
@@ -168,6 +172,8 @@ export const ChartContainer = React.memo(({
                 histogramBins={histogramBins}
                 chartRef={chartRef}
                 mapboxApiKey={mapboxApiKey}
+                xAxisLabel={xAxisLabel}
+                yAxisLabel={yAxisLabel}
               />
             );
           }
@@ -195,6 +201,8 @@ export const ChartContainer = React.memo(({
               topXLimit={topXLimit}
               histogramBins={histogramBins}
               mapboxApiKey={mapboxApiKey}
+              xAxisLabel={xAxisLabel}
+              yAxisLabel={yAxisLabel}
             />
           );
         })()}
