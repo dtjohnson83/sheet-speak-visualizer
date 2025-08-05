@@ -4,9 +4,12 @@ import { ComposedChart, Bar, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
-import { ScrollableChartContainer } from '../ScrollableChartContainer';
 
-interface AreaChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {}
+
+interface AreaChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+}
 
 export const AreaChartRenderer = ({ 
   data, 
@@ -15,7 +18,9 @@ export const AreaChartRenderer = ({
   series, 
   stackColumn, 
   chartColors,
-  showDataLabels
+  showDataLabels,
+  xAxisLabel,
+  yAxisLabel
 }: AreaChartRendererProps) => {
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'area' as const, yAxisId: 'left' }] : [];
@@ -62,12 +67,11 @@ export const AreaChartRenderer = ({
   };
   
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={400}>
-      <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={400}>
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} />
-          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} />
+          <XAxis dataKey={xColumn} label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined} />
+          <YAxis yAxisId="left" tickFormatter={formatTooltipValue} label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined} />
           {needsRightYAxis && (
             <YAxis 
               yAxisId="right" 
@@ -105,7 +109,6 @@ export const AreaChartRenderer = ({
             }
           })}
         </ComposedChart>
-      </ResponsiveContainer>
-    </ScrollableChartContainer>
+    </ResponsiveContainer>
   );
 };

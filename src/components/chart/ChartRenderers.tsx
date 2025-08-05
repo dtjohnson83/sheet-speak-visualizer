@@ -27,6 +27,8 @@ interface ExtendedChartRenderersProps extends ChartRenderersProps {
   isTemporalAnimated?: boolean;
   animationSpeed?: number;
   mapboxApiKey?: string;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 export const ChartRenderers = ({
@@ -45,7 +47,9 @@ export const ChartRenderers = ({
   zColumn,
   isTemporalAnimated = false,
   animationSpeed = 1000,
-  mapboxApiKey
+  mapboxApiKey,
+  xAxisLabel,
+  yAxisLabel
 }: ExtendedChartRenderersProps) => {
   if (chartType === 'bar') {
     return (
@@ -59,6 +63,8 @@ export const ChartRenderers = ({
         showDataLabels={showDataLabels}
         isTemporalAnimated={isTemporalAnimated}
         animationSpeed={animationSpeed}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
       />
     );
   }
@@ -74,6 +80,8 @@ export const ChartRenderers = ({
         showDataLabels={showDataLabels}
         isTemporalAnimated={isTemporalAnimated}
         animationSpeed={animationSpeed}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
       />
     );
   }
@@ -88,6 +96,8 @@ export const ChartRenderers = ({
         stackColumn={stackColumn}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
       />
     );
   }

@@ -5,7 +5,7 @@ import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
-import { ScrollableChartContainer } from '../../chart/ScrollableChartContainer';
+
 
 interface TileScatterChartRendererProps {
   data: DataRow[];
@@ -36,7 +36,6 @@ export const TileScatterChartRenderer = ({
             <Scatter key={s.column} data={data} dataKey={s.column} fill={chartColors[index % chartColors.length]} />
           ))}
         </ScatterChart>
-      </ResponsiveContainer>
-    </ScrollableChartContainer>
+    </ResponsiveContainer>
   );
 };

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar, Play, Pause, RotateCcw, Settings, TestTube } from 'lucide-react';
+import { Calendar, Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { ColumnInfo, DataRow } from '@/pages/Index';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { TemporalAnimationConfig, TimeInterval, detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
@@ -74,16 +74,6 @@ export const TemporalAnimationConfiguration = ({
     onConfigChange({ ...config, ...updates });
   };
 
-  const handleTestAnimation = () => {
-    if (temporalAnimationControls?.reset) {
-      temporalAnimationControls.reset();
-      setTimeout(() => {
-        if (temporalAnimationControls?.play) {
-          temporalAnimationControls.play();
-        }
-      }, 100);
-    }
-  };
 
   if (!hasTemporalColumns) {
     const availableColumns = columns.map(col => col.name).join(', ');
@@ -175,15 +165,6 @@ export const TemporalAnimationConfiguration = ({
                     className="h-8 w-8 p-0"
                   >
                     <RotateCcw className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleTestAnimation}
-                    className="h-8 w-8 p-0"
-                    title="Test Animation"
-                  >
-                    <TestTube className="h-3 w-3" />
                   </Button>
                 </div>
               </div>

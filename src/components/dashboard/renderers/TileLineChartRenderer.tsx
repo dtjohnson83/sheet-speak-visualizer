@@ -5,7 +5,7 @@ import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
-import { ScrollableChartContainer } from '../../chart/ScrollableChartContainer';
+
 
 interface TileLineChartRendererProps {
   data: DataRow[];
@@ -64,8 +64,7 @@ export const TileLineChartRenderer = ({
   };
 
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={300}>
-      <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xColumn} label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined} />
@@ -102,7 +101,6 @@ export const TileLineChartRenderer = ({
             }
           })}
         </ComposedChart>
-      </ResponsiveContainer>
-    </ScrollableChartContainer>
+    </ResponsiveContainer>
   );
 };

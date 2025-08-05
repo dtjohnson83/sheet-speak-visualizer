@@ -59,12 +59,6 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
     : data;
 
 
-  const handleTestAnimation = () => {
-    controls.reset();
-    setTimeout(() => {
-      controls.play();
-    }, 100);
-  };
 
   return (
     <div className="space-y-4">
@@ -97,8 +91,6 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
           columns={temporalConfig.enabled ? columns : undefined}
           temporalConfig={temporalConfig.enabled ? temporalConfig : undefined}
           onTemporalConfigChange={temporalConfig.enabled ? setTemporalConfig : undefined}
-          onTest={temporalConfig.enabled ? handleTestAnimation : undefined}
-          
         >
           <ChartRenderers
             {...props}

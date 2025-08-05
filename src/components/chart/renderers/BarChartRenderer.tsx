@@ -3,7 +3,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
-import { ScrollableChartContainer } from '../ScrollableChartContainer';
+
 
 interface BarChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {
   isTemporalAnimated?: boolean;
@@ -85,8 +85,7 @@ export const BarChartRenderer = React.memo(({
   }, []);
   
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={400}>
-      <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={400}>
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xColumn} label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined} />
@@ -114,7 +113,6 @@ export const BarChartRenderer = React.memo(({
             />
           ))}
         </ComposedChart>
-      </ResponsiveContainer>
-    </ScrollableChartContainer>
+    </ResponsiveContainer>
   );
 });

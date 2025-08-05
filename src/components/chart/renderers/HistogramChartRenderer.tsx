@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
-import { ScrollableChartContainer } from '../ScrollableChartContainer';
+
 
 interface HistogramChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'chartColors' | 'showDataLabels'> {
   isTemporalAnimated?: boolean;
@@ -36,8 +36,7 @@ export const HistogramChartRenderer = ({
   };
 
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={400}>
-      <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={400}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="range" />
@@ -52,7 +51,6 @@ export const HistogramChartRenderer = ({
             animationEasing="ease-out"
           />
         </BarChart>
-      </ResponsiveContainer>
-    </ScrollableChartContainer>
+    </ResponsiveContainer>
   );
 };

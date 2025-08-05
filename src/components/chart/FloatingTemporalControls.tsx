@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw, Settings, TestTube, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { TemporalAnimationState, TemporalAnimationControls } from '@/hooks/useTemporalAnimation';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface FloatingTemporalControlsProps {
   state: TemporalAnimationState;
   controls: TemporalAnimationControls;
-  onTest?: () => void;
   showAdvanced?: boolean;
   children?: React.ReactNode;
 }
@@ -15,7 +14,6 @@ interface FloatingTemporalControlsProps {
 export const FloatingTemporalControls = ({
   state,
   controls,
-  onTest,
   showAdvanced = false,
   children
 }: FloatingTemporalControlsProps) => {
@@ -59,18 +57,6 @@ export const FloatingTemporalControls = ({
             <RotateCcw className="h-3 w-3" />
           </Button>
 
-          {/* Test Button */}
-          {onTest && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onTest}
-              className="h-8 w-8 p-0 hover:bg-primary/10"
-              title="Test Animation Settings"
-            >
-              <TestTube className="h-3 w-3" />
-            </Button>
-          )}
 
 
           {/* Advanced Settings Toggle */}

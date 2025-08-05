@@ -14,8 +14,6 @@ interface AnimatedChartContainerProps {
   columns?: ColumnInfo[];
   temporalConfig?: TemporalAnimationConfig;
   onTemporalConfigChange?: (config: TemporalAnimationConfig) => void;
-  onTest?: () => void;
-  
 }
 
 export const AnimatedChartContainer = ({
@@ -27,7 +25,6 @@ export const AnimatedChartContainer = ({
   columns,
   temporalConfig,
   onTemporalConfigChange,
-  onTest,
 }: AnimatedChartContainerProps) => {
   const isAnimating = isTemporalAnimated && animationState?.isPlaying;
   
@@ -45,8 +42,6 @@ export const AnimatedChartContainer = ({
         <FloatingTemporalControls
           state={animationState}
           controls={animationControls}
-          onTest={onTest}
-          
           showAdvanced={!!columns && !!temporalConfig && !!onTemporalConfigChange}
         >
           {columns && temporalConfig && onTemporalConfigChange && (

@@ -4,7 +4,7 @@ import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Re
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { getChartTextColor } from '@/lib/chartTheme';
 import { ChartRenderersProps } from '@/types';
-import { ScrollableChartContainer } from '../ScrollableChartContainer';
+
 
 interface ScatterChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'chartColors' | 'showDataLabels'> {}
 
@@ -41,8 +41,7 @@ export const ScatterChartRenderer = ({
   };
 
   return (
-    <ScrollableChartContainer dataLength={data.length} minWidth={400}>
-      <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={400}>
         <ScatterChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xColumn} type="number" tickFormatter={formatTooltipValue} />
@@ -58,7 +57,6 @@ export const ScatterChartRenderer = ({
             />
           ))}
         </ScatterChart>
-      </ResponsiveContainer>
-    </ScrollableChartContainer>
+    </ResponsiveContainer>
   );
 };
