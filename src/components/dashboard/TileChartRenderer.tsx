@@ -34,6 +34,8 @@ interface TileChartRendererProps {
   columns: ColumnInfo[];
   chartColors: string[];
   isMaximized?: boolean;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 export const TileChartRenderer = React.memo(({ 
@@ -51,7 +53,9 @@ export const TileChartRenderer = React.memo(({
   data, 
   columns, 
   chartColors,
-  isMaximized 
+  isMaximized,
+  xAxisLabel,
+  yAxisLabel
 }: TileChartRendererProps) => {
   const effectiveSeries = React.useMemo(() => 
     getEffectiveSeries(yColumn, series, chartColors, chartType), 
