@@ -199,7 +199,7 @@ export const useAIChartGeneration = () => {
            lowerQuery.includes('evolution');
   };
 
-  // Smart column selection with enhanced trend-aware intelligence
+  // Enhanced column selection with graph-aware intelligence
   const selectBestColumns = (
     chartType: string, 
     columns: ColumnInfo[], 
@@ -213,6 +213,24 @@ export const useAIChartGeneration = () => {
     // Detect potential temporal columns even if not typed as 'date'
     const potentialTemporalCols = columns.filter(col => 
       col.type === 'date' || isTemporalColumn(col.name)
+    );
+
+    // Graph-aware column detection
+    const entityColumns = columns.filter(col => 
+      col.name.toLowerCase().includes('id') || 
+      col.name.toLowerCase().includes('name') || 
+      col.name.toLowerCase().includes('entity') ||
+      col.name.toLowerCase().includes('node') ||
+      col.type === 'categorical'
+    );
+
+    const relationshipColumns = columns.filter(col => 
+      col.name.toLowerCase().includes('weight') || 
+      col.name.toLowerCase().includes('strength') || 
+      col.name.toLowerCase().includes('score') || 
+      col.name.toLowerCase().includes('count') || 
+      col.name.toLowerCase().includes('frequency') ||
+      (col.type === 'numeric' && !potentialTemporalCols.includes(col))
     );
     
     const isTrendRequest = isTrendQuery(query);

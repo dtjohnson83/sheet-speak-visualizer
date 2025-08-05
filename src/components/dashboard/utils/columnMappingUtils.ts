@@ -51,31 +51,65 @@ export const autoMapColumns = (
     };
   }
 
-  // Find suitable replacements
+  // Enhanced column categorization for Graph ML
   const categoricalColumns = availableColumns.filter(col => 
     col.type === 'categorical' || col.type === 'text' || col.type === 'date'
   );
   const numericColumns = availableColumns.filter(col => col.type === 'numeric');
 
+  // Graph-aware column detection
+  const entityColumns = availableColumns.filter(col => 
+    col.name.toLowerCase().includes('id') || 
+    col.name.toLowerCase().includes('name') || 
+    col.name.toLowerCase().includes('entity') ||
+    col.name.toLowerCase().includes('node') ||
+    col.type === 'categorical'
+  );
+
+  const relationshipColumns = availableColumns.filter(col => 
+    col.name.toLowerCase().includes('weight') || 
+    col.name.toLowerCase().includes('strength') || 
+    col.name.toLowerCase().includes('score') || 
+    col.name.toLowerCase().includes('count') || 
+    col.name.toLowerCase().includes('frequency') ||
+    col.type === 'numeric'
+  );
+
   // Auto-select columns based on chart type requirements
   let newXColumn = configuredXColumn;
   let newYColumn = configuredYColumn;
   
-  // For X-axis: prefer categorical/text/date columns, fallback to first available
-  if (!validation.xExists && categoricalColumns.length > 0) {
-    newXColumn = categoricalColumns[0].name;
-  } else if (!validation.xExists && availableColumns.length > 0) {
-    newXColumn = availableColumns[0].name;
-  }
+  // Graph visualization types get priority for entity/relationship columns
+  if (chartType === 'network' || chartType === 'network3d' || chartType === 'entity-relationship') {
+    if (!validation.xExists) {
+      newXColumn = entityColumns[0]?.name || categoricalColumns[0]?.name || availableColumns[0]?.name || '';
+    }
+    if (!validation.yExists) {
+      newYColumn = entityColumns[1]?.name || relationshipColumns[0]?.name || numericColumns[0]?.name || '';
+    }
+  } else {
+    // For X-axis: prefer entity/categorical columns, fallback to first available
+    if (!validation.xExists) {
+      if (entityColumns.length > 0) {
+        newXColumn = entityColumns[0].name;
+      } else if (categoricalColumns.length > 0) {
+        newXColumn = categoricalColumns[0].name;
+      } else if (availableColumns.length > 0) {
+        newXColumn = availableColumns[0].name;
+      }
+    }
 
-  // For Y-axis: prefer numeric columns for most chart types
-  if (!validation.yExists && chartType !== 'histogram') {
-    if (numericColumns.length > 0) {
-      newYColumn = numericColumns[0].name;
-    } else if (availableColumns.length > 1) {
-      // Fallback to second column if first is used for X
-      const fallbackColumn = availableColumns.find(col => col.name !== newXColumn);
-      newYColumn = fallbackColumn?.name || availableColumns[1]?.name || '';
+    // For Y-axis: prefer relationship/numeric columns for most chart types
+    if (!validation.yExists && chartType !== 'histogram') {
+      if (relationshipColumns.length > 0) {
+        newYColumn = relationshipColumns[0].name;
+      } else if (numericColumns.length > 0) {
+        newYColumn = numericColumns[0].name;
+      } else if (availableColumns.length > 1) {
+        // Fallback to second column if first is used for X
+        const fallbackColumn = availableColumns.find(col => col.name !== newXColumn);
+        newYColumn = fallbackColumn?.name || availableColumns[1]?.name || '';
+      }
     }
   }
 

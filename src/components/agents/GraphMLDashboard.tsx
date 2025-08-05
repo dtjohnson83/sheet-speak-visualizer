@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Network, TrendingUp, AlertTriangle, Users, Link, Zap, UserCheck } from 'lucide-react';
+import { Brain, Network, TrendingUp, AlertTriangle, Users, Link, Zap, UserCheck, BarChart3 } from 'lucide-react';
 import { GraphMLAnalyzer, GraphMLInsight } from '@/lib/graph/GraphMLAnalyzer';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { toast } from 'sonner';
+import { GraphMLVisualizationPanel } from './GraphMLVisualizationPanel';
 
 interface GraphMLDashboardProps {
   data: DataRow[];
@@ -406,6 +407,29 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
             );
           })}
         </Tabs>
+      )}
+
+      {/* Enhanced Visualization Section */}
+      {insights && insights.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5" />
+              <span>Graph ML Visualization</span>
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Intelligent visualization based on Graph ML insights
+            </p>
+          </CardHeader>
+          <CardContent>
+            <GraphMLVisualizationPanel
+              data={data}
+              columns={columns}
+              insights={insights}
+              fileName={fileName}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
