@@ -230,6 +230,8 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
         columns={columns}
         chartColors={chartColors}
         isMaximized={isMaximized}
+        xAxisLabel=""
+        yAxisLabel=""
       />
     </div>
   );
@@ -272,6 +274,8 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
               columns={columns}
               chartColors={chartColors}
               isMaximized={true}
+              xAxisLabel=""
+              yAxisLabel=""
             />
           </div>
         </Card>
