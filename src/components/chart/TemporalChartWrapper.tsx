@@ -64,24 +64,6 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
 
   return (
     <div className="space-y-4">
-      {/* Configuration Panel */}
-      {hasTemporalData && isChartTypeSupported && (
-        <TemporalAnimationConfiguration
-          columns={columns}
-          data={data}
-          config={temporalConfig}
-          onConfigChange={setTemporalConfig}
-          isPlaying={state.isPlaying}
-          onTogglePlay={controls.togglePlay}
-          onReset={controls.reset}
-          currentTimeLabel={state.currentFrameData?.timeLabel}
-          progress={state.progress}
-          
-          chartRef={chartRef}
-          temporalAnimationState={state}
-          temporalAnimationControls={controls}
-        />
-      )}
       
       {/* Chart with Integrated Controls */}
       <div className="space-y-2">
