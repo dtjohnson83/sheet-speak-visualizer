@@ -40,7 +40,7 @@ export interface ProcessedVisualization {
   networkData?: NetworkGraphData;
   metadata: {
     totalDataPoints: number;
-    keyMetrics: Record<string, number>;
+    keyMetrics: Record<string, number | string>;
     insights: string[];
     recommendations: string[];
     confidence: number;
@@ -77,7 +77,7 @@ export class VisualizationEngine {
       networkData: spec.type === 'network_graph' ? this.generateNetworkData(processedData, spec) : undefined,
       metadata: {
         totalDataPoints: data.length,
-        keyMetrics: this.calculateKeyMetrics(processedData),
+        keyMetrics: this.calculateKeyMetrics(processedData, spec, columns),
         insights: spec.insights,
         recommendations: spec.recommendations,
         confidence: analysis.confidence
@@ -350,16 +350,30 @@ export class VisualizationEngine {
     return { nodes, edges };
   }
 
-  private calculateKeyMetrics(processedData: { processed: any[]; summary: Record<string, any> }): Record<string, number> {
+  private calculateKeyMetrics(
+    processedData: { processed: any[]; summary: Record<string, any> },
+    spec?: VisualizationSpec,
+    columns?: ColumnInfo[]
+  ): Record<string, number | string> {
     const { processed, summary } = processedData;
+    
+    // Identify the primary analysis column based on the spec
+    const primaryColumn = spec?.chartConfig?.yAxis || spec?.chartConfig?.xAxis || 'value';
+    const primaryColumnInfo = columns?.find(col => col.name === primaryColumn);
+    const columnDisplayName = primaryColumnInfo?.name || primaryColumn;
+    
+    // Create more descriptive metric names that include the column being analyzed
+    const cleanColumnName = columnDisplayName.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
     
     return {
       totalDataPoints: processed.length,
-      averageValue: summary.avg || 0,
-      maxValue: summary.max || 0,
-      minValue: summary.min || 0,
-      totalValue: summary.sum || 0,
-      variationCoefficient: summary.avg ? (Math.sqrt(summary.variance || 0) / summary.avg) * 100 : 0
+      [`Average ${columnDisplayName}`]: Math.round((summary.avg || 0) * 100) / 100,
+      [`Maximum ${columnDisplayName}`]: Math.round((summary.max || 0) * 100) / 100,
+      [`Minimum ${columnDisplayName}`]: Math.round((summary.min || 0) * 100) / 100,
+      [`Total ${columnDisplayName}`]: Math.round((summary.sum || 0) * 100) / 100,
+      [`Variation (${columnDisplayName})`]: summary.avg ? 
+        Math.round((Math.sqrt(summary.variance || 0) / summary.avg) * 100 * 100) / 100 : 0,
+      analyzedColumn: columnDisplayName
     };
   }
 

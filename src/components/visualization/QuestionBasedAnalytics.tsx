@@ -400,16 +400,21 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
                   <div className={`space-y-4 ${isMobile ? 'order-1' : ''}`}>
                     <h4 className={`font-medium ${isMobile ? 'text-sm' : ''}`}>Key Metrics</h4>
                     <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-2'}`}>
-                      {Object.entries(activeSession.visualization.metadata.keyMetrics).map(([key, value]) => (
-                        <div key={key} className={`${isMobile ? 'p-2' : 'p-3'} border rounded-lg text-center`}>
-                          <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
-                            {typeof value === 'number' ? value.toLocaleString() : value}
-                          </p>
-                          <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                            {key.replace(/([A-Z])/g, ' $1').trim()}
-                          </p>
-                        </div>
-                      ))}
+                      {Object.entries(activeSession.visualization.metadata.keyMetrics).map(([key, value]) => {
+                        // Skip the analyzedColumn metadata
+                        if (key === 'analyzedColumn') return null;
+                        
+                        return (
+                          <div key={key} className={`${isMobile ? 'p-2' : 'p-3'} border rounded-lg text-center`}>
+                            <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                              {typeof value === 'number' ? value.toLocaleString() : value}
+                            </p>
+                            <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                              {key}
+                            </p>
+                          </div>
+                        );
+                      }).filter(Boolean)}
                     </div>
                   </div>
                 </div>
