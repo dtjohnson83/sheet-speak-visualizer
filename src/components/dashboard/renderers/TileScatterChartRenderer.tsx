@@ -24,10 +24,10 @@ export const TileScatterChartRenderer = ({
 }: TileScatterChartRendererProps) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ScatterChart>
+      <ScatterChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={xColumn} />
-        <YAxis tickFormatter={formatTooltipValue} />
+        <XAxis dataKey={xColumn} type="number" domain={['dataMin', 'dataMax']} />
+        <YAxis dataKey={valueColumn} type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatTooltipValue} />
         <ZAxis dataKey={valueColumn} range={[64, 144]} />
         <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
         <Legend />

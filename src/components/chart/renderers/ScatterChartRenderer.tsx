@@ -44,8 +44,8 @@ export const ScatterChartRenderer = ({
     <ResponsiveContainer width="100%" height={400}>
         <ScatterChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xColumn} type="number" tickFormatter={formatTooltipValue} />
-          <YAxis dataKey={yColumn} type="number" tickFormatter={formatTooltipValue} />
+          <XAxis dataKey={xColumn} type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatTooltipValue} />
+          <YAxis dataKey={yColumn} type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatTooltipValue} />
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
           {allSeries.map((s, index) => (
