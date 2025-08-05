@@ -176,7 +176,30 @@ export const useAIChartGeneration = () => {
     return { dataTypes, patterns, recommendations, bestChartTypes };
   }, []);
 
-  // Smart column selection with improved intelligence
+  // Helper function to detect temporal column names
+  const isTemporalColumn = (columnName: string): boolean => {
+    const name = columnName.toLowerCase();
+    const temporalKeywords = [
+      'date', 'time', 'timestamp', 'created_at', 'updated_at', 'when', 'year', 
+      'month', 'day', 'hour', 'minute', 'period', 'schedule', 'start', 'end',
+      'occurred_at', 'recorded_at', 'logged_at', 'published_at'
+    ];
+    return temporalKeywords.some(keyword => name.includes(keyword));
+  };
+
+  // Helper function to check if query suggests trend analysis
+  const isTrendQuery = (query?: string): boolean => {
+    if (!query) return false;
+    const lowerQuery = query.toLowerCase();
+    return lowerQuery.includes('trend') || 
+           lowerQuery.includes('over time') || 
+           lowerQuery.includes('timeline') ||
+           lowerQuery.includes('temporal') ||
+           lowerQuery.includes('progression') ||
+           lowerQuery.includes('evolution');
+  };
+
+  // Smart column selection with enhanced trend-aware intelligence
   const selectBestColumns = (
     chartType: string, 
     columns: ColumnInfo[], 
@@ -187,17 +210,26 @@ export const useAIChartGeneration = () => {
     const categoricalCols = columns.filter(c => c.type === 'categorical');
     const dateCols = columns.filter(c => c.type === 'date');
     
+    // Detect potential temporal columns even if not typed as 'date'
+    const potentialTemporalCols = columns.filter(col => 
+      col.type === 'date' || isTemporalColumn(col.name)
+    );
+    
+    const isTrendRequest = isTrendQuery(query);
+    const isTrendChart = ['line', 'area'].includes(chartType);
+    const needsTrendAxis = isTrendRequest || isTrendChart;
+    
     let xColumn = '';
     let yColumn = '';
     let valueColumn = '';
 
-    // Query-based column selection
+    // Enhanced query-based column selection
     if (query) {
       const lowerQuery = query.toLowerCase();
       columns.forEach(col => {
         const colNameLower = col.name.toLowerCase();
         if (lowerQuery.includes(colNameLower)) {
-          if ((col.type === 'categorical' || col.type === 'date') && !xColumn) {
+          if ((col.type === 'categorical' || col.type === 'date' || isTemporalColumn(col.name)) && !xColumn) {
             xColumn = col.name;
           } else if (col.type === 'numeric' && !yColumn) {
             yColumn = col.name;
@@ -211,20 +243,54 @@ export const useAIChartGeneration = () => {
     if (chartInfo) {
       const requirements = chartInfo.requirements;
 
-      // X-axis selection
+      // Enhanced X-axis selection with trend-aware priority
       if (!xColumn && 'xAxis' in requirements) {
         const axisType = requirements.xAxis.type;
-        if (axisType.includes('date') && dateCols.length > 0) {
-          xColumn = dateCols[0].name;
-        } else if (axisType.includes('categorical') && categoricalCols.length > 0) {
-          // Pick categorical column with reasonable number of categories
-          const goodCategorical = categoricalCols.find(col => {
-            const uniqueValues = new Set(data.map(row => row[col.name])).size;
-            return uniqueValues >= 2 && uniqueValues <= 20;
-          });
-          xColumn = goodCategorical?.name || categoricalCols[0]?.name || '';
-        } else if (axisType.includes('numeric') && numericCols.length > 0) {
-          xColumn = numericCols[0].name;
+        
+        // For trend charts, prioritize temporal data strongly
+        if (needsTrendAxis && axisType.includes('date or numeric')) {
+          // First priority: Date columns
+          if (dateCols.length > 0) {
+            xColumn = dateCols[0].name;
+          }
+          // Second priority: Potential temporal columns (by name)
+          else if (potentialTemporalCols.length > 0) {
+            xColumn = potentialTemporalCols[0].name;
+          }
+          // Third priority: Sequential numeric columns for trend analysis
+          else if (numericCols.length > 0) {
+            // Look for columns that might represent time periods (year, month, index, etc.)
+            const sequentialNumeric = numericCols.find(col => {
+              const name = col.name.toLowerCase();
+              return name.includes('year') || name.includes('month') || 
+                     name.includes('index') || name.includes('id') ||
+                     name.includes('number') || name.includes('seq');
+            });
+            xColumn = sequentialNumeric?.name || numericCols[0].name;
+          }
+          // Last resort: Categorical only if no numeric options
+          else if (categoricalCols.length > 0) {
+            const goodCategorical = categoricalCols.find(col => {
+              const uniqueValues = new Set(data.map(row => row[col.name])).size;
+              return uniqueValues >= 2 && uniqueValues <= 20;
+            });
+            xColumn = goodCategorical?.name || categoricalCols[0]?.name || '';
+          }
+        }
+        // Standard selection for non-trend charts
+        else {
+          if (axisType.includes('date') && dateCols.length > 0) {
+            xColumn = dateCols[0].name;
+          } else if (axisType.includes('categorical') && categoricalCols.length > 0) {
+            // Pick categorical column with reasonable number of categories
+            const goodCategorical = categoricalCols.find(col => {
+              const uniqueValues = new Set(data.map(row => row[col.name])).size;
+              return uniqueValues >= 2 && uniqueValues <= 20;
+            });
+            xColumn = goodCategorical?.name || categoricalCols[0]?.name || '';
+          } else if (axisType.includes('numeric') && numericCols.length > 0) {
+            xColumn = numericCols[0].name;
+          }
         }
       }
 
@@ -246,9 +312,19 @@ export const useAIChartGeneration = () => {
       }
     }
 
-    // Fallback column selection
+    // Enhanced fallback column selection with trend awareness
     if (!xColumn) {
-      xColumn = dateCols[0]?.name || categoricalCols[0]?.name || columns[0]?.name || '';
+      if (needsTrendAxis) {
+        // For trends, prioritize temporal data even in fallback
+        xColumn = dateCols[0]?.name || 
+                  potentialTemporalCols[0]?.name || 
+                  numericCols[0]?.name || 
+                  categoricalCols[0]?.name || 
+                  columns[0]?.name || '';
+      } else {
+        // Standard fallback priority
+        xColumn = dateCols[0]?.name || categoricalCols[0]?.name || columns[0]?.name || '';
+      }
     }
     
     if (!yColumn) {
