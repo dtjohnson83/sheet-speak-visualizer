@@ -253,6 +253,7 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
         axisLength={4}
         showGrid={true}
         showOrigin={true}
+        showZAxis={zColumn && zColumn !== yColumn}
       />
       
       {/* 3D Bars */}

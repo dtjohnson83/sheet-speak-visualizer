@@ -8,6 +8,7 @@ interface StandardAxes3DProps {
   axisLength?: number;
   showGrid?: boolean;
   showOrigin?: boolean;
+  showZAxis?: boolean;
 }
 
 export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
@@ -16,7 +17,8 @@ export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
   zLabel = 'Z',
   axisLength = 4,
   showGrid = true,
-  showOrigin = true
+  showOrigin = true,
+  showZAxis = true
 }) => {
   // Use consistent colors for 3D axes
   const axisColor = "#666";
@@ -79,27 +81,31 @@ export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
       </Text>
 
       {/* Z Axis - extends from -length/2 to +length/2 */}
-      <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.015, 0.015, axisLength]} />
-        <meshBasicMaterial color="#3498db" />
-      </mesh>
-      
-      {/* Z Axis arrowhead */}
-      <mesh position={[0, 0, axisLength / 2]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.05, 0.15, 8]} />
-        <meshBasicMaterial color="#3498db" />
-      </mesh>
-      
-      {/* Z Axis label */}
-      <Text 
-        position={[0, 0, axisLength / 2 + 0.3]} 
-        fontSize={0.2} 
-        color="#3498db"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {zLabel}
-      </Text>
+      {showZAxis && (
+        <>
+          <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.015, 0.015, axisLength]} />
+            <meshBasicMaterial color="#3498db" />
+          </mesh>
+          
+          {/* Z Axis arrowhead */}
+          <mesh position={[0, 0, axisLength / 2]} rotation={[Math.PI / 2, 0, 0]}>
+            <coneGeometry args={[0.05, 0.15, 8]} />
+            <meshBasicMaterial color="#3498db" />
+          </mesh>
+          
+          {/* Z Axis label */}
+          <Text 
+            position={[0, 0, axisLength / 2 + 0.3]} 
+            fontSize={0.2} 
+            color="#3498db"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {zLabel}
+          </Text>
+        </>
+      )}
 
       {/* Grid lines */}
       {showGrid && (
