@@ -40,6 +40,7 @@ import { QuestionProcessor, QuestionAnalysis } from '@/lib/visualization/Questio
 import { VisualizationEngine, ProcessedVisualization } from '@/lib/visualization/VisualizationEngine';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Register Chart.js components
 ChartJS.register(
@@ -80,6 +81,10 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
   const [activeSession, setActiveSession] = useState<AnalyticsSession | null>(null);
   const [questionProcessor] = useState(new QuestionProcessor());
   const [visualizationEngine] = useState(new VisualizationEngine());
+  const isMobile = useIsMobile();
+
+  // Validate data availability
+  const hasValidData = data && data.length > 0 && columns && columns.length > 0;
 
   // Sample questions based on data characteristics
   const getSampleQuestions = (): string[] => {
@@ -114,6 +119,11 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
   const handleQuestionSubmit = async () => {
     if (!question.trim()) {
       toast.error('Please enter a question');
+      return;
+    }
+
+    if (!hasValidData) {
+      toast.error('No data available for analysis. Please load a dataset first.');
       return;
     }
 
@@ -163,23 +173,53 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
 
     const chartOptions = {
       responsive: true,
+      maintainAspectRatio: !isMobile,
       plugins: {
         legend: {
-          position: 'top' as const,
+          position: isMobile ? 'bottom' as const : 'top' as const,
+          labels: {
+            boxWidth: isMobile ? 12 : 16,
+            padding: isMobile ? 10 : 20,
+            font: {
+              size: isMobile ? 10 : 12
+            }
+          }
         },
         title: {
           display: true,
           text: visualization.title,
+          font: {
+            size: isMobile ? 12 : 16
+          }
         },
         tooltip: {
           mode: 'index' as const,
           intersect: false,
+          titleFont: {
+            size: isMobile ? 10 : 12
+          },
+          bodyFont: {
+            size: isMobile ? 9 : 11
+          }
         }
       },
       scales: visualization.type === 'pie_chart' ? {} : {
         y: {
           beginAtZero: true,
+          ticks: {
+            font: {
+              size: isMobile ? 9 : 11
+            }
+          }
         },
+        x: {
+          ticks: {
+            font: {
+              size: isMobile ? 9 : 11
+            },
+            maxRotation: isMobile ? 45 : 0
+          }
+        }
       },
     };
 
@@ -218,13 +258,28 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
     return iconMap[intent] || <Brain className="h-4 w-4" />;
   };
 
+  // Show message if no data available
+  if (!hasValidData) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium mb-2">No Data Available</h3>
+          <p className="text-muted-foreground">
+            Please load a dataset first to use the Question-Based Analytics feature.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Question Input Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
+          <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+            <MessageSquare className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
             Ask a Question About Your Data
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -232,12 +287,12 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'flex-row'}`}>
             <Textarea
               placeholder="e.g., What are our top performing products? Show me customer trends over time..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              className="min-h-[80px] resize-none"
+              className={`${isMobile ? 'min-h-[60px]' : 'min-h-[80px]'} resize-none ${isMobile ? 'text-sm' : ''}`}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -247,18 +302,18 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
             />
             <Button 
               onClick={handleQuestionSubmit} 
-              disabled={loading || !question.trim()}
-              className="px-6"
+              disabled={loading || !question.trim() || !hasValidData}
+              className={`${isMobile ? 'w-full' : 'px-6'} ${isMobile ? 'min-h-[44px]' : ''}`}
             >
               {loading ? (
                 <div className="flex items-center gap-2">
                   <Brain className="h-4 w-4 animate-spin" />
-                  Analyzing...
+                  {isMobile ? 'Analyzing...' : 'Analyzing...'}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
-                  Analyze
+                  {isMobile ? 'Analyze' : 'Analyze'}
                 </div>
               )}
             </Button>
@@ -267,14 +322,14 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
           {/* Sample Questions */}
           <div>
             <p className="text-sm font-medium mb-2">Try these sample questions:</p>
-            <div className="flex flex-wrap gap-2">
-              {getSampleQuestions().slice(0, 6).map((sampleQuestion, index) => (
+            <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'}`}>
+              {getSampleQuestions().slice(0, isMobile ? 4 : 6).map((sampleQuestion, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   size="sm"
                   onClick={() => handleSampleQuestionClick(sampleQuestion)}
-                  className="text-xs"
+                  className={`${isMobile ? 'text-xs p-2 h-auto text-left justify-start' : 'text-xs'}`}
                 >
                   {sampleQuestion}
                 </Button>
@@ -316,22 +371,28 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
               </TabsList>
 
               <TabsContent value="visualization" className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} ${isMobile ? 'gap-4' : 'gap-6'}`}>
                   {/* Chart */}
-                  <div className="lg:col-span-2">
-                    <div className="p-4 border rounded-lg bg-white">
-                      {renderChart(activeSession.visualization)}
+                  <div className={`${isMobile ? 'order-2' : 'lg:col-span-2'}`}>
+                    <div className={`${isMobile ? 'p-2' : 'p-4'} border rounded-lg bg-card`}>
+                      <div className={`${isMobile ? 'h-64' : 'h-80'}`}>
+                        {renderChart(activeSession.visualization)}
+                      </div>
                     </div>
                   </div>
 
                   {/* Key Metrics */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Key Metrics</h4>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className={`space-y-4 ${isMobile ? 'order-1' : ''}`}>
+                    <h4 className={`font-medium ${isMobile ? 'text-sm' : ''}`}>Key Metrics</h4>
+                    <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-2'}`}>
                       {Object.entries(activeSession.visualization.metadata.keyMetrics).map(([key, value]) => (
-                        <div key={key} className="p-3 border rounded-lg text-center">
-                          <p className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</p>
-                          <p className="text-xs text-muted-foreground">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                        <div key={key} className={`${isMobile ? 'p-2' : 'p-3'} border rounded-lg text-center`}>
+                          <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                            {typeof value === 'number' ? value.toLocaleString() : value}
+                          </p>
+                          <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -363,55 +424,55 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
                 </div>
               </TabsContent>
 
-              <TabsContent value="impact" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <TabsContent value="impact" className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
                   <Card>
-                    <CardContent className="p-4 text-center">
-                      <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                      <p className="text-sm text-muted-foreground">Financial Impact</p>
-                      <p className="font-medium">{activeSession.visualization.businessImpact.financialImpact}</p>
+                    <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+                      <DollarSign className={`mx-auto mb-2 text-green-600 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+                      <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Financial Impact</p>
+                      <p className={`font-medium ${isMobile ? 'text-sm' : ''}`}>{activeSession.visualization.businessImpact.financialImpact}</p>
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardContent className="p-4 text-center">
-                      <Clock className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                      <p className="text-sm text-muted-foreground">Timeframe</p>
-                      <p className="font-medium">{activeSession.visualization.businessImpact.timeframe}</p>
+                    <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+                      <Clock className={`mx-auto mb-2 text-blue-600 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+                      <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Timeframe</p>
+                      <p className={`font-medium ${isMobile ? 'text-sm' : ''}`}>{activeSession.visualization.businessImpact.timeframe}</p>
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardContent className="p-4 text-center">
-                      <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-warning" />
-                      <p className="text-sm text-muted-foreground">Priority</p>
-                      <p className="font-medium capitalize">{activeSession.visualization.businessImpact.priority}</p>
+                    <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+                      <AlertTriangle className={`mx-auto mb-2 text-warning ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+                      <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Priority</p>
+                      <p className={`font-medium capitalize ${isMobile ? 'text-sm' : ''}`}>{activeSession.visualization.businessImpact.priority}</p>
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardContent className="p-4 text-center">
-                      <Users className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                      <p className="text-sm text-muted-foreground">Data Points</p>
-                      <p className="font-medium">{activeSession.visualization.metadata.totalDataPoints}</p>
+                    <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+                      <Users className={`mx-auto mb-2 text-purple-600 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+                      <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Data Points</p>
+                      <p className={`font-medium ${isMobile ? 'text-sm' : ''}`}>{activeSession.visualization.metadata.totalDataPoints}</p>
                     </CardContent>
                   </Card>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">Key Stakeholders</h4>
+                  <h4 className={`font-medium mb-3 ${isMobile ? 'text-sm' : ''}`}>Key Stakeholders</h4>
                   <div className="flex flex-wrap gap-2">
                     {activeSession.visualization.businessImpact.stakeholders.map((stakeholder, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className={`${isMobile ? 'text-xs' : ''}`}>
                         {stakeholder}
                       </Badge>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-medium mb-2">Business Context</h4>
-                  <p className="text-sm text-muted-foreground">{activeSession.analysis.businessContext}</p>
+                <div className={`${isMobile ? 'p-3' : 'p-4'} bg-muted/50 rounded-lg`}>
+                  <h4 className={`font-medium mb-2 ${isMobile ? 'text-sm' : ''}`}>Business Context</h4>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>{activeSession.analysis.businessContext}</p>
                 </div>
               </TabsContent>
             </Tabs>
