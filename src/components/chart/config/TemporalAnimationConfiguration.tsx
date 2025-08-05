@@ -147,7 +147,7 @@ export const TemporalAnimationConfiguration = ({
         <CardContent className="space-y-4">
           {/* Animation Controls */}
           {currentTimeLabel && (
-            <div className="space-y-2" data-ignore-recording="true">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium flex items-center gap-2">
                   {isPlaying && (
