@@ -181,31 +181,8 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
 
   const tileContent = (
     <div className={`w-full overflow-hidden ${is3DChart ? 'h-[calc(100%-2.5rem)]' : 'h-[calc(100%-3rem)]'}`}>
-      {/* Show column mapping warning if columns were auto-mapped */}
-      {columnMapping.mapped && columnMapping.missingColumns.length > 0 && (
-        <Alert className="mb-2 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
-          <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-          <AlertDescription className="text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-orange-700 dark:text-orange-200">
-                Auto-mapped missing columns: {columnMapping.missingColumns.join(', ')}
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRemapColumns}
-                className="h-6 px-2 text-xs border-orange-300 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-800/50"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Fix
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Show error if no data can be displayed */}
-      {Array.isArray(dataForRenderer) && dataForRenderer.length === 0 && data.length > 0 && (
+      {/* Show error if no data can be displayed due to missing columns */}
+      {Array.isArray(dataForRenderer) && dataForRenderer.length === 0 && data.length > 0 && columnMapping.missingColumns.length > 0 && (
         <Alert className="mb-2 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
           <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
           <AlertDescription className="text-xs text-red-700 dark:text-red-200">
