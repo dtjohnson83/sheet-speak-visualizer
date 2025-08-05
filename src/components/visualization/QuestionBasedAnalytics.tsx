@@ -1,0 +1,489 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  MessageSquare, 
+  BarChart3, 
+  TrendingUp, 
+  Brain, 
+  Target, 
+  Download,
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Users,
+  DollarSign,
+  Sparkles,
+  Send
+} from 'lucide-react';
+import { Line, Bar, Pie, Scatter } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
+import { QuestionProcessor, QuestionAnalysis } from '@/lib/visualization/QuestionProcessor';
+import { VisualizationEngine, ProcessedVisualization } from '@/lib/visualization/VisualizationEngine';
+import { DataRow, ColumnInfo } from '@/pages/Index';
+import { toast } from 'sonner';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+interface QuestionBasedAnalyticsProps {
+  data: DataRow[];
+  columns: ColumnInfo[];
+  datasetName: string;
+}
+
+interface AnalyticsSession {
+  id: string;
+  question: string;
+  analysis: QuestionAnalysis;
+  visualization: ProcessedVisualization;
+  timestamp: Date;
+}
+
+export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
+  data,
+  columns,
+  datasetName
+}) => {
+  const [question, setQuestion] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sessions, setSessions] = useState<AnalyticsSession[]>([]);
+  const [activeSession, setActiveSession] = useState<AnalyticsSession | null>(null);
+  const [questionProcessor] = useState(new QuestionProcessor());
+  const [visualizationEngine] = useState(new VisualizationEngine());
+
+  // Sample questions based on data characteristics
+  const getSampleQuestions = (): string[] => {
+    const numericColumns = columns.filter(col => col.type === 'numeric');
+    const categoricalColumns = columns.filter(col => col.type === 'categorical');
+    
+    const questions: string[] = [
+      'What are the main trends in our data?',
+      'Show me the top performing categories',
+      'What patterns can you identify?',
+      'Are there any anomalies or outliers?',
+      'How are different segments performing?'
+    ];
+
+    if (numericColumns.length > 0) {
+      questions.push(`What is the distribution of ${numericColumns[0].name}?`);
+      questions.push(`Show me the trend of ${numericColumns[0].name} over time`);
+    }
+
+    if (categoricalColumns.length > 0) {
+      questions.push(`Compare performance by ${categoricalColumns[0].name}`);
+      questions.push(`What is the breakdown of ${categoricalColumns[0].name}?`);
+    }
+
+    if (numericColumns.length >= 2) {
+      questions.push(`Is there a correlation between ${numericColumns[0].name} and ${numericColumns[1].name}?`);
+    }
+
+    return questions;
+  };
+
+  const handleQuestionSubmit = async () => {
+    if (!question.trim()) {
+      toast.error('Please enter a question');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Analyze the question
+      const analysis = await questionProcessor.analyzeQuestion(question, data, columns);
+      
+      // Generate visualization specification
+      const spec = questionProcessor.generateVisualizationSpec(analysis, data, columns);
+      
+      // Create the visualization
+      const visualization = await visualizationEngine.generateVisualization(analysis, spec, data, columns);
+      
+      // Add automated insights
+      const additionalInsights = visualizationEngine.generateAutomatedInsights(visualization);
+      visualization.metadata.insights.push(...additionalInsights);
+
+      // Create session
+      const session: AnalyticsSession = {
+        id: `session-${Date.now()}`,
+        question: question.trim(),
+        analysis,
+        visualization,
+        timestamp: new Date()
+      };
+
+      setSessions(prev => [session, ...prev]);
+      setActiveSession(session);
+      setQuestion('');
+      
+      toast.success('Analysis complete! Check out your insights.');
+    } catch (error) {
+      console.error('Question analysis failed:', error);
+      toast.error('Failed to analyze question. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSampleQuestionClick = (sampleQuestion: string) => {
+    setQuestion(sampleQuestion);
+  };
+
+  const renderChart = (visualization: ProcessedVisualization) => {
+    if (!visualization.chartData) return null;
+
+    const chartOptions = {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          text: visualization.title,
+        },
+        tooltip: {
+          mode: 'index' as const,
+          intersect: false,
+        }
+      },
+      scales: visualization.type === 'pie_chart' ? {} : {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    };
+
+    switch (visualization.type) {
+      case 'line_chart':
+      case 'area_chart':
+        return <Line data={visualization.chartData} options={chartOptions} />;
+      case 'bar_chart':
+        return <Bar data={visualization.chartData} options={chartOptions} />;
+      case 'pie_chart':
+        return <Pie data={visualization.chartData} options={chartOptions} />;
+      case 'scatter_plot':
+        return <Scatter data={visualization.chartData} options={chartOptions} />;
+      default:
+        return <Bar data={visualization.chartData} options={chartOptions} />;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  const getIntentIcon = (intent: string) => {
+    const iconMap: Record<string, React.ReactNode> = {
+      'trend_analysis': <TrendingUp className="h-4 w-4" />,
+      'comparison': <BarChart3 className="h-4 w-4" />,
+      'performance_metrics': <Target className="h-4 w-4" />,
+      'risk_assessment': <AlertTriangle className="h-4 w-4" />,
+      'anomaly_detection': <AlertTriangle className="h-4 w-4" />
+    };
+    return iconMap[intent] || <Brain className="h-4 w-4" />;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Question Input Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Ask a Question About Your Data
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Get instant visualizations and insights by asking business questions in natural language
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Textarea
+              placeholder="e.g., What are our top performing products? Show me customer trends over time..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              className="min-h-[80px] resize-none"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleQuestionSubmit();
+                }
+              }}
+            />
+            <Button 
+              onClick={handleQuestionSubmit} 
+              disabled={loading || !question.trim()}
+              className="px-6"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 animate-spin" />
+                  Analyzing...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Analyze
+                </div>
+              )}
+            </Button>
+          </div>
+
+          {/* Sample Questions */}
+          <div>
+            <p className="text-sm font-medium mb-2">Try these sample questions:</p>
+            <div className="flex flex-wrap gap-2">
+              {getSampleQuestions().slice(0, 6).map((sampleQuestion, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSampleQuestionClick(sampleQuestion)}
+                  className="text-xs"
+                >
+                  {sampleQuestion}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Active Analysis Result */}
+      {activeSession && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                {getIntentIcon(activeSession.analysis.intent)}
+                {activeSession.visualization.title}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant={getPriorityColor(activeSession.visualization.businessImpact.priority)}>
+                  {activeSession.visualization.businessImpact.priority.toUpperCase()}
+                </Badge>
+                <Badge variant="outline">
+                  {Math.round(activeSession.analysis.confidence * 100)}% Confidence
+                </Badge>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Q: "{activeSession.question}"
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="visualization" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="visualization">Visualization</TabsTrigger>
+                <TabsTrigger value="insights">Insights</TabsTrigger>
+                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+                <TabsTrigger value="impact">Business Impact</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="visualization" className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Chart */}
+                  <div className="lg:col-span-2">
+                    <div className="p-4 border rounded-lg bg-white">
+                      {renderChart(activeSession.visualization)}
+                    </div>
+                  </div>
+
+                  {/* Key Metrics */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Key Metrics</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {Object.entries(activeSession.visualization.metadata.keyMetrics).map(([key, value]) => (
+                        <div key={key} className="p-3 border rounded-lg text-center">
+                          <p className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</p>
+                          <p className="text-xs text-muted-foreground">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="insights" className="space-y-4">
+                <div className="grid gap-4">
+                  {activeSession.visualization.metadata.insights.map((insight, index) => (
+                    <div key={index} className="flex items-start gap-3 p-4 border rounded-lg">
+                      <Lightbulb className="h-5 w-5 text-warning mt-1 flex-shrink-0" />
+                      <p className="text-sm">{insight}</p>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="recommendations" className="space-y-4">
+                <div className="grid gap-4">
+                  {activeSession.visualization.metadata.recommendations.map((recommendation, index) => (
+                    <div key={index} className="flex items-start gap-3 p-4 border rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{recommendation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="impact" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                      <p className="text-sm text-muted-foreground">Financial Impact</p>
+                      <p className="font-medium">{activeSession.visualization.businessImpact.financialImpact}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <Clock className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                      <p className="text-sm text-muted-foreground">Timeframe</p>
+                      <p className="font-medium">{activeSession.visualization.businessImpact.timeframe}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-warning" />
+                      <p className="text-sm text-muted-foreground">Priority</p>
+                      <p className="font-medium capitalize">{activeSession.visualization.businessImpact.priority}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <Users className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                      <p className="text-sm text-muted-foreground">Data Points</p>
+                      <p className="font-medium">{activeSession.visualization.metadata.totalDataPoints}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-3">Key Stakeholders</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {activeSession.visualization.businessImpact.stakeholders.map((stakeholder, index) => (
+                      <Badge key={index} variant="secondary">
+                        {stakeholder}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2">Business Context</h4>
+                  <p className="text-sm text-muted-foreground">{activeSession.analysis.businessContext}</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Previous Sessions */}
+      {sessions.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Previous Analyses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {sessions.slice(1, 6).map((session) => (
+                <div 
+                  key={session.id}
+                  className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50"
+                  onClick={() => setActiveSession(session)}
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{session.question}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {session.analysis.intent.replace('_', ' ')} • {session.timestamp.toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getPriorityColor(session.visualization.businessImpact.priority)} className="text-xs">
+                      {session.visualization.businessImpact.priority}
+                    </Badge>
+                    {getIntentIcon(session.analysis.intent)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Help Section */}
+      {sessions.length === 0 && (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-medium mb-2">Intelligent Data Analysis</h3>
+            <p className="text-muted-foreground mb-4">
+              Ask questions about your data in natural language and get instant visualizations with business insights.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+              <div className="p-3 border rounded-lg">
+                <TrendingUp className="h-6 w-6 text-blue-600 mb-2" />
+                <h4 className="font-medium text-sm">Trend Analysis</h4>
+                <p className="text-xs text-muted-foreground">Identify patterns and trends over time</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <BarChart3 className="h-6 w-6 text-green-600 mb-2" />
+                <h4 className="font-medium text-sm">Performance Comparison</h4>
+                <p className="text-xs text-muted-foreground">Compare different segments and categories</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <AlertTriangle className="h-6 w-6 text-warning mb-2" />
+                <h4 className="font-medium text-sm">Risk Assessment</h4>
+                <p className="text-xs text-muted-foreground">Detect anomalies and assess risks</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};

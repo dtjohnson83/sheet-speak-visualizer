@@ -6,6 +6,7 @@ import { DatasetSelector } from '@/components/agents/DatasetSelector';
 import { GraphMLDashboard } from '@/components/agents/GraphMLDashboard';
 import { BusinessGraphMLDashboard } from '@/components/agents/BusinessGraphMLDashboard';
 import { ProcessMiningDashboard } from '@/components/agents/ProcessMiningDashboard';
+import { QuestionBasedAnalytics } from '@/components/visualization/QuestionBasedAnalytics';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
@@ -57,12 +58,21 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
         />
       </div>
       
-      <Tabs defaultValue="graph-ml" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="question-analytics" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="question-analytics">Question Analytics</TabsTrigger>
           <TabsTrigger value="graph-ml">Graph ML Analytics</TabsTrigger>
           <TabsTrigger value="business-graph-ml">Business Intelligence</TabsTrigger>
           <TabsTrigger value="process-mining">Process Mining</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="question-analytics">
+          <QuestionBasedAnalytics
+            data={activeData}
+            columns={activeColumns}
+            datasetName={activeFileName}
+          />
+        </TabsContent>
 
         <TabsContent value="graph-ml">
           <GraphMLDashboard
