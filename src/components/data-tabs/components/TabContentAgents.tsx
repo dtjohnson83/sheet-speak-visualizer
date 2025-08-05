@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { AIAgentOrchestrator } from '@/components/agents/AIAgentOrchestrator';
 import { DatasetSelector } from '@/components/agents/DatasetSelector';
@@ -77,7 +76,7 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
           <BusinessGraphMLDashboard
             data={activeData}
             columns={activeColumns}
-            datasetId={activeFileName}
+            fileName={activeFileName}
           />
         </TabsContent>
 
