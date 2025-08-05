@@ -20,6 +20,7 @@ interface BusinessAnalysisRequest {
     objectives?: string[];
     timeframe?: string;
   };
+  includeStakeholders?: boolean;
 }
 
 interface EnhancedRecommendation {
@@ -65,7 +66,7 @@ serve(async (req) => {
 
   try {
     const requestData: BusinessAnalysisRequest = await req.json();
-    const { data, columns, issues, insights, businessContext } = requestData;
+    const { data, columns, issues, insights, businessContext, includeStakeholders } = requestData;
 
     console.log('Starting business analysis for:', {
       dataSize: data.length,
@@ -88,10 +89,17 @@ serve(async (req) => {
       businessContext
     );
 
+    // Generate stakeholder analysis if requested
+    let stakeholderAnalysis = null;
+    if (includeStakeholders) {
+      stakeholderAnalysis = await generateStakeholderAnalysis(columns, businessContext, insights);
+    }
+
     return new Response(JSON.stringify({ 
       recommendations: enhancedRecommendations,
       analysis: dataAnalysis,
-      metrics: businessMetrics
+      metrics: businessMetrics,
+      stakeholders: stakeholderAnalysis
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

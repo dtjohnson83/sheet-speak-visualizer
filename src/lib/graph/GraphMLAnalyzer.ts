@@ -5,7 +5,7 @@ import * as tf from '@tensorflow/tfjs';
 
 export interface GraphMLInsight {
   id: string;
-  type: 'anomaly' | 'community' | 'prediction' | 'pattern' | 'embedding';
+  type: 'anomaly' | 'community' | 'prediction' | 'pattern' | 'embedding' | 'stakeholder';
   title: string;
   description: string;
   confidence: number;
@@ -15,6 +15,16 @@ export interface GraphMLInsight {
   metrics?: Record<string, number>;
   recommendations?: string[];
   timestamp: Date;
+}
+
+export interface StakeholderInsight {
+  role: string;
+  department: string;
+  priority: 'high' | 'medium' | 'low';
+  relevantColumns: string[];
+  businessImpact: string;
+  actionItems: string[];
+  decisionAuthority: string;
 }
 
 export interface NodeClassificationResult {
@@ -86,6 +96,9 @@ export class GraphMLAnalyzer {
 
       // Predict missing links
       insights.push(...await this.predictMissingLinks());
+
+      // Generate stakeholder analysis
+      insights.push(...await this.generateStakeholderInsights(data, columns));
 
     } catch (error) {
       console.error('Error in GraphML analysis:', error);
@@ -523,5 +536,184 @@ export class GraphMLAnalyzer {
 
   async clearGraph(): Promise<void> {
     await this.graphDB.clear();
+  }
+
+  // === STAKEHOLDER ANALYSIS ===
+
+  async generateStakeholderInsights(data: DataRow[], columns: ColumnInfo[]): Promise<GraphMLInsight[]> {
+    const insights: GraphMLInsight[] = [];
+    
+    try {
+      const stakeholders = this.identifyKeyStakeholders(columns, data);
+      
+      for (const stakeholder of stakeholders) {
+        insights.push({
+          id: `stakeholder-${stakeholder.role.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+          type: 'stakeholder',
+          title: `Key Stakeholder: ${stakeholder.role}`,
+          description: `${stakeholder.businessImpact} Primary focus on ${stakeholder.relevantColumns.join(', ')} data.`,
+          confidence: stakeholder.priority === 'high' ? 0.9 : stakeholder.priority === 'medium' ? 0.7 : 0.5,
+          severity: stakeholder.priority === 'high' ? 'high' : stakeholder.priority === 'medium' ? 'medium' : 'low',
+          metrics: {
+            relevantColumns: stakeholder.relevantColumns.length,
+            actionItems: stakeholder.actionItems.length
+          },
+          recommendations: stakeholder.actionItems,
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      console.error('Error generating stakeholder insights:', error);
+    }
+
+    return insights;
+  }
+
+  private identifyKeyStakeholders(columns: ColumnInfo[], data: DataRow[]): StakeholderInsight[] {
+    const stakeholders: StakeholderInsight[] = [];
+    const columnNames = columns.map(col => col.name.toLowerCase());
+    
+    // Financial stakeholders
+    const financialColumns = columnNames.filter(name => 
+      name.includes('revenue') || name.includes('cost') || name.includes('price') || 
+      name.includes('budget') || name.includes('profit') || name.includes('sales')
+    );
+    if (financialColumns.length > 0) {
+      stakeholders.push({
+        role: 'Chief Financial Officer',
+        department: 'Finance',
+        priority: 'high',
+        relevantColumns: financialColumns,
+        businessImpact: 'Critical for financial planning and budget allocation decisions.',
+        actionItems: [
+          'Review financial performance metrics',
+          'Analyze cost optimization opportunities',
+          'Evaluate revenue trends and forecasts'
+        ],
+        decisionAuthority: 'Budget approval and financial strategy'
+      });
+    }
+
+    // Operations stakeholders
+    const operationsColumns = columnNames.filter(name => 
+      name.includes('inventory') || name.includes('production') || name.includes('supply') || 
+      name.includes('delivery') || name.includes('process') || name.includes('efficiency')
+    );
+    if (operationsColumns.length > 0) {
+      stakeholders.push({
+        role: 'Operations Manager',
+        department: 'Operations',
+        priority: 'high',
+        relevantColumns: operationsColumns,
+        businessImpact: 'Essential for operational efficiency and process optimization.',
+        actionItems: [
+          'Optimize operational workflows',
+          'Monitor performance metrics',
+          'Identify bottlenecks and inefficiencies'
+        ],
+        decisionAuthority: 'Operational procedures and resource allocation'
+      });
+    }
+
+    // Customer-focused stakeholders
+    const customerColumns = columnNames.filter(name => 
+      name.includes('customer') || name.includes('user') || name.includes('client') || 
+      name.includes('satisfaction') || name.includes('feedback') || name.includes('rating')
+    );
+    if (customerColumns.length > 0) {
+      stakeholders.push({
+        role: 'Head of Customer Success',
+        department: 'Customer Success',
+        priority: 'high',
+        relevantColumns: customerColumns,
+        businessImpact: 'Key for customer retention and satisfaction strategies.',
+        actionItems: [
+          'Improve customer experience metrics',
+          'Develop retention strategies',
+          'Address customer pain points'
+        ],
+        decisionAuthority: 'Customer experience policies and programs'
+      });
+    }
+
+    // Marketing stakeholders
+    const marketingColumns = columnNames.filter(name => 
+      name.includes('campaign') || name.includes('marketing') || name.includes('lead') || 
+      name.includes('conversion') || name.includes('acquisition') || name.includes('engagement')
+    );
+    if (marketingColumns.length > 0) {
+      stakeholders.push({
+        role: 'Marketing Director',
+        department: 'Marketing',
+        priority: 'medium',
+        relevantColumns: marketingColumns,
+        businessImpact: 'Critical for customer acquisition and brand growth.',
+        actionItems: [
+          'Optimize marketing campaign performance',
+          'Improve lead conversion rates',
+          'Analyze customer acquisition costs'
+        ],
+        decisionAuthority: 'Marketing strategy and campaign budgets'
+      });
+    }
+
+    // Data/Analytics stakeholders
+    const dataColumns = columnNames.filter(name => 
+      name.includes('metric') || name.includes('kpi') || name.includes('analytics') || 
+      name.includes('performance') || name.includes('score')
+    );
+    if (dataColumns.length > 0 || data.length > 1000) {
+      stakeholders.push({
+        role: 'Chief Data Officer',
+        department: 'Data & Analytics',
+        priority: 'medium',
+        relevantColumns: dataColumns.length > 0 ? dataColumns : ['all_data_governance'],
+        businessImpact: 'Responsible for data strategy and analytics-driven decision making.',
+        actionItems: [
+          'Ensure data quality and governance',
+          'Develop predictive analytics capabilities',
+          'Enable data-driven decision making'
+        ],
+        decisionAuthority: 'Data strategy and analytics infrastructure'
+      });
+    }
+
+    // HR stakeholders (if employee-related data)
+    const hrColumns = columnNames.filter(name => 
+      name.includes('employee') || name.includes('staff') || name.includes('hr') || 
+      name.includes('performance') || name.includes('salary') || name.includes('department')
+    );
+    if (hrColumns.length > 0) {
+      stakeholders.push({
+        role: 'HR Director',
+        department: 'Human Resources',
+        priority: 'medium',
+        relevantColumns: hrColumns,
+        businessImpact: 'Key for workforce optimization and employee development.',
+        actionItems: [
+          'Optimize workforce performance',
+          'Improve employee retention',
+          'Develop talent management strategies'
+        ],
+        decisionAuthority: 'HR policies and workforce planning'
+      });
+    }
+
+    // Executive stakeholders (always relevant for strategic decisions)
+    stakeholders.push({
+      role: 'Chief Executive Officer',
+      department: 'Executive',
+      priority: 'high',
+      relevantColumns: ['strategic_overview'],
+      businessImpact: 'Requires high-level insights for strategic decision making and company direction.',
+      actionItems: [
+        'Review overall business performance',
+        'Identify strategic growth opportunities',
+        'Make informed executive decisions'
+      ],
+      decisionAuthority: 'Strategic direction and major business decisions'
+    });
+
+    return stakeholders;
   }
 }

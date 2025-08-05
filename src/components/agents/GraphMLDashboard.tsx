@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Network, TrendingUp, AlertTriangle, Users, Link, Zap } from 'lucide-react';
+import { Brain, Network, TrendingUp, AlertTriangle, Users, Link, Zap, UserCheck } from 'lucide-react';
 import { GraphMLAnalyzer, GraphMLInsight } from '@/lib/graph/GraphMLAnalyzer';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { toast } from 'sonner';
@@ -64,6 +64,7 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
       case 'prediction': return <TrendingUp className="h-4 w-4" />;
       case 'pattern': return <Network className="h-4 w-4" />;
       case 'embedding': return <Brain className="h-4 w-4" />;
+      case 'stakeholder': return <UserCheck className="h-4 w-4" />;
       default: return <Zap className="h-4 w-4" />;
     }
   };
@@ -184,17 +185,18 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
 
       {insights.length > 0 && (
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="anomalies">Anomalies</TabsTrigger>
             <TabsTrigger value="communities">Communities</TabsTrigger>
             <TabsTrigger value="predictions">Predictions</TabsTrigger>
             <TabsTrigger value="patterns">Patterns</TabsTrigger>
             <TabsTrigger value="embeddings">Embeddings</TabsTrigger>
+            <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
@@ -235,6 +237,17 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
                     <div>
                       <p className="text-sm font-medium">Patterns</p>
                       <p className="text-2xl font-bold">{groupedInsights.pattern?.length || 0}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <UserCheck className="h-5 w-5 text-orange-500" />
+                    <div>
+                      <p className="text-sm font-medium">Stakeholders</p>
+                      <p className="text-2xl font-bold">{groupedInsights.stakeholder?.length || 0}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -332,55 +345,66 @@ export const GraphMLDashboard: React.FC<GraphMLDashboardProps> = ({
             </div>
           </TabsContent>
 
-          {Object.entries(groupedInsights).map(([type, typeInsights]) => (
-            <TabsContent key={type} value={type === 'anomaly' ? 'anomalies' : type === 'community' ? 'communities' : type === 'prediction' ? 'predictions' : type === 'pattern' ? 'patterns' : 'embeddings'}>
-              <div className="grid gap-4">
-                {typeInsights.map((insight) => (
-                  <Card key={insight.id}>
-                    <CardHeader>
-                      <div className="flex items-center space-x-2">
-                        {getInsightIcon(insight.type)}
-                        <CardTitle className="text-lg">{insight.title}</CardTitle>
-                        <Badge variant={getSeverityColor(insight.severity) as any}>
-                          {insight.severity}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p>{insight.description}</p>
-                      
-                      {insight.metrics && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {Object.entries(insight.metrics).map(([key, value]) => (
-                            <div key={key} className="text-center p-3 bg-accent/50 rounded-lg">
-                              <p className="text-sm text-muted-foreground">{key}</p>
-                              <p className="text-lg font-semibold">
-                                {typeof value === 'number' ? value.toFixed(3) : value}
-                              </p>
-                            </div>
-                          ))}
+          {Object.entries(groupedInsights).map(([type, typeInsights]) => {
+            const tabValue = type === 'anomaly' ? 'anomalies' : 
+                           type === 'community' ? 'communities' : 
+                           type === 'prediction' ? 'predictions' : 
+                           type === 'pattern' ? 'patterns' : 
+                           type === 'embedding' ? 'embeddings' : 
+                           type === 'stakeholder' ? 'stakeholders' : type;
+            
+            return (
+              <TabsContent key={type} value={tabValue}>
+                <div className="grid gap-4">
+                  {typeInsights.map((insight) => (
+                    <Card key={insight.id}>
+                      <CardHeader>
+                        <div className="flex items-center space-x-2">
+                          {getInsightIcon(insight.type)}
+                          <CardTitle className="text-lg">{insight.title}</CardTitle>
+                          <Badge variant={getSeverityColor(insight.severity) as any}>
+                            {insight.type === 'stakeholder' ? `${insight.severity.toUpperCase()} PRIORITY` : insight.severity}
+                          </Badge>
                         </div>
-                      )}
-
-                      {insight.recommendations && (
-                        <div>
-                          <h4 className="font-medium mb-2">Recommendations</h4>
-                          <div className="grid gap-2">
-                            {insight.recommendations.map((rec, index) => (
-                              <div key={index} className="flex items-start space-x-2 p-2 bg-accent/30 rounded">
-                                <Link className="h-4 w-4 mt-0.5 text-primary" />
-                                <span className="text-sm">{rec}</span>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p>{insight.description}</p>
+                        
+                        {insight.metrics && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {Object.entries(insight.metrics).map(([key, value]) => (
+                              <div key={key} className="text-center p-3 bg-accent/50 rounded-lg">
+                                <p className="text-sm text-muted-foreground">{key}</p>
+                                <p className="text-lg font-semibold">
+                                  {typeof value === 'number' ? value.toFixed(3) : value}
+                                </p>
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          ))}
+                        )}
+
+                        {insight.recommendations && (
+                          <div>
+                            <h4 className="font-medium mb-2">
+                              {insight.type === 'stakeholder' ? 'Action Items' : 'Recommendations'}
+                            </h4>
+                            <div className="grid gap-2">
+                              {insight.recommendations.map((rec, index) => (
+                                <div key={index} className="flex items-start space-x-2 p-2 bg-accent/30 rounded">
+                                  <Link className="h-4 w-4 mt-0.5 text-primary" />
+                                  <span className="text-sm">{rec}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            );
+          })}
         </Tabs>
       )}
     </div>
