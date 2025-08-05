@@ -152,41 +152,90 @@ export const QualityReportRecommendations: React.FC<QualityReportRecommendations
                     </Button>
                   </div>
                   
-                  {/* Quick Metrics */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium">Financial Impact</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatCurrency(rec.financialImpact.range.min)} - {formatCurrency(rec.financialImpact.range.max)}
-                        </p>
+                  {/* Enhanced Quick Metrics with More Detail */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-green-600 p-2 rounded-full">
+                          <DollarSign className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-green-900 dark:text-green-100 mb-1">Financial Impact</p>
+                          <p className="text-lg font-bold text-green-800 dark:text-green-200 mb-2">
+                            {formatCurrency(rec.financialImpact.range.min)} - {formatCurrency(rec.financialImpact.range.max)}
+                          </p>
+                          <p className="text-xs text-green-700 dark:text-green-300 leading-relaxed">
+                            Estimated revenue increase or cost savings from implementing this recommendation
+                          </p>
+                          <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                            <span className="font-medium">Confidence: </span>
+                            {Math.round(rec.financialImpact.confidence * 100)}%
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <div>
-                        <p className="text-sm font-medium">Timeline</p>
-                        <p className="text-xs text-muted-foreground">{rec.timeframe.weeks} weeks</p>
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-blue-600 p-2 rounded-full">
+                          <Clock className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Implementation Timeline</p>
+                          <p className="text-lg font-bold text-blue-800 dark:text-blue-200 mb-2">
+                            {rec.timeframe.weeks} weeks
+                          </p>
+                          <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                            Expected time from start to full implementation and measurable results
+                          </p>
+                          <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                            <span className="font-medium">Phases: </span>
+                            {rec.timeframe.phases.length} stages
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Target className="h-4 w-4 text-purple-600" />
-                      <div>
-                        <p className="text-sm font-medium">Success Rate</p>
-                        <p className="text-xs text-muted-foreground">
-                          {Math.round(rec.dataPoints.successProbability * 100)}%
-                        </p>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-purple-600 p-2 rounded-full">
+                          <Target className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-purple-900 dark:text-purple-100 mb-1">Success Probability</p>
+                          <p className="text-lg font-bold text-purple-800 dark:text-purple-200 mb-2">
+                            {Math.round(rec.dataPoints.successProbability * 100)}%
+                          </p>
+                          <p className="text-xs text-purple-700 dark:text-purple-300 leading-relaxed">
+                            Likelihood of achieving the projected outcomes based on similar implementations
+                          </p>
+                          <div className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+                            <span className="font-medium">Affected records: </span>
+                            {rec.dataPoints.affected.toLocaleString()}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <AlertTriangle className="h-4 w-4 text-orange-600" />
-                      <div>
-                        <p className="text-sm font-medium">Priority Score</p>
-                        <p className="text-xs text-muted-foreground">{rec.priority.score}/100</p>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
+                      <div className="flex items-start space-x-3">
+                        <div className="bg-orange-600 p-2 rounded-full">
+                          <AlertTriangle className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-orange-900 dark:text-orange-100 mb-1">Business Priority</p>
+                          <p className="text-lg font-bold text-orange-800 dark:text-orange-200 mb-2">
+                            {rec.priority.score}/100
+                          </p>
+                          <p className="text-xs text-orange-700 dark:text-orange-300 leading-relaxed">
+                            Strategic importance score considering impact, urgency, and resource requirements
+                          </p>
+                          <div className="mt-2 flex items-center">
+                            <Badge variant={getPriorityColor(rec.priority.level)} className="text-xs">
+                              {rec.priority.level.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
