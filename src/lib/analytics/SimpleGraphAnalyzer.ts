@@ -2,9 +2,10 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 
 export interface SimpleGraphInsight {
   type: 'connections' | 'patterns' | 'groups' | 'outliers';
-  title: string;
-  description: string;
-  examples: string[];
+  question: string;
+  answer: string;
+  details: string[];
+  actionable: string;
   confidence: number;
 }
 
@@ -37,9 +38,10 @@ export class SimpleGraphAnalyzer {
       if (topPairs.length > 0) {
         insights.push({
           type: 'connections',
-          title: `Strong connections found between ${col1.name} and ${col2.name}`,
-          description: `I found several items that are frequently connected in your data.`,
-          examples: topPairs.map(([pair, count]) => `${pair} (appears ${count} times)`),
+          question: `What items are most connected in your data?`,
+          answer: `I found strong relationships between ${col1.name} and ${col2.name}. Several items appear together frequently, showing clear connection patterns.`,
+          details: topPairs.map(([pair, count]) => `${pair} (appears ${count} times)`),
+          actionable: `These connections suggest natural groupings in your data. Consider organizing or analyzing items based on these relationships.`,
           confidence: 0.8
         });
       }
@@ -73,13 +75,14 @@ export class SimpleGraphAnalyzer {
         if (highValues < values.length * 0.1) {
           insights.push({
             type: 'patterns',
-            title: `Most ${column.name} values follow a consistent pattern`,
-            description: `${normalValues} out of ${values.length} values are in the normal range, with only ${highValues} high values.`,
-            examples: [
+            question: `Are there any patterns in my data?`,
+            answer: `Yes! Most of your ${column.name} values follow a consistent pattern. About ${((normalValues / values.length) * 100).toFixed(1)}% of your data stays within the normal range.`,
+            details: [
               `Normal range: ${q1.toFixed(1)} - ${q3.toFixed(1)}`,
-              `Median value: ${median.toFixed(1)}`,
-              `${((normalValues / values.length) * 100).toFixed(1)}% of data follows the main pattern`
+              `Typical value: ${median.toFixed(1)}`,
+              `${normalValues} out of ${values.length} values follow the main pattern`
             ],
+            actionable: `This consistency is good! Focus on the ${highValues} values outside the normal range - they might need special attention.`,
             confidence: 0.7
           });
         }
@@ -111,11 +114,12 @@ export class SimpleGraphAnalyzer {
         
         insights.push({
           type: 'groups',
-          title: `Found ${sortedGroups.length} distinct groups in ${column.name}`,
-          description: `Your data naturally separates into ${sortedGroups.length} different groups.`,
-          examples: sortedGroups.slice(0, 3).map(([name, count]) => 
+          question: `What groups exist in my data?`,
+          answer: `I found ${sortedGroups.length} distinct groups in your ${column.name}. The largest group is "${largestGroup[0]}" with ${largestPercentage}% of your data.`,
+          details: sortedGroups.slice(0, 3).map(([name, count]) => 
             `${name}: ${count} items (${((count / totalItems) * 100).toFixed(1)}%)`
           ),
+          actionable: `You can use these natural groupings to organize, filter, or analyze your data more effectively.`,
           confidence: 0.9
         });
       }
@@ -147,11 +151,12 @@ export class SimpleGraphAnalyzer {
         if (outliers.length > 0 && outliers.length < values.length * 0.1) {
           insights.push({
             type: 'outliers',
-            title: `Found ${outliers.length} unusual values in ${column.name}`,
-            description: `These values are significantly different from the rest of your data and might need attention.`,
-            examples: outliers.slice(0, 3).map(val => 
+            question: `Are there any unusual data points I should investigate?`,
+            answer: `Yes! I found ${outliers.length} unusual values in your ${column.name} that stand out significantly from the rest.`,
+            details: outliers.slice(0, 3).map(val => 
               `${val} (${val > upperBound ? 'much higher' : 'much lower'} than normal)`
             ),
+            actionable: `These outliers might be data entry errors, special cases, or important discoveries. Review them to determine if they need correction or further investigation.`,
             confidence: 0.8
           });
         }

@@ -495,26 +495,47 @@ export const QuestionBasedAnalytics: React.FC<QuestionBasedAnalyticsProps> = ({
                 <TabsContent value="graph-insights" className="space-y-4">
                   <div className="space-y-4">
                     {activeSession.graphInsights.map((insight, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          {insight.type === 'connections' && <Users className="h-4 w-4 text-blue-500" />}
-                          {insight.type === 'patterns' && <TrendingUp className="h-4 w-4 text-green-500" />}
-                          {insight.type === 'groups' && <BarChart3 className="h-4 w-4 text-purple-500" />}
-                          {insight.type === 'outliers' && <AlertTriangle className="h-4 w-4 text-orange-500" />}
-                          <h4 className="font-medium">{insight.title}</h4>
-                          <Badge variant="secondary" className="ml-auto">
-                            {Math.round(insight.confidence * 100)}% confidence
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">{insight.description}</p>
-                        <div className="space-y-1">
-                          {insight.examples.map((example, exIndex) => (
-                            <div key={exIndex} className="text-xs p-2 bg-muted/50 rounded">
-                              {example}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                       <div key={index} className="p-4 border rounded-lg bg-card">
+                         <div className="flex items-start gap-3 mb-3">
+                           <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                             {insight.type === 'connections' && <Users className="h-4 w-4 text-blue-500" />}
+                             {insight.type === 'patterns' && <TrendingUp className="h-4 w-4 text-green-500" />}
+                             {insight.type === 'groups' && <BarChart3 className="h-4 w-4 text-purple-500" />}
+                             {insight.type === 'outliers' && <AlertTriangle className="h-4 w-4 text-orange-500" />}
+                           </div>
+                           <div className="flex-1">
+                             <div className="flex items-center justify-between mb-2">
+                               <h4 className="font-medium text-foreground">{insight.question}</h4>
+                               <Badge variant="secondary">
+                                 {Math.round(insight.confidence * 100)}% confidence
+                               </Badge>
+                             </div>
+                             <p className="text-sm text-foreground mb-3">{insight.answer}</p>
+                             
+                             {insight.details.length > 0 && (
+                               <div className="space-y-1 mb-3">
+                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Details:</p>
+                                 {insight.details.map((detail, detailIndex) => (
+                                   <div key={detailIndex} className="text-xs p-2 bg-muted/30 rounded flex items-center gap-2">
+                                     <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                                     {detail}
+                                   </div>
+                                 ))}
+                               </div>
+                             )}
+                             
+                             <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-800">
+                               <div className="flex items-start gap-2">
+                                 <span className="text-lg">💡</span>
+                                 <div>
+                                   <p className="text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">What you can do:</p>
+                                   <p className="text-sm text-blue-600 dark:text-blue-400">{insight.actionable}</p>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
                     ))}
                   </div>
                 </TabsContent>
