@@ -62,8 +62,8 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
 
   return (
     <div className="space-y-4">
-      {/* Minimal Configuration Panel - Only show if not enabled */}
-      {hasTemporalData && isChartTypeSupported && !temporalConfig.enabled && (
+      {/* Configuration Panel */}
+      {hasTemporalData && isChartTypeSupported && (
         <TemporalAnimationConfiguration
           columns={columns}
           data={data}

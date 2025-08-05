@@ -121,68 +121,20 @@ export const TemporalAnimationConfiguration = ({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Temporal Animation
-          </CardTitle>
-          <Switch
-            checked={config.enabled}
-            onCheckedChange={(enabled) => updateConfig({ enabled })}
-          />
-        </div>
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          Temporal Animation Setup
+        </CardTitle>
       </CardHeader>
       
-      {config.enabled && (
-        <CardContent className="space-y-4">
-          {/* Animation Controls */}
-          {currentTimeLabel && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium flex items-center gap-2">
-                  {isPlaying && (
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  )}
-                  {currentTimeLabel}
-                </span>
-                <div className="flex items-center gap-2 temporal-controls">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={onTogglePlay}
-                    className="h-8 w-8 p-0"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-3 w-3" />
-                    ) : (
-                      <Play className="h-3 w-3" />
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={onReset}
-                    className="h-8 w-8 p-0"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${progress * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
+      <CardContent className="space-y-4">
 
           {/* Date Column Selection */}
           <div className="space-y-2">
             <Label className="text-sm">Date Column</Label>
             <Select
               value={config.dateColumn}
-              onValueChange={(value) => updateConfig({ dateColumn: value })}
+              onValueChange={(value) => updateConfig({ dateColumn: value, enabled: !!value })}
             >
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="Select date column" />
@@ -322,7 +274,6 @@ export const TemporalAnimationConfiguration = ({
             </div>
           </div>
         </CardContent>
-      )}
     </Card>
   );
 };
