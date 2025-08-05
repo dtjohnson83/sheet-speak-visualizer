@@ -31,16 +31,16 @@ export const BarChartRenderer = React.memo(({
     [yColumn]
   );
   
-  // For bar charts, force all series to be bar type and filter out yColumn to prevent duplication
-  const forcedBarSeries = React.useMemo(() => 
-    series.filter(s => s.column !== yColumn).map(s => ({ ...s, type: 'bar' as const })), 
+  // Preserve series types instead of forcing all to be bars
+  const filteredSeries = React.useMemo(() => 
+    series.filter(s => s.column !== yColumn), 
     [series, yColumn]
   );
   
-  // Combine base series with forced bar series
+  // Combine base series with additional series (preserving their types)
   const allSeries = React.useMemo(() => 
-    [...baseSeries, ...forcedBarSeries], 
-    [baseSeries, forcedBarSeries]
+    [...baseSeries, ...filteredSeries], 
+    [baseSeries, filteredSeries]
   );
   
   // Check if we need a right Y-axis
@@ -49,8 +49,11 @@ export const BarChartRenderer = React.memo(({
     [series]
   );
   
-  // Since this is BarChartRenderer, we never have mixed types - force pure bar chart
-  const hasMixedTypes = false;
+  // Check if we have mixed chart types (bar + line/area)
+  const hasMixedTypes = React.useMemo(() => 
+    allSeries.some(s => s.type === 'line' || s.type === 'area'), 
+    [allSeries]
+  );
   
   // Custom label component for data labels
   const renderDataLabel = React.useCallback((props: any) => {
@@ -99,19 +102,39 @@ export const BarChartRenderer = React.memo(({
           )}
           <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
           <Legend />
-          {allSeries.map((s, index) => (
-            <Bar 
-              key={s.column} 
-              dataKey={s.column} 
-              fill={chartColors[index % chartColors.length]} 
-              stackId={stackColumn ? 'stack' : undefined}
-              yAxisId={s.yAxisId || 'left'}
-              label={showDataLabels ? renderDataLabel : false}
-              isAnimationActive={isTemporalAnimated}
-              animationDuration={isTemporalAnimated ? animationSpeed : 1500}
-              animationEasing="ease-out"
-            />
-          ))}
+          {allSeries.map((s, index) => {
+            if (s.type === 'line') {
+              return (
+                <Line 
+                  key={s.column} 
+                  type="monotone" 
+                  dataKey={s.column} 
+                  stroke={chartColors[index % chartColors.length]}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  yAxisId={s.yAxisId || 'left'}
+                  label={showDataLabels ? renderLineDataLabel : false}
+                  isAnimationActive={isTemporalAnimated}
+                  animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+                  animationEasing="ease-out"
+                />
+              );
+            } else {
+              return (
+                <Bar 
+                  key={s.column} 
+                  dataKey={s.column} 
+                  fill={chartColors[index % chartColors.length]} 
+                  stackId={stackColumn ? 'stack' : undefined}
+                  yAxisId={s.yAxisId || 'left'}
+                  label={showDataLabels ? renderDataLabel : false}
+                  isAnimationActive={isTemporalAnimated}
+                  animationDuration={isTemporalAnimated ? animationSpeed : 1500}
+                  animationEasing="ease-out"
+                />
+              );
+            }
+          })}
         </ComposedChart>
     </ResponsiveContainer>
   );
