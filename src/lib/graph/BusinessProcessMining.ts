@@ -122,7 +122,7 @@ export class BusinessProcessMining {
     const activityCol = this.findActivityColumn(columns);
 
     if (!timestampCol || !caseIdCol || !activityCol) {
-      return this.createSampleProcesses(); // Fallback to sample data
+      return []; // Return empty array if required columns not found
     }
 
     // Group data by cases and create process paths
@@ -439,6 +439,11 @@ export class BusinessProcessMining {
     return insights;
   }
 
+  // === PROCESS DISCOVERY ===
+  async discoverProcesses(data: DataRow[], columns: ColumnInfo[]): Promise<ProcessVariant[]> {
+    return this.extractBusinessProcesses(data, columns);
+  }
+
   // === HELPER METHODS ===
   private findTimestampColumn(columns: ColumnInfo[]): string | null {
     const timeKeywords = ['time', 'date', 'timestamp', 'created', 'modified', 'started', 'ended'];
@@ -553,22 +558,7 @@ export class BusinessProcessMining {
     }
   }
 
-  private createSampleProcesses(): ProcessVariant[] {
-    return [
-      {
-        id: 'sample-process-1',
-        name: 'Customer Onboarding',
-        paths: [],
-        performance: {
-          avgDuration: 120,
-          successRate: 0.85,
-          cost: 250,
-          volume: 100
-        },
-        deviations: ['Missing documentation', 'Delayed approvals']
-      }
-    ];
-  }
+  // Sample processes removed - all analysis now data-driven
 
   private identifyInefficiencies(process: ProcessVariant): string[] {
     const inefficiencies: string[] = [];

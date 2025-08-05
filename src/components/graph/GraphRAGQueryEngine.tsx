@@ -156,12 +156,27 @@ export const GraphRAGQueryEngine: React.FC<GraphRAGQueryEngineProps> = ({
     setQuery('');
   };
 
-  const sampleQueries = [
-    "Find entities related to high-value transactions",
-    "Show relationships between customers and products",
-    "Discover patterns in temporal data",
-    "Identify outliers using graph analysis"
-  ];
+  const generateSampleQueries = (): string[] => {
+    if (!data || data.length === 0) {
+      return ["Upload data to see graph queries"];
+    }
+    
+    const queries: string[] = [];
+    const columnNames = Object.keys(data[0] || {});
+    
+    if (columnNames.length > 0) {
+      queries.push(`Find entities related to ${columnNames[0]}`);
+      
+      if (columnNames.length > 1) {
+        queries.push(`Show relationships between ${columnNames[0]} and ${columnNames[1]}`);
+      }
+      
+      queries.push("Discover patterns in temporal data");
+      queries.push("Identify outliers using graph analysis");
+    }
+    
+    return queries.slice(0, 4);
+  };
 
   return (
     <Card className="w-full">
@@ -205,7 +220,7 @@ export const GraphRAGQueryEngine: React.FC<GraphRAGQueryEngineProps> = ({
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Try these graph-powered queries:</h4>
           <div className="flex flex-wrap gap-2">
-            {sampleQueries.map((sampleQuery, index) => (
+            {generateSampleQueries().map((sampleQuery, index) => (
               <Button
                 key={index}
                 variant="outline"

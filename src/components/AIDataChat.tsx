@@ -53,14 +53,34 @@ export const AIDataChat = ({ data, columns, fileName, enhancedContext, onSuggest
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Enhanced sample questions based on actual data columns
-  const sampleQuestions = [
-    "What are the key patterns in this data?",
-    columns.length > 0 ? `Analyze the distribution of ${columns[0].name}` : "Show me the data distribution",
-    "What correlations do you see between variables?",
-    "What visualization would best represent this data?",
-    "Are there any outliers or anomalies in the data?"
-  ];
+  // Generate contextual questions based on actual data columns
+  const generateSampleQuestions = (): string[] => {
+    if (!columns || columns.length === 0) {
+      return ["Upload data to see contextual questions"];
+    }
+    
+    const questions: string[] = ["What are the key patterns in this data?"];
+    
+    // Add column-specific questions
+    const numericColumns = columns.filter(col => col.type === 'numeric');
+    const categoricalColumns = columns.filter(col => col.type === 'categorical');
+    
+    if (numericColumns.length > 0) {
+      questions.push(`Analyze the distribution of ${numericColumns[0].name}`);
+    }
+    
+    if (categoricalColumns.length > 0) {
+      questions.push(`Show me the breakdown by ${categoricalColumns[0].name}`);
+    }
+    
+    if (numericColumns.length > 1) {
+      questions.push(`What correlations exist between ${numericColumns[0].name} and ${numericColumns[1].name}?`);
+    }
+    
+    questions.push("What visualization would best represent this data?");
+    
+    return questions;
+  };
 
   useEffect(() => {
     // Add contextual welcome message based on actual data
@@ -404,7 +424,7 @@ Ask me specific questions about patterns, trends, or relationships in your data!
         <div>
           <h4 className="text-sm font-medium mb-2">Try asking specific questions:</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {sampleQuestions.map((question, index) => (
+            {generateSampleQuestions().map((question, index) => (
               <Card 
                 key={index}
                 className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

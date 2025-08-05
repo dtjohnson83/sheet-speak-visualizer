@@ -48,48 +48,13 @@ export const ProcessMiningDashboard: React.FC<ProcessMiningDashboardProps> = ({
         const processInsights = await processMining.analyzeProcesses(data, columns, datasetId, domainContext);
         setInsights(processInsights);
         
-        // Extract processes (simplified for demo)
-        const sampleProcesses: ProcessVariant[] = [
-          {
-            id: 'order-fulfillment',
-            name: 'Order Fulfillment',
-            paths: [],
-            performance: {
-              avgDuration: 156,
-              successRate: 0.87,
-              cost: 425,
-              volume: 1247
-            },
-            deviations: ['Missing inventory checks', 'Delayed shipping confirmations']
-          },
-          {
-            id: 'customer-support',
-            name: 'Customer Support',
-            paths: [],
-            performance: {
-              avgDuration: 89,
-              successRate: 0.92,
-              cost: 185,
-              volume: 892
-            },
-            deviations: ['Escalation delays', 'Missing follow-ups']
-          },
-          {
-            id: 'employee-onboarding',
-            name: 'Employee Onboarding',
-            paths: [],
-            performance: {
-              avgDuration: 240,
-              successRate: 0.78,
-              cost: 680,
-              volume: 156
-            },
-            deviations: ['Incomplete documentation', 'Training scheduling conflicts']
-          }
-        ];
+        // Extract actual processes from data analysis
+        const discoveredProcesses = await processMining.discoverProcesses(data, columns);
+        setProcesses(discoveredProcesses);
         
-        setProcesses(sampleProcesses);
-        setSelectedProcess(sampleProcesses[0]);
+        if (discoveredProcesses.length > 0) {
+          setSelectedProcess(discoveredProcesses[0]);
+        }
       } catch (error) {
         console.error('Process mining analysis failed:', error);
       } finally {

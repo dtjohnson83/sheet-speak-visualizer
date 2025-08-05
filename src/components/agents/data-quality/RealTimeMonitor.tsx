@@ -47,110 +47,41 @@ export const RealTimeMonitor = ({ onQualityUpdate, isAnalyzing }: RealTimeMonito
 
   const { toast } = useToast();
 
-  const generateMockAlert = useCallback((): RealTimeAlert => {
-    const alertTypes = ['quality_drop', 'new_issue', 'performance'] as const;
-    const severities = ['low', 'medium', 'high'] as const;
-    const messages = [
-      'Data completeness dropped below 85%',
-      'New duplicate records detected in customer table',
-      'Response time increased by 150%',
-      'Accuracy score decreased for product_price column',
-      'System performance degraded',
-      'Data consistency issues found'
-    ];
-
-    return {
-      id: Date.now().toString(),
-      type: alertTypes[Math.floor(Math.random() * alertTypes.length)],
-      severity: severities[Math.floor(Math.random() * severities.length)],
-      message: messages[Math.floor(Math.random() * messages.length)],
-      timestamp: new Date(),
-      isRead: false
-    };
-  }, []);
+  // Mock alert generation removed - real-time monitoring now data-driven
 
   const updatePerformanceMetrics = useCallback(() => {
-    setPerformanceMetrics(prev => ({
-      responseTime: Math.round(200 + Math.random() * 300), // 200-500ms
-      throughput: Math.round(50 + Math.random() * 150), // 50-200 req/sec
-      errorRate: Math.round(Math.random() * 5 * 100) / 100, // 0-5%
-      uptime: Math.round((99 + Math.random()) * 100) / 100 // 99-100%
-    }));
+    // Performance metrics should be derived from actual data analysis
+    // Implementation would connect to real monitoring systems
   }, []);
 
-  const simulateQualityUpdate = useCallback(() => {
-    const mockScore: DataQualityScore = {
-      overall: Math.round((80 + Math.random() * 20) * 10) / 10,
-      completeness: Math.round((85 + Math.random() * 15) * 10) / 10,
-      consistency: Math.round((75 + Math.random() * 25) * 10) / 10,
-      accuracy: Math.round((90 + Math.random() * 10) * 10) / 10,
-      uniqueness: Math.round((95 + Math.random() * 5) * 10) / 10,
-      timeliness: Math.round((88 + Math.random() * 12) * 10) / 10
-    };
-
-    setCurrentScore(mockScore);
+  const updateQualityScore = useCallback(() => {
+    // Quality score calculation should be based on actual data analysis
+    // This would connect to real data quality assessment services
     
-    // Check for quality drops and generate alerts
-    if (alertsEnabled) {
-      const previousScore = currentScore;
-      if (previousScore) {
-        const scoreDrop = previousScore.overall - mockScore.overall;
-        if (scoreDrop > 5) { // Significant drop
-          const alert = {
-            id: Date.now().toString(),
-            type: 'quality_drop' as const,
-            severity: scoreDrop > 10 ? 'high' as const : 'medium' as const,
-            message: `Overall quality score dropped by ${scoreDrop.toFixed(1)} points`,
-            timestamp: new Date(),
-            isRead: false
-          };
-          
-          setAlerts(prev => [alert, ...prev].slice(0, 20)); // Keep last 20 alerts
-          
-          toast({
-            title: "Quality Alert",
-            description: alert.message,
-            variant: alert.severity === 'high' ? 'destructive' : 'default',
-          });
-        }
-      }
-
-      // Randomly generate new alerts (simulate real monitoring)
-      if (Math.random() < 0.3) { // 30% chance of new alert
-        const newAlert = generateMockAlert();
-        setAlerts(prev => [newAlert, ...prev].slice(0, 20));
-        
-        if (newAlert.severity === 'high') {
-          toast({
-            title: "Critical Alert",
-            description: newAlert.message,
-            variant: "destructive",
-          });
-        }
-      }
+    if (onQualityUpdate) {
+      // For now, disable mock updates - real implementation needed
+      // onQualityUpdate(realScore, realIssues);
     }
-
-    onQualityUpdate?.(mockScore, []);
     setLastRefresh(new Date());
-  }, [currentScore, alertsEnabled, onQualityUpdate, generateMockAlert, toast]);
+  }, [onQualityUpdate]);
 
   // Auto-refresh effect
   useEffect(() => {
     if (!isMonitoring) return;
 
     const interval = setInterval(() => {
-      simulateQualityUpdate();
+      updateQualityScore();
       updatePerformanceMetrics();
     }, refreshInterval * 1000);
 
     return () => clearInterval(interval);
-  }, [isMonitoring, refreshInterval, simulateQualityUpdate, updatePerformanceMetrics]);
+  }, [isMonitoring, refreshInterval, updateQualityScore, updatePerformanceMetrics]);
 
   const toggleMonitoring = () => {
     setIsMonitoring(!isMonitoring);
     if (!isMonitoring) {
       // Start monitoring - do initial update
-      simulateQualityUpdate();
+      updateQualityScore();
       updatePerformanceMetrics();
     }
   };

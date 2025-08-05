@@ -48,13 +48,34 @@ export const NaturalLanguageQuery: React.FC<NaturalLanguageQueryProps> = ({
     }
   ];
 
-  const sampleQueries = [
-    "Show me the average of [numeric column]",
-    "Filter rows where [column] is greater than [value]",
-    "Show only rows with [category] equal to [value]",
-    "Sort by [column] in descending order",
-    "Show top 10 rows by [numeric column]"
-  ];
+  const generateSampleQueries = (): string[] => {
+    if (!columns || columns.length === 0) {
+      return ["Upload data to see sample queries"];
+    }
+    
+    const queries: string[] = [];
+    const numericColumns = columns.filter(col => col.type === 'numeric');
+    const categoricalColumns = columns.filter(col => col.type === 'categorical');
+    
+    if (numericColumns.length > 0) {
+      queries.push(`Show me the average of ${numericColumns[0].name}`);
+      queries.push(`Show top 10 rows by ${numericColumns[0].name}`);
+    }
+    
+    if (categoricalColumns.length > 0) {
+      const firstCatValues = categoricalColumns[0].values || [];
+      if (firstCatValues.length > 0) {
+        queries.push(`Show only rows where ${categoricalColumns[0].name} equals ${firstCatValues[0]}`);
+      }
+    }
+    
+    if (columns.length > 0) {
+      queries.push(`Sort by ${columns[0].name} in descending order`);
+      queries.push(`Filter rows where ${columns[0].name} is not empty`);
+    }
+    
+    return queries.slice(0, 5); // Limit to 5 queries
+  };
 
   const processNaturalLanguageQuery = async (queryText: string) => {
     console.log('Processing query:', queryText);
@@ -321,7 +342,7 @@ export const NaturalLanguageQuery: React.FC<NaturalLanguageQueryProps> = ({
         <div>
           <h4 className="text-sm font-medium mb-2">Sample Queries</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {sampleQueries.map((sample, index) => (
+            {generateSampleQueries().map((sample, index) => (
               <Card 
                 key={index}
                 className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
