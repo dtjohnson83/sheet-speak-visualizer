@@ -59,7 +59,7 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
       </div>
       
       <Tabs defaultValue="question-analytics" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           <TabsTrigger value="question-analytics">Question Analytics</TabsTrigger>
           <TabsTrigger value="graph-ml">Graph ML Analytics</TabsTrigger>
           <TabsTrigger value="business-graph-ml">Business Intelligence</TabsTrigger>
