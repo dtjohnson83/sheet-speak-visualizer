@@ -226,6 +226,7 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
         axisLength={4}
         showGrid={true}
         showOrigin={true}
+        showZAxis={zColumn && zColumn !== yColumn}
       />
       
       {/* 3D Points */}

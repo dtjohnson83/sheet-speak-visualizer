@@ -119,6 +119,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
         axisLength={4}
         showGrid={true}
         showOrigin={true}
+        showZAxis={zColumn && zColumn !== yColumn}
       />
       
       {/* Surface mesh */}
