@@ -4,7 +4,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { DashboardCanvas } from '@/components/dashboard/DashboardCanvas';
 import { DashboardManager } from '@/components/dashboard/DashboardManager';
 import { DatasetSelector } from '@/components/agents/DatasetSelector';
-
+import { RealtimeDashboardControls } from '@/components/realtime/RealtimeDashboardControls';
 import { useDatasetSelection } from '@/hooks/useDatasetSelection';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
@@ -57,6 +57,10 @@ export const TabContentDashboard: React.FC<TabContentDashboardProps> = ({
         </Card>
       )}
       
+      {/* Real-time Dashboard Controls - only show when we have data and tiles */}
+      {(activeData.length > 0 || tiles.length > 0) && (
+        <RealtimeDashboardControls />
+      )}
       
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">

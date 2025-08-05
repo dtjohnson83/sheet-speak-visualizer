@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { AIAgent, AgentTask, AgentInsight } from '@/types/agents';
-
+import { AgentOutputAggregator } from './AgentOutputAggregator';
 import { AISummaryReport } from '../AISummaryReport';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { supabase } from '@/integrations/supabase/client';
@@ -290,54 +290,12 @@ export const CDODashboard: React.FC<CDODashboardProps> = ({
         </Card>
       </div>
 
-      {/* Simplified Agent Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {insights.slice(0, 5).map((insight, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                  <Brain className="h-4 w-4 mt-1 text-primary" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{insight.title}</p>
-                    <p className="text-xs text-muted-foreground">{insight.description}</p>
-                  </div>
-                </div>
-              ))}
-              {insights.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">No insights available</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Agents Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {agents.slice(0, 5).map((agent, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium">{agent.name}</p>
-                    <p className="text-xs text-muted-foreground">{agent.description}</p>
-                  </div>
-                  <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
-                    {agent.status}
-                  </Badge>
-                </div>
-              ))}
-              {agents.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">No agents configured</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Main Aggregator */}
+      <AgentOutputAggregator 
+        agents={agents}
+        tasks={tasks}
+        insights={insights}
+      />
 
       {/* Quick Actions */}
       <Card>
