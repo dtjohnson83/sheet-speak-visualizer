@@ -2,22 +2,24 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ColumnInfo } from '@/pages/Index';
+import { ColumnInfo, DataRow } from '@/pages/Index';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 import { TemporalAnimationConfig, TimeInterval, detectTemporalColumns } from '@/lib/chart/temporalDataProcessor';
 
 interface CompactTemporalSettingsProps {
   columns: ColumnInfo[];
+  data?: DataRow[];
   config: TemporalAnimationConfig;
   onConfigChange: (config: TemporalAnimationConfig) => void;
 }
 
 export const CompactTemporalSettings = ({
   columns,
+  data,
   config,
   onConfigChange
 }: CompactTemporalSettingsProps) => {
-  const temporalColumns = detectTemporalColumns(columns);
+  const temporalColumns = detectTemporalColumns(columns, data);
 
   const timeIntervalOptions: { value: TimeInterval; label: string }[] = [
     { value: 'day', label: 'Daily' },

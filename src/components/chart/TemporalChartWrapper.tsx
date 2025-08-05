@@ -19,7 +19,7 @@ export const TemporalChartWrapper: React.FC<TemporalChartWrapperProps> = (props)
   const { toast } = useToast();
   
   
-  const temporalColumns = detectTemporalColumns(columns);
+  const temporalColumns = detectTemporalColumns(columns, data);
   const hasTemporalData = temporalColumns.length > 0;
   
   // Chart types that support temporal animation

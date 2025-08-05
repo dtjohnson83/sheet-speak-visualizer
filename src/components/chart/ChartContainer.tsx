@@ -137,7 +137,7 @@ export const ChartContainer = React.memo(({
       <div className="w-full overflow-x-auto mt-6">
         {(() => {
           // Check if this chart has temporal data suitable for animation
-          const temporalColumns = detectTemporalColumns(columns);
+          const temporalColumns = detectTemporalColumns(columns, data);
           const hasTemporalData = temporalColumns.length > 0;
           
           // Chart types that support temporal animation

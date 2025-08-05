@@ -44,7 +44,7 @@ export const TemporalAnimationConfiguration = ({
   temporalAnimationState,
   temporalAnimationControls
 }: TemporalAnimationConfigurationProps) => {
-  const temporalColumns = detectTemporalColumns(columns);
+  const temporalColumns = detectTemporalColumns(columns, data);
   const hasTemporalColumns = temporalColumns.length > 0;
 
   const timeIntervalOptions: { value: TimeInterval; label: string }[] = [
@@ -86,17 +86,42 @@ export const TemporalAnimationConfiguration = ({
   };
 
   if (!hasTemporalColumns) {
+    const availableColumns = columns.map(col => col.name).join(', ');
+    const suggestions = columns.filter(col => 
+      /date|time|year|month|day|period|when|created|updated/i.test(col.name) ||
+      col.type === 'text' || col.type === 'categorical'
+    ).map(col => col.name);
+    
     return (
-      <Card className="bg-muted/50">
+      <Card className="bg-muted/50 border-orange-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Temporal Animation
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            No date/time columns detected. Upload data with temporal information to enable animated charts.
+            No date/time columns detected in your data.
+          </p>
+          {suggestions.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-orange-600">
+                Possible date columns to check:
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {suggestions.join(', ')}
+              </p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <p className="text-xs font-medium">Available columns:</p>
+            <p className="text-xs text-muted-foreground font-mono">
+              {availableColumns}
+            </p>
+          </div>
+          <p className="text-xs text-blue-600">
+            💡 Make sure your data has columns with dates in formats like: YYYY-MM-DD, MM/DD/YYYY, or timestamp values.
           </p>
         </CardContent>
       </Card>

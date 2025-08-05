@@ -374,33 +374,59 @@ const applyAggregation = (values: number[], method: AggregationMethod): number =
   }
 };
 
-export const detectTemporalColumns = (columns: ColumnInfo[]): ColumnInfo[] => {
+export const detectTemporalColumns = (columns: ColumnInfo[], data?: DataRow[]): ColumnInfo[] => {
   console.log('🔍 Detecting temporal columns from:', columns.map(col => `${col.name} (${col.type})`));
   
-  const temporalColumns = columns.filter(col => {
+  // First, filter columns that actually exist in the data
+  const existingColumns = data && data.length > 0 
+    ? columns.filter(col => col.name in data[0])
+    : columns;
+  
+  if (data && data.length > 0) {
+    const actualColumns = Object.keys(data[0]);
+    console.log('📊 Actual data columns:', actualColumns);
+    console.log('🗂️ Metadata columns:', columns.map(col => col.name));
+  }
+  
+  const temporalColumns = existingColumns.filter(col => {
+    // Only consider date type columns as truly temporal
     const isDateType = col.type === 'date';
-    const isTemporalName = col.type === 'text' && /date|time|created|updated|timestamp|year|month|day|period/i.test(col.name);
-    const isNumericTemporal = col.type === 'numeric' && /date|time|year|month|day|timestamp|epoch/i.test(col.name);
     
-    // Additional check for common date patterns in column names
-    const hasDatePattern = /\b(date|time|when|created|updated|timestamp|period|year|month|day)\b/i.test(col.name);
+    // For other types, be more strict and validate actual data
+    if (data && data.length > 0 && !isDateType) {
+      const sampleValues = data.slice(0, 10).map(row => row[col.name]);
+      const hasValidDates = sampleValues.some(value => {
+        if (value == null || value === '') return false;
+        const parsed = parseDate(value);
+        return parsed !== null;
+      });
+      
+      if (!hasValidDates) {
+        console.log(`  ❌ Column "${col.name}" rejected: no valid dates in sample data`);
+        return false;
+      }
+    }
+    
+    const isTemporalName = /date|time|created|updated|timestamp|year|month|day|period|when/i.test(col.name);
     
     console.log(`  Column "${col.name}" (${col.type}):`, {
       isDateType,
       isTemporalName,
-      isNumericTemporal,
-      hasDatePattern,
-      detected: isDateType || isTemporalName || isNumericTemporal || (col.type !== 'numeric' && hasDatePattern)
+      detected: isDateType || isTemporalName
     });
     
-    return isDateType || isTemporalName || isNumericTemporal || (col.type !== 'numeric' && hasDatePattern);
+    return isDateType || isTemporalName;
   });
   
   console.log('✅ Detected temporal columns:', temporalColumns.map(col => `${col.name} (${col.type})`));
   
   if (temporalColumns.length === 0) {
-    console.log('⚠️ No temporal columns detected. Available columns:', columns.map(col => `${col.name} (${col.type})`));
-    console.log('💡 Try columns with names containing: date, time, created, updated, timestamp, year, month, day, period');
+    console.log('⚠️ No temporal columns detected. Available columns:', existingColumns.map(col => `${col.name} (${col.type})`));
+    console.log('💡 Suggestion: Look for columns with names containing: date, time, created, updated, timestamp, year, month, day, period, when');
+    
+    if (data && data.length > 0) {
+      console.log('🔍 Sample data for reference:', data[0]);
+    }
   }
   
   return temporalColumns;

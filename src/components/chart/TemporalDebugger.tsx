@@ -44,7 +44,7 @@ export const TemporalDebugger: React.FC<TemporalDebuggerProps> = ({
   const successRate = (successCount / sampleSize) * 100;
 
   // Detect all potential temporal columns
-  const temporalColumns = detectTemporalColumns(columns);
+  const temporalColumns = detectTemporalColumns(columns, data);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
