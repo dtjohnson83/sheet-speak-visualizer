@@ -173,7 +173,13 @@ NEXT STEPS
 
         {/* Recommendations Tab */}
         <TabsContent value="recommendations" className="space-y-6">
-          <QualityReportRecommendations />
+          <QualityReportRecommendations 
+            data={data}
+            columns={columns}
+            issues={issues}
+            insights={[]}
+            fileName={fileName}
+          />
         </TabsContent>
       </Tabs>
     </div>
