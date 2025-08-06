@@ -31,16 +31,44 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
       return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
     }
 
+    // Ensure we have valid column names and data
+    if (!xColumn || !yColumn || !zColumn) {
+      console.warn('Surface3DChartRenderer: Missing required columns', { xColumn, yColumn, zColumn });
+      return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
+    }
+
+    // Filter out invalid data entries
+    const validData = data.filter(item => 
+      item && 
+      item[xColumn] !== undefined && 
+      item[yColumn] !== undefined &&
+      item[zColumn] !== undefined &&
+      !isNaN(Number(item[xColumn])) &&
+      !isNaN(Number(item[yColumn])) &&
+      !isNaN(Number(item[zColumn]))
+    );
+
+    if (validData.length === 0) {
+      console.warn('Surface3DChartRenderer: No valid data after filtering', { 
+        data: data.length, 
+        validData: validData.length, 
+        xColumn, 
+        yColumn, 
+        zColumn 
+      });
+      return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
+    }
+
     // Create a grid of vertices for the surface
-    const gridSize = Math.ceil(Math.sqrt(data.length));
+    const gridSize = Math.ceil(Math.sqrt(validData.length));
     const vertices: number[] = [];
     const indices: number[] = [];
     const colors: number[] = [];
     
     // Get value ranges for normalization
-    const xValues = data.map(d => Number(d[xColumn]) || 0);
-    const yValues = data.map(d => Number(d[yColumn]) || 0);
-    const zValues = data.map(d => Number(d[zColumn]) || 0);
+    const xValues = validData.map(d => Number(d[xColumn]) || 0);
+    const yValues = validData.map(d => Number(d[yColumn]) || 0);
+    const zValues = validData.map(d => Number(d[zColumn]) || 0);
     
     const xMin = Math.min(...xValues);
     const xMax = Math.max(...xValues);
@@ -49,6 +77,10 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     const zMin = Math.min(...zValues);
     const zMax = Math.max(...zValues);
     
+    const xRange = xMax - xMin || 1;
+    const yRange = yMax - yMin || 1;
+    const zRange = zMax - zMin || 1;
+    
     const scale = 4;
     
     // Create vertices
@@ -56,12 +88,12 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
       for (let j = 0; j < gridSize; j++) {
         const dataIndex = i * gridSize + j;
         
-        if (dataIndex < data.length) {
-          const item = data[dataIndex];
+        if (dataIndex < validData.length) {
+          const item = validData[dataIndex];
           // Better utilize vertical space with full 4-unit height range
-          const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
-          const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * 4; // Use full 4-unit height range
-          const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+          const x = ((Number(item[xColumn]) || 0) - xMin) / xRange * scale - scale / 2;
+          const y = ((Number(item[yColumn]) || 0) - yMin) / yRange * 4; // Use full 4-unit height range
+          const z = ((Number(item[zColumn]) || 0) - zMin) / zRange * scale - scale / 2;
           
           vertices.push(x, y, z);
           

@@ -192,13 +192,17 @@ export const ChartRenderers = ({
   }
 
   if (chartType === 'scatter3d') {
+    // Get numeric columns from the available columns
+    const numericColumns = columns.filter(col => col.type === 'numeric');
+    const validZColumn = zColumn || (numericColumns.length > 2 ? numericColumns[2].name : stackColumn) || yColumn;
+    
     return (
       <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
         <Scatter3DChartRenderer
           data={data}
           xColumn={xColumn}
           yColumn={yColumn}
-          zColumn={zColumn || stackColumn || 'z'}
+          zColumn={validZColumn}
           chartColors={chartColors}
           showDataLabels={showDataLabels}
           isTemporalAnimated={isTemporalAnimated}
@@ -209,13 +213,17 @@ export const ChartRenderers = ({
   }
 
   if (chartType === 'surface3d') {
+    // Get numeric columns from the available columns
+    const numericColumns = columns.filter(col => col.type === 'numeric');
+    const validZColumn = zColumn || (numericColumns.length > 2 ? numericColumns[2].name : stackColumn) || yColumn;
+    
     return (
       <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
         <Surface3DChartRenderer
           data={data}
           xColumn={xColumn}
           yColumn={yColumn}
-          zColumn={zColumn || stackColumn || 'z'}
+          zColumn={validZColumn}
           chartColors={chartColors}
           showDataLabels={showDataLabels}
           isTemporalAnimated={isTemporalAnimated}

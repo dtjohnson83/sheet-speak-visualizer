@@ -90,8 +90,14 @@ export const autoMapColumns = (
   } else if (chartType === 'bar3d' || chartType === 'scatter3d' || chartType === 'surface3d') {
     // 3D charts need specific column mapping
     if (!validation.xExists) {
-      // For 3D charts, prefer categorical for X-axis
-      newXColumn = categoricalColumns[0]?.name || entityColumns[0]?.name || availableColumns[0]?.name || '';
+      // For 3D charts, prefer numeric for X-axis first, then categorical
+      if (chartType === 'scatter3d' || chartType === 'surface3d') {
+        // Scatter3D and Surface3D need all numeric axes
+        newXColumn = numericColumns[0]?.name || relationshipColumns[0]?.name || categoricalColumns[0]?.name || availableColumns[0]?.name || '';
+      } else {
+        // Bar3D can use categorical for X-axis
+        newXColumn = categoricalColumns[0]?.name || entityColumns[0]?.name || availableColumns[0]?.name || '';
+      }
     }
     if (!validation.yExists) {
       // For 3D charts, require numeric for Y-axis (height/value)
@@ -105,6 +111,8 @@ export const autoMapColumns = (
         newYColumn = numericLikeColumn?.name || '';
       }
     }
+    // For 3D charts, we also need to ensure we have a Z column
+    // This would be handled by the chart component itself when zColumn is not provided
   } else {
     // For X-axis: prefer entity/categorical columns, fallback to first available
     if (!validation.xExists) {

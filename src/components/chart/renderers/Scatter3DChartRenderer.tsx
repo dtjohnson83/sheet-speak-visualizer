@@ -181,10 +181,38 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
   const points = useMemo(() => {
     if (!data || data.length === 0) return [];
 
+    // Ensure we have valid column names and data
+    if (!xColumn || !yColumn || !zColumn) {
+      console.warn('Scatter3DChartRenderer: Missing required columns', { xColumn, yColumn, zColumn });
+      return [];
+    }
+
+    // Filter out invalid data entries
+    const validData = data.filter(item => 
+      item && 
+      item[xColumn] !== undefined && 
+      item[yColumn] !== undefined &&
+      item[zColumn] !== undefined &&
+      !isNaN(Number(item[xColumn])) &&
+      !isNaN(Number(item[yColumn])) &&
+      !isNaN(Number(item[zColumn]))
+    );
+
+    if (validData.length === 0) {
+      console.warn('Scatter3DChartRenderer: No valid data after filtering', { 
+        data: data.length, 
+        validData: validData.length, 
+        xColumn, 
+        yColumn, 
+        zColumn 
+      });
+      return [];
+    }
+
     // Get min/max values for normalization
-    const xValues = data.map(d => Number(d[xColumn]) || 0);
-    const yValues = data.map(d => Number(d[yColumn]) || 0);
-    const zValues = data.map(d => Number(d[zColumn]) || 0);
+    const xValues = validData.map(d => Number(d[xColumn]) || 0);
+    const yValues = validData.map(d => Number(d[yColumn]) || 0);
+    const zValues = validData.map(d => Number(d[zColumn]) || 0);
     
     const xMin = Math.min(...xValues);
     const xMax = Math.max(...xValues);
@@ -193,21 +221,27 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const zMin = Math.min(...zValues);
     const zMax = Math.max(...zValues);
     
+    // Check for zero ranges
+    const xRange = xMax - xMin || 1;
+    const yRange = yMax - yMin || 1;
+    const zRange = zMax - zMin || 1;
+    
     // Check if Z column is same as Y column (common case when no Z-column selected)
     const isZSameAsY = zColumn === yColumn;
     
     // Debug logging for data ranges
     console.log(`3D Scatter Debug - Data ranges:`, {
-      x: { min: xMin, max: xMax, column: xColumn },
-      y: { min: yMin, max: yMax, column: yColumn },
-      z: { min: zMin, max: zMax, column: zColumn },
-      isZSameAsY
+      x: { min: xMin, max: xMax, range: xRange, column: xColumn },
+      y: { min: yMin, max: yMax, range: yRange, column: yColumn },
+      z: { min: zMin, max: zMax, range: zRange, column: zColumn },
+      isZSameAsY,
+      validDataCount: validData.length
     });
     
     const scale = 4; // Use full 4-unit axis range for better space utilization
     
     // Calculate appropriate dot size based on data density
-    const dataCount = data.length;
+    const dataCount = validData.length;
     const baseDotSize = Math.max(0.2, Math.min(0.3, 0.6 / Math.sqrt(dataCount)));
     
     // Increase size for tile mode to improve visibility
@@ -215,22 +249,22 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     
     console.log(`3D Scatter: Rendering ${dataCount} points with size ${adjustedDotSize} (tileMode: ${tileMode})`);
     
-    return data.map((item, index) => {
+    return validData.map((item, index) => {
       // Normalize all axes to centered range (-scale/2 to +scale/2) to match axis positioning
-      const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
-      const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale - scale / 2;
+      const x = ((Number(item[xColumn]) || 0) - xMin) / xRange * scale - scale / 2;
+      const y = ((Number(item[yColumn]) || 0) - yMin) / yRange * scale - scale / 2;
       
       // Handle Z-axis positioning
       let z: number;
       if (isZSameAsY) {
         // When Z column is same as Y, distribute points along Z-axis for better 3D visualization
         // Add some variance based on data index to create depth
-        const baseZ = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
-        const variance = (index / Math.max(1, data.length - 1) - 0.5) * scale * 0.4; // 40% spread
+        const baseZ = ((Number(item[zColumn]) || 0) - zMin) / zRange * scale - scale / 2;
+        const variance = (index / Math.max(1, validData.length - 1) - 0.5) * scale * 0.4; // 40% spread
         z = baseZ + variance;
       } else {
         // Use actual Z-column data when different from Y
-        z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+        z = ((Number(item[zColumn]) || 0) - zMin) / zRange * scale - scale / 2;
       }
       
       return {
@@ -243,6 +277,28 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
       };
     });
   }, [data, xColumn, yColumn, zColumn, chartColors, tileMode]);
+
+  // Early return if no points to render
+  if (points.length === 0) {
+    return (
+      <group>
+        <StandardAxes3D 
+          xLabel={xColumn || "X-Axis"}
+          yLabel={yColumn || "Y-Axis"}
+          zLabel={zColumn || "Z-Axis"}
+          axisLength={4}
+          showGrid={true}
+          showOrigin={true}
+          showZAxis={true}
+        />
+        {/* Display a message when no data is available */}
+        <mesh position={[0, 2, 0]}>
+          <sphereGeometry args={[0.1, 8, 8]} />
+          <meshBasicMaterial color="#ff6b6b" transparent opacity={0.7} />
+        </mesh>
+      </group>
+    );
+  }
 
   return (
     <>
