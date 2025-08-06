@@ -659,24 +659,27 @@ export class RecipeEngine {
     );
     if (!hasPrimary) return 0;
 
-    score += 0.6; // Base score for meeting requirements
+    score += 0.4; // Base score for meeting primary requirements
 
-    // Enhanced secondary ingredient scoring
+    // Enhanced secondary ingredient scoring - MUST have at least one secondary ingredient
     if (recipe.requiredIngredients.secondary) {
       const requiredSecondary = recipe.requiredIngredients.secondary;
-      let secondaryScore = 0;
+      let secondaryMatches = 0;
       
       for (const reqType of requiredSecondary) {
         if (ingredientTypes.includes(reqType)) {
-          secondaryScore += 1;
+          secondaryMatches += 1;
         }
       }
       
-      // Partial credit for secondary ingredients
-      const secondaryPercent = secondaryScore / requiredSecondary.length;
-      score += secondaryPercent * 0.3;
+      // Require at least one secondary ingredient match
+      if (secondaryMatches === 0) return 0;
+      
+      // Award points based on how many secondary ingredients match
+      const secondaryPercent = secondaryMatches / requiredSecondary.length;
+      score += 0.4 + (secondaryPercent * 0.2); // Base 0.4 + bonus for extra matches
     } else {
-      score += 0.3; // No secondary requirements
+      score += 0.4; // No secondary requirements
     }
 
     // Apply advanced scoring bonuses
