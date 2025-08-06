@@ -1,18 +1,18 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CauldronIngredient } from './hooks/useCauldronState';
+import { IngredientAnalysis } from './utils/recipeEngine';
 
 interface CauldronIngredientPaletteProps {
-  ingredients: CauldronIngredient[];
-  getMagicalName: (ingredient: CauldronIngredient) => string;
-  onDragStart: (ingredient: CauldronIngredient) => void;
+  ingredients: IngredientAnalysis[];
+  selectedIngredients: string[];
+  onIngredientSelect: (columnName: string) => void;
 }
 
 export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps> = ({
   ingredients,
-  getMagicalName,
-  onDragStart
+  selectedIngredients,
+  onIngredientSelect
 }) => {
   const getIngredientIcon = (type: string): string => {
     switch (type) {
@@ -43,7 +43,7 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
     if (!acc[ingredient.type]) acc[ingredient.type] = [];
     acc[ingredient.type].push(ingredient);
     return acc;
-  }, {} as Record<string, CauldronIngredient[]>);
+  }, {} as Record<string, IngredientAnalysis[]>);
 
   return (
     <div className="space-y-6">
@@ -63,32 +63,31 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
           <div className="grid grid-cols-1 gap-2">
             {typeIngredients.map((ingredient) => (
               <Card
-                key={ingredient.id}
-                draggable
-                onDragStart={() => onDragStart(ingredient)}
+                key={ingredient.column}
                 className={`
-                  p-3 cursor-grab active:cursor-grabbing
-                  border transition-all duration-200 
+                  p-3 cursor-pointer transition-all duration-200 
                   hover:scale-105 hover:shadow-lg hover:border-primary/50
                   ${getIngredientColor(ingredient.type)}
+                  ${selectedIngredients.includes(ingredient.column) ? 'ring-2 ring-primary bg-primary/10' : ''}
                   animate-fade-in group
                 `}
+                onClick={() => onIngredientSelect(ingredient.column)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg">{getIngredientIcon(ingredient.type)}</span>
                       <span className="font-medium text-sm text-foreground truncate">
-                        {getMagicalName(ingredient)}
+                        {ingredient.magicalName}
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {ingredient.columnName}
+                      {ingredient.column}
                     </div>
-                    {ingredient.sampleValues.length > 0 && (
+                    {ingredient.properties && ingredient.properties.length > 0 && (
                       <div className="text-xs text-muted-foreground mt-1 truncate">
-                        {ingredient.sampleValues.slice(0, 3).join(', ')}
-                        {ingredient.sampleValues.length > 3 && '...'}
+                        {ingredient.properties.slice(0, 3).join(', ')}
+                        {ingredient.properties.length > 3 && '...'}
                       </div>
                     )}
                   </div>
@@ -97,8 +96,8 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
                     <Badge variant="outline" className="text-xs">
                       {ingredient.uniqueValues} values
                     </Badge>
-                    <div className={`text-xs font-medium ${getPotencyColor(ingredient.potency)}`}>
-                      ✨ {ingredient.potency}%
+                    <div className={`text-xs font-medium ${getPotencyColor(ingredient.potency * 100)}`}>
+                      ✨ {Math.round(ingredient.potency * 100)}%
                     </div>
                   </div>
                 </div>

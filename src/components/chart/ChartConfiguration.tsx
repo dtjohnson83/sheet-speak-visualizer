@@ -114,7 +114,6 @@ export const ChartConfiguration = ({
         <CauldronVisualizationMode
           data={data}
           columns={columns}
-          onSwitchToTraditional={() => setVisualizationMode('traditional')}
         />
       ) : (
         <>

@@ -75,7 +75,6 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
           ingredients={availableIngredients}
           selectedIngredients={selectedIngredients}
           onIngredientSelect={toggleIngredient}
-          onDragStart={() => {}}
         />
       </div>
 

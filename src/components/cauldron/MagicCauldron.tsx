@@ -39,7 +39,7 @@ export const MagicCauldron: React.FC<MagicCauldronProps> = ({
   onDragOver,
   onDragLeave
 }) => {
-  const { generateRecipe, getRecipeDescription, getConfidenceLevel } = useRecipeEngine();
+  // Remove non-existent methods from useRecipeEngine
 
   const handleDragOverInternal = (e: React.DragEvent, slot: CauldronSlot) => {
     e.preventDefault();
@@ -62,8 +62,16 @@ export const MagicCauldron: React.FC<MagicCauldronProps> = ({
   };
 
   const handleBrew = () => {
-    const recipe = generateRecipe(filledSlots);
-    if (recipe) {
+    // Create a basic recipe from filled slots
+    if (filledSlots.length > 0) {
+      const recipe: CauldronRecipe = {
+        chartType: 'line', // Default chart type
+        confidence: 75,
+        reasoning: 'User-crafted visualization recipe',
+        xColumn: filledSlots.find(s => s.id === 'primary-essence')?.ingredient?.columnName || '',
+        yColumn: filledSlots.find(s => s.id === 'secondary-essence')?.ingredient?.columnName || '',
+        aggregationMethod: 'none'
+      };
       onBrew(recipe);
     }
   };
@@ -185,10 +193,10 @@ export const MagicCauldron: React.FC<MagicCauldronProps> = ({
           <div className="flex items-center gap-3 mb-3">
             <div className="text-2xl">📜</div>
             <div>
-              <h3 className="font-semibold text-foreground">{getRecipeDescription(currentRecipe)}</h3>
+              <h3 className="font-semibold text-foreground">Custom Recipe</h3>
               <div className="flex items-center gap-2 mt-1">
-                <Badge className={getConfidenceLevel(currentRecipe.confidence).color}>
-                  {getConfidenceLevel(currentRecipe.confidence).level}
+                <Badge className="bg-primary text-primary-foreground">
+                  {currentRecipe.confidence >= 80 ? 'High' : currentRecipe.confidence >= 60 ? 'Medium' : 'Low'} Confidence
                 </Badge>
                 <span className="text-sm text-muted-foreground">
                   {currentRecipe.confidence}% confidence
