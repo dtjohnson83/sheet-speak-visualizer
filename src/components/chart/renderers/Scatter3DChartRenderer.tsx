@@ -193,12 +193,15 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     const zMin = Math.min(...zValues);
     const zMax = Math.max(...zValues);
     
+    // Check if Z column is same as Y column (common case when no Z-column selected)
+    const isZSameAsY = zColumn === yColumn;
+    
     // Debug logging for data ranges
     console.log(`3D Scatter Debug - Data ranges:`, {
       x: { min: xMin, max: xMax, column: xColumn },
       y: { min: yMin, max: yMax, column: yColumn },
       z: { min: zMin, max: zMax, column: zColumn },
-      sameZY: zColumn === yColumn
+      isZSameAsY
     });
     
     const scale = 4; // Use full 4-unit axis range for better space utilization
@@ -217,8 +220,18 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
       const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale - scale / 2;
       
-      // Always use actual Z-column data for proper 3D plotting
-      const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+      // Handle Z-axis positioning
+      let z: number;
+      if (isZSameAsY) {
+        // When Z column is same as Y, distribute points along Z-axis for better 3D visualization
+        // Add some variance based on data index to create depth
+        const baseZ = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+        const variance = (index / Math.max(1, data.length - 1) - 0.5) * scale * 0.4; // 40% spread
+        z = baseZ + variance;
+      } else {
+        // Use actual Z-column data when different from Y
+        z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
+      }
       
       return {
         position: [x, y, z] as [number, number, number],

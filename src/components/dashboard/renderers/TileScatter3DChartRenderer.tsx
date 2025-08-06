@@ -35,7 +35,7 @@ export const TileScatter3DChartRenderer: React.FC<TileScatter3DChartRendererProp
         data={data}
         xColumn={xColumn}
         yColumn={yColumn}
-        zColumn={zColumn || yColumn}
+        zColumn={zColumn || xColumn}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
         tileMode={true}
