@@ -217,14 +217,8 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
       const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale - scale / 2;
       
-      // Handle Z-axis: when zColumn same as yColumn, spread points along Z for visibility
-      let z: number;
-      if (zColumn === yColumn) {
-        // Create a spread along Z-axis for 2D data in 3D space
-        z = (index / (data.length - 1) - 0.5) * scale * 0.3; // 30% of scale range
-      } else {
-        z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
-      }
+      // Always use actual Z-column data for proper 3D plotting
+      const z = ((Number(item[zColumn]) || 0) - zMin) / (zMax - zMin || 1) * scale - scale / 2;
       
       return {
         position: [x, y, z] as [number, number, number],
@@ -247,7 +241,7 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
         axisLength={4}
         showGrid={true}
         showOrigin={true}
-        showZAxis={zColumn && zColumn !== yColumn}
+        showZAxis={true}
       />
       
       {/* 3D Points */}
