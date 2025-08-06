@@ -396,16 +396,16 @@ export class RecipeEngine {
   private static isGeographicColumn(name: string, column: ColumnInfo): boolean {
     // Extended geographic patterns
     const geoPatterns = [
-      // Coordinate patterns
-      /(lat|lng|longitude|latitude|coord|geo)/i,
-      // Location patterns
-      /(location|address|city|state|country|region|territory|province)/i,
-      // Postal patterns
-      /(postal|zip|zipcode|postcode)/i,
+      // Coordinate patterns - be more specific
+      /(latitude|longitude|lat_|lng_|coord|geo_)/i,
+      // Location patterns - be more specific to avoid business regions
+      /(location|address|city|state|country|territory|province)/i,
+      // Postal patterns - be very specific
+      /(postal_code|zip_code|zipcode|postcode)/i,
       // Administrative patterns
       /(county|district|municipality|borough|parish)/i,
-      // Geographic identifiers
-      /(fips|iso|geoname|placeid)/i
+      // Geographic identifiers - be more specific
+      /(fips_code|iso_code|geoname|place_id)/i
     ];
 
     // Check name patterns
@@ -503,8 +503,8 @@ export class RecipeEngine {
   }
 
   private static analyzeNumericColumn(name: string, column: ColumnInfo): IngredientType {
-    // Check if numeric column might be geographic (like postal codes)
-    if (/(postal|zip|code|id|fips)/i.test(name) && column.values) {
+    // Check if numeric column might be geographic (like postal codes) - be more specific
+    if (/(postal_code|zip_code|zipcode|postcode|fips_code)/i.test(name) && column.values) {
       const uniqueValues = new Set(column.values).size;
       // If many unique values, might be geographic identifiers
       if (uniqueValues > column.values.length * 0.8) {
