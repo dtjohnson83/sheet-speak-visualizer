@@ -417,21 +417,26 @@ export class RecipeEngine {
     if (column.values && column.values.length > 0) {
       const sampleValues = column.values.slice(0, Math.min(50, column.values.length));
       
-      // Check for coordinate patterns (lat/lng ranges)
+      // Check for coordinate patterns (lat/lng ranges) - only if name suggests geographic
       if (column.type === 'numeric') {
         const numValues = sampleValues.map(v => parseFloat(String(v))).filter(v => !isNaN(v));
         if (numValues.length > 0) {
           const min = Math.min(...numValues);
           const max = Math.max(...numValues);
           
-          // Latitude range check (-90 to 90)
-          if (min >= -90 && max <= 90 && (name.includes('lat') || name.includes('y'))) {
-            return true;
-          }
+          // Only check coordinate ranges if column name explicitly suggests coordinates
+          const isExplicitlyGeographic = /(lat|lng|longitude|latitude|coord|geo|x_coord|y_coord)/i.test(name);
           
-          // Longitude range check (-180 to 180)
-          if (min >= -180 && max <= 180 && (name.includes('lng') || name.includes('lon') || name.includes('x'))) {
-            return true;
+          if (isExplicitlyGeographic) {
+            // Latitude range check (-90 to 90)
+            if (min >= -90 && max <= 90 && /(lat|latitude|y_coord)/i.test(name)) {
+              return true;
+            }
+            
+            // Longitude range check (-180 to 180)  
+            if (min >= -180 && max <= 180 && /(lng|lon|longitude|x_coord)/i.test(name)) {
+              return true;
+            }
           }
         }
       }
