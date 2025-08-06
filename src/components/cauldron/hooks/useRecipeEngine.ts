@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ColumnInfo } from '@/pages/Index';
 import { RecipeEngine, ChartRecipe, IngredientAnalysis, IngredientType } from '../utils/recipeEngine';
 import { useColumnTypeFeedback } from '@/hooks/useColumnTypeFeedback';
@@ -26,7 +26,7 @@ export const useRecipeEngine = ({ columns, datasetName }: UseRecipeEngineProps) 
   const { submitFeedback } = useColumnTypeFeedback();
 
   // Load confidence scores when columns change
-  useMemo(() => {
+  useEffect(() => {
     const loadConfidenceScores = async () => {
       const scores: Record<string, number> = {};
       for (const column of columns) {
@@ -40,7 +40,10 @@ export const useRecipeEngine = ({ columns, datasetName }: UseRecipeEngineProps) 
       }
       setConfidenceScores(scores);
     };
-    loadConfidenceScores();
+    
+    if (columns.length > 0) {
+      loadConfidenceScores();
+    }
   }, [columns]);
 
   // Analyze all available ingredients with improved type detection
