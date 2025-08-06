@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useChartState } from '@/hooks/useChartState';
 import { AIChartSuggestion } from '@/hooks/useAIChartGeneration';
 import { DashboardTileData } from '@/components/dashboard/DashboardTile';
@@ -7,8 +7,39 @@ export const useChartConfiguration = () => {
   const [customTitle, setCustomTitle] = useState<string>('');
   const [valueColumn, setValueColumn] = useState<string>('');
   const [hasUserInteracted, setHasUserInteracted] = useState<boolean>(false);
+  const [pendingAISuggestion, setPendingAISuggestion] = useState<AIChartSuggestion | null>(null);
 
   const chartState = useChartState();
+  const appliedSuggestionRef = useRef<AIChartSuggestion | null>(null);
+
+  // Apply AI suggestion with proper state synchronization
+  useEffect(() => {
+    if (pendingAISuggestion && !hasUserInteracted) {
+      console.log('🎯 useChartConfiguration - Applying pending AI suggestion synchronously:', {
+        suggestion: pendingAISuggestion,
+        currentState: {
+          chartType: chartState.chartType,
+          xColumn: chartState.xColumn,
+          yColumn: chartState.yColumn
+        }
+      });
+
+      // Apply all state updates synchronously in a batch
+      chartState.setChartType(pendingAISuggestion.chartType as any);
+      chartState.setXColumn(pendingAISuggestion.xColumn);
+      chartState.setYColumn(pendingAISuggestion.yColumn);
+      setValueColumn(pendingAISuggestion.valueColumn || '');
+      chartState.setStackColumn(pendingAISuggestion.stackColumn || '');
+      chartState.setAggregationMethod(pendingAISuggestion.aggregationMethod);
+      chartState.setSeries(pendingAISuggestion.series);
+      setCustomTitle(pendingAISuggestion.title);
+      
+      appliedSuggestionRef.current = pendingAISuggestion;
+      setPendingAISuggestion(null);
+
+      console.log('✅ useChartConfiguration - AI suggestion applied successfully');
+    }
+  }, [pendingAISuggestion, hasUserInteracted, chartState]);
 
   // Wrapper to track user interactions with chart type
   const handleChartTypeChange = (newChartType: any) => {
@@ -33,33 +64,26 @@ export const useChartConfiguration = () => {
     chartState.setAggregationMethod(config.aggregationMethod as any);
   };
 
-  // Handle AI suggestion application
-  const handleApplyAISuggestion = (suggestion: AIChartSuggestion) => {
-    console.log('ChartConfiguration - Applying AI suggestion:', {
-      currentChartType: chartState.chartType,
-      currentXColumn: chartState.xColumn,
-      currentYColumn: chartState.yColumn,
-      suggestedChartType: suggestion.chartType,
-      suggestedXColumn: suggestion.xColumn,
-      suggestedYColumn: suggestion.yColumn,
-      suggestion
+  // Handle AI suggestion application with proper synchronization
+  const handleApplyAISuggestion = useCallback((suggestion: AIChartSuggestion) => {
+    console.log('🔄 ChartConfiguration - Queueing AI suggestion for synchronous application:', {
+      suggestion: suggestion,
+      hasUserInteracted,
+      currentPending: !!pendingAISuggestion
     });
-    
-    chartState.setChartType(suggestion.chartType as any);
-    chartState.setXColumn(suggestion.xColumn);
-    chartState.setYColumn(suggestion.yColumn);
-    setValueColumn(suggestion.valueColumn || '');
-    chartState.setStackColumn(suggestion.stackColumn || '');
-    chartState.setAggregationMethod(suggestion.aggregationMethod);
-    chartState.setSeries(suggestion.series);
-    setCustomTitle(suggestion.title);
-    
-    console.log('ChartConfiguration - AI suggestion applied, verifying state:', {
-      newChartType: chartState.chartType,
-      newXColumn: chartState.xColumn,
-      newYColumn: chartState.yColumn
-    });
-  };
+
+    // Don't apply if user has already interacted or if suggestion is already applied
+    if (hasUserInteracted || appliedSuggestionRef.current === suggestion) {
+      console.log('🚫 ChartConfiguration - Skipping AI suggestion application:', {
+        hasUserInteracted,
+        alreadyApplied: appliedSuggestionRef.current === suggestion
+      });
+      return;
+    }
+
+    // Queue the suggestion for synchronous application via useEffect
+    setPendingAISuggestion(suggestion);
+  }, [hasUserInteracted, pendingAISuggestion]);
 
   // Handle save tile functionality
   const handleSaveTile = (
