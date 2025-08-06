@@ -155,6 +155,12 @@ export const useAIChartGeneration = () => {
     if (numericCols.length >= 2) {
       bestChartTypes.push('scatter');
       recommendations.push('Multiple numeric columns - scatter plot reveals correlations and outliers');
+      
+      // Suggest 3D charts for multi-dimensional data
+      if (numericCols.length >= 3) {
+        bestChartTypes.push('scatter3d', 'surface3d');
+        recommendations.push('3+ numeric columns - 3D charts show multi-dimensional relationships');
+      }
     }
 
     // Distribution analysis
@@ -379,8 +385,32 @@ export const useAIChartGeneration = () => {
       let suggestedChartType = 'bar';
       let confidence = 0.7;
 
-      // Enhanced chart type detection with validation
-      if (lowerQuery.includes('trend') || lowerQuery.includes('over time') || lowerQuery.includes('timeline')) {
+      // Enhanced chart type detection with validation including 3D charts
+      if (lowerQuery.includes('3d') || lowerQuery.includes('three dimensional') || lowerQuery.includes('dimensional')) {
+        // 3D chart type detection
+        if (lowerQuery.includes('bar') || lowerQuery.includes('column')) {
+          suggestedChartType = 'bar3d';
+          confidence = 0.9;
+        } else if (lowerQuery.includes('scatter') || lowerQuery.includes('point') || lowerQuery.includes('correlation')) {
+          suggestedChartType = 'scatter3d';
+          confidence = 0.9;
+        } else if (lowerQuery.includes('surface') || lowerQuery.includes('mesh') || lowerQuery.includes('terrain')) {
+          suggestedChartType = 'surface3d';
+          confidence = 0.9;
+        } else if (lowerQuery.includes('network') || lowerQuery.includes('graph')) {
+          suggestedChartType = 'network3d';
+          confidence = 0.9;
+        } else {
+          // Default 3D chart based on data characteristics
+          const numericCols = columns.filter(c => c.type === 'numeric');
+          if (numericCols.length >= 3) {
+            suggestedChartType = 'scatter3d';
+          } else {
+            suggestedChartType = 'bar3d';
+          }
+          confidence = 0.8;
+        }
+      } else if (lowerQuery.includes('trend') || lowerQuery.includes('over time') || lowerQuery.includes('timeline')) {
         suggestedChartType = 'line';
         confidence = 0.9;
       } else if (lowerQuery.includes('compare') || lowerQuery.includes('comparison')) {

@@ -49,7 +49,10 @@ export const AIChartGenerator = ({ data, columns, onApplySuggestion }: AIChartGe
       "Compare categories by value", 
       "Show the distribution of data",
       "Find relationships between variables",
-      "Display proportions as percentages"
+      "Display proportions as percentages",
+      "Create a 3D visualization",
+      "Show 3D scatter plot",
+      "Display 3D bar chart"
     ];
 
     if (!hasContext || !domainContext) return basePrompts;
