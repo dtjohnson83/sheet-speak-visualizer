@@ -396,13 +396,13 @@ export class RecipeEngine {
   private static classifyColumnType(column: ColumnInfo): IngredientType {
     const name = column.name.toLowerCase();
     
-    // Enhanced Geographic detection
-    if (/(lat|lng|longitude|latitude|coord|geo|location|address|city|state|country|postal|zip|region)/i.test(name)) {
+    // Enhanced Geographic detection with comprehensive patterns
+    if (this.isGeographicColumn(name, column)) {
       return 'geographic';
     }
 
-    // Enhanced Temporal detection (for edge cases)
-    if (/(time|date|year|month|day|quarter|fiscal|period|timestamp|created|updated|when)/i.test(name)) {
+    // Enhanced Temporal detection with more patterns
+    if (this.isTemporalColumn(name, column)) {
       return 'temporal';
     }
 
@@ -411,30 +411,186 @@ export class RecipeEngine {
       case 'date':
         return 'temporal';
       case 'numeric':
-        // Check if numeric column might be geographic (like postal codes)
-        if (/(postal|zip|code|id)/i.test(name) && column.values) {
-          const uniqueValues = new Set(column.values).size;
-          // If many unique values, might be geographic identifiers
-          if (uniqueValues > column.values.length * 0.8) {
-            return 'geographic';
-          }
-        }
-        return 'numeric';
+        return this.analyzeNumericColumn(name, column);
       case 'categorical':
         return 'categorical';
       default:
-        // Enhanced textual analysis
-        if (column.values) {
-          const uniqueValues = new Set(column.values).size;
-          const totalValues = column.values.length;
+        return this.analyzeTextualColumn(column);
+    }
+  }
+
+  private static isGeographicColumn(name: string, column: ColumnInfo): boolean {
+    // Extended geographic patterns
+    const geoPatterns = [
+      // Coordinate patterns
+      /(lat|lng|longitude|latitude|coord|geo)/i,
+      // Location patterns
+      /(location|address|city|state|country|region|territory|province)/i,
+      // Postal patterns
+      /(postal|zip|zipcode|postcode)/i,
+      // Administrative patterns
+      /(county|district|municipality|borough|parish)/i,
+      // Geographic identifiers
+      /(fips|iso|geoname|placeid)/i
+    ];
+
+    // Check name patterns
+    if (geoPatterns.some(pattern => pattern.test(name))) {
+      return true;
+    }
+
+    // Analyze actual values for geographic patterns
+    if (column.values && column.values.length > 0) {
+      const sampleValues = column.values.slice(0, Math.min(50, column.values.length));
+      
+      // Check for coordinate patterns (lat/lng ranges)
+      if (column.type === 'numeric') {
+        const numValues = sampleValues.map(v => parseFloat(String(v))).filter(v => !isNaN(v));
+        if (numValues.length > 0) {
+          const min = Math.min(...numValues);
+          const max = Math.max(...numValues);
           
-          // If low cardinality, treat as categorical
-          if (uniqueValues <= 20 && uniqueValues < totalValues * 0.5) {
-            return 'categorical';
+          // Latitude range check (-90 to 90)
+          if (min >= -90 && max <= 90 && (name.includes('lat') || name.includes('y'))) {
+            return true;
+          }
+          
+          // Longitude range check (-180 to 180)
+          if (min >= -180 && max <= 180 && (name.includes('lng') || name.includes('lon') || name.includes('x'))) {
+            return true;
           }
         }
-        return 'textual';
+      }
+
+      // Check for postal codes patterns
+      const postalPattern = /^\d{5}(-\d{4})?$|^[A-Z]\d[A-Z] \d[A-Z]\d$/;
+      if (sampleValues.some(val => postalPattern.test(String(val)))) {
+        return true;
+      }
+
+      // Check for country codes (ISO patterns)
+      if (sampleValues.every(val => /^[A-Z]{2,3}$/.test(String(val)))) {
+        return true;
+      }
     }
+
+    return false;
+  }
+
+  private static isTemporalColumn(name: string, column: ColumnInfo): boolean {
+    // Extended temporal patterns
+    const temporalPatterns = [
+      // Standard time patterns
+      /(time|date|year|month|day|hour|minute|second)/i,
+      // Business time patterns
+      /(quarter|fiscal|period|semester|season)/i,
+      // Event time patterns
+      /(timestamp|created|updated|modified|published|when|start|end|begin|finish)/i,
+      // Relative time patterns
+      /(ago|since|until|before|after|during)/i
+    ];
+
+    // Check name patterns
+    if (temporalPatterns.some(pattern => pattern.test(name))) {
+      return true;
+    }
+
+    // Analyze values for temporal patterns
+    if (column.values && column.values.length > 0) {
+      const sampleValues = column.values.slice(0, Math.min(20, column.values.length));
+      
+      // Check for year patterns (1900-2100)
+      if (column.type === 'numeric') {
+        const numValues = sampleValues.map(v => parseInt(String(v))).filter(v => !isNaN(v));
+        if (numValues.every(val => val >= 1900 && val <= 2100)) {
+          return true;
+        }
+      }
+
+      // Check for date-like strings
+      const datePattern = /^\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4}/;
+      if (sampleValues.some(val => datePattern.test(String(val)))) {
+        return true;
+      }
+
+      // Check for quarter patterns (Q1, Q2, etc.)
+      if (sampleValues.some(val => /^Q[1-4]|[1-4]Q|\d{4}Q[1-4]/.test(String(val)))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static analyzeNumericColumn(name: string, column: ColumnInfo): IngredientType {
+    // Check if numeric column might be geographic (like postal codes)
+    if (/(postal|zip|code|id|fips)/i.test(name) && column.values) {
+      const uniqueValues = new Set(column.values).size;
+      // If many unique values, might be geographic identifiers
+      if (uniqueValues > column.values.length * 0.8) {
+        return 'geographic';
+      }
+    }
+
+    // Check if it might be temporal (years, timestamps)
+    if (column.values && column.values.length > 0) {
+      const sampleValues = column.values.slice(0, Math.min(20, column.values.length));
+      const numValues = sampleValues.map(v => parseFloat(String(v))).filter(v => !isNaN(v));
+      
+      if (numValues.length > 0) {
+        const min = Math.min(...numValues);
+        const max = Math.max(...numValues);
+        
+        // Check for year range
+        if (min >= 1900 && max <= 2100 && numValues.every(v => v % 1 === 0)) {
+          return 'temporal';
+        }
+        
+        // Check for timestamp range (Unix timestamps)
+        if (min > 1000000000 && max < 9999999999) {
+          return 'temporal';
+        }
+      }
+    }
+
+    return 'numeric';
+  }
+
+  private static analyzeTextualColumn(column: ColumnInfo): IngredientType {
+    if (!column.values || column.values.length === 0) {
+      return 'textual';
+    }
+
+    const uniqueValues = new Set(column.values).size;
+    const totalValues = column.values.length;
+    const uniqueRatio = uniqueValues / totalValues;
+
+    // Enhanced categorical detection
+    // Low cardinality suggests categorical
+    if (uniqueValues <= 50 && uniqueRatio < 0.7) {
+      return 'categorical';
+    }
+
+    // Medium cardinality with patterns might still be categorical
+    if (uniqueValues <= 200 && uniqueRatio < 0.5) {
+      // Check if values follow categorical patterns
+      const sampleValues = column.values.slice(0, Math.min(50, column.values.length));
+      
+      // Check for status/category patterns
+      const categoryPatterns = [
+        /^(yes|no|true|false|y|n|t|f)$/i,
+        /^(active|inactive|enabled|disabled|on|off)$/i,
+        /^(high|medium|low|small|large|xl|xxl)$/i,
+        /^(new|old|pending|approved|rejected|cancelled)$/i,
+        /^[A-Z]{1,3}$/  // Short codes like "CA", "NY", "USD"
+      ];
+      
+      if (sampleValues.some(val => categoryPatterns.some(pattern => pattern.test(String(val))))) {
+        return 'categorical';
+      }
+    }
+
+    return 'textual';
   }
 
   private static calculatePotency(column: ColumnInfo): number {
