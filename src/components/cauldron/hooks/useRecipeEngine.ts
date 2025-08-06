@@ -1,117 +1,136 @@
-import { useCallback } from 'react';
-import { CauldronSlot, CauldronRecipe, CauldronIngredient } from './useCauldronState';
+import { useState, useCallback, useMemo } from 'react';
+import { ColumnInfo } from '@/pages/Index';
+import { RecipeEngine, ChartRecipe, IngredientAnalysis } from '../utils/recipeEngine';
 
-export const useRecipeEngine = () => {
-  
-  const generateRecipe = useCallback((filledSlots: CauldronSlot[]): CauldronRecipe | null => {
-    if (filledSlots.length === 0) return null;
+interface UseRecipeEngineProps {
+  columns: ColumnInfo[];
+}
 
-    const primaryEssence = filledSlots.find(slot => slot.id === 'primary-essence')?.ingredient;
-    const secondaryEssence = filledSlots.find(slot => slot.id === 'secondary-essence')?.ingredient;
-    const dimensionalPortal = filledSlots.find(slot => slot.id === 'dimensional-portal')?.ingredient;
-    const groupingCrystals = filledSlots.find(slot => slot.id === 'grouping-crystals')?.ingredient;
-    const temporalAccelerator = filledSlots.find(slot => slot.id === 'temporal-accelerator')?.ingredient;
+export const useRecipeEngine = ({ columns }: UseRecipeEngineProps) => {
+  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<ChartRecipe | null>(null);
 
-    if (!primaryEssence || !secondaryEssence) return null;
+  // Analyze all available ingredients
+  const availableIngredients = useMemo(() => {
+    return RecipeEngine.analyzeIngredients(columns);
+  }, [columns]);
 
-    // Recipe logic based on ingredient combinations
-    let chartType = 'bar';
-    let confidence = 0;
-    let reasoning = '';
+  // Get active ingredients based on selection
+  const activeIngredients = useMemo(() => {
+    return availableIngredients.filter(ingredient => 
+      selectedIngredients.includes(ingredient.column)
+    );
+  }, [availableIngredients, selectedIngredients]);
 
-    // Temporal + Numeric = Line Chart
-    if (temporalAccelerator && secondaryEssence.type === 'numeric') {
-      chartType = 'line';
-      confidence = 95;
-      reasoning = 'Time-based data with numeric values creates perfect temporal visualizations';
-    }
-    // 3 Numeric dimensions = 3D Scatter
-    else if (primaryEssence.type === 'numeric' && secondaryEssence.type === 'numeric' && dimensionalPortal) {
-      chartType = 'scatter3d';
-      confidence = 90;
-      reasoning = 'Three numeric dimensions reveal multidimensional patterns in 3D space';
-    }
-    // 2 Numeric = Scatter Plot
-    else if (primaryEssence.type === 'numeric' && secondaryEssence.type === 'numeric') {
-      chartType = 'scatter';
-      confidence = 85;
-      reasoning = 'Two numeric essences reveal correlations through scatter visualization';
-    }
-    // Categorical + Numeric with high cardinality = Pie Chart
-    else if (primaryEssence.type === 'categorical' && secondaryEssence.type === 'numeric' && primaryEssence.uniqueValues > 8) {
-      chartType = 'pie';
-      confidence = 80;
-      reasoning = 'Categorical essence with many fragments works best as proportional pie slices';
-    }
-    // Categorical + Numeric with stacking = Stacked Bar
-    else if (primaryEssence.type === 'categorical' && secondaryEssence.type === 'numeric' && groupingCrystals) {
-      chartType = 'stacked-bar';
-      confidence = 88;
-      reasoning = 'Categorical base with grouping crystals creates layered dimensional views';
-    }
-    // Categorical + Numeric = Bar Chart
-    else if (primaryEssence.type === 'categorical' && secondaryEssence.type === 'numeric') {
-      chartType = 'bar';
-      confidence = 85;
-      reasoning = 'Classic combination of categories and values manifests as bar visualization';
-    }
-    // Date + Numeric = Area Chart (if no specific temporal accelerator)
-    else if (primaryEssence.type === 'date' && secondaryEssence.type === 'numeric') {
-      chartType = 'area';
-      confidence = 82;
-      reasoning = 'Date essence with numeric values flows naturally as area visualization';
-    }
-    else {
-      // Default fallback
-      confidence = 60;
-      reasoning = 'Standard essence combination suggests basic bar visualization';
-    }
+  // Find compatible recipes for current ingredients
+  const compatibleRecipes = useMemo(() => {
+    if (activeIngredients.length === 0) return [];
+    return RecipeEngine.findCompatibleRecipes(activeIngredients);
+  }, [activeIngredients]);
 
-    // Determine aggregation method based on data types
-    let aggregationMethod = 'sum';
-    if (secondaryEssence.potency > 80) {
-      aggregationMethod = 'average';
-    } else if (primaryEssence.type === 'date') {
-      aggregationMethod = 'sum';
-    }
+  // Get the best recipe
+  const bestRecipe = useMemo(() => {
+    if (activeIngredients.length === 0) return null;
+    return RecipeEngine.findBestRecipe(activeIngredients);
+  }, [activeIngredients]);
 
+  // Validate current ingredient combination
+  const validationResult = useMemo(() => {
+    return RecipeEngine.validateIngredientCombination(activeIngredients);
+  }, [activeIngredients]);
+
+  const addIngredient = useCallback((columnName: string) => {
+    setSelectedIngredients(prev => {
+      if (prev.includes(columnName)) return prev;
+      return [...prev, columnName];
+    });
+  }, []);
+
+  const removeIngredient = useCallback((columnName: string) => {
+    setSelectedIngredients(prev => prev.filter(name => name !== columnName));
+  }, []);
+
+  const clearIngredients = useCallback(() => {
+    setSelectedIngredients([]);
+    setSelectedRecipe(null);
+  }, []);
+
+  const toggleIngredient = useCallback((columnName: string) => {
+    setSelectedIngredients(prev => {
+      if (prev.includes(columnName)) {
+        return prev.filter(name => name !== columnName);
+      } else {
+        return [...prev, columnName];
+      }
+    });
+  }, []);
+
+  const selectRecipe = useCallback((recipe: ChartRecipe) => {
+    setSelectedRecipe(recipe);
+  }, []);
+
+  const analyzeIngredientCombination = useCallback(async (ingredients: string[]) => {
+    setIsAnalyzing(true);
+    
+    // Simulate analysis time for dramatic effect
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const ingredientAnalysis = availableIngredients.filter(ing => 
+      ingredients.includes(ing.column)
+    );
+    
+    const recipes = RecipeEngine.findCompatibleRecipes(ingredientAnalysis);
+    const best = RecipeEngine.findBestRecipe(ingredientAnalysis);
+    
+    setIsAnalyzing(false);
+    
     return {
-      chartType,
-      confidence,
-      reasoning,
-      xColumn: primaryEssence.columnName,
-      yColumn: secondaryEssence.columnName,
-      zColumn: dimensionalPortal?.columnName,
-      stackColumn: groupingCrystals?.columnName,
-      aggregationMethod
+      recipes,
+      bestRecipe: best,
+      analysis: ingredientAnalysis,
+      validation: RecipeEngine.validateIngredientCombination(ingredientAnalysis)
     };
-  }, []);
+  }, [availableIngredients]);
 
-  const getRecipeDescription = useCallback((recipe: CauldronRecipe): string => {
-    const chartTypeNames: Record<string, string> = {
-      'bar': 'Mystical Bar Elixir',
-      'line': 'Temporal Flow Potion',
-      'area': 'Essence Flow Brew',
-      'scatter': 'Correlation Crystal Ball',
-      'scatter3d': 'Dimensional Reality Sphere',
-      'pie': 'Proportional Wisdom Wheel',
-      'stacked-bar': 'Layered Power Columns'
-    };
+  const getIngredientByColumn = useCallback((columnName: string): IngredientAnalysis | undefined => {
+    return availableIngredients.find(ing => ing.column === columnName);
+  }, [availableIngredients]);
 
-    return chartTypeNames[recipe.chartType] || 'Unknown Magical Concoction';
-  }, []);
+  const isIngredientSelected = useCallback((columnName: string): boolean => {
+    return selectedIngredients.includes(columnName);
+  }, [selectedIngredients]);
 
-  const getConfidenceLevel = useCallback((confidence: number): { level: string; color: string } => {
-    if (confidence >= 90) return { level: 'Legendary', color: 'text-yellow-400' };
-    if (confidence >= 80) return { level: 'Epic', color: 'text-purple-400' };
-    if (confidence >= 70) return { level: 'Rare', color: 'text-blue-400' };
-    if (confidence >= 60) return { level: 'Common', color: 'text-green-400' };
-    return { level: 'Unstable', color: 'text-red-400' };
-  }, []);
+  const canBrewRecipe = useMemo(() => {
+    return validationResult.isValid && compatibleRecipes.length > 0;
+  }, [validationResult.isValid, compatibleRecipes.length]);
 
   return {
-    generateRecipe,
-    getRecipeDescription,
-    getConfidenceLevel
+    // Ingredients
+    availableIngredients,
+    activeIngredients,
+    selectedIngredients,
+    
+    // Recipes
+    compatibleRecipes,
+    bestRecipe,
+    selectedRecipe,
+    
+    // Validation
+    validationResult,
+    canBrewRecipe,
+    
+    // Actions
+    addIngredient,
+    removeIngredient,
+    clearIngredients,
+    toggleIngredient,
+    selectRecipe,
+    analyzeIngredientCombination,
+    getIngredientByColumn,
+    isIngredientSelected,
+    
+    // State
+    isAnalyzing
   };
 };

@@ -1,125 +1,131 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { CauldronIngredientPalette } from './CauldronIngredientPalette';
 import { MagicCauldron } from './MagicCauldron';
-import { useCauldronState, CauldronIngredient, CauldronRecipe } from './hooks/useCauldronState';
+import { BrewingAnimation } from './BrewingAnimation';
+import { RecipeSuggestions } from './RecipeSuggestions';
+import { useCauldronState } from './hooks/useCauldronState';
+import { useRecipeEngine } from './hooks/useRecipeEngine';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
-import { useChartConfiguration } from '@/components/chart/hooks/useChartConfiguration';
-import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
+import { ChartVisualization } from '@/components/ChartVisualization';
 
 interface CauldronVisualizationModeProps {
   data: DataRow[];
   columns: ColumnInfo[];
-  onSwitchToTraditional: () => void;
+  onSaveTile?: (tileData: any) => void;
 }
 
 export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps> = ({
   data,
   columns,
-  onSwitchToTraditional
+  onSaveTile
 }) => {
-  const {
-    slots,
-    ingredients,
-    isBrewing,
-    currentRecipe,
-    filledSlots,
-    isReadyToBrew,
-    getMagicalName,
-    addIngredientToSlot,
-    removeIngredientFromSlot,
-    clearCauldron,
-    isIngredientCompatible,
-    setIsBrewing,
-    setCurrentRecipe
-  } = useCauldronState(columns);
+  const [isBrewingActive, setIsBrewingActive] = useState(false);
+  const [brewingRecipe, setBrewingRecipe] = useState<any>(null);
+  const [showResult, setShowResult] = useState(false);
 
-  const {
-    draggedIngredient,
-    dragOverSlot,
-    handleDragStart,
-    handleDragEnd,
-    handleDragOver,
-    handleDragLeave
-  } = useDragAndDrop();
+  const { 
+    availableIngredients,
+    activeIngredients, 
+    compatibleRecipes, 
+    bestRecipe,
+    selectedRecipe,
+    validationResult,
+    canBrewRecipe,
+    toggleIngredient,
+    selectRecipe,
+    clearIngredients,
+    selectedIngredients
+  } = useRecipeEngine({ columns });
+  
+  const { handleDragStart } = useDragAndDrop();
 
-  const chartConfig = useChartConfiguration();
+  const handleIngredientDrop = (columnName: string) => {
+    toggleIngredient(columnName);
+  };
 
-  const handleBrew = useCallback(async (recipe: CauldronRecipe) => {
-    setIsBrewing(true);
-    setCurrentRecipe(recipe);
+  const handleBrewPotion = async () => {
+    if (!canBrewRecipe || !bestRecipe) return;
 
-    try {
-      // Apply the recipe to the chart configuration
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Brewing animation delay
-      
-      chartConfig.setChartType(recipe.chartType as any);
-      chartConfig.setXColumn(recipe.xColumn);
-      chartConfig.setYColumn(recipe.yColumn);
-      
-      if (recipe.zColumn) {
-        chartConfig.setZColumn(recipe.zColumn);
-      }
-      
-      if (recipe.stackColumn) {
-        chartConfig.setStackColumn(recipe.stackColumn);
-      }
-      
-      chartConfig.setAggregationMethod(recipe.aggregationMethod as any);
-
-      toast.success(`🎉 ${recipe.chartType} visualization brewed successfully!`, {
-        description: `Your magical chart is ready with ${recipe.confidence}% confidence!`
-      });
-
-    } catch (error) {
-      toast.error('🚫 Brewing failed!', {
-        description: 'The magical ingredients could not be combined properly.'
-      });
-    } finally {
-      setIsBrewing(false);
-    }
-  }, [chartConfig]);
-
-  const handleClearCauldron = useCallback(() => {
-    clearCauldron();
-    setCurrentRecipe(null);
-    toast.info('🧹 Cauldron cleared', {
-      description: 'Ready for new magical ingredients!'
+    setBrewingRecipe({
+      name: bestRecipe.name,
+      confidence: bestRecipe.confidence,
+      chartType: bestRecipe.chartType,
+      ingredients: activeIngredients.map(ing => ing.magicalName)
     });
-  }, [clearCauldron]);
+    setIsBrewingActive(true);
+  };
+
+  const handleBrewingComplete = () => {
+    setIsBrewingActive(false);
+    setShowResult(true);
+  };
+
+  const handleStartOver = () => {
+    clearIngredients();
+    setShowResult(false);
+    setBrewingRecipe(null);
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-      {/* Ingredient Palette */}
+      {/* Left Column - Ingredient Palette */}
       <div className="lg:col-span-1">
-        <Card className="p-4 h-full overflow-y-auto">
-          <CauldronIngredientPalette
-            ingredients={ingredients}
-            getMagicalName={getMagicalName}
-            onDragStart={handleDragStart}
-          />
-        </Card>
+        <CauldronIngredientPalette
+          ingredients={availableIngredients}
+          selectedIngredients={selectedIngredients}
+          onIngredientSelect={toggleIngredient}
+          onDragStart={() => {}}
+        />
       </div>
 
-      {/* Magic Cauldron */}
-      <div className="lg:col-span-2">
-        <MagicCauldron
-          slots={slots}
-          isReadyToBrew={isReadyToBrew}
-          isBrewing={isBrewing}
-          currentRecipe={currentRecipe}
-          isIngredientCompatible={isIngredientCompatible}
-          addIngredientToSlot={addIngredientToSlot}
-          removeIngredientFromSlot={removeIngredientFromSlot}
-          clearCauldron={handleClearCauldron}
-          onBrew={handleBrew}
-          filledSlots={filledSlots}
-          draggedIngredient={draggedIngredient}
-          dragOverSlot={dragOverSlot}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        />
+      {/* Middle Column - Cauldron and Brewing */}
+      <div className="lg:col-span-1 space-y-4">
+        {isBrewingActive ? (
+          <BrewingAnimation
+            isActive={isBrewingActive}
+            recipe={brewingRecipe}
+            onComplete={handleBrewingComplete}
+          />
+        ) : (
+          <div className="space-y-4">
+            <RecipeSuggestions
+              ingredients={activeIngredients}
+              recipes={compatibleRecipes}
+              onSelectRecipe={selectRecipe}
+              selectedRecipe={selectedRecipe}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Right Column - Recipe Suggestions and Results */}
+      <div className="lg:col-span-1">
+        {showResult && selectedRecipe ? (
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                🎉 Brewing Complete!
+              </h3>
+              <p className="text-muted-foreground">
+                Your {selectedRecipe.name} is ready
+              </p>
+            </div>
+            <ChartVisualization
+              data={data}
+              columns={columns}
+              onSaveTile={onSaveTile}
+              dataSourceName="Cauldron Creation"
+            />
+          </div>
+        ) : (
+          <RecipeSuggestions
+            ingredients={activeIngredients}
+            recipes={compatibleRecipes}
+            onSelectRecipe={selectRecipe}
+            selectedRecipe={selectedRecipe}
+          />
+        )}
       </div>
     </div>
   );
