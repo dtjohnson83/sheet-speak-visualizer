@@ -447,8 +447,9 @@ export class RecipeEngine {
         return true;
       }
 
-      // Check for country codes (ISO patterns)
-      if (sampleValues.every(val => /^[A-Z]{2,3}$/.test(String(val)))) {
+      // Check for country codes (ISO patterns) - only if name suggests geographic
+      const isCountryCodeColumn = /(country|nation|iso|code)/i.test(name);
+      if (isCountryCodeColumn && sampleValues.every(val => /^[A-Z]{2,3}$/.test(String(val)))) {
         return true;
       }
     }
