@@ -26,10 +26,11 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
   isTemporalAnimated = false,
   animationSpeed = 1000
 }) => {
-  const { geometry, material } = useMemo(() => {
+  const surfaceData = useMemo(() => {
+    // Early validation - check data exists first
     if (!data || data.length === 0) {
       console.warn('Surface3DChartRenderer: No data provided');
-      return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
+      return null;
     }
 
     // Ensure we have valid column names and data
@@ -41,7 +42,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
         hasData: data.length > 0,
         sampleKeys: data[0] ? Object.keys(data[0]) : []
       });
-      return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
+      return null;
     }
 
     // Check if columns exist in data
@@ -55,7 +56,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
         availableColumns,
         requestedColumns: { xColumn, yColumn, zColumn }
       });
-      return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
+      return null;
     }
 
     // Filter out invalid data entries
@@ -79,19 +80,27 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
           [zColumn]: { value: item[zColumn], type: typeof item[zColumn], isNumber: !isNaN(Number(item[zColumn])) }
         }))
       });
+      return null;
+    }
+
+    return validData;
+  }, [data, xColumn, yColumn, zColumn]);
+
+  const { geometry, material } = useMemo(() => {
+    if (!surfaceData) {
       return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
     }
 
     // Create a grid of vertices for the surface
-    const gridSize = Math.ceil(Math.sqrt(validData.length));
+    const gridSize = Math.ceil(Math.sqrt(surfaceData.length));
     const vertices: number[] = [];
     const indices: number[] = [];
     const colors: number[] = [];
     
     // Get value ranges for normalization
-    const xValues = validData.map(d => Number(d[xColumn]) || 0);
-    const yValues = validData.map(d => Number(d[yColumn]) || 0);
-    const zValues = validData.map(d => Number(d[zColumn]) || 0);
+    const xValues = surfaceData.map(d => Number(d[xColumn]) || 0);
+    const yValues = surfaceData.map(d => Number(d[yColumn]) || 0);
+    const zValues = surfaceData.map(d => Number(d[zColumn]) || 0);
     
     const xMin = Math.min(...xValues);
     const xMax = Math.max(...xValues);
@@ -111,8 +120,8 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
       for (let j = 0; j < gridSize; j++) {
         const dataIndex = i * gridSize + j;
         
-        if (dataIndex < validData.length) {
-          const item = validData[dataIndex];
+        if (dataIndex < surfaceData.length) {
+          const item = surfaceData[dataIndex];
           // Better utilize vertical space with full 4-unit height range
           const x = ((Number(item[xColumn]) || 0) - xMin) / xRange * scale - scale / 2;
           const y = ((Number(item[yColumn]) || 0) - yMin) / yRange * 4; // Use full 4-unit height range
@@ -162,7 +171,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     });
     
     return { geometry, material };
-  }, [data, xColumn, yColumn, zColumn, chartColors]);
+  }, [surfaceData, xColumn, yColumn, zColumn, chartColors]);
 
   return (
     <>

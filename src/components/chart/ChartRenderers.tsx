@@ -177,18 +177,20 @@ export const ChartRenderers = ({
   // 3D Charts
   if (chartType === 'bar3d') {
     return (
-      <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
-        <Bar3DChartRenderer
-          data={data}
-          xColumn={xColumn}
-          yColumn={yColumn}
-          zColumn={zColumn}
-          chartColors={chartColors}
-          showDataLabels={showDataLabels}
-          isTemporalAnimated={isTemporalAnimated}
-          animationSpeed={animationSpeed}
-        />
-      </Chart3DContainer>
+      <ChartErrorBoundary>
+        <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
+          <Bar3DChartRenderer
+            data={data}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            zColumn={zColumn}
+            chartColors={chartColors}
+            showDataLabels={showDataLabels}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
+          />
+        </Chart3DContainer>
+      </ChartErrorBoundary>
     );
   }
 
@@ -198,18 +200,20 @@ export const ChartRenderers = ({
     const validZColumn = zColumn || (numericColumns.length > 2 ? numericColumns[2].name : stackColumn) || yColumn;
     
     return (
-      <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
-        <Scatter3DChartRenderer
-          data={data}
-          xColumn={xColumn}
-          yColumn={yColumn}
-          zColumn={validZColumn}
-          chartColors={chartColors}
-          showDataLabels={showDataLabels}
-          isTemporalAnimated={isTemporalAnimated}
-          animationSpeed={animationSpeed}
-        />
-      </Chart3DContainer>
+      <ChartErrorBoundary>
+        <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
+          <Scatter3DChartRenderer
+            data={data}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            zColumn={validZColumn}
+            chartColors={chartColors}
+            showDataLabels={showDataLabels}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
+          />
+        </Chart3DContainer>
+      </ChartErrorBoundary>
     );
   }
 
@@ -219,18 +223,20 @@ export const ChartRenderers = ({
     const validZColumn = zColumn || (numericColumns.length > 2 ? numericColumns[2].name : stackColumn) || yColumn;
     
     return (
-      <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
-        <Surface3DChartRenderer
-          data={data}
-          xColumn={xColumn}
-          yColumn={yColumn}
-          zColumn={validZColumn}
-          chartColors={chartColors}
-          showDataLabels={showDataLabels}
-          isTemporalAnimated={isTemporalAnimated}
-          animationSpeed={animationSpeed}
-        />
-      </Chart3DContainer>
+      <ChartErrorBoundary>
+        <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
+          <Surface3DChartRenderer
+            data={data}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            zColumn={validZColumn}
+            chartColors={chartColors}
+            showDataLabels={showDataLabels}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
+          />
+        </Chart3DContainer>
+      </ChartErrorBoundary>
     );
   }
 

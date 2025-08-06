@@ -22,6 +22,11 @@ export class ChartErrorBoundary extends React.Component<ChartErrorBoundaryProps,
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Chart rendering error:', error, errorInfo);
+    
+    // Log additional context for ReferenceErrors
+    if (error.name === 'ReferenceError' && error.message.includes('before initialization')) {
+      console.error('ReferenceError detected - likely variable access before initialization in useMemo/useCallback');
+    }
   }
 
   render() {

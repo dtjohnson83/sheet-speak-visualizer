@@ -179,6 +179,7 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     }
   };
   const points = useMemo(() => {
+    // Early validation - check data exists first
     if (!data || data.length === 0) {
       console.warn('Scatter3DChartRenderer: No data provided');
       return [];
