@@ -38,7 +38,8 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
     clearIngredients,
     selectedIngredients,
     handleIngredientTypeChange,
-    typeOverrides
+    typeOverrides,
+    confidenceScores
   } = useRecipeEngine({ columns, datasetName: 'cauldron-dataset' });
   
   const { handleDragStart } = useDragAndDrop();
@@ -160,6 +161,7 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
           onIngredientSelect={toggleIngredient}
           onIngredientTypeChange={handleIngredientTypeChange}
           typeOverrides={typeOverrides}
+          confidenceScores={confidenceScores}
         />
       </div>
 

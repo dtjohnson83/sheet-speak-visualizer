@@ -13,6 +13,7 @@ interface CauldronIngredientPaletteProps {
   onIngredientSelect: (columnName: string) => void;
   onIngredientTypeChange?: (columnName: string, newType: IngredientType, confidence?: number) => void;
   typeOverrides?: Record<string, { type: IngredientType; confidence?: number; isOverridden?: boolean }>;
+  confidenceScores?: Record<string, number>;
 }
 
 export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps> = ({
@@ -20,7 +21,8 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
   selectedIngredients,
   onIngredientSelect,
   onIngredientTypeChange,
-  typeOverrides = {}
+  typeOverrides = {},
+  confidenceScores = {}
 }) => {
   const [editingIngredient, setEditingIngredient] = useState<string | null>(null);
   const [tempType, setTempType] = useState<IngredientType>('numeric');
@@ -162,7 +164,7 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
               const originalIngredient = ingredients.find(ing => ing.column === ingredient.column)!;
               const override = typeOverrides[ingredient.column];
               const isOverridden = override?.isOverridden;
-              const confidence = override?.confidence;
+              const confidence = override?.confidence ?? confidenceScores[ingredient.column];
               const isEditing = editingIngredient === ingredient.column;
               
               return (
