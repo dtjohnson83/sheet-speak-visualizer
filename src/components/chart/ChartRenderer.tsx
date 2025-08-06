@@ -13,7 +13,7 @@ interface ChartRendererProps {
   yColumn: string;
   zColumn?: string;
   stackColumn?: string;
-  sankeyTargetColumn?: string;
+  
   valueColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
@@ -38,7 +38,7 @@ export const ChartRenderer = ({
   yColumn,
   zColumn,
   stackColumn,
-  sankeyTargetColumn,
+  
   valueColumn,
   sortColumn,
   sortDirection,
@@ -71,9 +71,6 @@ export const ChartRenderer = ({
     if (!data) return false;
 
     switch (chartType) {
-      case 'sankey':
-        // For Sankey charts, check if data has nodes and links
-        return data.nodes && data.links && data.nodes.length > 0;
       case 'heatmap':
         // For heatmap, check if data is array with proper structure
         return Array.isArray(data) && data.length > 0;
@@ -92,10 +89,7 @@ export const ChartRenderer = ({
         <div className="text-center p-4">
           <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No chart data available</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {chartType === 'sankey' 
-              ? 'Check your source and target columns for Sankey chart.'
-              : 'Check your columns and filters. Make sure your data contains valid values.'
-            }
+            Check your columns and filters. Make sure your data contains valid values.
           </p>
         </div>
       </div>
@@ -106,7 +100,7 @@ export const ChartRenderer = ({
   const cleanYColumn = yColumn?.trim() || '';
 
   // Skip column validation for chart types that transform their data structure
-  const transformedDataChartTypes = ['heatmap', 'sankey', 'treemap'];
+  const transformedDataChartTypes = ['heatmap', 'treemap'];
   const skipColumnValidation = transformedDataChartTypes.includes(chartType);
 
   if (!skipColumnValidation) {
@@ -170,7 +164,7 @@ export const ChartRenderer = ({
       yColumn={cleanYColumn}
       zColumn={zColumn}
       stackColumn={stackColumn}
-      sankeyTargetColumn={sankeyTargetColumn}
+      
       valueColumn={valueColumn}
       sortColumn={sortColumn}
       sortDirection={sortDirection}

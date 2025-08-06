@@ -22,7 +22,7 @@ export interface DashboardTileData {
   yColumn: string;
   zColumn?: string;
   stackColumn?: string;
-  sankeyTargetColumn?: string;
+  
   valueColumn?: string;
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
@@ -147,7 +147,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
       tile.sortColumn || 'none',
       tile.sortDirection || 'desc',
       tile.stackColumn || '',
-      tile.sankeyTargetColumn || '',
+      
       true, // supportsMultipleSeries
       columns.filter(col => col.type === 'numeric'),
       'sum',
@@ -200,7 +200,6 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
         yColumn={columnMapping.yColumn}
         zColumn={tile.zColumn}
         stackColumn={tile.stackColumn}
-        sankeyTargetColumn={tile.sankeyTargetColumn}
         valueColumn={tile.valueColumn}
         sortColumn={tile.sortColumn}
         sortDirection={tile.sortDirection}
@@ -246,7 +245,7 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
               yColumn={columnMapping.yColumn}
               zColumn={tile.zColumn}
               stackColumn={tile.stackColumn}
-              sankeyTargetColumn={tile.sankeyTargetColumn}
+              
               valueColumn={tile.valueColumn}
               sortColumn={tile.sortColumn}
               sortDirection={tile.sortDirection}

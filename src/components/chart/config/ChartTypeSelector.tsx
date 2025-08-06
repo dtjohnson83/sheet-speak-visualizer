@@ -25,7 +25,7 @@ const chartTypes = [
   { value: 'heatmap', label: 'Heatmap', icon: Hash, category: '2D' },
   { value: 'histogram', label: 'Histogram', icon: BarChart2, category: '2D' },
   { value: 'treemap', label: 'Treemap', icon: Square, category: '2D' },
-  { value: 'sankey', label: 'Sankey Diagram', icon: TrendingUp, category: '2D' },
+  
   { value: 'kpi', label: 'KPI Cards', icon: Square, category: '2D' },
   { value: 'network', label: 'Network Graph', icon: TrendingUp, category: 'Graph' },
   { value: 'network3d', label: '3D Network', icon: Box, category: 'Graph' },

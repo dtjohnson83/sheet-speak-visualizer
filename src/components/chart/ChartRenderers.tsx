@@ -42,7 +42,7 @@ export const ChartRenderers = ({
   chartColors,
   showDataLabels,
   stackColumn,
-  sankeyTargetColumn,
+  
   valueColumn,
   aggregationMethod,
   zColumn,
@@ -347,21 +347,6 @@ export const ChartRenderers = ({
     );
   }
 
-  if (chartType === 'sankey') {
-    const SankeyChartRenderer = React.lazy(() => 
-      import('./renderers/SankeyChartRenderer').then(module => ({ default: module.SankeyChartRenderer }))
-    );
-
-    return (
-      <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading Sankey chart...</div>}>
-        <SankeyChartRenderer
-          data={data as any}
-          chartColors={chartColors}
-          showDataLabels={showDataLabels}
-        />
-      </React.Suspense>
-    );
-  }
 
   return <PlaceholderChartRenderer message="Select a chart type to visualize your data." />;
 };

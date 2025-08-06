@@ -275,20 +275,6 @@ export class RecipeEngine {
       },
       optimalColumns: {},
       magicalEffects: ['Stacked comparisons', 'Multi-dimensional analysis', 'Category breakdowns']
-    },
-    {
-      id: 'sankey-flow-enchantment',
-      name: 'Sankey Flow Enchantment',
-      chartType: 'sankey',
-      confidence: 0.81,
-      reasoning: 'Flow between categorical states reveals process patterns and transitions',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['categorical'],
-        optional: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows process flows', 'Reveals transitions', 'Energy transfers']
     }
   ];
 

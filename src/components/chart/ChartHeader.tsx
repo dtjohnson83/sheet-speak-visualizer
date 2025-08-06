@@ -4,21 +4,21 @@ import { Input } from '@/components/ui/input';
 import { Save, Edit2, Check, X } from 'lucide-react';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
-import { SankeyData } from '@/lib/chartDataUtils';
+
 import { useState } from 'react';
 import { ChartShareDialog } from './sharing/ChartShareDialog';
 interface ChartHeaderProps {
   chartType: string;
   xColumn: string;
   yColumn: string;
-  sankeyTargetColumn?: string;
+  
   series: SeriesConfig[];
   stackColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
   showDataLabels: boolean;
   aggregationMethod: any;
-  chartData: DataRow[] | SankeyData;
+  chartData: DataRow[];
   onSaveTile?: () => void;
   customTitle?: string;
   onTitleChange?: (title: string) => void;
@@ -32,7 +32,7 @@ export const ChartHeader = ({
   chartType,
   xColumn,
   yColumn,
-  sankeyTargetColumn,
+  
   series,
   stackColumn,
   sortColumn,
@@ -52,12 +52,7 @@ export const ChartHeader = ({
   const [tempTitle, setTempTitle] = useState('');
 
   const getDataPointCount = () => {
-    if (Array.isArray(chartData)) {
-      return chartData.length;
-    } else if (typeof chartData === 'object' && 'links' in chartData) {
-      return chartData.links.length;
-    }
-    return 0;
+    return chartData.length;
   };
 
   const getAggregationLabel = () => {
@@ -151,11 +146,11 @@ export const ChartHeader = ({
         </div>
         {xColumn && yColumn && (
           <p className="text-sm text-gray-600">
-            {chartType === 'sankey' ? `${xColumn} → ${sankeyTargetColumn} (${yColumn})` : `${xColumn} vs ${yColumn}`}
+            {`${xColumn} vs ${yColumn}`}
             {series.length > 0 && ` + ${series.length} additional series`} • {getDataPointCount()} data points
             {chartType === 'stacked-bar' && stackColumn && ` • Stacked by ${stackColumn}`}
             {sortColumn && sortColumn !== 'none' && ` • Sorted by ${sortColumn} (${sortDirection})`}
-            {chartType !== 'scatter' && chartType !== 'sankey' && ` • ${getAggregationLabel()} aggregation`}
+            {chartType !== 'scatter' && ` • ${getAggregationLabel()} aggregation`}
             {showDataLabels && ` • Data labels enabled`}
           </p>
         )}

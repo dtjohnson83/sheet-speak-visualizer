@@ -82,7 +82,7 @@ export const useDashboards = () => {
             xColumn: tile.xColumn,
             yColumn: tile.yColumn,
             stackColumn: tile.stackColumn,
-            sankeyTargetColumn: tile.sankeyTargetColumn,
+            
             valueColumn: tile.valueColumn,
             sortColumn: tile.sortColumn,
             sortDirection: tile.sortDirection,

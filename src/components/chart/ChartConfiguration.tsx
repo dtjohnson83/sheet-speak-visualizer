@@ -25,8 +25,6 @@ interface ChartConfigurationProps {
   setZColumn?: (value: string) => void;
   stackColumn: string;
   setStackColumn: (value: string) => void;
-  sankeyTargetColumn: string;
-  setSankeyTargetColumn: (value: string) => void;
   valueColumn: string;
   setValueColumn: (value: string) => void;
   sortColumn: string;
@@ -89,8 +87,6 @@ export const ChartConfiguration = ({
   categoricalColumns,
   dateColumns,
   data,
-  sankeyTargetColumn,
-  setSankeyTargetColumn
 }: ChartConfigurationProps) => {
   const [visualizationMode, setVisualizationMode] = useState<'traditional' | 'cauldron'>('traditional');
 

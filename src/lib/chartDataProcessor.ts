@@ -2,7 +2,7 @@
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
-import { SankeyData } from '@/lib/chartDataUtils';
+
 import { ColumnFormat } from '@/lib/columnFormatting';
 import { prepareHeatmapData } from './chart/heatmapProcessor';
 import { prepareTreemapData } from './chart/treemapProcessor';
@@ -21,7 +21,7 @@ export const prepareChartData = (
   sortColumn: string,
   sortDirection: 'asc' | 'desc',
   stackColumn: string,
-  sankeyTargetColumn: string,
+  
   supportsMultipleSeries: boolean,
   numericColumns: ColumnInfo[],
   aggregationMethod: AggregationMethod = 'sum',
@@ -29,7 +29,7 @@ export const prepareChartData = (
   columnFormats?: ColumnFormat[],
   topXLimit?: number | null,
   histogramBins?: number
-): DataRow[] | SankeyData => {
+): DataRow[] => {
   console.log('prepareChartData - Input params:', {
     dataLength: data.length,
     chartType,
@@ -65,13 +65,7 @@ export const prepareChartData = (
     return [];
   }
 
-  let processedData: DataRow[] | SankeyData = [];
-  
-  // Handle Sankey chart data processing
-  if (chartType === 'sankey') {
-    const { prepareSankeyData } = require('@/lib/chart/sankeyProcessor');
-    return prepareSankeyData(data, xColumn, sankeyTargetColumn, valueColumn || yColumn);
-  }
+  let processedData: DataRow[] = [];
 
   // Filter out invalid data rows
   const validData = data.filter(row => {
@@ -158,8 +152,7 @@ export const processChartData = (
     config.series,
     'none',
     'desc',
-    '',
-    '',
+    
     false,
     columns.filter(col => col.type === 'numeric'),
     'sum',

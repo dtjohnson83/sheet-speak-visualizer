@@ -62,7 +62,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     yColumn,
     zColumn,
     stackColumn,
-    sankeyTargetColumn,
     sortColumn,
     sortDirection,
     series,
@@ -83,7 +82,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     setYColumn,
     setZColumn,
     setStackColumn,
-    setSankeyTargetColumn,
+    
     setSortColumn,
     setSortDirection,
     setSeries,
@@ -176,7 +175,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
       supportsMultipleSeries,
       xColumn,
       yColumn,
-      sankeyTargetColumn,
       valueColumn,
       numericColumnsCount: numericColumns.length,
       numericColumns: numericColumns.map(c => ({ name: c.name, type: c.type })),
@@ -185,7 +183,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
       seriesCount: series.length,
       series: series.map(s => ({ id: s.id, column: s.column, type: s.type }))
     });
-  }, [chartType, supportsMultipleSeries, xColumn, yColumn, sankeyTargetColumn, valueColumn, numericColumns, categoricalColumns, dateColumns, series]);
+  }, [chartType, supportsMultipleSeries, xColumn, yColumn, valueColumn, numericColumns, categoricalColumns, dateColumns, series]);
 
   return (
     <div className="space-y-6">
@@ -250,8 +248,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           setZColumn={setZColumn}
           stackColumn={stackColumn}
           setStackColumn={setStackColumn}
-          sankeyTargetColumn={sankeyTargetColumn}
-          setSankeyTargetColumn={setSankeyTargetColumn}
           valueColumn={valueColumn}
           setValueColumn={setValueColumn}
           sortColumn={sortColumn}
@@ -310,7 +306,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
             yColumn={yColumn}
             zColumn={zColumn}
             stackColumn={stackColumn}
-            sankeyTargetColumn={sankeyTargetColumn}
+            
             valueColumn={valueColumn}
             sortColumn={sortColumn}
             sortDirection={sortDirection}

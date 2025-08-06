@@ -10,7 +10,7 @@ export interface ChartRenderersProps {
   xColumn: string;
   yColumn: string;
   stackColumn?: string;
-  sankeyTargetColumn?: string;
+  
   valueColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';

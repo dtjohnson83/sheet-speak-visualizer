@@ -19,7 +19,7 @@ interface ChartContainerProps {
   yColumn: string;
   zColumn?: string;
   stackColumn?: string;
-  sankeyTargetColumn?: string;
+  
   valueColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
@@ -47,7 +47,6 @@ export const ChartContainer = React.memo(({
   yColumn,
   zColumn,
   stackColumn,
-  sankeyTargetColumn,
   valueColumn,
   sortColumn,
   sortDirection,
@@ -91,7 +90,6 @@ export const ChartContainer = React.memo(({
     sortColumn,
     sortDirection,
     stackColumn,
-    sankeyTargetColumn,
     supportsMultipleSeries,
     numericColumns,
     aggregationMethod,
@@ -99,11 +97,11 @@ export const ChartContainer = React.memo(({
     columnFormats,
     topXLimit,
     histogramBins
-  ), [data, columns, chartType, xColumn, yColumn, series, sortColumn, sortDirection, stackColumn, sankeyTargetColumn, supportsMultipleSeries, numericColumns, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins]);
+  ), [data, columns, chartType, xColumn, yColumn, series, sortColumn, sortDirection, stackColumn, supportsMultipleSeries, numericColumns, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins]);
 
   // Handle different data types for different chart types
   const processedDataForChart = React.useMemo(() => {
-    const structuredDataChartTypes = ['sankey', 'heatmap', 'treemap'];
+    const structuredDataChartTypes = ['heatmap', 'treemap'];
     const result = structuredDataChartTypes.includes(chartType) 
       ? chartData  // Pass structured data directly for charts that need it
       : (Array.isArray(chartData) ? chartData : []); // Convert to array for standard charts
@@ -124,7 +122,6 @@ export const ChartContainer = React.memo(({
         chartType={chartType}
         xColumn={xColumn}
         yColumn={yColumn}
-        sankeyTargetColumn={sankeyTargetColumn}
         series={series}
         stackColumn={stackColumn}
         sortColumn={sortColumn}
@@ -158,7 +155,6 @@ export const ChartContainer = React.memo(({
                 yColumn={yColumn?.trim() || ''}
                 zColumn={zColumn}
                 stackColumn={stackColumn}
-                sankeyTargetColumn={sankeyTargetColumn}
                 valueColumn={valueColumn}
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
@@ -188,7 +184,7 @@ export const ChartContainer = React.memo(({
               yColumn={yColumn?.trim() || ''}
               zColumn={zColumn}
               stackColumn={stackColumn}
-              sankeyTargetColumn={sankeyTargetColumn}
+              
               valueColumn={valueColumn}
               sortColumn={sortColumn}
               sortDirection={sortDirection}

@@ -26,7 +26,7 @@ export const SpecializedConfiguration = ({
   numericColumns,
   categoricalColumns
 }: SpecializedConfigurationProps) => {
-  const needsValueColumn = chartType === 'heatmap' || chartType === 'sankey' || chartType === 'map2d' || chartType === 'map3d';
+  const needsValueColumn = chartType === 'heatmap' || chartType === 'map2d' || chartType === 'map3d';
   const needsSeriesColumn = chartType === 'map2d' || chartType === 'map3d';
   const isHistogram = chartType === 'histogram';
 

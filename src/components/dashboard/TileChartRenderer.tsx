@@ -6,8 +6,6 @@ import { ChartRenderers } from '../chart/ChartRenderers';
 import { getEffectiveSeries } from './utils/seriesUtils';
 import { logChartOperation } from '@/lib/logger';
 import { TileStackedBarChartRenderer } from './renderers/TileStackedBarChartRenderer';
-import { TileSankeyChartRenderer } from './renderers/TileSankeyChartRenderer';
-import { SankeyData } from '@/lib/chartDataUtils';
 
 interface TileChartRendererProps {
   chartType: string;
@@ -15,7 +13,7 @@ interface TileChartRendererProps {
   yColumn: string;
   zColumn?: string;
   stackColumn?: string;
-  sankeyTargetColumn?: string;
+  
   valueColumn?: string;
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
@@ -35,7 +33,7 @@ export const TileChartRenderer = React.memo(({
   yColumn, 
   zColumn,
   stackColumn, 
-  sankeyTargetColumn, 
+   
   valueColumn, 
   sortColumn, 
   sortDirection, 
@@ -78,18 +76,6 @@ export const TileChartRenderer = React.memo(({
     );
   }
 
-  if (chartType === 'sankey') {
-    return (
-      <div className="w-full h-full">
-        <TileSankeyChartRenderer
-          data={data as SankeyData}
-          effectiveSeries={effectiveSeries}
-          chartColors={chartColors}
-          showDataLabels={showDataLabels}
-        />
-      </div>
-    );
-  }
 
   // Use the same ChartRenderers as the main visualization
   return (
@@ -102,7 +88,7 @@ export const TileChartRenderer = React.memo(({
         yColumn={yColumn}
         zColumn={zColumn}
         stackColumn={stackColumn}
-        sankeyTargetColumn={sankeyTargetColumn}
+        
         valueColumn={valueColumn}
         sortColumn={sortColumn || 'none'}
         sortDirection={sortDirection || 'desc'}

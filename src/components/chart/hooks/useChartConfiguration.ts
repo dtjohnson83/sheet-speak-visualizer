@@ -103,7 +103,6 @@ export const useChartConfiguration = () => {
       xColumn: chartState.xColumn,
       yColumn: chartState.yColumn,
       stackColumn: chartState.stackColumn,
-      sankeyTargetColumn: chartState.sankeyTargetColumn,
       valueColumn,
       sortColumn: chartState.sortColumn,
       sortDirection: chartState.sortDirection,
@@ -114,7 +113,7 @@ export const useChartConfiguration = () => {
 
     console.log('ChartConfiguration - handleSaveTile - Preparing tile data:', {
       chartType: chartState.chartType,
-      sankeyTargetColumn: chartState.sankeyTargetColumn,
+      
       valueColumn,
       dataSourceName,
       fullTileData: tileData

@@ -33,7 +33,7 @@ export const useDashboard = () => {
   const addTile = (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => {
     console.log('useDashboard - addTile - Received tile data:', {
       chartType: tileData.chartType,
-      sankeyTargetColumn: tileData.sankeyTargetColumn,
+      
       valueColumn: tileData.valueColumn,
       fullTileData: tileData
     });
@@ -61,7 +61,7 @@ export const useDashboard = () => {
     console.log('useDashboard - addTile - Created new tile:', {
       id: newTile.id,
       chartType: newTile.chartType,
-      sankeyTargetColumn: newTile.sankeyTargetColumn,
+      
       valueColumn: newTile.valueColumn,
       fullNewTile: newTile
     });

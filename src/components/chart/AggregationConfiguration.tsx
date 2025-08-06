@@ -22,11 +22,11 @@ export const AggregationConfiguration = ({
   numericColumns
 }: AggregationConfigurationProps) => {
   // Show aggregation for charts that support it - now including KPI
-  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'stacked-bar', 'heatmap', 'sankey', 'kpi'].includes(chartType);
+  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'stacked-bar', 'heatmap', 'kpi'].includes(chartType);
   
   // For numeric Y columns or charts that always support aggregation
   const isNumericYColumn = numericColumns.some(col => col.name === yColumn);
-  const shouldShow = supportsAggregation && (isNumericYColumn || ['heatmap', 'sankey', 'kpi'].includes(chartType));
+  const shouldShow = supportsAggregation && (isNumericYColumn || ['heatmap', 'kpi'].includes(chartType));
   
   if (!shouldShow || (!yColumn && chartType !== 'kpi')) {
     return null;
@@ -38,8 +38,6 @@ export const AggregationConfiguration = ({
         return `KPI values will be ${aggregationMethod === 'count' ? 'counted' : 'aggregated using ' + aggregationMethod}`;
       case 'heatmap':
         return `Values will be grouped by X and Y axes and ${aggregationMethod} will be applied`;
-      case 'sankey':
-        return `Flow values will be grouped by source-target pairs and ${aggregationMethod} will be applied`;
       case 'bar':
       case 'line':
         return `Data points with the same X-axis value will be grouped and ${aggregationMethod} will be applied to ${yColumn} (primary series)`;

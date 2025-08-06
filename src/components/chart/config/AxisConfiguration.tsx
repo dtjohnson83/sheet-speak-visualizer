@@ -45,8 +45,7 @@ export const AxisConfiguration = ({
     <>
       <div>
         <label className="block text-sm font-medium mb-2">
-          {chartType === 'sankey' ? 'Source' : 
-           isHistogram ? 'Column to Analyze' : 
+          {isHistogram ? 'Column to Analyze' : 
            isGeoChart ? 'Longitude' : 
            'X-Axis'}
         </label>
@@ -70,8 +69,7 @@ export const AxisConfiguration = ({
       {!isHistogram && (
         <div>
           <label className="block text-sm font-medium mb-2">
-            {chartType === 'sankey' ? 'Target' : 
-             chartType === 'heatmap' ? 'Y-Axis' : 
+            {chartType === 'heatmap' ? 'Y-Axis' : 
              isGeoChart ? 'Latitude' : 
              'Y-Axis'}
           </label>
@@ -80,10 +78,9 @@ export const AxisConfiguration = ({
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
-            {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : 
-              chartType === 'sankey' ? categoricalColumns : 
-              isGeoChart ? numericColumns :
-              numericColumns).map((col) => (
+             {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : 
+               isGeoChart ? numericColumns :
+               numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
                 </SelectItem>

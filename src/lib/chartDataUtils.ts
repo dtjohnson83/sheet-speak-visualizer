@@ -2,10 +2,6 @@ import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 
-export interface SankeyData {
-  nodes: { id: string; name: string }[];
-  links: { source: string; target: string; value: number }[];
-}
 
 const cleanNumericValue = (value: any): number | null => {
   if (value === null || value === undefined || value === '') return null;
