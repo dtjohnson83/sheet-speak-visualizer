@@ -213,9 +213,9 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     console.log(`3D Scatter: Rendering ${dataCount} points with size ${adjustedDotSize} (tileMode: ${tileMode})`);
     
     return data.map((item, index) => {
-      // Better utilize vertical space with full 4-unit height range
+      // Normalize all axes to centered range (-scale/2 to +scale/2) to match axis positioning
       const x = ((Number(item[xColumn]) || 0) - xMin) / (xMax - xMin || 1) * scale - scale / 2;
-      const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale;
+      const y = ((Number(item[yColumn]) || 0) - yMin) / (yMax - yMin || 1) * scale - scale / 2;
       
       // Handle Z-axis: when zColumn same as yColumn, spread points along Z for visibility
       let z: number;

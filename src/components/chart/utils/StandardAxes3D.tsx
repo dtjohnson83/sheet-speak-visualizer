@@ -57,21 +57,21 @@ export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
         {xLabel}
       </Text>
 
-      {/* Y Axis - extends from 0 to +length */}
-      <mesh position={[0, axisLength / 2, 0]}>
+      {/* Y Axis - extends from -length/2 to +length/2 (centered like X and Z) */}
+      <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[0.015, 0.015, axisLength]} />
         <meshBasicMaterial color="#2ecc71" />
       </mesh>
       
       {/* Y Axis arrowhead */}
-      <mesh position={[0, axisLength, 0]}>
+      <mesh position={[0, axisLength / 2, 0]}>
         <coneGeometry args={[0.05, 0.15, 8]} />
         <meshBasicMaterial color="#2ecc71" />
       </mesh>
       
       {/* Y Axis label */}
       <Text 
-        position={[0, axisLength + 0.3, 0]} 
+        position={[0, axisLength / 2 + 0.3, 0]} 
         fontSize={0.12}
         color="#2ecc71"
         anchorX="center"
