@@ -111,7 +111,28 @@ export const useUnifiedAIRouter = ({ data, columns }: UseUnifiedAIRouterProps) =
       return response;
     } catch (error) {
       console.error('Error processing unified query:', error);
-      throw error;
+      
+      // Create a fallback response with error information
+      const fallbackResponse: UnifiedResponse = {
+        id: `error-${Date.now()}`,
+        query,
+        timestamp: new Date(),
+        textInsight: `I encountered an issue while analyzing your request: "${query}". Please try rephrasing your question or check if your data contains the information you're looking for.`,
+        sources: ['Error Handler'],
+        additionalInsights: [
+          'Ensure your data has sufficient records for analysis',
+          'Try asking more specific questions about your data',
+          'Check that column names in your question match those in your dataset'
+        ],
+        suggestedFollowUps: [
+          'What columns are available in my data?',
+          'Show me a summary of my data',
+          'What are the data types of my columns?'
+        ]
+      };
+      
+      setLastResponse(fallbackResponse);
+      return fallbackResponse;
     } finally {
       setIsProcessing(false);
     }

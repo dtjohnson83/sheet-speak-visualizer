@@ -41,14 +41,22 @@ export const UnifiedAIInterface: React.FC<UnifiedAIInterfaceProps> = ({
       
       console.log('🔄 Processing query with context:', queryWithContext.substring(0, 100) + '...');
       
+      toast.loading('Analyzing your data...', { id: 'ai-analysis' });
+      
       const response = await processUnifiedQuery(queryWithContext);
       
       console.log('✅ AI Response received:', response);
       
+      if (!response.textInsight && !response.chartSuggestion && (!response.kpis || response.kpis.length === 0)) {
+        console.warn('⚠️ Empty response received from AI');
+        toast.error('No insights generated. Try rephrasing your question.', { id: 'ai-analysis' });
+        return;
+      }
+      
       addToContext(currentQuery, response);
       setCurrentQuery('');
       
-      toast.success('Analysis completed successfully');
+      toast.success('Analysis completed successfully', { id: 'ai-analysis' });
     } catch (error) {
       console.error('❌ Error processing query:', error);
       toast.error('Failed to process your question. Please try again.');

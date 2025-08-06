@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ChartVisualization } from '@/components/ChartVisualization';
+import { AIConfiguredChart } from './AIConfiguredChart';
 import { UnifiedResponse } from './hooks/useUnifiedAIRouter';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { TrendingUp, BarChart3, Lightbulb, ArrowRight } from 'lucide-react';
@@ -103,9 +103,10 @@ export const UnifiedResponseRenderer: React.FC<UnifiedResponseRendererProps> = (
               </p>
             )}
             
-            <ChartVisualization
+            <AIConfiguredChart
               data={data}
               columns={columns}
+              chartSuggestion={response.chartSuggestion}
               onSaveTile={onSaveTile}
               dataSourceName="Unified Analysis"
             />
