@@ -49,6 +49,7 @@ export const useUnifiedAIRouter = ({ data, columns }: UseUnifiedAIRouterProps) =
     try {
       const classification = classifyQuery(query);
       const sources: string[] = [];
+      const additionalInsights: string[] = [];
       
       // Generate parallel AI responses
       const [aiResponse, chartResponse] = await Promise.all([
@@ -68,24 +69,41 @@ export const useUnifiedAIRouter = ({ data, columns }: UseUnifiedAIRouterProps) =
       let kpis: Array<{ label: string; value: string; change?: string; }> = [];
       
       if (aiResponse) {
+        console.log('🔍 Processing AI response:', aiResponse);
+        sources.push('Text Analysis');
+        
         if (aiResponse.type === 'text') {
-          textInsight = aiResponse.content;
+          textInsight = aiResponse.textContent || '';
         } else if (aiResponse.type === 'kpi') {
-          textInsight = aiResponse.explanation || '';
-          kpis = aiResponse.data?.map((kpi: any) => ({
-            label: kpi.label,
-            value: kpi.value,
-            change: kpi.change
-          })) || [];
+          // Handle KPI data from AIResponseData structure
+          if (aiResponse.kpiData) {
+            kpis = [{
+              label: aiResponse.kpiData.label,
+              value: aiResponse.kpiData.value.toString(),
+              change: aiResponse.kpiData.context
+            }];
+          }
+          textInsight = aiResponse.reasoning || '';
         } else if (aiResponse.type === 'mixed') {
           textInsight = aiResponse.textContent || '';
-          kpis = aiResponse.kpiData || [];
+          if (aiResponse.kpiData) {
+            kpis = [{
+              label: aiResponse.kpiData.label,
+              value: aiResponse.kpiData.value.toString(),
+              change: aiResponse.kpiData.context
+            }];
+          }
+        }
+        
+        // Add reasoning as additional insight if available
+        if (aiResponse.reasoning) {
+          additionalInsights.push(aiResponse.reasoning);
         }
       }
 
-      // Generate additional insights
-      const additionalInsights: string[] = [];
+      // Process chart response insights
       if (chartResponse) {
+        sources.push('Chart Generation');
         additionalInsights.push(`Visualization confidence: ${Math.round(chartResponse.confidence * 100)}%`);
         if (chartResponse.reasoning) {
           additionalInsights.push(chartResponse.reasoning);
