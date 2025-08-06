@@ -11,6 +11,7 @@ interface RecipeSuggestionsProps {
   recipes: ChartRecipe[];
   onSelectRecipe: (recipe: ChartRecipe) => void;
   selectedRecipe?: ChartRecipe;
+  onBrewRecipe?: (recipe: ChartRecipe) => void;
 }
 
 const getChartIcon = (chartType: string) => {
@@ -44,7 +45,8 @@ export const RecipeSuggestions: React.FC<RecipeSuggestionsProps> = ({
   ingredients,
   recipes,
   onSelectRecipe,
-  selectedRecipe
+  selectedRecipe,
+  onBrewRecipe
 }) => {
   if (ingredients.length === 0) {
     return (
@@ -160,10 +162,14 @@ export const RecipeSuggestions: React.FC<RecipeSuggestionsProps> = ({
                 </div>
 
                 {/* Action button for selected recipe */}
-                {isSelected && (
+                {isSelected && onBrewRecipe && (
                   <>
                     <Separator />
-                    <Button className="w-full" size="sm">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => onBrewRecipe(recipe)}
+                    >
                       <Zap className="h-4 w-4 mr-2" />
                       Brew This Recipe
                     </Button>

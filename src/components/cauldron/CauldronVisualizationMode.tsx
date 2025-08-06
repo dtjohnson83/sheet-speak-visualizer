@@ -7,7 +7,8 @@ import { RecipeSuggestions } from './RecipeSuggestions';
 import { useCauldronState } from './hooks/useCauldronState';
 import { useRecipeEngine } from './hooks/useRecipeEngine';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
-import { ChartVisualization } from '@/components/ChartVisualization';
+import { AIConfiguredChart } from '@/components/unified-ai/AIConfiguredChart';
+import { AIChartSuggestion } from '@/hooks/useAIChartGeneration';
 
 interface CauldronVisualizationModeProps {
   data: DataRow[];
@@ -44,15 +45,22 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
     toggleIngredient(columnName);
   };
 
-  const handleBrewPotion = async () => {
-    if (!canBrewRecipe || !bestRecipe) return;
+  const handleBrewPotion = async (recipe?: any) => {
+    const recipeToUse = recipe || bestRecipe;
+    if (!recipeToUse) return;
 
     setBrewingRecipe({
-      name: bestRecipe.name,
-      confidence: bestRecipe.confidence,
-      chartType: bestRecipe.chartType,
+      name: recipeToUse.name,
+      confidence: recipeToUse.confidence,
+      chartType: recipeToUse.chartType,
       ingredients: activeIngredients.map(ing => ing.magicalName)
     });
+    
+    // Set the selected recipe if one was passed
+    if (recipe) {
+      selectRecipe(recipe);
+    }
+    
     setIsBrewingActive(true);
   };
 
@@ -65,6 +73,50 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
     clearIngredients();
     setShowResult(false);
     setBrewingRecipe(null);
+  };
+
+  // Convert recipe to chart suggestion for proper chart rendering
+  const createChartSuggestionFromRecipe = (recipe: any, ingredients: any[]): AIChartSuggestion => {
+    const temporalIngredient = ingredients.find(ing => ing.type === 'temporal');
+    const numericIngredients = ingredients.filter(ing => ing.type === 'numeric');
+    const categoricalIngredient = ingredients.find(ing => ing.type === 'categorical');
+
+    let xColumn = '';
+    let yColumn = '';
+    
+    // Smart column assignment based on chart type and available ingredients
+    switch (recipe.chartType) {
+      case 'line':
+      case 'area':
+        xColumn = temporalIngredient?.column || categoricalIngredient?.column || '';
+        yColumn = numericIngredients[0]?.column || '';
+        break;
+      case 'bar':
+      case 'pie':
+        xColumn = categoricalIngredient?.column || temporalIngredient?.column || '';
+        yColumn = numericIngredients[0]?.column || '';
+        break;
+      case 'scatter':
+        xColumn = numericIngredients[0]?.column || '';
+        yColumn = numericIngredients[1]?.column || numericIngredients[0]?.column || '';
+        break;
+      default:
+        xColumn = ingredients[0]?.column || '';
+        yColumn = ingredients[1]?.column || '';
+    }
+
+    return {
+      chartType: recipe.chartType,
+      title: `${recipe.name}: ${xColumn} vs ${yColumn}`,
+      xColumn,
+      yColumn,
+      valueColumn: '',
+      stackColumn: '',
+      aggregationMethod: 'sum',
+      series: [],
+      reasoning: recipe.reasoning,
+      confidence: recipe.confidence || 0.8
+    };
   };
 
   return (
@@ -88,12 +140,13 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
           />
         ) : (
           <div className="space-y-4">
-            <RecipeSuggestions
-              ingredients={activeIngredients}
-              recipes={compatibleRecipes}
-              onSelectRecipe={selectRecipe}
-              selectedRecipe={selectedRecipe}
-            />
+          <RecipeSuggestions
+            ingredients={activeIngredients}
+            recipes={compatibleRecipes}
+            onSelectRecipe={selectRecipe}
+            selectedRecipe={selectedRecipe}
+            onBrewRecipe={handleBrewPotion}
+          />
           </div>
         )}
       </div>
@@ -110,9 +163,10 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
                 Your {selectedRecipe.name} is ready
               </p>
             </div>
-            <ChartVisualization
+            <AIConfiguredChart
               data={data}
               columns={columns}
+              chartSuggestion={createChartSuggestionFromRecipe(selectedRecipe, activeIngredients)}
               onSaveTile={onSaveTile}
               dataSourceName="Cauldron Creation"
             />
@@ -123,6 +177,7 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
             recipes={compatibleRecipes}
             onSelectRecipe={selectRecipe}
             selectedRecipe={selectedRecipe}
+            onBrewRecipe={handleBrewPotion}
           />
         )}
       </div>

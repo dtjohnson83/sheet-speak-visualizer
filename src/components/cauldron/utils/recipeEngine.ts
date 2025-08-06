@@ -120,12 +120,15 @@ export class RecipeEngine {
       const potency = this.calculatePotency(column);
       const magicalName = this.generateMagicalName(column.name, type);
       const properties = this.getIngredientProperties(column, type);
+      
+      // Calculate unique values from actual column data
+      const uniqueValues = column.values ? new Set(column.values).size : 0;
 
       return {
         column: column.name,
         type,
         potency,
-        uniqueValues: 0, // Will be calculated from actual data if available
+        uniqueValues,
         magicalName,
         properties
       };
@@ -148,12 +151,28 @@ export class RecipeEngine {
   }
 
   static findCompatibleRecipes(ingredients: IngredientAnalysis[]): ChartRecipe[] {
+    const uniqueRecipes = new Map();
+    
     return this.recipes
       .map(recipe => ({
         ...recipe,
         confidence: this.scoreRecipe(recipe, ingredients)
       }))
       .filter(recipe => recipe.confidence > 0.3)
+      .filter(recipe => {
+        // Prevent duplicate recipes by checking if we already have this chart type
+        if (uniqueRecipes.has(recipe.chartType)) {
+          const existing = uniqueRecipes.get(recipe.chartType);
+          if (recipe.confidence > existing.confidence) {
+            uniqueRecipes.set(recipe.chartType, recipe);
+            return true;
+          }
+          return false;
+        } else {
+          uniqueRecipes.set(recipe.chartType, recipe);
+          return true;
+        }
+      })
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 5);
   }
@@ -220,9 +239,13 @@ export class RecipeEngine {
   private static calculatePotency(column: ColumnInfo): number {
     let potency = 0.5; // Base potency
 
-    // Higher potency for more unique values (up to a point)
-    const uniqueRatio = 0 / 100; // Placeholder since uniqueValues not available
-    potency += Math.min(uniqueRatio * 0.3, 0.3);
+    // Calculate unique values ratio if data is available
+    if (column.values && column.values.length > 0) {
+      const uniqueValues = new Set(column.values).size;
+      const totalValues = column.values.length;
+      const uniqueRatio = uniqueValues / totalValues;
+      potency += Math.min(uniqueRatio * 0.3, 0.3);
+    }
 
     // Boost for temporal and numeric types
     if (column.type === 'date' || column.type === 'numeric') {
@@ -250,7 +273,19 @@ export class RecipeEngine {
   private static getIngredientProperties(column: ColumnInfo, type: IngredientType): string[] {
     const properties: string[] = [];
     
-    properties.push('Essence ready'); // Placeholder since uniqueValues not available
+    // Calculate actual unique values for better properties
+    if (column.values && column.values.length > 0) {
+      const uniqueValues = new Set(column.values).size;
+      if (uniqueValues > 100) {
+        properties.push('Highly diverse');
+      } else if (uniqueValues > 10) {
+        properties.push('Moderately diverse');
+      } else {
+        properties.push('Limited variety');
+      }
+    } else {
+      properties.push('Essence ready');
+    }
     
     switch (type) {
       case 'temporal':
