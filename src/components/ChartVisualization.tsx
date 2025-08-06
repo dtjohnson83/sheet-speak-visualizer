@@ -8,7 +8,7 @@ import { GeospatialDataDetector } from './chart/GeospatialDataDetector';
 import { GeoChartValidator } from './chart/GeoChartValidator';
 import { MapboxIntegration } from './chart/MapboxIntegration';
 import { AIChartGenerator } from './chart/AIChartGenerator';
-import { SmartChartDefaults } from './chart/SmartChartDefaults';
+
 
 import { DashboardTileData } from './dashboard/DashboardTile';
 import { ColumnFormat } from '@/lib/columnFormatting';
@@ -181,14 +181,6 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           </div>
         </div>
         
-        {/* Smart Chart Defaults */}
-        <SmartChartDefaults
-          data={chartData}
-          columns={chartColumns}
-          currentChartType={chartType}
-          hasUserInteracted={hasUserInteracted}
-          onApplyDefaults={handleApplySmartDefaults}
-        />
 
         <GeospatialDataDetector data={chartData} columns={chartColumns} />
         
