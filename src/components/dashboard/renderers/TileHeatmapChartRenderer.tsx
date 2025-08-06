@@ -20,6 +20,13 @@ export const TileHeatmapChartRenderer = ({
   valueColumn,
   chartColors 
 }: TileHeatmapChartRendererProps) => {
+  console.log('🔥 TileHeatmapChartRenderer - Props received:', {
+    valueColumn,
+    dataLength: data.length,
+    xColumn,
+    yColumn
+  });
+  
   // Process heatmap data
   const heatmapData = data.reduce((acc, row) => {
     const xValue = row[xColumn]?.toString() || 'Unknown';

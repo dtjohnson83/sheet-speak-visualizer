@@ -34,6 +34,8 @@ export const useChartConfiguration = () => {
       chartState.setSeries(pendingAISuggestion.series);
       setCustomTitle(pendingAISuggestion.title);
       
+      console.log('🎯 Applied AI suggestion - valueColumn set to:', pendingAISuggestion.valueColumn);
+      
       appliedSuggestionRef.current = pendingAISuggestion;
       setPendingAISuggestion(null);
 
