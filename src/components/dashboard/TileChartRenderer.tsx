@@ -5,6 +5,9 @@ import { SeriesConfig } from '@/hooks/useChartState';
 import { ChartRenderers } from '../chart/ChartRenderers';
 import { getEffectiveSeries } from './utils/seriesUtils';
 import { logChartOperation } from '@/lib/logger';
+import { TileStackedBarChartRenderer } from './renderers/TileStackedBarChartRenderer';
+import { TileSankeyChartRenderer } from './renderers/TileSankeyChartRenderer';
+import { SankeyData } from '@/lib/chartDataUtils';
 
 interface TileChartRendererProps {
   chartType: string;
@@ -56,6 +59,37 @@ export const TileChartRenderer = React.memo(({
     isArray: Array.isArray(data),
     dataLength: Array.isArray(data) ? data.length : 'structured'
   }, 'TileChartRenderer');
+
+  // Handle specialized tile renderers for better performance
+  if (chartType === 'stacked-bar') {
+    return (
+      <div className="w-full h-full">
+        <TileStackedBarChartRenderer
+          data={data as DataRow[]}
+          xColumn={xColumn}
+          stackColumn={stackColumn}
+          effectiveSeries={effectiveSeries}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+          xAxisLabel={xAxisLabel}
+          yAxisLabel={yAxisLabel}
+        />
+      </div>
+    );
+  }
+
+  if (chartType === 'sankey') {
+    return (
+      <div className="w-full h-full">
+        <TileSankeyChartRenderer
+          data={data as SankeyData}
+          effectiveSeries={effectiveSeries}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </div>
+    );
+  }
 
   // Use the same ChartRenderers as the main visualization
   return (

@@ -13,7 +13,7 @@ export interface SeriesConfig {
 }
 
 export const useChartState = () => {
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'area' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'histogram' | 'kpi' | 'bar3d' | 'scatter3d' | 'surface3d' | 'network' | 'network3d' | 'entity-relationship' | 'map2d' | 'map3d'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'area' | 'pie' | 'scatter' | 'heatmap' | 'stacked-bar' | 'treemap' | 'histogram' | 'kpi' | 'sankey' | 'bar3d' | 'scatter3d' | 'surface3d' | 'network' | 'network3d' | 'entity-relationship' | 'map2d' | 'map3d'>('bar');
   const [xColumn, setXColumn] = useState<string>('');
   const [yColumn, setYColumn] = useState<string>('');
   const [zColumn, setZColumn] = useState<string>('');
@@ -41,7 +41,7 @@ export const useChartState = () => {
   const supportsMultipleSeries = multiSeriesChartTypes.includes(chartType);
 
   // Charts that support data labels
-  const dataLabelSupportedCharts = ['bar', 'line', 'area', 'pie', 'stacked-bar', 'histogram', 'treemap', 'bar3d', 'scatter3d', 'network', 'network3d', 'entity-relationship', 'map2d', 'map3d'];
+  const dataLabelSupportedCharts = ['bar', 'line', 'area', 'pie', 'stacked-bar', 'histogram', 'treemap', 'sankey', 'bar3d', 'scatter3d', 'network', 'network3d', 'entity-relationship', 'map2d', 'map3d'];
   const supportsDataLabels = dataLabelSupportedCharts.includes(chartType);
 
   const handleChartTypeChange = (newType: any) => {

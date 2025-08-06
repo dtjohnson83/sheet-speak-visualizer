@@ -66,6 +66,12 @@ export const prepareChartData = (
   }
 
   let processedData: DataRow[] | SankeyData = [];
+  
+  // Handle Sankey chart data processing
+  if (chartType === 'sankey') {
+    const { prepareSankeyData } = require('@/lib/chart/sankeyProcessor');
+    return prepareSankeyData(data, xColumn, sankeyTargetColumn, valueColumn || yColumn);
+  }
 
   // Filter out invalid data rows
   const validData = data.filter(row => {

@@ -17,6 +17,7 @@ interface ChartTypeSelectorProps {
 
 const chartTypes = [
   { value: 'bar', label: 'Bar Chart', icon: BarChart3, category: '2D' },
+  { value: 'stacked-bar', label: 'Stacked Bar Chart', icon: BarChart3, category: '2D' },
   { value: 'line', label: 'Line Chart', icon: LineChart, category: '2D' },
   { value: 'area', label: 'Area Chart', icon: AreaChart, category: '2D' },
   { value: 'pie', label: 'Pie Chart', icon: PieChart, category: '2D' },
@@ -24,6 +25,7 @@ const chartTypes = [
   { value: 'heatmap', label: 'Heatmap', icon: Hash, category: '2D' },
   { value: 'histogram', label: 'Histogram', icon: BarChart2, category: '2D' },
   { value: 'treemap', label: 'Treemap', icon: Square, category: '2D' },
+  { value: 'sankey', label: 'Sankey Diagram', icon: TrendingUp, category: '2D' },
   { value: 'kpi', label: 'KPI Cards', icon: Square, category: '2D' },
   { value: 'network', label: 'Network Graph', icon: TrendingUp, category: 'Graph' },
   { value: 'network3d', label: '3D Network', icon: Box, category: 'Graph' },

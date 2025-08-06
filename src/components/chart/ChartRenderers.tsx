@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ChartRenderersProps } from '@/types';
+import { DataRow } from '@/pages/Index';
 import { KPIRenderer } from './KPIRenderer';
 import { AggregationMethod } from './AggregationConfiguration';
 import { BarChartRenderer } from './renderers/BarChartRenderer';
@@ -327,6 +328,38 @@ export const ChartRenderers = ({
           })()}
         </React.Suspense>
       </ChartErrorBoundary>
+    );
+  }
+
+  if (chartType === 'stacked-bar') {
+    return (
+      <BarChartRenderer
+        data={data as DataRow[]}
+        xColumn={xColumn}
+        yColumn={yColumn}
+        series={series}
+        stackColumn={stackColumn || 'stack'}
+        chartColors={chartColors}
+        showDataLabels={showDataLabels}
+        xAxisLabel={xAxisLabel}
+        yAxisLabel={yAxisLabel}
+      />
+    );
+  }
+
+  if (chartType === 'sankey') {
+    const SankeyChartRenderer = React.lazy(() => 
+      import('./renderers/SankeyChartRenderer').then(module => ({ default: module.SankeyChartRenderer }))
+    );
+
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading Sankey chart...</div>}>
+        <SankeyChartRenderer
+          data={data as any}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+        />
+      </React.Suspense>
     );
   }
 

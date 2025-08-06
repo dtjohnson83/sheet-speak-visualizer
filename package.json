@@ -57,6 +57,7 @@
     "cmdk": "^1.0.0",
     "compromise": "^14.14.4",
     "d3": "^7.9.0",
+    "d3-sankey": "^0.12.3",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "gif.js": "^0.2.0",
