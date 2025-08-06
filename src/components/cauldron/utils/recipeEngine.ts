@@ -662,8 +662,38 @@ export class RecipeEngine {
         }
       }
       
-      // Require at least one secondary ingredient match
-      if (secondaryMatches === 0) return 0;
+      // CRITICAL: Require at least one secondary ingredient match for charts that need them
+      if (secondaryMatches === 0) {
+        console.log(`Recipe ${recipe.id} rejected: No secondary ingredients match`, {
+          required: requiredSecondary,
+          available: ingredientTypes,
+          ingredientCount: ingredients.length
+        });
+        return 0;
+      }
+      
+      // For pie charts specifically, enforce strict requirements
+      if (recipe.chartType === 'pie') {
+        const hasCategorical = ingredientTypes.includes('categorical');
+        const hasNumeric = ingredientTypes.includes('numeric');
+        
+        // Pie charts MUST have exactly 1 categorical (for slices) and 1 numeric (for values)
+        if (!hasCategorical || !hasNumeric) {
+          console.log(`Pie chart rejected: Missing required types`, {
+            hasCategorical,
+            hasNumeric,
+            ingredientTypes
+          });
+          return 0;
+        }
+        
+        // Penalize pie charts if there are too many categorical dimensions
+        const categoricalCount = ingredients.filter(i => i.type === 'categorical').length;
+        if (categoricalCount > 1) {
+          console.log(`Pie chart penalized: Too many categorical dimensions (${categoricalCount})`);
+          score -= 0.3; // Heavy penalty for multiple categorical dimensions
+        }
+      }
       
       // Award points based on how many secondary ingredients match
       const secondaryPercent = secondaryMatches / requiredSecondary.length;
@@ -699,6 +729,22 @@ export class RecipeEngine {
     // Perfect combinations for specific chart types
     const perfectCombinations: Record<string, () => number> = {
       histogram: () => typeCount.numeric === 1 && ingredients.length === 1 ? 0.15 : 0,
+      pie: () => {
+        // Pie charts work best with exactly 1 categorical and 1 numeric
+        const categoricalCount = ingredients.filter(i => i.type === 'categorical').length;
+        const numericCount = ingredients.filter(i => i.type === 'numeric').length;
+        
+        if (categoricalCount === 1 && numericCount === 1 && ingredients.length === 2) {
+          return 0.2; // Strong bonus for perfect pie chart setup
+        }
+        if (categoricalCount === 1 && numericCount === 1) {
+          return 0.1; // Decent bonus even with extra ingredients
+        }
+        if (categoricalCount > 1) {
+          return -0.2; // Heavy penalty for multiple categorical dimensions
+        }
+        return 0;
+      },
       scatter3d: () => typeCount.numeric >= 3 ? 0.12 : 0,
       surface3d: () => typeCount.numeric >= 2 && typeCount.categorical >= 1 ? 0.1 : 0,
       bar3d: () => typeCount.categorical >= 1 && typeCount.numeric >= 1 ? 0.08 : 0,

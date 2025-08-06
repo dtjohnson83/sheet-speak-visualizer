@@ -152,7 +152,7 @@ export const processChartData = (
     config.series,
     'none',
     'desc',
-    
+    '',
     false,
     columns.filter(col => col.type === 'numeric'),
     'sum',
