@@ -215,14 +215,38 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
   const bars = useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    const maxValue = Math.max(...data.map(d => Number(d[yColumn]) || 0));
-    const gridSize = Math.ceil(Math.sqrt(data.length));
+    // Ensure we have valid column names and data
+    if (!xColumn || !yColumn) {
+      console.warn('Bar3DChartRenderer: Missing required columns', { xColumn, yColumn });
+      return [];
+    }
+
+    // Filter out invalid data entries
+    const validData = data.filter(item => 
+      item && 
+      item[xColumn] !== undefined && 
+      item[yColumn] !== undefined &&
+      !isNaN(Number(item[yColumn]))
+    );
+
+    if (validData.length === 0) {
+      console.warn('Bar3DChartRenderer: No valid data after filtering', { data, xColumn, yColumn });
+      return [];
+    }
+
+    const maxValue = Math.max(...validData.map(d => Number(d[yColumn]) || 0));
+    if (maxValue === 0) {
+      console.warn('Bar3DChartRenderer: All values are zero or invalid');
+      return [];
+    }
+
+    const gridSize = Math.ceil(Math.sqrt(validData.length));
     const spacing = 3.5 / gridSize; // Fit within axis bounds
     
     // Adjust bar width for tile mode - increased for better visibility
     const barWidth = tileMode ? Math.min(1.2, 2.0 / gridSize) : 0.6;
     
-    return data.map((item, index) => {
+    return validData.map((item, index) => {
       const value = Number(item[yColumn]) || 0;
       const normalizedHeight = (value / maxValue) * 4; // Max height of 4 units for better vertical space usage
       
@@ -236,12 +260,34 @@ export const Bar3DChartRenderer: React.FC<Bar3DChartRendererProps> = ({
         position: [x, normalizedHeight / 2, z] as [number, number, number],
         scale: [barWidth, Math.max(0.1, normalizedHeight), barWidth] as [number, number, number],
         color: chartColors[index % chartColors.length],
-        label: String(item[xColumn]),
+        label: String(item[xColumn] || `Item ${index + 1}`),
         value: value,
         key: `bar-${index}`
       };
     });
-  }, [data, xColumn, yColumn, chartColors]);
+  }, [data, xColumn, yColumn, chartColors, tileMode]);
+
+  // Early return if no bars to render
+  if (bars.length === 0) {
+    return (
+      <group>
+        <StandardAxes3D 
+          xLabel={xColumn || "Category"}
+          yLabel={yColumn || "Value"}
+          zLabel={zColumn || "Category"}
+          axisLength={4}
+          showGrid={true}
+          showOrigin={true}
+          showZAxis={zColumn && zColumn !== yColumn}
+        />
+        {/* Display a message when no data is available */}
+        <mesh position={[0, 2, 0]}>
+          <boxGeometry args={[0.1, 0.1, 0.1]} />
+          <meshBasicMaterial color="#ff6b6b" transparent opacity={0.7} />
+        </mesh>
+      </group>
+    );
+  }
 
   return (
     <>

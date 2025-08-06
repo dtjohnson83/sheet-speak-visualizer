@@ -87,6 +87,24 @@ export const autoMapColumns = (
     if (!validation.yExists) {
       newYColumn = entityColumns[1]?.name || relationshipColumns[0]?.name || numericColumns[0]?.name || '';
     }
+  } else if (chartType === 'bar3d' || chartType === 'scatter3d' || chartType === 'surface3d') {
+    // 3D charts need specific column mapping
+    if (!validation.xExists) {
+      // For 3D charts, prefer categorical for X-axis
+      newXColumn = categoricalColumns[0]?.name || entityColumns[0]?.name || availableColumns[0]?.name || '';
+    }
+    if (!validation.yExists) {
+      // For 3D charts, require numeric for Y-axis (height/value)
+      newYColumn = numericColumns[0]?.name || relationshipColumns[0]?.name || '';
+      if (!newYColumn && availableColumns.length > 1) {
+        // Fallback: try to find any numeric-like column
+        const numericLikeColumn = availableColumns.find(col => 
+          col.name !== newXColumn && 
+          (col.type === 'numeric' || /\d/.test(String(availableColumns[0]?.[col.name])))
+        );
+        newYColumn = numericLikeColumn?.name || '';
+      }
+    }
   } else {
     // For X-axis: prefer entity/categorical columns, fallback to first available
     if (!validation.xExists) {
