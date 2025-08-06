@@ -142,6 +142,40 @@ const tutorialSteps: TutorialStep[] = [
       </div>
     )
   },
+  {
+    id: 'ai',
+    title: 'AI-Powered Insights',
+    description: 'Let AI analyze your data and provide intelligent recommendations',
+    icon: Sparkles,
+    target: 'ai-chat-tab',
+    content: (
+      <div className="space-y-4">
+        <Sparkles className="h-12 w-12 text-amber-600 mb-4" />
+        <h3 className="text-xl font-bold">AI-Powered Analysis</h3>
+        <p className="text-muted-foreground">
+          Explore the AI features to get intelligent insights about your data:
+        </p>
+        <ul className="space-y-2 text-sm">
+          <li className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full" />
+            AI Chat - Ask questions about your data
+          </li>
+          <li className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full" />
+            AI Reports - Get automated summaries
+          </li>
+          <li className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full" />
+            Data Quality - Automated quality checks
+          </li>
+          <li className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full" />
+            Predictive Analytics - Forecast trends
+          </li>
+        </ul>
+      </div>
+    )
+  }
 ];
 
 interface TutorialOverlayProps {
