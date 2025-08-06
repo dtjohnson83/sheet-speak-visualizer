@@ -60,11 +60,11 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
       </div>
       
       <Tabs defaultValue="question-analytics" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+        <TabsList className="grid w-full grid-cols-1 gap-1">
           <TabsTrigger value="question-analytics">Question Analytics</TabsTrigger>
-          <TabsTrigger value="graph-analysis">Graph Analysis</TabsTrigger>
+          {/* <TabsTrigger value="graph-analysis">Graph Analysis</TabsTrigger>
           <TabsTrigger value="business-intelligence">Business Intelligence</TabsTrigger>
-          <TabsTrigger value="process-mining">Process Mining</TabsTrigger>
+          <TabsTrigger value="process-mining">Process Mining</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="question-analytics">
@@ -75,7 +75,7 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
           />
         </TabsContent>
 
-        <TabsContent value="graph-analysis">
+        {/* <TabsContent value="graph-analysis">
           <GraphAnalysisTab
             data={activeData}
             columns={activeColumns}
@@ -97,7 +97,7 @@ export const TabContentAgents: React.FC<TabContentAgentsProps> = ({
             columns={activeColumns}
             datasetId={activeFileName}
           />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </TabsContent>
   );
