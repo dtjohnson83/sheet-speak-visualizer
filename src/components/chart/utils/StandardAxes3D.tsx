@@ -49,7 +49,7 @@ export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
       {/* X Axis label */}
       <Text 
         position={[axisLength / 2 + 0.3, 0, 0]} 
-        fontSize={0.2} 
+        fontSize={0.12}
         color="#e74c3c"
         anchorX="center"
         anchorY="middle"
@@ -72,7 +72,7 @@ export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
       {/* Y Axis label */}
       <Text 
         position={[0, axisLength + 0.3, 0]} 
-        fontSize={0.2} 
+        fontSize={0.12}
         color="#2ecc71"
         anchorX="center"
         anchorY="middle"
@@ -97,7 +97,7 @@ export const StandardAxes3D: React.FC<StandardAxes3DProps> = ({
           {/* Z Axis label */}
           <Text 
             position={[0, 0, axisLength / 2 + 0.3]} 
-            fontSize={0.2} 
+            fontSize={0.12} 
             color="#3498db"
             anchorX="center"
             anchorY="middle"

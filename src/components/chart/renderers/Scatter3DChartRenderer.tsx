@@ -122,7 +122,7 @@ const Point3D: React.FC<PointProps> = ({
       {showLabel && label && !hovered && (
         <Text
           position={[position[0], position[1] + size + 0.3, position[2]]}
-          fontSize={0.2}
+          fontSize={0.12}
           color="hsl(var(--foreground))"
           anchorX="center"
           anchorY="middle"

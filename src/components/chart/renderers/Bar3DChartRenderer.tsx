@@ -156,7 +156,7 @@ const Bar3D: React.FC<BarProps> = ({
       {showLabel && label && !hovered && (
         <Text
           position={[position[0], position[1] + scale[1] / 2 + 0.5, position[2]]}
-          fontSize={0.4}
+          fontSize={0.24}
           color="hsl(var(--foreground))"
           anchorX="center"
           anchorY="middle"
