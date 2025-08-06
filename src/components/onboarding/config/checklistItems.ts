@@ -50,12 +50,4 @@ export const getChecklistItems = (): ChecklistItemConfig[] => [
     actionText: 'View Dashboard',
     targetTab: 'dashboard'
   },
-  {
-    id: 'try-ai',
-    title: 'Try Enhanced AI Features',
-    description: 'Ask questions about your data quality, relationships, and get AI-powered insights',
-    icon: Sparkles,
-    actionText: 'Try AI Chat',
-    targetTab: 'ai-chat'
-  }
 ];
