@@ -109,6 +109,7 @@ export const DataPreviewContainer = ({ data, columns, fileName, onColumnTypeChan
         <ColumnTypeOverride 
           columns={columns}
           onColumnTypeChange={handleColumnTypeChange}
+          datasetName={fileName}
         />
 
         <DataTable

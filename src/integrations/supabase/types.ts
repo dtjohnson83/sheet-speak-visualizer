@@ -669,6 +669,93 @@ export type Database = {
         }
         Relationships: []
       }
+      classification_rules: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          created_from_feedback_count: number | null
+          id: string
+          is_active: boolean | null
+          pattern: string
+          rule_name: string
+          rule_type: string
+          success_rate: number | null
+          target_type: string
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          created_from_feedback_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          pattern: string
+          rule_name: string
+          rule_type: string
+          success_rate?: number | null
+          target_type: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          created_from_feedback_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          pattern?: string
+          rule_name?: string
+          rule_type?: string
+          success_rate?: number | null
+          target_type?: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      column_type_feedback: {
+        Row: {
+          column_context: Json
+          column_name: string
+          confidence_score: number | null
+          corrected_type: string
+          created_at: string
+          dataset_name: string | null
+          id: string
+          is_processed: boolean | null
+          original_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_context?: Json
+          column_name: string
+          confidence_score?: number | null
+          corrected_type: string
+          created_at?: string
+          dataset_name?: string | null
+          id?: string
+          is_processed?: boolean | null
+          original_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_context?: Json
+          column_name?: string
+          confidence_score?: number | null
+          corrected_type?: string
+          created_at?: string
+          dataset_name?: string | null
+          id?: string
+          is_processed?: boolean | null
+          original_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dashboard_filters: {
         Row: {
           created_at: string
