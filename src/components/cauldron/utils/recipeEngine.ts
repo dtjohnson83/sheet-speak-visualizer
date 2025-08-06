@@ -328,32 +328,6 @@ export class RecipeEngine {
     return bestRecipe;
   }
 
-  static findCompatibleRecipes(ingredients: IngredientAnalysis[]): ChartRecipe[] {
-    const uniqueRecipes = new Map();
-    
-    return this.recipes
-      .map(recipe => ({
-        ...recipe,
-        confidence: this.scoreRecipe(recipe, ingredients)
-      }))
-      .filter(recipe => recipe.confidence > 0.3)
-      .filter(recipe => {
-        // Prevent duplicate recipes by checking if we already have this chart type
-        if (uniqueRecipes.has(recipe.chartType)) {
-          const existing = uniqueRecipes.get(recipe.chartType);
-          if (recipe.confidence > existing.confidence) {
-            uniqueRecipes.set(recipe.chartType, recipe);
-            return true;
-          }
-          return false;
-        } else {
-          uniqueRecipes.set(recipe.chartType, recipe);
-          return true;
-        }
-      })
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 5);
-  }
 
   static validateIngredientCombination(ingredients: IngredientAnalysis[]): {
     isValid: boolean;
@@ -699,40 +673,214 @@ export class RecipeEngine {
       score += 0.3; // No secondary requirements
     }
 
-    // Bonus for ingredient diversity in appropriate recipes
-    const uniqueTypes = new Set(ingredientTypes).size;
-    if (uniqueTypes >= 2 && ['scatter', 'heatmap', 'scatter3d', 'network'].includes(recipe.chartType)) {
-      score += 0.05;
-    }
+    // Apply advanced scoring bonuses
+    score += this.calculateSynergyBonus(recipe, ingredients, typeCount);
+    score += this.calculateDataSizeBonus(recipe, ingredients);
+    score += this.calculateComplexityBonus(recipe, ingredients);
+    score += this.calculateQualityBonus(ingredients);
 
-    // Special bonuses for specific combinations
-    if (recipe.chartType === 'histogram' && typeCount.numeric === 1 && ingredients.length === 1) {
-      score += 0.15; // Perfect histogram scenario
-    }
-    
-    if (recipe.chartType === 'scatter3d' && typeCount.numeric >= 3) {
-      score += 0.1; // Ideal 3D scatter scenario
-    }
-    
-    if (['bar3d', 'surface3d'].includes(recipe.chartType) && typeCount.numeric >= 2) {
-      score += 0.08; // Good 3D visualization scenario
-    }
-
-    if (['network', 'network3d'].includes(recipe.chartType) && typeCount.categorical >= 2) {
-      score += 0.12; // Excellent network scenario
-    }
-
-    // Data quality bonuses
-    const avgPotency = ingredients.reduce((sum, ing) => sum + ing.potency, 0) / ingredients.length;
-    score += avgPotency * 0.1;
-
-    // Penalty for too many ingredients (more nuanced)
-    const optimalCount = recipe.requiredIngredients.primary.length + 
-                        (recipe.requiredIngredients.secondary?.length || 0);
-    if (ingredients.length > optimalCount + 2) {
-      score -= Math.min((ingredients.length - optimalCount - 2) * 0.05, 0.2);
-    }
+    // Apply penalties
+    score -= this.calculateOvercrowdingPenalty(recipe, ingredients);
 
     return Math.max(0, Math.min(1, score));
+  }
+
+  private static calculateSynergyBonus(recipe: ChartRecipe, ingredients: IngredientAnalysis[], typeCount: Record<string, number>): number {
+    let synergyBonus = 0;
+
+    // Ingredient diversity bonuses for appropriate recipes
+    const uniqueTypes = new Set(ingredients.map(i => i.type)).size;
+    
+    // Multi-dimensional visualizations benefit from diversity
+    if (['scatter', 'heatmap', 'scatter3d', 'network', 'bubble'].includes(recipe.chartType)) {
+      if (uniqueTypes >= 3) synergyBonus += 0.1;
+      else if (uniqueTypes >= 2) synergyBonus += 0.05;
+    }
+
+    // Perfect combinations for specific chart types
+    const perfectCombinations: Record<string, () => number> = {
+      histogram: () => typeCount.numeric === 1 && ingredients.length === 1 ? 0.15 : 0,
+      scatter3d: () => typeCount.numeric >= 3 ? 0.12 : 0,
+      surface3d: () => typeCount.numeric >= 2 && typeCount.categorical >= 1 ? 0.1 : 0,
+      bar3d: () => typeCount.categorical >= 1 && typeCount.numeric >= 1 ? 0.08 : 0,
+      network: () => typeCount.categorical >= 2 ? 0.15 : 0,
+      network3d: () => typeCount.categorical >= 2 && typeCount.numeric >= 1 ? 0.12 : 0,
+      treemap: () => typeCount.categorical >= 2 && typeCount.numeric >= 1 ? 0.1 : 0,
+      map3d: () => typeCount.geographic >= 1 && typeCount.numeric >= 1 ? 0.12 : 0,
+      line: () => typeCount.temporal >= 1 && typeCount.numeric >= 1 ? 0.1 : 0,
+      area: () => typeCount.temporal >= 1 && typeCount.numeric >= 1 && typeCount.categorical >= 1 ? 0.08 : 0
+    };
+
+    const perfectBonus = perfectCombinations[recipe.chartType];
+    if (perfectBonus) {
+      synergyBonus += perfectBonus();
+    }
+
+    // Temporal-numeric synergy (time series magic)
+    if (typeCount.temporal >= 1 && typeCount.numeric >= 1) {
+      if (['line', 'area', 'scatter'].includes(recipe.chartType)) {
+        synergyBonus += 0.08;
+      }
+    }
+
+    // Geographic-numeric synergy (spatial analysis magic)
+    if (typeCount.geographic >= 1 && typeCount.numeric >= 1) {
+      if (['map', 'map3d', 'heatmap'].includes(recipe.chartType)) {
+        synergyBonus += 0.1;
+      }
+    }
+
+    // Categorical-numeric synergy (comparison magic)
+    if (typeCount.categorical >= 1 && typeCount.numeric >= 1) {
+      if (['bar', 'pie', 'treemap', 'stacked-bar'].includes(recipe.chartType)) {
+        synergyBonus += 0.06;
+      }
+    }
+
+    return synergyBonus;
+  }
+
+  private static calculateDataSizeBonus(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
+    let sizeBonus = 0;
+    
+    // Calculate total data points estimate
+    const totalDataPoints = ingredients.reduce((sum, ing) => sum + ing.uniqueValues, 0);
+    
+    // Different charts work better with different data sizes
+    const sizePreferences: Record<string, { small: number; medium: number; large: number }> = {
+      pie: { small: 0.1, medium: 0.05, large: -0.1 }, // Pie charts better with fewer categories
+      treemap: { small: 0.0, medium: 0.08, large: 0.1 }, // Treemaps handle more data well
+      network: { small: 0.05, medium: 0.1, large: 0.05 }, // Networks work best with medium complexity
+      heatmap: { small: -0.05, medium: 0.08, large: 0.12 }, // Heatmaps excel with larger datasets
+      histogram: { small: -0.1, medium: 0.05, large: 0.1 }, // Histograms need sufficient data
+      scatter3d: { small: -0.05, medium: 0.05, large: 0.08 }, // 3D scatter needs enough points
+      surface3d: { small: -0.1, medium: 0.0, large: 0.1 } // Surfaces need dense data
+    };
+
+    const preferences = sizePreferences[recipe.chartType];
+    if (preferences) {
+      if (totalDataPoints < 50) {
+        sizeBonus += preferences.small;
+      } else if (totalDataPoints < 500) {
+        sizeBonus += preferences.medium;
+      } else {
+        sizeBonus += preferences.large;
+      }
+    }
+
+    return sizeBonus;
+  }
+
+  private static calculateComplexityBonus(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
+    let complexityBonus = 0;
+    
+    // Calculate data complexity score
+    const avgPotency = ingredients.reduce((sum, ing) => sum + ing.potency, 0) / ingredients.length;
+    const typeVariety = new Set(ingredients.map(i => i.type)).size;
+    const complexityScore = (avgPotency + (typeVariety / 5)) / 2;
+
+    // Match complexity with chart sophistication
+    const chartComplexity: Record<string, number> = {
+      // Simple charts (complexity 0.2-0.4)
+      pie: 0.2, bar: 0.3, line: 0.3,
+      // Medium charts (complexity 0.4-0.7)
+      scatter: 0.5, area: 0.5, histogram: 0.4, heatmap: 0.6,
+      // Complex charts (complexity 0.7-1.0)
+      treemap: 0.7, network: 0.8, scatter3d: 0.9, surface3d: 1.0, network3d: 0.95
+    };
+
+    const targetComplexity = chartComplexity[recipe.chartType] || 0.5;
+    const complexityMatch = 1 - Math.abs(complexityScore - targetComplexity);
+    
+    // Bonus for good complexity matching
+    if (complexityMatch > 0.8) {
+      complexityBonus += 0.08;
+    } else if (complexityMatch > 0.6) {
+      complexityBonus += 0.04;
+    }
+
+    return complexityBonus;
+  }
+
+  private static calculateQualityBonus(ingredients: IngredientAnalysis[]): number {
+    const avgPotency = ingredients.reduce((sum, ing) => sum + ing.potency, 0) / ingredients.length;
+    
+    // High-quality ingredients deserve better recipes
+    if (avgPotency > 0.8) return 0.1;
+    if (avgPotency > 0.6) return 0.05;
+    if (avgPotency < 0.3) return -0.05; // Penalty for low-quality ingredients
+    
+    return 0;
+  }
+
+  private static calculateOvercrowdingPenalty(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
+    const optimalCount = recipe.requiredIngredients.primary.length + 
+                        (recipe.requiredIngredients.secondary?.length || 0);
+    
+    // More nuanced overcrowding penalties
+    const excessIngredients = ingredients.length - optimalCount;
+    
+    if (excessIngredients <= 0) return 0;
+    
+    // Some charts handle extra ingredients better than others
+    const overcrowdingTolerance: Record<string, number> = {
+      network: 0.02,    // Networks can handle many nodes
+      heatmap: 0.03,    // Heatmaps work with many dimensions
+      treemap: 0.025,   // Treemaps accommodate hierarchies
+      scatter3d: 0.035, // 3D scatter can show more dimensions
+      surface3d: 0.04,  // Surfaces can use multiple metrics
+    };
+
+    const basePenalty = overcrowdingTolerance[recipe.chartType] || 0.05;
+    return Math.min(excessIngredients * basePenalty, 0.25); // Cap penalty at 0.25
+  }
+
+  // Enhanced recipe finding with conditional logic
+  static findCompatibleRecipes(ingredients: IngredientAnalysis[]): ChartRecipe[] {
+    if (ingredients.length === 0) return [];
+
+    const allRecipes = this.recipes
+      .map(recipe => ({
+        ...recipe,
+        confidence: this.scoreRecipe(recipe, ingredients)
+      }))
+      .filter(recipe => recipe.confidence > 0)
+      .sort((a, b) => b.confidence - a.confidence);
+
+    // Apply conditional filtering based on data characteristics
+    return this.applyConditionalFiltering(allRecipes, ingredients);
+  }
+
+  private static applyConditionalFiltering(recipes: ChartRecipe[], ingredients: IngredientAnalysis[]): ChartRecipe[] {
+    const dataSize = ingredients.reduce((sum, ing) => sum + ing.uniqueValues, 0);
+    const typeCount = ingredients.reduce((acc, ing) => {
+      acc[ing.type] = (acc[ing.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return recipes.filter(recipe => {
+      // Filter out inappropriate 3D visualizations for small datasets
+      if (['scatter3d', 'surface3d', 'bar3d'].includes(recipe.chartType) && dataSize < 100) {
+        return recipe.confidence > 0.7; // Higher threshold for 3D with small data
+      }
+
+      // Filter out network graphs if insufficient categorical relationships
+      if (['network', 'network3d'].includes(recipe.chartType) && typeCount.categorical < 2) {
+        return false;
+      }
+
+      // Filter out geographic charts if no clear geographic data
+      if (['map', 'map3d'].includes(recipe.chartType) && !typeCount.geographic) {
+        return recipe.confidence > 0.8; // Very high threshold for non-geo data on maps
+      }
+
+      // Filter out overly complex visualizations for simple data
+      const complexCharts = ['treemap', 'heatmap', 'surface3d', 'network3d'];
+      if (complexCharts.includes(recipe.chartType) && ingredients.length <= 2 && dataSize < 50) {
+        return recipe.confidence > 0.6;
+      }
+
+      return true;
+    }).slice(0, 12); // Limit to top 12 most relevant recipes
   }
 }
