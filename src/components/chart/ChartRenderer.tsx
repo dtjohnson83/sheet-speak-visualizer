@@ -104,6 +104,7 @@ export const ChartRenderer = ({
   const skipColumnValidation = transformedDataChartTypes.includes(chartType);
 
   if (!skipColumnValidation) {
+    // Check for basic required columns
     if (!cleanXColumn || (!cleanYColumn && chartType !== 'histogram')) {
       return (
         <div className="flex items-center justify-center h-64 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-2 border-dashed border-yellow-300 dark:border-yellow-600">
@@ -114,6 +115,20 @@ export const ChartRenderer = ({
               {!cleanXColumn && " X-axis column"}
               {!cleanXColumn && !cleanYColumn && " and"}
               {!cleanYColumn && chartType !== 'histogram' && " Y-axis column"}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Special validation for stacked bar charts - require stack column
+    if (chartType === 'stacked-bar' && !stackColumn) {
+      return (
+        <div className="flex items-center justify-center h-64 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-2 border-dashed border-yellow-300 dark:border-yellow-600">
+          <div className="text-center p-4">
+            <p className="text-lg font-medium text-yellow-700 dark:text-yellow-300 mb-2">Configuration Required</p>
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">
+              Stacked bar charts require a "Stack By" column to group the data. Please select a categorical column for stacking.
             </p>
           </div>
         </div>
