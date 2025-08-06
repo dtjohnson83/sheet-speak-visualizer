@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ColumnInfo } from '@/pages/Index';
+import React, { useState } from 'react';
+import { DataRow, ColumnInfo } from '@/pages/Index';
 import { ChartTypeSelector } from './config/ChartTypeSelector';
 import { AxisConfiguration } from './config/AxisConfiguration';
 import { AxisLabelConfiguration } from './config/AxisLabelConfiguration';
@@ -12,6 +12,8 @@ import { AggregationMethod } from './AggregationConfiguration';
 import { validateChartRequirements } from '@/lib/chartTypeInfo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { ChartVisualizationModeToggle } from './ChartVisualizationModeToggle';
+import { CauldronVisualizationMode } from '@/components/cauldron/CauldronVisualizationMode';
 
 interface ChartConfigurationProps {
   chartType: string;
@@ -49,7 +51,7 @@ interface ChartConfigurationProps {
   numericColumns: ColumnInfo[];
   categoricalColumns: ColumnInfo[];
   dateColumns: ColumnInfo[];
-  data: any[];
+  data: DataRow[];
 }
 
 export const ChartConfiguration = ({
@@ -90,6 +92,8 @@ export const ChartConfiguration = ({
   sankeyTargetColumn,
   setSankeyTargetColumn
 }: ChartConfigurationProps) => {
+  const [visualizationMode, setVisualizationMode] = useState<'traditional' | 'cauldron'>('traditional');
+
   // Validate current chart configuration
   const validation = validateChartRequirements(
     chartType,
@@ -101,7 +105,20 @@ export const ChartConfiguration = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+      <ChartVisualizationModeToggle
+        currentMode={visualizationMode}
+        onModeChange={setVisualizationMode}
+      />
+
+      {visualizationMode === 'cauldron' ? (
+        <CauldronVisualizationMode
+          data={data}
+          columns={columns}
+          onSwitchToTraditional={() => setVisualizationMode('traditional')}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <ChartTypeSelector
           chartType={chartType}
           setChartType={setChartType}
@@ -197,13 +214,15 @@ export const ChartConfiguration = ({
         chartType={chartType}
       />
 
-      <StyleConfiguration
-        selectedPalette={selectedPalette}
-        setSelectedPalette={setSelectedPalette}
-        showDataLabels={showDataLabels}
-        setShowDataLabels={setShowDataLabels}
-        supportsDataLabels={supportsDataLabels}
-      />
+          <StyleConfiguration
+            selectedPalette={selectedPalette}
+            setSelectedPalette={setSelectedPalette}
+            showDataLabels={showDataLabels}
+            setShowDataLabels={setShowDataLabels}
+            supportsDataLabels={supportsDataLabels}
+          />
+        </>
+      )}
     </>
   );
 };
