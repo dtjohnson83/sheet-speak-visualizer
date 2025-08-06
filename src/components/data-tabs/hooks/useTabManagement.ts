@@ -11,7 +11,7 @@ export const useTabManagement = (data: any[], tiles: any[], showContextSetup: bo
   const [expandedTiers, setExpandedTiers] = useState({
     foundation: false,
     analysis: false,
-    ai: false,
+    intelligence: false,
     advanced: false
   });
 
@@ -25,7 +25,7 @@ export const useTabManagement = (data: any[], tiles: any[], showContextSetup: bo
     setExpandedTiers(prev => ({
       ...prev,
       analysis: hasData || prev.analysis,
-      ai: (hasData && hasCharts) || prev.ai,
+      intelligence: (hasData && hasCharts) || prev.intelligence,
       advanced: hasAIContext || prev.advanced
     }));
   }, [hasData, hasCharts, hasAIContext]);
@@ -45,7 +45,7 @@ export const useTabManagement = (data: any[], tiles: any[], showContextSetup: bo
     switch (tierKey) {
       case 'foundation': return hasData ? 'complete' : 'active';
       case 'analysis': return hasCharts ? 'complete' : hasData ? 'active' : 'pending';
-      case 'ai': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
+      case 'intelligence': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
       case 'advanced': return hasAIContext ? 'complete' : (hasData && hasCharts) ? 'active' : 'pending';
       default: return 'pending';
     }

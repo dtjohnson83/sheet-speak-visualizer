@@ -23,6 +23,16 @@ export const getTierDefinitions = (data: any[], tiles: any[], savedDatasetsCount
       { id: "dashboard", label: "Dashboard", icon: Layout, badge: tiles.length > 0 ? tiles.length : null }
     ]
   },
+  intelligence: {
+    title: "AI Intelligence", 
+    description: "AI-powered data analysis and insights",
+    icon: Bot,
+    color: "green",
+    tabs: [
+      { id: "ai-chat", label: "AI Chat", icon: Bot, badge: null },
+      { id: "ai-report", label: "AI Report", icon: FileText, badge: null }
+    ]
+  },
   advanced: {
     title: "Graph & ML Analytics", 
     description: "Advanced graph analysis and machine learning",
