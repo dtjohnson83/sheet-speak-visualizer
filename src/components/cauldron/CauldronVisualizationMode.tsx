@@ -79,26 +79,55 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
   const createChartSuggestionFromRecipe = (recipe: any, ingredients: any[]): AIChartSuggestion => {
     const temporalIngredient = ingredients.find(ing => ing.type === 'temporal');
     const numericIngredients = ingredients.filter(ing => ing.type === 'numeric');
-    const categoricalIngredient = ingredients.find(ing => ing.type === 'categorical');
+    const categoricalIngredients = ingredients.filter(ing => ing.type === 'categorical');
+    const geographicIngredient = ingredients.find(ing => ing.type === 'geographic');
 
     let xColumn = '';
     let yColumn = '';
+    let valueColumn = '';
     
     // Smart column assignment based on chart type and available ingredients
     switch (recipe.chartType) {
       case 'line':
       case 'area':
-        xColumn = temporalIngredient?.column || categoricalIngredient?.column || '';
+        xColumn = temporalIngredient?.column || categoricalIngredients[0]?.column || '';
         yColumn = numericIngredients[0]?.column || '';
         break;
       case 'bar':
       case 'pie':
-        xColumn = categoricalIngredient?.column || temporalIngredient?.column || '';
+        xColumn = categoricalIngredients[0]?.column || temporalIngredient?.column || '';
         yColumn = numericIngredients[0]?.column || '';
         break;
       case 'scatter':
         xColumn = numericIngredients[0]?.column || '';
         yColumn = numericIngredients[1]?.column || numericIngredients[0]?.column || '';
+        break;
+      case 'heatmap':
+        // Heatmap requires two categorical/geographic dimensions and a numeric value
+        xColumn = categoricalIngredients[0]?.column || geographicIngredient?.column || '';
+        yColumn = categoricalIngredients[1]?.column || categoricalIngredients[0]?.column || '';
+        valueColumn = numericIngredients[0]?.column || '';
+        break;
+      case 'treemap':
+        xColumn = categoricalIngredients[0]?.column || '';
+        yColumn = categoricalIngredients[1]?.column || '';
+        valueColumn = numericIngredients[0]?.column || '';
+        break;
+      case 'map':
+      case 'map3d':
+        xColumn = geographicIngredient?.column || '';
+        yColumn = geographicIngredient?.column || '';
+        valueColumn = numericIngredients[0]?.column || '';
+        break;
+      case 'histogram':
+        xColumn = numericIngredients[0]?.column || '';
+        yColumn = '';
+        break;
+      case 'network':
+      case 'network3d':
+        xColumn = categoricalIngredients[0]?.column || '';
+        yColumn = categoricalIngredients[1]?.column || '';
+        valueColumn = numericIngredients[0]?.column || '';
         break;
       default:
         xColumn = ingredients[0]?.column || '';
@@ -107,10 +136,10 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
 
     return {
       chartType: recipe.chartType,
-      title: `${recipe.name}: ${xColumn} vs ${yColumn}`,
+      title: `${recipe.name}: ${xColumn}${yColumn ? ` vs ${yColumn}` : ''}${valueColumn ? ` (${valueColumn})` : ''}`,
       xColumn,
       yColumn,
-      valueColumn: '',
+      valueColumn,
       stackColumn: '',
       aggregationMethod: 'sum',
       series: [],
