@@ -299,34 +299,37 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
         )}
       </div>
 
-      <div ref={chartRef}>
-        <ChartContainer
-          data={chartData}
-          columns={chartColumns}
-          chartType={chartType}
-          xColumn={xColumn}
-          yColumn={yColumn}
-          zColumn={zColumn}
-          stackColumn={stackColumn}
-          sankeyTargetColumn={sankeyTargetColumn}
-          valueColumn={valueColumn}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          series={series}
-          aggregationMethod={aggregationMethod}
-          showDataLabels={showDataLabels}
-          supportsMultipleSeries={supportsMultipleSeries}
-          chartColors={chartColors}
-          onSaveTile={() => handleSaveTile(onSaveTile, dataSourceName)}
-          customTitle={customTitle}
-          onTitleChange={setCustomTitle}
-          columnFormats={columnFormats}
-          histogramBins={histogramBins}
-          mapboxApiKey={mapboxApiKey}
-          xAxisLabel={xAxisLabel}
-          yAxisLabel={yAxisLabel}
-        />
-      </div>
+      {/* Only render chart when we have valid configuration */}
+      {xColumn && (yColumn || chartType === 'histogram') && (
+        <div ref={chartRef}>
+          <ChartContainer
+            data={chartData}
+            columns={chartColumns}
+            chartType={chartType}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            zColumn={zColumn}
+            stackColumn={stackColumn}
+            sankeyTargetColumn={sankeyTargetColumn}
+            valueColumn={valueColumn}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            series={series}
+            aggregationMethod={aggregationMethod}
+            showDataLabels={showDataLabels}
+            supportsMultipleSeries={supportsMultipleSeries}
+            chartColors={chartColors}
+            onSaveTile={() => handleSaveTile(onSaveTile, dataSourceName)}
+            customTitle={customTitle}
+            onTitleChange={setCustomTitle}
+            columnFormats={columnFormats}
+            histogramBins={histogramBins}
+            mapboxApiKey={mapboxApiKey}
+            xAxisLabel={xAxisLabel}
+            yAxisLabel={yAxisLabel}
+          />
+        </div>
+      )}
     </div>
   );
 };
