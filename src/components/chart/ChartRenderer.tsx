@@ -154,6 +154,18 @@ export const ChartRenderer = ({
       const dataSample = data[0] || {};
       const availableKeys = Object.keys(dataSample);
       
+      // Debug logging for column validation
+      console.log('Chart column validation:', {
+        chartType,
+        requestedColumns: { 
+          x: cleanXColumn, 
+          y: cleanYColumn, 
+          z: zColumn?.trim() || '' 
+        },
+        availableKeys,
+        dataLength: data.length
+      });
+      
       if (!availableKeys.includes(cleanXColumn)) {
         return (
           <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
@@ -183,18 +195,46 @@ export const ChartRenderer = ({
       }
 
       // Check Z-column for 3D charts
-      if ((chartType === 'scatter3d' || chartType === 'surface3d') && zColumn && !availableKeys.includes(zColumn)) {
-        return (
-          <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
-            <div className="text-center p-4">
-              <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
-              <p className="text-sm text-red-600 dark:text-red-400">
-                Z-column "{zColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
-                {availableKeys.length > 5 && '...'}
-              </p>
-            </div>
-          </div>
-        );
+      if ((chartType === 'scatter3d' || chartType === 'surface3d') && zColumn) {
+        const cleanZColumn = zColumn?.trim() || '';
+        
+        // Debug logging for Z-column validation
+        console.log('3D Chart Z-column validation:', {
+          zColumn,
+          cleanZColumn,
+          availableKeys,
+          exactMatch: availableKeys.includes(cleanZColumn),
+          caseSensitiveMatch: availableKeys.find(key => key.toLowerCase() === cleanZColumn.toLowerCase()),
+          trimmedMatch: availableKeys.find(key => key.trim() === cleanZColumn)
+        });
+        
+        if (!availableKeys.includes(cleanZColumn)) {
+          // Try case-insensitive and trimmed matching
+          const caseInsensitiveMatch = availableKeys.find(key => 
+            key.toLowerCase().trim() === cleanZColumn.toLowerCase().trim()
+          );
+          
+          if (!caseInsensitiveMatch) {
+            return (
+              <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
+                <div className="text-center p-4">
+                  <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    Z-column "{cleanZColumn}" not found in data. Available: {availableKeys.join(', ')}
+                  </p>
+                  <details className="mt-2 text-xs">
+                    <summary className="cursor-pointer">Debug Info</summary>
+                    <div className="mt-1 text-left">
+                      Original: "{zColumn}"<br/>
+                      Cleaned: "{cleanZColumn}"<br/>
+                      Available: [{availableKeys.map(k => `"${k}"`).join(', ')}]
+                    </div>
+                  </details>
+                </div>
+              </div>
+            );
+          }
+        }
       }
     }
   }
