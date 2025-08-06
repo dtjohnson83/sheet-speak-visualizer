@@ -32,17 +32,25 @@ export const UnifiedAIInterface: React.FC<UnifiedAIInterfaceProps> = ({
     e.preventDefault();
     if (!currentQuery.trim() || isProcessing) return;
 
+    console.log('🚀 AI Query submitted:', currentQuery);
+    console.log('📊 Data available:', data.length, 'rows,', columns.length, 'columns');
+
     try {
       const context = getRelevantContext(currentQuery);
       const queryWithContext = context ? `${context}\n\nCurrent question: ${currentQuery}` : currentQuery;
       
+      console.log('🔄 Processing query with context:', queryWithContext.substring(0, 100) + '...');
+      
       const response = await processUnifiedQuery(queryWithContext);
+      
+      console.log('✅ AI Response received:', response);
+      
       addToContext(currentQuery, response);
       setCurrentQuery('');
       
       toast.success('Analysis completed successfully');
     } catch (error) {
-      console.error('Error processing query:', error);
+      console.error('❌ Error processing query:', error);
       toast.error('Failed to process your question. Please try again.');
     }
   };
