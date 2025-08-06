@@ -6,7 +6,7 @@ import { TierSection } from './TierSection';
 import { WorkflowProgressIndicator } from './WorkflowProgressIndicator';
 import { useTabManagement } from './hooks/useTabManagement';
 import { TabContentPreview } from './components/TabContentPreview';
-import { TabContentAI } from './components/TabContentAI';
+
 import { TabContentCharts } from './components/TabContentCharts';
 import { TabContentDashboard } from './components/TabContentDashboard';
 import { TabContentSources } from './components/TabContentSources';
@@ -85,15 +85,6 @@ export const DataTabsSection = ({
         onColumnTypeChange={onColumnTypeChange}
       />
       
-      <TabContentAI
-        data={data}
-        columns={columns}
-        fileName={fileName}
-        showContextSetup={showContextSetup}
-        onContextReady={onContextReady}
-        onSkipContext={onSkipContext}
-        onAIUsed={onAIUsed}
-      />
       
       <TabContentCharts
         data={data}
