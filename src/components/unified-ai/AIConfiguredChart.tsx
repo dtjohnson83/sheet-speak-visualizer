@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, createContext, useContext } from 'react';
 import { ChartVisualization } from '@/components/ChartVisualization';
-import { useChartConfiguration } from '@/components/chart/hooks/useChartConfiguration';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { AIChartSuggestion } from '@/hooks/useAIChartGeneration';
 
@@ -12,6 +11,13 @@ interface AIConfiguredChartProps {
   dataSourceName?: string;
 }
 
+// Create a context to pass the AI suggestion to ChartVisualization
+const AIChartSuggestionContext = createContext<AIChartSuggestion | null>(null);
+
+export const useAIChartSuggestion = () => {
+  return useContext(AIChartSuggestionContext);
+};
+
 export const AIConfiguredChart: React.FC<AIConfiguredChartProps> = ({
   data,
   columns,
@@ -19,24 +25,22 @@ export const AIConfiguredChart: React.FC<AIConfiguredChartProps> = ({
   onSaveTile,
   dataSourceName = "AI Generated Chart"
 }) => {
-  const {
-    handleApplyAISuggestion
-  } = useChartConfiguration();
-
-  // Apply AI suggestion when component mounts or suggestion changes
-  useEffect(() => {
-    if (chartSuggestion) {
-      console.log('🎯 Applying AI chart suggestion:', chartSuggestion);
-      handleApplyAISuggestion(chartSuggestion);
-    }
-  }, [chartSuggestion, handleApplyAISuggestion]);
+  console.log('🎯 AIConfiguredChart - Rendering with suggestion:', {
+    title: chartSuggestion?.title,
+    chartType: chartSuggestion?.chartType,
+    xColumn: chartSuggestion?.xColumn,
+    yColumn: chartSuggestion?.yColumn,
+    hasChartSuggestion: !!chartSuggestion
+  });
 
   return (
-    <ChartVisualization
-      data={data}
-      columns={columns}
-      onSaveTile={onSaveTile}
-      dataSourceName={dataSourceName}
-    />
+    <AIChartSuggestionContext.Provider value={chartSuggestion}>
+      <ChartVisualization
+        data={data}
+        columns={columns}
+        onSaveTile={onSaveTile}
+        dataSourceName={dataSourceName}
+      />
+    </AIChartSuggestionContext.Provider>
   );
 };

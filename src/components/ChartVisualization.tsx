@@ -20,6 +20,7 @@ import { convertGraphToChartData, getGraphChartColumns } from '@/lib/graphChartD
 import { detectTemporalColumns, TemporalAnimationConfig } from '@/lib/chart/temporalDataProcessor';
 import { Badge } from '@/components/ui/badge';
 import { Zap, Network } from 'lucide-react';
+import { useAIChartSuggestion } from './unified-ai/AIConfiguredChart';
 
 interface ChartVisualizationProps {
   data: DataRow[];
@@ -99,6 +100,23 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
     handleApplyAISuggestion,
     handleSaveTile
   } = useChartConfiguration();
+
+  // Get AI chart suggestion from context (if available)
+  const aiChartSuggestion = useAIChartSuggestion();
+
+  // Apply AI suggestion when available
+  useEffect(() => {
+    if (aiChartSuggestion && !hasUserInteracted) {
+      console.log('🎯 ChartVisualization - Applying AI suggestion from context:', {
+        title: aiChartSuggestion.title,
+        chartType: aiChartSuggestion.chartType,
+        xColumn: aiChartSuggestion.xColumn,
+        yColumn: aiChartSuggestion.yColumn,
+        fullSuggestion: aiChartSuggestion
+      });
+      handleApplyAISuggestion(aiChartSuggestion);
+    }
+  }, [aiChartSuggestion, hasUserInteracted, handleApplyAISuggestion]);
 
   // Graph chart hooks and data processing
   const { relationships, entities } = useGraphEnhancedSemanticFusion();
