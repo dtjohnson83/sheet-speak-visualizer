@@ -112,9 +112,18 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
         chartType: aiChartSuggestion.chartType,
         xColumn: aiChartSuggestion.xColumn,
         yColumn: aiChartSuggestion.yColumn,
+        hasUserInteracted,
+        currentXColumn: xColumn,
+        currentYColumn: yColumn,
         fullSuggestion: aiChartSuggestion
       });
       handleApplyAISuggestion(aiChartSuggestion);
+    } else {
+      console.log('🚫 ChartVisualization - Not applying AI suggestion:', {
+        hasAiSuggestion: !!aiChartSuggestion,
+        hasUserInteracted,
+        aiSuggestion: aiChartSuggestion
+      });
     }
   }, [aiChartSuggestion, hasUserInteracted, handleApplyAISuggestion]);
 

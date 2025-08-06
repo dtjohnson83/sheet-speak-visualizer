@@ -37,7 +37,11 @@ export const useChartConfiguration = () => {
   const handleApplyAISuggestion = (suggestion: AIChartSuggestion) => {
     console.log('ChartConfiguration - Applying AI suggestion:', {
       currentChartType: chartState.chartType,
+      currentXColumn: chartState.xColumn,
+      currentYColumn: chartState.yColumn,
       suggestedChartType: suggestion.chartType,
+      suggestedXColumn: suggestion.xColumn,
+      suggestedYColumn: suggestion.yColumn,
       suggestion
     });
     
@@ -50,7 +54,11 @@ export const useChartConfiguration = () => {
     chartState.setSeries(suggestion.series);
     setCustomTitle(suggestion.title);
     
-    console.log('ChartConfiguration - AI suggestion applied, new chartType should be:', suggestion.chartType);
+    console.log('ChartConfiguration - AI suggestion applied, verifying state:', {
+      newChartType: chartState.chartType,
+      newXColumn: chartState.xColumn,
+      newYColumn: chartState.yColumn
+    });
   };
 
   // Handle save tile functionality
