@@ -139,19 +139,14 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
             onComplete={handleBrewingComplete}
           />
         ) : (
-          <div className="text-center p-8">
-            <h3 className="text-lg font-semibold text-foreground mb-2">🔮 Magic Cauldron</h3>
-            <p className="text-muted-foreground mb-4">
-              Select ingredients from the palette to create visualizations
-            </p>
-            {canBrewRecipe && bestRecipe && (
-              <button
-                onClick={() => handleBrewPotion()}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              >
-                🧪 Brew {bestRecipe.name}
-              </button>
-            )}
+          <div className="space-y-4">
+          <RecipeSuggestions
+            ingredients={activeIngredients}
+            recipes={compatibleRecipes}
+            onSelectRecipe={selectRecipe}
+            selectedRecipe={selectedRecipe}
+            onBrewRecipe={handleBrewPotion}
+          />
           </div>
         )}
       </div>
