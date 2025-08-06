@@ -28,12 +28,33 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
 }) => {
   const { geometry, material } = useMemo(() => {
     if (!data || data.length === 0) {
+      console.warn('Surface3DChartRenderer: No data provided');
       return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
     }
 
     // Ensure we have valid column names and data
     if (!xColumn || !yColumn || !zColumn) {
-      console.warn('Surface3DChartRenderer: Missing required columns', { xColumn, yColumn, zColumn });
+      console.warn('Surface3DChartRenderer: Missing required columns', { 
+        xColumn, 
+        yColumn, 
+        zColumn,
+        hasData: data.length > 0,
+        sampleKeys: data[0] ? Object.keys(data[0]) : []
+      });
+      return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
+    }
+
+    // Check if columns exist in data
+    const sampleRow = data[0] || {};
+    const availableColumns = Object.keys(sampleRow);
+    const missingColumns = [xColumn, yColumn, zColumn].filter(col => !availableColumns.includes(col));
+    
+    if (missingColumns.length > 0) {
+      console.error('Surface3DChartRenderer: Columns not found in data', {
+        missingColumns,
+        availableColumns,
+        requestedColumns: { xColumn, yColumn, zColumn }
+      });
       return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
     }
 
@@ -50,11 +71,13 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
 
     if (validData.length === 0) {
       console.warn('Surface3DChartRenderer: No valid data after filtering', { 
-        data: data.length, 
-        validData: validData.length, 
-        xColumn, 
-        yColumn, 
-        zColumn 
+        originalDataLength: data.length, 
+        validDataLength: validData.length,
+        sampleData: data.slice(0, 3).map(item => ({
+          [xColumn]: { value: item[xColumn], type: typeof item[xColumn], isNumber: !isNaN(Number(item[xColumn])) },
+          [yColumn]: { value: item[yColumn], type: typeof item[yColumn], isNumber: !isNaN(Number(item[yColumn])) },
+          [zColumn]: { value: item[zColumn], type: typeof item[zColumn], isNumber: !isNaN(Number(item[zColumn])) }
+        }))
       });
       return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
     }

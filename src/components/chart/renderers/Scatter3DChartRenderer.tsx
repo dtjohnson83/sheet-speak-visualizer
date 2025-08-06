@@ -179,11 +179,34 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
     }
   };
   const points = useMemo(() => {
-    if (!data || data.length === 0) return [];
+    if (!data || data.length === 0) {
+      console.warn('Scatter3DChartRenderer: No data provided');
+      return [];
+    }
 
     // Ensure we have valid column names and data
     if (!xColumn || !yColumn || !zColumn) {
-      console.warn('Scatter3DChartRenderer: Missing required columns', { xColumn, yColumn, zColumn });
+      console.warn('Scatter3DChartRenderer: Missing required columns', { 
+        xColumn, 
+        yColumn, 
+        zColumn,
+        hasData: data.length > 0,
+        sampleKeys: data[0] ? Object.keys(data[0]) : []
+      });
+      return [];
+    }
+
+    // Check if columns exist in data
+    const sampleRow = data[0] || {};
+    const availableColumns = Object.keys(sampleRow);
+    const missingColumns = [xColumn, yColumn, zColumn].filter(col => !availableColumns.includes(col));
+    
+    if (missingColumns.length > 0) {
+      console.error('Scatter3DChartRenderer: Columns not found in data', {
+        missingColumns,
+        availableColumns,
+        requestedColumns: { xColumn, yColumn, zColumn }
+      });
       return [];
     }
 
@@ -200,11 +223,13 @@ export const Scatter3DChartRenderer: React.FC<Scatter3DChartRendererProps> = ({
 
     if (validData.length === 0) {
       console.warn('Scatter3DChartRenderer: No valid data after filtering', { 
-        data: data.length, 
-        validData: validData.length, 
-        xColumn, 
-        yColumn, 
-        zColumn 
+        originalDataLength: data.length, 
+        validDataLength: validData.length,
+        sampleData: data.slice(0, 3).map(item => ({
+          [xColumn]: { value: item[xColumn], type: typeof item[xColumn], isNumber: !isNaN(Number(item[xColumn])) },
+          [yColumn]: { value: item[yColumn], type: typeof item[yColumn], isNumber: !isNaN(Number(item[yColumn])) },
+          [zColumn]: { value: item[zColumn], type: typeof item[zColumn], isNumber: !isNaN(Number(item[zColumn])) }
+        }))
       });
       return [];
     }

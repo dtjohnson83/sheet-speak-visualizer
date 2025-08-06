@@ -135,6 +135,20 @@ export const ChartRenderer = ({
       );
     }
 
+    // Special validation for 3D charts - require Z column
+    if ((chartType === 'scatter3d' || chartType === 'surface3d') && !zColumn) {
+      return (
+        <div className="flex items-center justify-center h-64 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-2 border-dashed border-yellow-300 dark:border-yellow-600">
+          <div className="text-center p-4">
+            <p className="text-lg font-medium text-yellow-700 dark:text-yellow-300 mb-2">Configuration Required</p>
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">
+              {chartType === 'scatter3d' ? '3D Scatter plots' : '3D Surface plots'} require a Z-axis column for the third dimension. Please select a numeric column for the Z-axis.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Check if selected columns exist in the data (only for array data)
     if (Array.isArray(data) && data.length > 0) {
       const dataSample = data[0] || {};
@@ -161,6 +175,21 @@ export const ChartRenderer = ({
               <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
               <p className="text-sm text-red-600 dark:text-red-400">
                 Y-column "{cleanYColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
+                {availableKeys.length > 5 && '...'}
+              </p>
+            </div>
+          </div>
+        );
+      }
+
+      // Check Z-column for 3D charts
+      if ((chartType === 'scatter3d' || chartType === 'surface3d') && zColumn && !availableKeys.includes(zColumn)) {
+        return (
+          <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
+            <div className="text-center p-4">
+              <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Z-column "{zColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
                 {availableKeys.length > 5 && '...'}
               </p>
             </div>
