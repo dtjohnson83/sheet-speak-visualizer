@@ -460,8 +460,8 @@ export class RecipeEngine {
   private static isTemporalColumn(name: string, column: ColumnInfo): boolean {
     // Extended temporal patterns
     const temporalPatterns = [
-      // Standard time patterns
-      /(time|date|year|month|day|hour|minute|second)/i,
+      // Standard time patterns - make sure "date" pattern is more specific
+      /\b(time|date|year|month|day|hour|minute|second)\b/i,
       // Business time patterns
       /(quarter|fiscal|period|semester|season)/i,
       // Event time patterns
