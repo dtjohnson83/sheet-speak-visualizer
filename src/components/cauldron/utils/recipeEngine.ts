@@ -394,21 +394,25 @@ export class RecipeEngine {
   }
 
   private static isGeographicColumn(name: string, column: ColumnInfo): boolean {
-    // Extended geographic patterns
+    // Very specific geographic patterns to avoid false positives
     const geoPatterns = [
-      // Coordinate patterns - be more specific
-      /(latitude|longitude|lat_|lng_|coord|geo_)/i,
-      // Location patterns - be more specific to avoid business regions
-      /(location|address|city|state|country|territory|province)/i,
-      // Postal patterns - be very specific
-      /(postal_code|zip_code|zipcode|postcode)/i,
-      // Administrative patterns
-      /(county|district|municipality|borough|parish)/i,
-      // Geographic identifiers - be more specific
-      /(fips_code|iso_code|geoname|place_id)/i
+      // Coordinate patterns - very specific
+      /^(latitude|longitude|lat|lng|lon)$/i,
+      /_(lat|lng|lon|latitude|longitude)$/i,
+      /(lat|lng|lon)_/i,
+      /^(x_coord|y_coord|coord_x|coord_y)$/i,
+      // Location patterns - only exact matches to avoid business terms
+      /^(location|address|city|state|country)$/i,
+      /^(full_address|street_address|postal_address)$/i,
+      // Postal patterns - very specific
+      /^(postal_code|zip_code|zipcode|postcode)$/i,
+      // Administrative patterns - very specific
+      /^(county|district|municipality|borough|parish)$/i,
+      // Geographic identifiers - very specific
+      /^(fips_code|iso_country|country_iso|geoname_id|place_id)$/i
     ];
 
-    // Check name patterns
+    // Check name patterns - only exact or very specific matches
     if (geoPatterns.some(pattern => pattern.test(name))) {
       return true;
     }
@@ -448,7 +452,7 @@ export class RecipeEngine {
       }
 
       // Check for country codes (ISO patterns) - only if name explicitly suggests country codes
-      const isCountryCodeColumn = /(country_code|nation_code|iso_country|country_iso)/i.test(name);
+      const isCountryCodeColumn = /^(country_code|nation_code|iso_country|country_iso)$/i.test(name);
       if (isCountryCodeColumn && sampleValues.every(val => /^[A-Z]{2,3}$/.test(String(val)))) {
         return true;
       }
@@ -503,8 +507,8 @@ export class RecipeEngine {
   }
 
   private static analyzeNumericColumn(name: string, column: ColumnInfo): IngredientType {
-    // Check if numeric column might be geographic (like postal codes) - be more specific
-    if (/(postal_code|zip_code|zipcode|postcode|fips_code)/i.test(name) && column.values) {
+    // Check if numeric column might be geographic (like postal codes) - be very specific
+    if (/^(postal_code|zip_code|zipcode|postcode|fips_code)$/i.test(name) && column.values) {
       const uniqueValues = new Set(column.values).size;
       // If many unique values, might be geographic identifiers
       if (uniqueValues > column.values.length * 0.8) {
