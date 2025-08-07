@@ -10,6 +10,7 @@ interface TimeSeries3DChartRendererProps {
   xColumn: string;
   yColumn: string;
   zColumn?: string;
+  seriesColumn?: string;
   chartColors: string[];
   showDataLabels?: boolean;
   tileMode?: boolean;
@@ -205,6 +206,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   xColumn,
   yColumn,
   zColumn,
+  seriesColumn,
   chartColors,
   showDataLabels = false,
   tileMode = false,
@@ -400,15 +402,15 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   if (cubes.length === 0) {
     return (
       <group>
-        <StandardAxes3D 
-          xLabel="Time"
-          yLabel={yColumn || "Value"}
-          zLabel="Series"
-          axisLength={4}
-          showGrid={true}
-          showOrigin={true}
-          showZAxis={true}
-        />
+      <StandardAxes3D 
+        xLabel={zColumn ? "Time" : "Index"}
+        yLabel={yColumn || "Value"}
+        zLabel={seriesColumn || xColumn || "Series"}
+        axisLength={4}
+        showGrid={true}
+        showOrigin={true}
+        showZAxis={true}
+      />
         <mesh position={[0, 2, 0]}>
           <boxGeometry args={[0.1, 0.1, 0.1]} />
           <meshBasicMaterial color="#ff6b6b" transparent opacity={0.7} />
@@ -421,13 +423,13 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel="Time →"
+        xLabel={zColumn ? "Time →" : "Index →"}
         yLabel={yColumn}
-        zLabel={zColumn ? "Series" : ""}
+        zLabel={seriesColumn || xColumn || "Series"}
         axisLength={6}
         showGrid={true}
         showOrigin={true}
-        showZAxis={!!zColumn}
+        showZAxis={true}
       />
       
       {/* Time axis markers and labels */}
