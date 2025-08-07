@@ -119,7 +119,6 @@ const TreemapBox3D: React.FC<TreemapBoxProps> = ({
             anchorX="center"
             anchorY="middle"
             maxWidth={size[0] * 0.9}
-            font="/fonts/inter-medium.woff"
           >
             {label}
           </Text>
@@ -131,7 +130,6 @@ const TreemapBox3D: React.FC<TreemapBoxProps> = ({
               anchorX="center"
               anchorY="middle"
               maxWidth={size[0] * 0.9}
-              font="/fonts/inter-regular.woff"
             >
               {formatNumber(value)}
             </Text>
