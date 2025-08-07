@@ -112,9 +112,20 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     const colors: number[] = [];
     
     // Get value ranges for normalization
-    const xValues = surfaceData.map(d => Number(d[xColumn]) || 0);
-    const yValues = surfaceData.map(d => Number(d[yColumn]) || 0);
-    const zValues = surfaceData.map(d => Number(d[zColumn]) || 0);
+    const xValues: number[] = [];
+    const yValues: number[] = [];
+    const zValues: number[] = [];
+    
+    // Safely extract values from data
+    surfaceData.forEach(d => {
+      const xVal = Number(d[xColumn]) || 0;
+      const yVal = Number(d[yColumn]) || 0;
+      const zVal = Number(d[zColumn]) || 0;
+      
+      xValues.push(xVal);
+      yValues.push(yVal);
+      zValues.push(zVal);
+    });
     
     const xMin = Math.min(...xValues);
     const xMax = Math.max(...xValues);
