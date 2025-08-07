@@ -120,7 +120,19 @@ export const prepareChartData = (
     case 'scatter3d':
     case 'surface3d':
       // 3D charts need all original columns preserved (no aggregation)
+      console.log('🎯 Processing 3D chart data:', {
+        chartType,
+        dataLength: validData.length,
+        xColumn: cleanXColumn,
+        yColumn: cleanYColumn,
+        sampleData: validData.slice(0, 2),
+        allColumns: Object.keys(validData[0] || {})
+      });
       processedData = prepareScatterData(validData, cleanXColumn, cleanYColumn, xCol, yCol, series, supportsMultipleSeries, sortColumn, sortDirection);
+      console.log('🎯 3D chart data processed:', {
+        resultLength: processedData.length,
+        sampleResult: processedData.slice(0, 2)
+      });
       break;
 
     case 'pie':

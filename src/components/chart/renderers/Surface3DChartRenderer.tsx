@@ -26,6 +26,15 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
   isTemporalAnimated = false,
   animationSpeed = 1000
 }) => {
+  console.log('🏔️ Surface3DChartRenderer - Starting render:', {
+    dataLength: data?.length,
+    xColumn,
+    yColumn,
+    zColumn,
+    tileMode,
+    sampleData: data?.slice(0, 2)
+  });
+
   const surfaceData = useMemo(() => {
     // Early validation - check data exists first
     if (!data || data.length === 0) {
@@ -35,7 +44,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
 
     // Ensure we have valid column names and data
     if (!xColumn || !yColumn || !zColumn) {
-      console.warn('Surface3DChartRenderer: Missing required columns', { 
+      console.warn('🏔️ Surface3DChartRenderer: Missing required columns', { 
         xColumn, 
         yColumn, 
         zColumn,
@@ -51,7 +60,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     const missingColumns = [xColumn, yColumn, zColumn].filter(col => !availableColumns.includes(col));
     
     if (missingColumns.length > 0) {
-      console.error('Surface3DChartRenderer: Columns not found in data', {
+      console.error('🏔️ Surface3DChartRenderer: Columns not found in data', {
         missingColumns,
         availableColumns,
         requestedColumns: { xColumn, yColumn, zColumn }
@@ -71,7 +80,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     );
 
     if (validData.length === 0) {
-      console.warn('Surface3DChartRenderer: No valid data after filtering', { 
+      console.warn('🏔️ Surface3DChartRenderer: No valid data after filtering', { 
         originalDataLength: data.length, 
         validDataLength: validData.length,
         sampleData: data.slice(0, 3).map(item => ({
@@ -82,6 +91,11 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
       });
       return null;
     }
+
+    console.log('🏔️ Surface3DChartRenderer: Valid data found', {
+      validDataLength: validData.length,
+      sampleValidData: validData.slice(0, 2)
+    });
 
     return validData;
   }, [data, xColumn, yColumn, zColumn]);
@@ -172,6 +186,8 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     
     return { geometry, material };
   }, [surfaceData, xColumn, yColumn, zColumn, chartColors]);
+
+  console.log('🏔️ Surface3DChartRenderer: About to render surface mesh');
 
   return (
     <>
