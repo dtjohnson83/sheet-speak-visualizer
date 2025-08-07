@@ -274,6 +274,7 @@ export const ChartRenderers = ({
             xColumn={validXColumn}
             yColumn={yColumn}
             zColumn={zColumn}
+            seriesColumn={xColumn}
             chartColors={chartColors}
             showDataLabels={showDataLabels}
             isTemporalAnimated={isTemporalAnimated}
