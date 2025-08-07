@@ -260,15 +260,16 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       ('size' in sampleRow || 'value' in sampleRow);
 
     if (hasTreemapStructure) {
+      // Data is already processed, use it directly - don't try to access original columns
       console.log('🗺️ Using pre-processed treemap data');
       return data.filter(item => {
         const value = item.value || item.size || 0;
         return value > 0 && typeof value === 'number';
       }).map(item => ({
-        name: item.name || item.label || item[xColumn] || 'Unknown',
+        name: item.name || item.label || 'Unknown',
         value: item.value || item.size || 0,
         size: item.size || item.value || 0,
-        height: item.height || item[zColumn] || item.value || item.size || 1
+        height: item.height || item.value || item.size || 1
       }));
     }
 
