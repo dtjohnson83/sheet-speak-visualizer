@@ -249,5 +249,18 @@ export const CHART_RECIPES: ChartRecipe[] = [
     },
     optimalColumns: {},
     magicalEffects: ['Stacked comparisons', 'Multi-dimensional analysis', 'Category breakdowns']
+  },
+  {
+    id: 'temporal-cube-synthesis',
+    name: 'Temporal Cube Synthesis',
+    chartType: 'timeseries3d',
+    confidence: 0.92,
+    reasoning: 'Temporal data with numeric values creates immersive 3D time series visualization',
+    requiredIngredients: {
+      primary: ['temporal'],
+      secondary: ['numeric']
+    },
+    optimalColumns: {},
+    magicalEffects: ['3D temporal visualization', 'Time progression cubes', 'Interactive time exploration']
   }
 ];

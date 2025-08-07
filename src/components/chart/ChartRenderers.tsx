@@ -18,6 +18,7 @@ import { Chart3DContainer } from './Chart3DContainer';
 import { Bar3DChartRenderer } from './renderers/Bar3DChartRenderer';
 import { Scatter3DChartRenderer } from './renderers/Scatter3DChartRenderer';
 import { Surface3DChartRenderer } from './renderers/Surface3DChartRenderer';
+import { TimeSeries3DChartRenderer } from './renderers/TimeSeries3DChartRenderer';
 import { NetworkGraphRenderer } from './renderers/NetworkGraphRenderer';
 import { Network3DGraphRenderer } from './renderers/Network3DGraphRenderer';
 import { EntityRelationshipRenderer } from './renderers/EntityRelationshipRenderer';
@@ -250,6 +251,29 @@ export const ChartRenderers = ({
             xColumn={xColumn}
             yColumn={yColumn}
             zColumn={validZColumn}
+            chartColors={chartColors}
+            showDataLabels={showDataLabels}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
+          />
+        </Chart3DContainer>
+      </ChartErrorBoundary>
+    );
+  }
+
+  if (chartType === 'timeseries3d') {
+    // Ensure we have date/time column for x-axis
+    const dateColumns = columns.filter(col => col.type === 'date');
+    const validXColumn = dateColumns.length > 0 ? dateColumns[0].name : xColumn;
+    
+    return (
+      <ChartErrorBoundary>
+        <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
+          <TimeSeries3DChartRenderer
+            data={data}
+            xColumn={validXColumn}
+            yColumn={yColumn}
+            zColumn={zColumn}
             chartColors={chartColors}
             showDataLabels={showDataLabels}
             isTemporalAnimated={isTemporalAnimated}

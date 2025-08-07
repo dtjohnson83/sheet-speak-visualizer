@@ -437,6 +437,31 @@ export const chartTypeInfo = {
     bestFor: ['3D geographic analysis', 'Elevation data', 'Multi-dimensional location data'],
     examples: ['Elevation maps', 'Building heights', '3D population density'],
     commonMistakes: ['Invalid coordinate ranges', 'Poor elevation scaling', 'Overwhelming 3D effects']
+  },
+  
+  'timeseries3d': {
+    name: '3D Time Series Cube',
+    description: 'Interactive 3D visualization showing time series data as connected cubes in space',
+    requiredColumns: ['time', 'value'],
+    optionalColumns: ['series'],
+    category: '3d',
+    icon: 'box',
+    configurable: {
+      aggregation: true,
+      animation: true,
+      dataLabels: true,
+      colors: true,
+      temporal: true
+    },
+    requirements: {
+      xAxis: { label: 'Time', type: 'date' },
+      yAxis: { label: 'Value', type: 'numeric' },
+      additional: []
+    },
+    minDataPoints: 3,
+    bestFor: ['Time series trends', 'Temporal patterns', 'Value progression over time'],
+    examples: ['Stock prices over time', 'Temperature trends', 'Sales progression'],
+    commonMistakes: ['Non-temporal x-axis', 'Too many data points causing clutter', 'Poor time sorting']
   }
 };
 

@@ -6,6 +6,7 @@ import { ChartRenderers } from '../chart/ChartRenderers';
 import { getEffectiveSeries } from './utils/seriesUtils';
 import { logChartOperation } from '@/lib/logger';
 import { TileStackedBarChartRenderer } from './renderers/TileStackedBarChartRenderer';
+import { TileTimeSeries3DChartRenderer } from './renderers/TileTimeSeries3DChartRenderer';
 
 interface TileChartRendererProps {
   chartType: string;
@@ -71,6 +72,24 @@ export const TileChartRenderer = React.memo(({
           showDataLabels={showDataLabels}
           xAxisLabel={xAxisLabel}
           yAxisLabel={yAxisLabel}
+        />
+      </div>
+    );
+  }
+
+  // Handle timeseries3d with specialized tile renderer
+  if (chartType === 'timeseries3d') {
+    return (
+      <div className="w-full h-full">
+        <TileTimeSeries3DChartRenderer
+          data={data as DataRow[]}
+          xColumn={xColumn}
+          yColumn={yColumn}
+          zColumn={zColumn}
+          effectiveSeries={effectiveSeries}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+          isMaximized={isMaximized}
         />
       </div>
     );
