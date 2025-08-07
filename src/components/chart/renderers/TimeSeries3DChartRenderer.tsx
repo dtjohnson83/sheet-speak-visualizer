@@ -246,21 +246,22 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       return { cubes: [], connections: [] };
     }
 
-    // Filter and sort data by time
+    // Filter and sort data by time (using zColumn for temporal data)
     const validData = data.filter(item => 
       item && 
       item[xColumn] !== undefined && 
       item[yColumn] !== undefined &&
+      item[zColumn] !== undefined &&
       !isNaN(Number(item[yColumn]))
     ).sort((a, b) => {
-      // Try to sort by date if xColumn contains dates
-      const aTime = new Date(a[xColumn]).getTime();
-      const bTime = new Date(b[xColumn]).getTime();
+      // Sort by date using zColumn (temporal axis)
+      const aTime = new Date(a[zColumn]).getTime();
+      const bTime = new Date(b[zColumn]).getTime();
       if (!isNaN(aTime) && !isNaN(bTime)) {
         return aTime - bTime;
       }
       // Fallback to string comparison
-      return String(a[xColumn]).localeCompare(String(b[xColumn]));
+      return String(a[zColumn]).localeCompare(String(b[zColumn]));
     });
 
     if (validData.length === 0) {
@@ -272,50 +273,75 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     const minValue = Math.min(...validData.map(d => Number(d[yColumn]) || 0));
     const valueRange = maxValue - minValue || 1;
     
-    // Create a 3D time series cube layout
-    const timeSteps = validData.length;
-    const cubeSize = tileMode ? Math.min(0.8, 3.0 / timeSteps) : 0.4;
-    const spacing = tileMode ? Math.min(1.0, 4.0 / timeSteps) : 0.6;
+    // Group data by category (xColumn) and process by time (zColumn)
+    const categoryGroups = validData.reduce((groups, item) => {
+      const category = String(item[xColumn]);
+      if (!groups[category]) groups[category] = [];
+      groups[category].push(item);
+      return groups;
+    }, {} as Record<string, any[]>);
+
+    const categories = Object.keys(categoryGroups);
+    const cubeSize = tileMode ? Math.min(0.6, 3.0 / validData.length) : 0.4;
     
-    const cubeList = validData.map((item, index) => {
-      const value = Number(item[yColumn]) || 0;
-      const normalizedValue = (value - minValue) / valueRange;
-      const cubeHeight = Math.max(0.3, normalizedValue * 4); // Height based on value
+    const cubeList: any[] = [];
+    
+    categories.forEach((category, categoryIndex) => {
+      const categoryData = categoryGroups[category].sort((a, b) => {
+        // Sort by date within each category
+        const aTime = new Date(a[zColumn]).getTime();
+        const bTime = new Date(b[zColumn]).getTime();
+        return aTime - bTime;
+      });
       
-      // Linear time progression along X-axis (left to right = past to future)
-      const timeSpacing = tileMode ? Math.min(1.2, 6.0 / timeSteps) : 1.0;
-      const totalWidth = (timeSteps - 1) * timeSpacing;
-      const x = -totalWidth / 2 + index * timeSpacing; // Center the timeline
-      const y = cubeHeight / 2; // Height based on value
-      const z = zColumn ? Number(item[zColumn]) || 0 : 0; // Series depth if z-column exists
-      
-      // Time-based color gradient (cool to warm, past to future)
-      const timeProgress = index / (timeSteps - 1);
-      const hue = 240 - (timeProgress * 120); // Blue (240) to Red (120)
-      const timeColor = `hsl(${hue}, 70%, 60%)`;
-      
-      return {
-        position: [x, y, z] as [number, number, number],
-        scale: [cubeSize * 0.8, cubeHeight, cubeSize * 0.8] as [number, number, number], // More rectangular for time series
-        color: chartColors.length > 0 ? chartColors[index % chartColors.length] : timeColor,
-        label: String(item[xColumn] || `Time ${index + 1}`),
-        value: value,
-        timeIndex: index,
-        key: `timecube-${index}`
-      };
+      categoryData.forEach((item, timeIndex) => {
+        const value = Number(item[yColumn]) || 0;
+        const normalizedValue = (value - minValue) / valueRange;
+        const cubeHeight = Math.max(0.3, normalizedValue * 4); // Height based on value
+        
+        // Position: X = time progression, Y = value height, Z = category separation
+        const timeSpacing = tileMode ? Math.min(1.2, 6.0 / categoryData.length) : 1.0;
+        const categorySpacing = 2.0;
+        const totalTimeWidth = (categoryData.length - 1) * timeSpacing;
+        const totalCategoryDepth = (categories.length - 1) * categorySpacing;
+        
+        const x = -totalTimeWidth / 2 + timeIndex * timeSpacing; // Time progression
+        const y = cubeHeight / 2; // Value height
+        const z = -totalCategoryDepth / 2 + categoryIndex * categorySpacing; // Category separation
+        
+        // Category-based color
+        const categoryColor = chartColors.length > 0 
+          ? chartColors[categoryIndex % chartColors.length] 
+          : `hsl(${(categoryIndex * 60) % 360}, 70%, 60%)`;
+        
+        cubeList.push({
+          position: [x, y, z] as [number, number, number],
+          scale: [cubeSize * 0.8, cubeHeight, cubeSize * 0.8] as [number, number, number],
+          color: categoryColor,
+          label: `${category} - ${new Date(item[zColumn]).toLocaleDateString()}`,
+          value: value,
+          timeIndex: timeIndex,
+          category: category,
+          categoryIndex: categoryIndex,
+          key: `timecube-${categoryIndex}-${timeIndex}`
+        });
+      });
     });
 
-    // Create connections between consecutive time points
-    const connectionsList = [];
-    for (let i = 0; i < cubeList.length - 1; i++) {
-      const start = cubeList[i].position;
-      const end = cubeList[i + 1].position;
-      connectionsList.push({
-        start: [start[0], start[1], start[2]] as [number, number, number],
-        end: [end[0], end[1], end[2]] as [number, number, number],
-        key: `connection-${i}`
-      });
-    }
+    // Create connections between consecutive time points within each category
+    const connectionsList: any[] = [];
+    categories.forEach((category, categoryIndex) => {
+      const categoryCubes = cubeList.filter(cube => cube.category === category);
+      for (let i = 0; i < categoryCubes.length - 1; i++) {
+        const start = categoryCubes[i].position;
+        const end = categoryCubes[i + 1].position;
+        connectionsList.push({
+          start: [start[0], start[1], start[2]] as [number, number, number],
+          end: [end[0], end[1], end[2]] as [number, number, number],
+          key: `connection-${categoryIndex}-${i}`
+        });
+      }
+    });
 
     return { cubes: cubeList, connections: connectionsList };
   }, [data, xColumn, yColumn, chartColors, tileMode]);
