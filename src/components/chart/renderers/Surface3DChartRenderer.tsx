@@ -36,20 +36,14 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
   });
 
   const surfaceData = useMemo(() => {
-    // Early validation - check data exists first
     if (!data || data.length === 0) {
       console.warn('Surface3DChartRenderer: No data provided');
       return null;
     }
 
-    // Ensure we have valid column names and data
     if (!xColumn || !yColumn || !zColumn) {
       console.warn('🏔️ Surface3DChartRenderer: Missing required columns', { 
-        xColumn, 
-        yColumn, 
-        zColumn,
-        hasData: data.length > 0,
-        sampleKeys: data[0] ? Object.keys(data[0]) : []
+        xColumn, yColumn, zColumn
       });
       return null;
     }
@@ -61,40 +55,55 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
     
     if (missingColumns.length > 0) {
       console.error('🏔️ Surface3DChartRenderer: Columns not found in data', {
-        missingColumns,
-        availableColumns,
-        requestedColumns: { xColumn, yColumn, zColumn }
+        missingColumns, availableColumns
       });
       return null;
     }
 
-    // Filter out invalid data entries
-    const validData = data.filter(item => 
-      item && 
-      item[xColumn] !== undefined && 
-      item[yColumn] !== undefined &&
-      item[zColumn] !== undefined &&
-      !isNaN(Number(item[xColumn])) &&
-      !isNaN(Number(item[yColumn])) &&
-      !isNaN(Number(item[zColumn]))
-    );
+    // Validate axis requirements:
+    // X & Y: Continuous or ordinal (can be converted to numbers)
+    // Z: Must be numeric (the dependent variable/KPI)
+    const validData = data.filter(item => {
+      if (!item) return false;
+      
+      const xVal = item[xColumn];
+      const yVal = item[yColumn];
+      const zVal = item[zColumn];
+      
+      // All values must exist
+      if (xVal === undefined || yVal === undefined || zVal === undefined) return false;
+      
+      // X and Y can be ordinal/categorical - convert to numbers if possible
+      const xNum = Number(xVal);
+      const yNum = Number(yVal);
+      const zNum = Number(zVal);
+      
+      // Z must be strictly numeric (the KPI we're measuring)
+      if (isNaN(zNum)) return false;
+      
+      // X and Y should be convertible to numbers (for grid positioning)
+      return !isNaN(xNum) && !isNaN(yNum);
+    });
 
     if (validData.length === 0) {
-      console.warn('🏔️ Surface3DChartRenderer: No valid data after filtering', { 
-        originalDataLength: data.length, 
-        validDataLength: validData.length,
-        sampleData: data.slice(0, 3).map(item => ({
-          [xColumn]: { value: item[xColumn], type: typeof item[xColumn], isNumber: !isNaN(Number(item[xColumn])) },
-          [yColumn]: { value: item[yColumn], type: typeof item[yColumn], isNumber: !isNaN(Number(item[yColumn])) },
-          [zColumn]: { value: item[zColumn], type: typeof item[zColumn], isNumber: !isNaN(Number(item[zColumn])) }
-        }))
-      });
+      console.warn('🏔️ Surface3DChartRenderer: No valid data - Z-axis must be numeric, X/Y must be ordinal or continuous');
       return null;
     }
 
-    console.log('🏔️ Surface3DChartRenderer: Valid data found', {
+    // Sort data for better surface generation (X primary, Y secondary)
+    validData.sort((a, b) => {
+      const xDiff = Number(a[xColumn]) - Number(b[xColumn]);
+      if (xDiff !== 0) return xDiff;
+      return Number(a[yColumn]) - Number(b[yColumn]);
+    });
+
+    console.log('🏔️ Surface3DChartRenderer: Valid surface data', {
       validDataLength: validData.length,
-      sampleValidData: validData.slice(0, 2)
+      axisTypes: {
+        xColumn: `${xColumn} (independent var 1)`,
+        yColumn: `${yColumn} (independent var 2)`, 
+        zColumn: `${zColumn} (dependent KPI)`
+      }
     });
 
     return validData;
@@ -105,78 +114,76 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
       return { geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshPhongMaterial({ color: '#cccccc' }) };
     }
 
-    // Create a grid of vertices for the surface
-    const gridSize = Math.ceil(Math.sqrt(surfaceData.length));
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    const colors: number[] = [];
-    
-    // Get value ranges for normalization
-    const xValues: number[] = [];
-    const yValues: number[] = [];
-    const zValues: number[] = [];
-    
-    // Safely extract values from data
-    surfaceData.forEach(d => {
-      const xVal = Number(d[xColumn]) || 0;
-      const yVal = Number(d[yColumn]) || 0;
-      const zVal = Number(d[zColumn]) || 0;
-      
-      xValues.push(xVal);
-      yValues.push(yVal);
-      zValues.push(zVal);
-    });
+    // Extract and organize data for proper surface grid
+    const xValues = [...new Set(surfaceData.map(d => Number(d[xColumn])))].sort((a, b) => a - b);
+    const yValues = [...new Set(surfaceData.map(d => Number(d[yColumn])))].sort((a, b) => a - b);
     
     const xMin = Math.min(...xValues);
     const xMax = Math.max(...xValues);
     const yMin = Math.min(...yValues);
     const yMax = Math.max(...yValues);
-    const zMin = Math.min(...zValues);
-    const zMax = Math.max(...zValues);
+    
+    // Get Z-values (the KPI we're measuring as height)
+    const allZValues = surfaceData.map(d => Number(d[zColumn]));
+    const zMin = Math.min(...allZValues);
+    const zMax = Math.max(...allZValues);
+    const zRange = zMax - zMin || 1;
     
     const xRange = xMax - xMin || 1;
     const yRange = yMax - yMin || 1;
-    const zRange = zMax - zMin || 1;
-    
     const scale = 4;
     
-    // Create vertices
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        const dataIndex = i * gridSize + j;
+    // Create grid dimensions based on unique X/Y values
+    const gridWidth = xValues.length;
+    const gridHeight = yValues.length;
+    
+    console.log('🏔️ Surface grid:', { gridWidth, gridHeight, totalPoints: gridWidth * gridHeight });
+    
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const colors: number[] = [];
+    
+    // Build proper grid based on X/Y independent variables
+    for (let i = 0; i < gridHeight; i++) {
+      for (let j = 0; j < gridWidth; j++) {
+        const xVal = xValues[j];
+        const yVal = yValues[i];
         
-        if (dataIndex < surfaceData.length) {
-          const item = surfaceData[dataIndex];
-          // Better utilize vertical space with full 4-unit height range
-          const x = ((Number(item[xColumn]) || 0) - xMin) / xRange * scale - scale / 2;
-          const y = ((Number(item[yColumn]) || 0) - yMin) / yRange * 4; // Use full 4-unit height range
-          const z = ((Number(item[zColumn]) || 0) - zMin) / zRange * scale - scale / 2;
-          
-          vertices.push(x, y, z);
-          
-          // Color based on height (adjusted for new 4-unit range)
-          const colorIndex = Math.floor((y / 4) * (chartColors.length - 1));
-          const color = new THREE.Color(chartColors[Math.max(0, Math.min(colorIndex, chartColors.length - 1))]);
-          colors.push(color.r, color.g, color.b);
-        } else {
-          // Fill empty spots with interpolated values
-          const x = (j / (gridSize - 1)) * scale - scale / 2;
-          const z = (i / (gridSize - 1)) * scale - scale / 2;
-          vertices.push(x, 0, z);
-          colors.push(0.5, 0.5, 0.5);
-        }
+        // Find Z value (dependent variable) for this X,Y combination
+        const dataPoint = surfaceData.find(d => 
+          Math.abs(Number(d[xColumn]) - xVal) < 0.001 && 
+          Math.abs(Number(d[yColumn]) - yVal) < 0.001
+        );
+        
+        const zVal = dataPoint ? Number(dataPoint[zColumn]) : (zMin + zMax) / 2; // Use average if no data
+        
+        // Map to 3D coordinates
+        // X-axis: Independent variable 1 (horizontal)
+        const x = ((xVal - xMin) / xRange) * scale - scale / 2;
+        // Z-axis: Independent variable 2 (depth) 
+        const z = ((yVal - yMin) / yRange) * scale - scale / 2;
+        // Y-axis: Dependent variable (height - the KPI)
+        const y = ((zVal - zMin) / zRange) * scale;
+        
+        vertices.push(x, y, z);
+        
+        // Color based on Z-value (the KPI height)
+        const normalizedZ = (zVal - zMin) / zRange;
+        const colorIndex = Math.floor(normalizedZ * (chartColors.length - 1));
+        const color = new THREE.Color(chartColors[Math.max(0, Math.min(colorIndex, chartColors.length - 1))]);
+        colors.push(color.r, color.g, color.b);
       }
     }
     
-    // Create triangular faces
-    for (let i = 0; i < gridSize - 1; i++) {
-      for (let j = 0; j < gridSize - 1; j++) {
-        const a = i * gridSize + j;
-        const b = i * gridSize + j + 1;
-        const c = (i + 1) * gridSize + j;
-        const d = (i + 1) * gridSize + j + 1;
+    // Create triangular faces for the surface
+    for (let i = 0; i < gridHeight - 1; i++) {
+      for (let j = 0; j < gridWidth - 1; j++) {
+        const a = i * gridWidth + j;
+        const b = i * gridWidth + j + 1;
+        const c = (i + 1) * gridWidth + j;
+        const d = (i + 1) * gridWidth + j + 1;
         
-        // Two triangles per quad
+        // Two triangles per quad (proper winding order)
         indices.push(a, b, c);
         indices.push(b, d, c);
       }
@@ -192,7 +199,7 @@ export const Surface3DChartRenderer: React.FC<Surface3DChartRendererProps> = ({
       vertexColors: true,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.85
     });
     
     return { geometry, material };
