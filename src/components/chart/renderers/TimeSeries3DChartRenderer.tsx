@@ -403,7 +403,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     return (
       <group>
       <StandardAxes3D 
-        xLabel={zColumn ? "Time" : "Index"}
+        xLabel={zColumn || "Index"}
         yLabel={yColumn || "Value"}
         zLabel={seriesColumn || xColumn || "Series"}
         axisLength={4}
@@ -423,7 +423,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel={zColumn ? "Time →" : "Index →"}
+        xLabel={zColumn || xColumn || "Index"}
         yLabel={yColumn}
         zLabel={seriesColumn || xColumn || "Series"}
         axisLength={6}
