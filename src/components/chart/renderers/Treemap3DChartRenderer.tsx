@@ -252,7 +252,13 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
     }
 
     const sampleRow = data[0];
-    console.log('🗺️ Sample row structure:', sampleRow);
+    const availableColumns = Object.keys(sampleRow || {});
+    
+    console.log('🗺️ Data structure:', {
+      sampleRow,
+      availableColumns,
+      requestedColumns: { xColumn, yColumn, zColumn }
+    });
 
     // Check if data is already in treemap format
     const hasTreemapStructure = sampleRow && 
@@ -260,59 +266,113 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       ('size' in sampleRow || 'value' in sampleRow);
 
     if (hasTreemapStructure) {
-      // Data is already processed, use it directly - don't try to access original columns
+      // Data is already processed, use it directly
       console.log('🗺️ Using pre-processed treemap data');
-      return data.filter(item => {
-        const value = item.value || item.size || 0;
-        return value > 0 && typeof value === 'number';
-      }).map(item => ({
-        name: item.name || item.label || 'Unknown',
-        value: item.value || item.size || 0,
-        size: item.size || item.value || 0,
-        height: item.height || item.value || item.size || 1
-      }));
+      
+      const processed = data
+        .filter(item => {
+          const value = item.value || item.size || 0;
+          return value > 0 && typeof value === 'number';
+        })
+        .map(item => ({
+          name: item.name || item.label || 'Unknown',
+          value: item.value || item.size || 0,
+          size: item.size || item.value || 0,
+          height: item.height || item.value || item.size || 1
+        }))
+        .sort((a, b) => b.value - a.value);
+      
+      console.log('🗺️ Processed treemap data:', {
+        itemCount: processed.length,
+        items: processed.slice(0, 3) // Log first 3 items
+      });
+      
+      return processed;
     }
 
-    // Auto-detect columns if mismatch
-    const availableColumns = Object.keys(sampleRow || {});
+    // Helper function INSIDE useMemo to process raw data
+    const processRawData = (categoryCol: string, valueCol: string, heightCol?: string) => {
+      console.log('🗺️ Processing raw data with columns:', {
+        categoryCol,
+        valueCol,
+        heightCol
+      });
+
+      const grouped = data.reduce((acc, row) => {
+        const category = row[categoryCol]?.toString() || 'Unknown';
+        const value = Number(row[valueCol]) || 0;
+        
+        if (value > 0) {
+          if (!acc[category]) {
+            acc[category] = { value: 0, height: 0, count: 0 };
+          }
+          acc[category].value += value;
+          acc[category].height += heightCol ? Number(row[heightCol]) || 0 : value;
+          acc[category].count += 1;
+        }
+        return acc;
+      }, {} as Record<string, {value: number, height: number, count: number}>);
+
+      const result = Object.entries(grouped)
+        .map(([name, groupData]) => {
+          const typedData = groupData as {value: number, height: number, count: number};
+          return {
+            name,
+            value: typedData.value,
+            size: typedData.value,
+            height: typedData.height / typedData.count
+          };
+        })
+        .filter(item => item.value > 0)
+        .sort((a, b) => b.value - a.value);
+
+      console.log('🗺️ Grouped data result:', {
+        itemCount: result.length,
+        categories: result.map(r => r.name)
+      });
+
+      return result;
+    };
+
+    // Check if requested columns exist
     const hasXColumn = xColumn && availableColumns.includes(xColumn);
     const hasYColumn = yColumn && availableColumns.includes(yColumn);
 
     if (!hasXColumn || !hasYColumn) {
-      console.error('🗺️ Column mismatch - attempting auto-detection');
-      const categoryCol = availableColumns.find(col => typeof sampleRow[col] === 'string') || availableColumns[0];
-      const valueCol = availableColumns.find(col => typeof sampleRow[col] === 'number') || availableColumns[1];
-      return processRawTreemapData(data, categoryCol, valueCol, zColumn);
+      console.warn('🗺️ Column mismatch detected:', {
+        xColumn: hasXColumn ? '✓' : `✗ "${xColumn}" not found`,
+        yColumn: hasYColumn ? '✓' : `✗ "${yColumn}" not found`,
+        availableColumns
+      });
+
+      // Auto-detect appropriate columns
+      const categoryCol = availableColumns.find(col => 
+        typeof sampleRow[col] === 'string'
+      ) || availableColumns[0];
+      
+      const valueCol = availableColumns.find(col => 
+        typeof sampleRow[col] === 'number'
+      ) || availableColumns[1];
+
+      if (!categoryCol || !valueCol) {
+        console.error('🗺️ Cannot auto-detect suitable columns');
+        return [];
+      }
+
+      console.log('🗺️ Using auto-detected columns:', {
+        category: categoryCol,
+        value: valueCol
+      });
+
+      return processRawData(categoryCol, valueCol, zColumn);
     }
 
-    return processRawTreemapData(data, xColumn, yColumn, zColumn);
+    // Use the specified columns
+    return processRawData(xColumn, yColumn, zColumn);
   }, [data, xColumn, yColumn, zColumn]);
 
-  const processRawTreemapData = (rawData: any[], categoryCol: string, valueCol: string, heightCol?: string) => {
-    const grouped = rawData.reduce((acc, row) => {
-      const category = row[categoryCol]?.toString() || 'Unknown';
-      const value = Number(row[valueCol]) || 0;
-      if (value > 0) {
-        if (!acc[category]) acc[category] = { value: 0, height: 0, count: 0 };
-        acc[category].value += value;
-        acc[category].height += heightCol ? Number(row[heightCol]) : value;
-        acc[category].count += 1;
-      }
-      return acc;
-    }, {} as Record<string, {value: number, height: number, count: number}>);
-
-    return Object.entries(grouped).map(([name, data]) => {
-      const typedData = data as {value: number, height: number, count: number};
-      return {
-        name, 
-        value: typedData.value, 
-        size: typedData.value, 
-        height: typedData.height / typedData.count
-      };
-    }).filter(item => item.value > 0);
-  };
-
   const layout = useMemo(() => {
+    if (!processedData || processedData.length === 0) return [];
     return calculateTreemapLayout(processedData, 10, 8);
   }, [processedData]);
 
@@ -324,16 +384,38 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
     setSelectedItem(itemData?.label === selectedItem ? null : itemData?.label);
   };
 
+  // Error state with helpful message
   if (!processedData || processedData.length === 0) {
+    const sampleRow = data?.[0];
+    const availableColumns = sampleRow ? Object.keys(sampleRow) : [];
+    
     return (
       <group>
-        <Text position={[0, 0, 0]} fontSize={0.8} color="#666666" anchorX="center" anchorY="middle">
+        <Text 
+          position={[0, 0.5, 0]} 
+          fontSize={0.5} 
+          color="#ff6666" 
+          anchorX="center" 
+          anchorY="middle"
+        >
           No valid data to display
         </Text>
+        {availableColumns.length > 0 && (
+          <Text 
+            position={[0, -0.5, 0]} 
+            fontSize={0.3} 
+            color="#999999" 
+            anchorX="center" 
+            anchorY="middle"
+          >
+            Available columns: {availableColumns.join(', ')}
+          </Text>
+        )}
       </group>
     );
   }
 
+  // Render the treemap
   return (
     <group position={[0, 0, 0]}>
       {/* Treemap boxes */}
@@ -341,7 +423,7 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
         <TreemapBox3D
           key={`${rect.item.name}-${index}`}
           position={[
-            rect.x - 5, // Center around origin
+            rect.x - 5,
             rect.y - 4,
             rect.depth / 2
           ]}
@@ -358,22 +440,23 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
         />
       ))}
 
-      {/* Ground plane for reference */}
+      {/* Ground plane */}
       <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[12, 10]} />
         <meshBasicMaterial color="#f0f0f0" opacity={0.1} transparent />
       </mesh>
 
-      {/* Title */}
+      {/* Dynamic title based on data */}
       <Text
         position={[0, 5, 0]}
         fontSize={0.6}
         color="#333333"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/inter-bold.woff"
       >
-        3D Treemap: {xColumn} by {yColumn}
+        {processedData.length > 0 
+          ? `3D Treemap (${processedData.length} items)`
+          : `3D Treemap: ${xColumn} by ${yColumn}`}
       </Text>
     </group>
   );
