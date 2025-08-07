@@ -189,40 +189,210 @@ export class RecipeEngine {
   }
 
   /**
-   * Detects temporal columns using pattern matching
+   * Enhanced temporal detection with exclusion patterns and confidence scoring
    */
   private static isTemporalColumn(name: string, column: ColumnInfo): boolean {
     const normalizedName = name.toLowerCase();
     
-    // Check name patterns
-    if (TEMPORAL_PATTERNS.some(pattern => pattern.test(normalizedName))) {
+    // 1. HIGHEST CONFIDENCE - Exact temporal column names
+    const exactTemporalNames = [
+      'date', 'datetime', 'timestamp', 'time',
+      'created_at', 'updated_at', 'deleted_at',
+      'created_date', 'updated_date', 'modified_date',
+      'start_date', 'end_date', 'due_date',
+      'birth_date', 'hire_date', 'termination_date',
+      'publication_date', 'expiry_date', 'expiration_date'
+    ];
+    
+    if (exactTemporalNames.includes(normalizedName.replace(/[_\-]/g, ''))) {
+      return true; // 100% confidence for exact matches
+    }
+    
+    // 2. Check column type first (most reliable)
+    if (column.type === 'date') {
+      return true; // Database told us it's temporal
+    }
+    
+    // 3. Check for temporal patterns in name (but exclude false positives)
+    const temporalPatterns = [
+      /^(year|month|day|week|quarter)$/i,  // Exact time units
+      /_(date|time|timestamp|at)$/i,        // Suffix patterns
+      /^(date|time|timestamp)_/i,           // Prefix patterns
+      /\b(created|updated|modified|deleted|published|expired)\b.*\b(at|on|date|time)\b/i,
+    ];
+    
+    // EXCLUSION PATTERNS - these are NOT temporal
+    const exclusionPatterns = [
+      /spend|cost|price|amount|revenue|profit|budget|expense/i,  // Financial terms
+      /count|total|sum|avg|average|mean|median/i,                // Aggregations
+      /score|rating|rank|percent|ratio/i,                        // Metrics
+      /id|code|number|num$/i,                                    // Identifiers
+    ];
+    
+    // Reject if it matches exclusion patterns
+    if (exclusionPatterns.some(pattern => pattern.test(normalizedName))) {
+      return false;
+    }
+    
+    // Check temporal patterns
+    if (temporalPatterns.some(pattern => pattern.test(normalizedName))) {
       return true;
     }
-
-    // Analyze values for temporal patterns
+    
+    // 4. Analyze actual values for temporal patterns
     if (column.values && column.values.length > 0) {
-      const sampleValues = column.values.slice(0, Math.min(20, column.values.length));
+      return this.analyzeValuesForTemporalPatterns(column.values);
+    }
+    
+    return false;
+  }
+
+  /**
+   * Analyzes column values to detect temporal patterns
+   */
+  private static analyzeValuesForTemporalPatterns(values: any[]): boolean {
+    const sampleSize = Math.min(20, values.length);
+    const sampleValues = values.slice(0, sampleSize).filter(v => v != null);
+    
+    if (sampleValues.length === 0) return false;
+    
+    let temporalMatches = 0;
+    
+    for (const value of sampleValues) {
+      const strValue = String(value).trim();
       
-      // Check for year patterns
-      if (column.type === 'numeric') {
-        const numValues = sampleValues.map(v => parseInt(String(v))).filter(v => !isNaN(v));
-        if (numValues.every(val => val >= YEAR_RANGE.min && val <= YEAR_RANGE.max)) {
-          return true;
-        }
+      // Check various date formats
+      const datePatterns = [
+        /^\d{4}-\d{2}-\d{2}$/,                    // 2024-01-15
+        /^\d{4}\/\d{2}\/\d{2}$/,                  // 2024/01/15
+        /^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/,      // 1/15/2024 or 15-01-2024
+        /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/, // ISO datetime
+        /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i, // Month names
+        /^Q[1-4]\s?\d{4}$/,                       // Q1 2024
+        /^\d{4}$/,                                 // Just year (if 1900-2100)
+      ];
+      
+      if (datePatterns.some(pattern => pattern.test(strValue))) {
+        temporalMatches++;
+        continue;
       }
-
-      // Check for date-like strings
-      if (sampleValues.some(val => DATE_PATTERN.test(String(val)))) {
-        return true;
+      
+      // Check if it's a year (special case for numeric columns)
+      const numValue = parseInt(strValue);
+      if (!isNaN(numValue) && numValue >= 1900 && numValue <= 2100) {
+        temporalMatches++;
       }
+    }
+    
+    // If >80% of samples match temporal patterns, it's temporal
+    return (temporalMatches / sampleValues.length) > 0.8;
+  }
 
-      // Check for quarter patterns
-      if (sampleValues.some(val => QUARTER_PATTERN.test(String(val)))) {
+  /**
+   * Enhanced temporal detection with confidence scoring
+   */
+  private static detectTemporalWithConfidence(
+    name: string, 
+    column: ColumnInfo
+  ): { type: IngredientType; confidence: number; reasoning: string } | null {
+    const normalizedName = name.toLowerCase();
+    
+    // Very high confidence cases
+    if (column.type === 'date') {
+      return {
+        type: 'temporal',
+        confidence: 1.0,
+        reasoning: 'Column type is explicitly date/datetime'
+      };
+    }
+    
+    // Exact name matches
+    const exactMatches = ['date', 'datetime', 'timestamp', 'created_at', 'updated_at'];
+    if (exactMatches.includes(normalizedName.replace(/[_\-]/g, ''))) {
+      return {
+        type: 'temporal',
+        confidence: 0.95,
+        reasoning: 'Column name is a standard temporal field'
+      };
+    }
+    
+    // Check for false positives first
+    if (/spend|cost|revenue|amount|price|budget/i.test(normalizedName)) {
+      return null; // Definitely not temporal
+    }
+    
+    // Partial name matches
+    if (/date|time|year|month|day/i.test(normalizedName)) {
+      // But check values to be sure
+      const valueScore = this.scoreTemporalValues(column.values);
+      if (valueScore > 0.5) {
+        return {
+          type: 'temporal',
+          confidence: Math.min(0.9, 0.6 + valueScore * 0.3),
+          reasoning: 'Name suggests temporal, values confirm'
+        };
+      }
+    }
+    
+    // Pure value-based detection (lower confidence)
+    const valueScore = this.scoreTemporalValues(column.values);
+    if (valueScore > 0.8) {
+      return {
+        type: 'temporal',
+        confidence: valueScore * 0.7, // Max 0.7 confidence without name evidence
+        reasoning: 'Values appear to be dates/times'
+      };
+    }
+    
+    return null;
+  }
+
+  /**
+   * Scores how temporal the column values appear to be
+   */
+  private static scoreTemporalValues(values: any[]): number {
+    if (!values || values.length === 0) return 0;
+    
+    const sample = values.slice(0, Math.min(50, values.length));
+    let matches = 0;
+    
+    for (const value of sample) {
+      if (this.looksLikeTemporal(value)) {
+        matches++;
+      }
+    }
+    
+    return matches / sample.length;
+  }
+
+  /**
+   * Checks if a single value looks like temporal data
+   */
+  private static looksLikeTemporal(value: any): boolean {
+    if (value == null) return false;
+    
+    const str = String(value).trim();
+    
+    // Try parsing as date
+    const parsed = Date.parse(str);
+    if (!isNaN(parsed)) {
+      const date = new Date(parsed);
+      // Check if it's a reasonable date (1900-2100)
+      const year = date.getFullYear();
+      if (year >= 1900 && year <= 2100) {
         return true;
       }
     }
-
-    return false;
+    
+    // Check common patterns
+    const patterns = [
+      /^\d{4}-\d{2}-\d{2}$/,
+      /^\d{1,2}\/\d{1,2}\/\d{4}$/,
+      /^(19|20)\d{2}$/,  // Years
+      /^Q[1-4]\s?\d{4}$/,  // Quarters
+    ];
+    
+    return patterns.some(p => p.test(str));
   }
 
   /**
