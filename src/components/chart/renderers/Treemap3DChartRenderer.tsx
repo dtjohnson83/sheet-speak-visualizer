@@ -8,6 +8,7 @@ interface Treemap3DChartRendererProps {
   data: any[];
   xColumn: string;
   yColumn: string;
+  zColumn?: string;
   chartColors: string[];
   showDataLabels?: boolean;
   tileMode?: boolean;
@@ -226,6 +227,7 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
   data,
   xColumn,
   yColumn,
+  zColumn,
   chartColors,
   showDataLabels = false,
   tileMode = false,
@@ -239,6 +241,7 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
     dataLength: data?.length,
     xColumn,
     yColumn,
+    zColumn,
     showDataLabels
   });
 
@@ -268,13 +271,15 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       ).map(item => ({
         name: item.name || 'Unknown',
         value: item.value || item.size || 0,
-        size: item.size || item.value || 0
+        size: item.size || item.value || 0,
+        height: zColumn && item[zColumn] ? Number(item[zColumn]) : (item.value || item.size || 1)
       }));
 
       console.log('🗺️ Treemap3DChartRenderer: Using pre-processed data', {
         originalLength: data.length,
         processedLength: result.length,
-        categories: result.map(r => r.name)
+        categories: result.map(r => r.name),
+        hasZColumn: !!zColumn
       });
 
       return result;
@@ -304,22 +309,29 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
     const grouped = data.reduce((acc, row) => {
       const category = row[xColumn]?.toString() || 'Unknown';
       const value = Number(row[yColumn]);
+      const height = zColumn ? Number(row[zColumn]) : value;
       
       if (!isNaN(value) && value > 0) {
         if (!acc[category]) {
-          acc[category] = 0;
+          acc[category] = { value: 0, height: 0, count: 0 };
         }
-        acc[category] += value;
+        acc[category].value += value;
+        acc[category].height += height || value;
+        acc[category].count += 1;
       }
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, {value: number, height: number, count: number}>);
 
     const result = Object.entries(grouped)
-      .map(([name, value]) => ({
-        name,
-        value,
-        size: value
-      }))
+      .map(([name, groupData]) => {
+        const typedData = groupData as {value: number, height: number, count: number};
+        return {
+          name,
+          value: typedData.value,
+          size: typedData.value,
+          height: typedData.height / typedData.count // Average height
+        };
+      })
       .filter(item => typeof item.value === 'number' && item.value > 0);
 
     console.log('🗺️ Treemap3DChartRenderer: Processed raw data', {

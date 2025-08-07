@@ -168,6 +168,7 @@ export const ChartRenderers = ({
             data={data}
             xColumn={xColumn}
             yColumn={yColumn}
+            zColumn={zColumn}
             chartColors={chartColors}
             showDataLabels={showDataLabels}
             isTemporalAnimated={isTemporalAnimated}
