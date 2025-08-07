@@ -97,20 +97,42 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
     return 'text-gray-400';
   };
 
-  const handleEditStart = (columnName: string, currentType: IngredientType) => {
+  const handleEditStart = (e: React.MouseEvent, columnName: string, currentType: IngredientType) => {
+    e.stopPropagation(); // Stop card selection
     setEditingIngredient(columnName);
     setTempType(currentType);
   };
 
-  const handleEditConfirm = () => {
-    if (editingIngredient && onIngredientTypeChange) {
-      onIngredientTypeChange(editingIngredient, tempType, 1.0); // High confidence for manual override
+  const handleEditConfirm = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop the event from bubbling to the Card
+    e.preventDefault();  // Prevent any default behavior
+    
+    console.log('Saving edit:', editingIngredient, tempType); // Debug log
+    
+    if (!editingIngredient) {
+      console.error('No ingredient being edited');
+      return;
     }
-    setEditingIngredient(null);
+    
+    if (!onIngredientTypeChange) {
+      console.error('onIngredientTypeChange prop is not provided');
+      return;
+    }
+    
+    try {
+      onIngredientTypeChange(editingIngredient, tempType, 1.0);
+      setEditingIngredient(null);
+      console.log('Edit saved successfully');
+    } catch (error) {
+      console.error('Error saving edit:', error);
+    }
   };
 
-  const handleEditCancel = () => {
+  const handleEditCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     setEditingIngredient(null);
+    setTempType('numeric'); // Reset to default
   };
 
   const getConfidenceColor = (confidence?: number): string => {
@@ -229,11 +251,26 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
                       </Select>
                       
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={handleEditConfirm} className="gap-1">
+                        <Button 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation(); // Critical!
+                            handleEditConfirm(e);
+                          }} 
+                          className="gap-1"
+                        >
                           <Save className="h-3 w-3" />
                           Save
                         </Button>
-                        <Button size="sm" variant="outline" onClick={handleEditCancel} className="gap-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={(e) => {
+                            e.stopPropagation(); // Critical!
+                            handleEditCancel(e);
+                          }} 
+                          className="gap-1"
+                        >
                           <X className="h-3 w-3" />
                           Cancel
                         </Button>
@@ -296,8 +333,8 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
                             size="sm"
                             variant="ghost"
                             onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditStart(ingredient.column, ingredient.type);
+                              e.stopPropagation(); // Critical!
+                              handleEditStart(e, ingredient.column, ingredient.type);
                             }}
                             className="h-6 w-6 p-0 mt-1"
                           >
