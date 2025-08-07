@@ -270,21 +270,24 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     const cubeList = validData.map((item, index) => {
       const value = Number(item[yColumn]) || 0;
       const normalizedValue = (value - minValue) / valueRange;
-      const cubeHeight = Math.max(0.2, normalizedValue * 3); // Height based on value
+      const cubeHeight = Math.max(0.3, normalizedValue * 4); // Height based on value
       
-      // Position along a spiral or linear time path
-      const t = index / (timeSteps - 1);
-      const angle = t * Math.PI * 4; // Spiral effect
-      const radius = 1.5 + t * 0.5; // Expanding spiral
+      // Linear time progression along X-axis (left to right = past to future)
+      const timeSpacing = tileMode ? Math.min(1.2, 6.0 / timeSteps) : 1.0;
+      const totalWidth = (timeSteps - 1) * timeSpacing;
+      const x = -totalWidth / 2 + index * timeSpacing; // Center the timeline
+      const y = cubeHeight / 2; // Height based on value
+      const z = zColumn ? Number(item[zColumn]) || 0 : 0; // Series depth if z-column exists
       
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      const y = cubeHeight / 2;
+      // Time-based color gradient (cool to warm, past to future)
+      const timeProgress = index / (timeSteps - 1);
+      const hue = 240 - (timeProgress * 120); // Blue (240) to Red (120)
+      const timeColor = `hsl(${hue}, 70%, 60%)`;
       
       return {
         position: [x, y, z] as [number, number, number],
-        scale: [cubeSize, cubeHeight, cubeSize] as [number, number, number],
-        color: chartColors[index % chartColors.length],
+        scale: [cubeSize * 0.8, cubeHeight, cubeSize * 0.8] as [number, number, number], // More rectangular for time series
+        color: chartColors.length > 0 ? chartColors[index % chartColors.length] : timeColor,
         label: String(item[xColumn] || `Time ${index + 1}`),
         value: value,
         timeIndex: index,
@@ -332,24 +335,36 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel="Time"
+        xLabel="Time →"
         yLabel={yColumn}
-        zLabel="Series"
-        axisLength={4}
+        zLabel={zColumn ? "Series" : ""}
+        axisLength={6}
         showGrid={true}
         showOrigin={true}
-        showZAxis={true}
+        showZAxis={!!zColumn}
       />
       
-      {/* Time series connections */}
-      {connections.map((connection) => (
+      {/* Time series connections - Enhanced visibility */}
+      {connections.map((connection, index) => (
         <Line
           key={connection.key}
           points={[connection.start, connection.end]}
-          color="hsl(var(--muted-foreground))"
-          lineWidth={2}
+          color="hsl(var(--primary))"
+          lineWidth={4}
           transparent
-          opacity={0.6}
+          opacity={0.8}
+        />
+      ))}
+      
+      {/* Time progression flow effect */}
+      {connections.map((connection, index) => (
+        <Line
+          key={`glow-${connection.key}`}
+          points={[connection.start, connection.end]}
+          color="hsl(var(--primary))"
+          lineWidth={8}
+          transparent
+          opacity={0.2}
         />
       ))}
       
