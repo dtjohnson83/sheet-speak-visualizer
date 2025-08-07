@@ -109,10 +109,20 @@ const TimeCube: React.FC<CubeProps> = ({
       materialRef.current.roughness = currentMaterial.current.roughness;
       materialRef.current.opacity = currentMaterial.current.opacity;
       
-      // Time-based glow effect
-      if (isTemporalAnimated) {
-        const glowIntensity = Math.sin(state.clock.elapsedTime * 2 + (timeIndex || 0) * 0.3) * 0.1 + 0.1;
-        materialRef.current.emissiveIntensity = glowIntensity;
+      // Time-based glow effect and wave animation
+      if (isTemporalAnimated && timeIndex !== undefined) {
+        const waveOffset = (timeIndex || 0) * 0.5; // Stagger the wave
+        const waveIntensity = Math.sin(state.clock.elapsedTime * 3 - waveOffset) * 0.2 + 0.3;
+        const pulseIntensity = Math.sin(state.clock.elapsedTime * 2 + waveOffset) * 0.1 + 0.1;
+        
+        materialRef.current.emissiveIntensity = Math.max(waveIntensity, pulseIntensity);
+        
+        // Progressive highlight effect
+        const timeProgress = (timeIndex || 0) / 10; // Assuming max 10 time points for demo
+        const highlightPhase = (state.clock.elapsedTime * 0.5) % 2; // 2-second cycle
+        if (highlightPhase > timeProgress && highlightPhase < timeProgress + 0.2) {
+          materialRef.current.emissiveIntensity = 0.8; // Strong highlight when wave passes
+        }
       }
     }
   });
@@ -344,6 +354,33 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         showZAxis={!!zColumn}
       />
       
+      {/* Time axis markers and labels */}
+      {cubes.map((cube, index) => {
+        if (index % Math.max(1, Math.floor(cubes.length / 5)) === 0) { // Show every nth label
+          return (
+            <group key={`time-marker-${index}`}>
+              {/* Time marker on ground */}
+              <mesh position={[cube.position[0], -0.1, cube.position[2]]}>
+                <cylinderGeometry args={[0.05, 0.05, 0.1]} />
+                <meshBasicMaterial color="hsl(var(--muted-foreground))" />
+              </mesh>
+              {/* Time label */}
+              <Text
+                position={[cube.position[0], -0.5, cube.position[2]]}
+                fontSize={0.15}
+                color="hsl(var(--muted-foreground))"
+                anchorX="center"
+                anchorY="middle"
+                rotation={[-Math.PI/2, 0, 0]}
+              >
+                {cube.label}
+              </Text>
+            </group>
+          );
+        }
+        return null;
+      })}
+      
       {/* Time series connections - Enhanced visibility */}
       {connections.map((connection, index) => (
         <Line
@@ -368,6 +405,25 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         />
       ))}
       
+      {/* Animated wave effect along timeline */}
+      {isTemporalAnimated && connections.length > 0 && (
+        <group>
+          {connections.map((connection, index) => {
+            const wavePhase = (index / connections.length) * Math.PI * 2;
+            return (
+              <Line
+                key={`wave-${connection.key}`}
+                points={[connection.start, connection.end]}
+                color="hsl(var(--accent))"
+                lineWidth={6}
+                transparent
+                opacity={0.4 + Math.sin(wavePhase) * 0.2}
+              />
+            );
+          })}
+        </group>
+      )}
+      
       {/* 3D Time Cubes */}
       {cubes.map((cube) => {
         const cubeId = `${cube.label}-${cube.timeIndex}`;
@@ -389,6 +445,14 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           />
         );
       })}
+      
+      {/* Timeline base indicator */}
+      {cubes.length > 0 && (
+        <mesh position={[0, -0.05, 0]}>
+          <boxGeometry args={[(cubes.length - 1) * 1.0 + 1, 0.02, 0.1]} />
+          <meshBasicMaterial color="hsl(var(--border))" transparent opacity={0.5} />
+        </mesh>
+      )}
     </>
   );
 };
