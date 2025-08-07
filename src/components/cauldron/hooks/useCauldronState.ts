@@ -75,25 +75,32 @@ export const useCauldronState = (columns: ColumnInfo[]) => {
 
   // Convert columns to magical ingredients
   const ingredients = useMemo((): CauldronIngredient[] => {
-    return columns.map(col => {
-      // Calculate ingredient properties based on actual column data
-      const uniqueValues = new Set(col.values).size;
-      const totalRows = col.values.length;
-      const potency = Math.min(100, Math.max(10, (uniqueValues / Math.max(1, totalRows)) * 100));
+    const result: CauldronIngredient[] = [];
+    
+    // Process each column safely
+    columns.forEach(col => {
+      // Safely calculate ingredient properties
+      const values = col.values || [];
+      const uniqueSet = new Set(values);
+      const uniqueCount = uniqueSet.size;
+      const totalRows = values.length;
+      const potencyValue = Math.min(100, Math.max(10, (uniqueCount / Math.max(1, totalRows)) * 100));
       
-      // Get sample values (first 5 unique values)
-      const sampleValues = Array.from(new Set(col.values)).slice(0, 5);
+      // Get sample values safely
+      const sampleValuesList = Array.from(uniqueSet).slice(0, 5);
       
-      return {
+      result.push({
         id: col.name,
         columnName: col.name,
         type: col.type,
         dataType: col.type,
-        uniqueValues,
-        sampleValues,
-        potency: Math.round(potency)
-      };
+        uniqueValues: uniqueCount,
+        sampleValues: sampleValuesList,
+        potency: Math.round(potencyValue)
+      });
     });
+    
+    return result;
   }, [columns]);
 
   // Get magical name for ingredient
