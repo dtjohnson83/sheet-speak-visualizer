@@ -28,9 +28,10 @@ interface ChartVisualizationProps {
   onSaveTile?: (tileData: Omit<DashboardTileData, 'id' | 'position' | 'size'>) => void;
   columnFormats?: ColumnFormat[];
   dataSourceName?: string;
+  hideSeriesManager?: boolean;
 }
 
-export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName }: ChartVisualizationProps) => {
+export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName, hideSeriesManager = false }: ChartVisualizationProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const [mapboxApiKey, setMapboxApiKey] = useState<string>('');
   const [temporalConfig, setTemporalConfig] = useState<TemporalAnimationConfig>({
@@ -284,7 +285,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           />
         </div>
 
-        {supportsMultipleSeries && (
+        {supportsMultipleSeries && !hideSeriesManager && (
           <SeriesManager
             series={series}
             setSeries={setSeries}

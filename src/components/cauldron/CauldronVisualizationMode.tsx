@@ -286,6 +286,7 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
                     chartSuggestion={createChartSuggestionFromRecipe(selectedRecipe, activeIngredients)}
                     onSaveTile={onSaveTile}
                     dataSourceName="Cauldron Creation"
+                    hideSeriesManager={true}
                   />
                 </div>
               </div>
