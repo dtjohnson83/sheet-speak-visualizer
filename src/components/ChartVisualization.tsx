@@ -186,8 +186,8 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
   }, [chartType, supportsMultipleSeries, xColumn, yColumn, valueColumn, numericColumns, categoricalColumns, dateColumns, series]);
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="h-full flex flex-col space-y-6">
+      <div className="flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold">Data Visualization</h3>
           <div className="flex items-center gap-2">
@@ -297,7 +297,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
 
       {/* Only render chart when we have valid configuration */}
       {xColumn && (yColumn || chartType === 'histogram') && (
-        <div ref={chartRef}>
+        <div ref={chartRef} className="flex-1 min-h-0 overflow-hidden">
           <ChartContainer
             data={chartData}
             columns={chartColumns}

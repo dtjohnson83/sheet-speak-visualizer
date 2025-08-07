@@ -194,8 +194,8 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
       {/* Right Column - Recipe Suggestions and Results */}
       <div className="lg:col-span-1">
         {showResult && selectedRecipe ? (
-          <div className="space-y-4">
-            <div className="text-center">
+          <div className="space-y-4 h-full flex flex-col">
+            <div className="text-center flex-shrink-0">
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 🎉 Brewing Complete!
               </h3>
@@ -203,13 +203,15 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
                 Your {selectedRecipe.name} is ready
               </p>
             </div>
-            <AIConfiguredChart
-              data={data}
-              columns={columns}
-              chartSuggestion={createChartSuggestionFromRecipe(selectedRecipe, activeIngredients)}
-              onSaveTile={onSaveTile}
-              dataSourceName="Cauldron Creation"
-            />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <AIConfiguredChart
+                data={data}
+                columns={columns}
+                chartSuggestion={createChartSuggestionFromRecipe(selectedRecipe, activeIngredients)}
+                onSaveTile={onSaveTile}
+                dataSourceName="Cauldron Creation"
+              />
+            </div>
           </div>
         ) : (
           <RecipeSuggestions
