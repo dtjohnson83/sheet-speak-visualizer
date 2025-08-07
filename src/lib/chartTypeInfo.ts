@@ -183,6 +183,29 @@ export const chartTypeInfo = {
     examples: ['Disk usage by folder', 'Portfolio allocation', 'Company structure'],
     commonMistakes: ['Too many small values', 'Deep hierarchies']
   },
+  'treemap3d': {
+    name: '3D Treemap',
+    description: 'Display hierarchical data with 3D boxes sized by value and depth representing magnitude',
+    requiredColumns: ['name', 'value'],
+    optionalColumns: [],
+    category: '3d',
+    icon: 'box',
+    configurable: {
+      aggregation: true,
+      sorting: false,
+      stacking: false,
+      dataLabels: true,
+      colors: true
+    },
+    requirements: {
+      xAxis: { label: 'Category', type: 'categorical' },
+      yAxis: { label: 'Value', type: 'numeric' }
+    },
+    minDataPoints: 3,
+    bestFor: ['3D visualization of hierarchical data', 'Interactive exploration of proportions', 'Modern visual presentations'],
+    examples: ['3D market share visualization', '3D budget allocation', '3D portfolio breakdown'],
+    commonMistakes: ['Using with too few categories', 'Overusing animation', 'Not considering viewing angles']
+  },
   topX: {
     name: 'Top X',
     description: 'Show the top X values for a given category',

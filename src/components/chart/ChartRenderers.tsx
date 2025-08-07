@@ -12,6 +12,7 @@ import { ScatterChartRenderer } from './renderers/ScatterChartRenderer';
 import { HistogramChartRenderer } from './renderers/HistogramChartRenderer';
 import { HeatmapChartRenderer } from './renderers/HeatmapChartRenderer';
 import { TreemapChartRenderer } from './renderers/TreemapChartRenderer';
+import { Treemap3DChartRenderer } from './renderers/Treemap3DChartRenderer';
 import { PlaceholderChartRenderer } from './renderers/PlaceholderChartRenderer';
 import { Chart3DContainer } from './Chart3DContainer';
 import { Bar3DChartRenderer } from './renderers/Bar3DChartRenderer';
@@ -156,6 +157,24 @@ export const ChartRenderers = ({
         chartColors={chartColors}
         showDataLabels={showDataLabels}
       />
+    );
+  }
+
+  if (chartType === 'treemap3d') {
+    return (
+      <ChartErrorBoundary>
+        <Chart3DContainer isTemporalAnimated={isTemporalAnimated}>
+          <Treemap3DChartRenderer
+            data={data}
+            xColumn={xColumn}
+            yColumn={yColumn}
+            chartColors={chartColors}
+            showDataLabels={showDataLabels}
+            isTemporalAnimated={isTemporalAnimated}
+            animationSpeed={animationSpeed}
+          />
+        </Chart3DContainer>
+      </ChartErrorBoundary>
     );
   }
   

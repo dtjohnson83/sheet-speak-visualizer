@@ -101,7 +101,7 @@ export const ChartContainer = React.memo(({
 
   // Handle different data types for different chart types
   const processedDataForChart = React.useMemo(() => {
-    const structuredDataChartTypes = ['heatmap', 'treemap'];
+    const structuredDataChartTypes = ['heatmap', 'treemap', 'treemap3d'];
     const result = structuredDataChartTypes.includes(chartType) 
       ? chartData  // Pass structured data directly for charts that need it
       : (Array.isArray(chartData) ? chartData : []); // Convert to array for standard charts

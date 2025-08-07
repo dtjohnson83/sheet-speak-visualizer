@@ -29,7 +29,7 @@ export const useAIChartGeneration = () => {
   const [lastSuggestion, setLastSuggestion] = useState<AIChartSuggestion | null>(null);
 
   // Valid chart types list including network visualizations
-  const VALID_CHART_TYPES = ['bar', 'line', 'area', 'pie', 'scatter', 'heatmap', 'treemap', 'histogram', 'kpi', 'bar3d', 'scatter3d', 'surface3d', 'network', 'network3d', 'entity-relationship'] as const;
+  const VALID_CHART_TYPES = ['bar', 'line', 'area', 'pie', 'scatter', 'heatmap', 'treemap', 'treemap3d', 'histogram', 'kpi', 'bar3d', 'scatter3d', 'surface3d', 'network', 'network3d', 'entity-relationship'] as const;
   
   // Chart types that support series  
   const MULTI_SERIES_TYPES = ['line', 'area', 'bar', 'scatter', 'bar3d', 'scatter3d'] as const;

@@ -22,7 +22,7 @@ export const AggregationConfiguration = ({
   numericColumns
 }: AggregationConfigurationProps) => {
   // Show aggregation for charts that support it - now including KPI
-  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'stacked-bar', 'heatmap', 'kpi'].includes(chartType);
+  const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'treemap3d', 'stacked-bar', 'heatmap', 'kpi'].includes(chartType);
   
   // For numeric Y columns or charts that always support aggregation
   const isNumericYColumn = numericColumns.some(col => col.name === yColumn);

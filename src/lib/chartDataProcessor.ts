@@ -100,6 +100,7 @@ export const prepareChartData = (
       break;
 
     case 'treemap':
+    case 'treemap3d':
       processedData = prepareTreemapData(validData, cleanXColumn, cleanYColumn, aggregationMethod, sortColumn, sortDirection);
       break;
 
