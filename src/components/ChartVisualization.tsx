@@ -29,9 +29,10 @@ interface ChartVisualizationProps {
   columnFormats?: ColumnFormat[];
   dataSourceName?: string;
   hideSeriesManager?: boolean;
+  hideConfiguration?: boolean; // New prop to hide all configuration UI
 }
 
-export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName, hideSeriesManager = false }: ChartVisualizationProps) => {
+export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, dataSourceName, hideSeriesManager = false, hideConfiguration = false }: ChartVisualizationProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const [mapboxApiKey, setMapboxApiKey] = useState<string>('');
   const [temporalConfig, setTemporalConfig] = useState<TemporalAnimationConfig>({
@@ -207,92 +208,95 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
           </div>
         </div>
         
+        {!hideConfiguration && (
+          <>
+            <GeospatialDataDetector data={chartData} columns={chartColumns} />
+            
+            {/* AI Chart Generator */}
+            <AIChartGenerator 
+              data={chartData}
+              columns={chartColumns}
+              onApplySuggestion={(suggestion) => handleApplyAISuggestion(suggestion, onSaveTile)}
+            />
 
-        <GeospatialDataDetector data={chartData} columns={chartColumns} />
-        
-        {/* AI Chart Generator */}
-        <AIChartGenerator 
-          data={chartData}
-          columns={chartColumns}
-          onApplySuggestion={(suggestion) => handleApplyAISuggestion(suggestion, onSaveTile)}
-        />
+            {/* Mapbox Configuration for map charts */}
+            {isGeoChart && (
+              <MapboxIntegration
+                onApiKeySet={setMapboxApiKey}
+                currentApiKey={mapboxApiKey}
+                isRequired={needsMapboxKey}
+              />
+            )}
 
-        {/* Mapbox Configuration for map charts */}
-        {isGeoChart && (
-          <MapboxIntegration
-            onApiKeySet={setMapboxApiKey}
-            currentApiKey={mapboxApiKey}
-            isRequired={needsMapboxKey}
-          />
-        )}
+            {/* Geographic Data Validation */}
+            {isGeoChart && xColumn && yColumn && (
+              <GeoChartValidator
+                data={chartData}
+                columns={chartColumns}
+                xColumn={xColumn}
+                yColumn={yColumn}
+                chartType={chartType as 'map2d' | 'map3d'}
+                onAutoFix={handleGeoAutoFix}
+              />
+            )}
+            
+            <ChartConfiguration
+              chartType={chartType}
+              setChartType={handleChartTypeChange}
+              xColumn={xColumn}
+              setXColumn={setXColumn}
+              yColumn={yColumn}
+              setYColumn={setYColumn}
+              zColumn={zColumn}
+              setZColumn={setZColumn}
+              stackColumn={stackColumn}
+              setStackColumn={setStackColumn}
+              valueColumn={valueColumn}
+              setValueColumn={setValueColumn}
+              sortColumn={sortColumn}
+              setSortColumn={setSortColumn}
+              sortDirection={sortDirection}
+              setSortDirection={setSortDirection}
+              showDataLabels={showDataLabels}
+              setShowDataLabels={setShowDataLabels}
+              supportsDataLabels={supportsDataLabels}
+              selectedPalette={selectedPalette}
+              setSelectedPalette={setSelectedPalette}
+              histogramBins={histogramBins}
+              setHistogramBins={setHistogramBins}
+              xAxisLabel={xAxisLabel}
+              setXAxisLabel={setXAxisLabel}
+              yAxisLabel={yAxisLabel}
+              setYAxisLabel={setYAxisLabel}
+              aggregationMethod={aggregationMethod}
+              setAggregationMethod={setAggregationMethod}
+              columns={chartColumns}
+              numericColumns={numericColumns}
+              categoricalColumns={categoricalColumns}
+              dateColumns={dateColumns}
+              data={chartData}
+            />
 
-        {/* Geographic Data Validation */}
-        {isGeoChart && xColumn && yColumn && (
-          <GeoChartValidator
-            data={chartData}
-            columns={chartColumns}
-            xColumn={xColumn}
-            yColumn={yColumn}
-            chartType={chartType as 'map2d' | 'map3d'}
-            onAutoFix={handleGeoAutoFix}
-          />
-        )}
-        
-        <ChartConfiguration
-          chartType={chartType}
-          setChartType={handleChartTypeChange}
-          xColumn={xColumn}
-          setXColumn={setXColumn}
-          yColumn={yColumn}
-          setYColumn={setYColumn}
-          zColumn={zColumn}
-          setZColumn={setZColumn}
-          stackColumn={stackColumn}
-          setStackColumn={setStackColumn}
-          valueColumn={valueColumn}
-          setValueColumn={setValueColumn}
-          sortColumn={sortColumn}
-          setSortColumn={setSortColumn}
-          sortDirection={sortDirection}
-          setSortDirection={setSortDirection}
-          showDataLabels={showDataLabels}
-          setShowDataLabels={setShowDataLabels}
-          supportsDataLabels={supportsDataLabels}
-          selectedPalette={selectedPalette}
-          setSelectedPalette={setSelectedPalette}
-          histogramBins={histogramBins}
-          setHistogramBins={setHistogramBins}
-          xAxisLabel={xAxisLabel}
-          setXAxisLabel={setXAxisLabel}
-          yAxisLabel={yAxisLabel}
-          setYAxisLabel={setYAxisLabel}
-          aggregationMethod={aggregationMethod}
-          setAggregationMethod={setAggregationMethod}
-          columns={chartColumns}
-          numericColumns={numericColumns}
-          categoricalColumns={categoricalColumns}
-          dateColumns={dateColumns}
-          data={chartData}
-        />
+            <div className="mt-4">
+              <AggregationConfiguration
+                aggregationMethod={aggregationMethod}
+                setAggregationMethod={setAggregationMethod}
+                yColumn={yColumn}
+                chartType={chartType}
+                numericColumns={numericColumns}
+              />
+            </div>
 
-        <div className="mt-4">
-          <AggregationConfiguration
-            aggregationMethod={aggregationMethod}
-            setAggregationMethod={setAggregationMethod}
-            yColumn={yColumn}
-            chartType={chartType}
-            numericColumns={numericColumns}
-          />
-        </div>
-
-        {supportsMultipleSeries && !hideSeriesManager && (
-          <SeriesManager
-            series={series}
-            setSeries={setSeries}
-            numericColumns={numericColumns}
-            yColumn={yColumn}
-            chartColors={chartColors}
-          />
+            {supportsMultipleSeries && !hideSeriesManager && (
+              <SeriesManager
+                series={series}
+                setSeries={setSeries}
+                numericColumns={numericColumns}
+                yColumn={yColumn}
+                chartColors={chartColors}
+              />
+            )}
+          </>
         )}
       </div>
 

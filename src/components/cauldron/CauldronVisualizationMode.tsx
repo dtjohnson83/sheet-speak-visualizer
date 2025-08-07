@@ -287,6 +287,7 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
                     onSaveTile={onSaveTile}
                     dataSourceName="Cauldron Creation"
                     hideSeriesManager={true}
+                    hideConfiguration={true}
                   />
                 </div>
               </div>

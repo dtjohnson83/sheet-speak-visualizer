@@ -10,6 +10,7 @@ interface AIConfiguredChartProps {
   onSaveTile?: (tileData: any) => void;
   dataSourceName?: string;
   hideSeriesManager?: boolean;
+  hideConfiguration?: boolean; // New prop to hide all configuration UI
 }
 
 // Create a context to pass the AI suggestion to ChartVisualization
@@ -25,7 +26,8 @@ export const AIConfiguredChart: React.FC<AIConfiguredChartProps> = ({
   chartSuggestion,
   onSaveTile,
   dataSourceName = "AI Generated Chart",
-  hideSeriesManager = false
+  hideSeriesManager = false,
+  hideConfiguration = false
 }) => {
   console.log('🎯 AIConfiguredChart - Rendering with suggestion:', {
     title: chartSuggestion?.title,
@@ -43,6 +45,7 @@ export const AIConfiguredChart: React.FC<AIConfiguredChartProps> = ({
         onSaveTile={onSaveTile}
         dataSourceName={dataSourceName}
         hideSeriesManager={hideSeriesManager}
+        hideConfiguration={hideConfiguration}
       />
     </AIChartSuggestionContext.Provider>
   );
