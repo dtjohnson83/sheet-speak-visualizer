@@ -10,7 +10,7 @@ import { ResizeHandle } from './ResizeHandle';
 import { prepareChartData } from '@/lib/chartDataProcessor';
 import { logChartOperation } from '@/lib/logger';
 import { autoMapColumns, generateColumnErrorMessage } from './utils/columnMappingUtils';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Maximize, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -32,6 +32,7 @@ export interface DashboardTileData {
   size: { width: number; height: number };
   datasetId?: string;
   datasetName?: string;
+  minimized?: boolean;
 }
 
 interface DashboardTileProps {
@@ -39,12 +40,13 @@ interface DashboardTileProps {
   data: DataRow[];
   columns: ColumnInfo[];
   onRemove: (id: string) => void;
-  onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number }; title?: string }) => void;
+  onUpdate?: (id: string, updates: { position?: { x: number; y: number }; size?: { width: number; height: number }; title?: string; minimized?: boolean }) => void;
   currentDatasetName?: string;
 }
 
 export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpdate, currentDatasetName }: DashboardTileProps) => {
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(tile.minimized || false);
   
   const chartColors = React.useMemo(() => [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00',
@@ -73,6 +75,14 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
   const handleMaximizeToggle = React.useCallback(() => {
     setIsMaximized(!isMaximized);
   }, [isMaximized]);
+
+  const handleMinimizeToggle = React.useCallback(() => {
+    const newMinimized = !isMinimized;
+    setIsMinimized(newMinimized);
+    if (onUpdate) {
+      onUpdate(tile.id, { minimized: newMinimized } as any);
+    }
+  }, [isMinimized, onUpdate, tile.id]);
 
   const {
     tileRef,
@@ -264,6 +274,55 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
     );
   }
 
+  // Render minimized tile
+  if (isMinimized) {
+    return (
+      <Card 
+        ref={tileRef}
+        className={`p-2 relative group cursor-move ${isDragging ? 'z-50 shadow-2xl' : 'z-10'} select-none bg-muted/50`}
+        style={{
+          position: 'absolute',
+          left: tile.position.x,
+          top: tile.position.y,
+          width: 200,
+          height: 60,
+          userSelect: 'none'
+        }}
+      >
+        <div className="flex items-center justify-between h-full">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+            <span className="text-sm font-medium truncate">{tile.title}</span>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleMinimizeToggle();
+              }}
+              className="h-5 w-5 p-0 hover:bg-accent/50"
+              title="Restore"
+            >
+              <Maximize className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemove(tile.id)}
+              className="h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+              title="Remove tile"
+            >
+              <X className="h-2 w-2" />
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card 
       ref={tileRef}
@@ -285,6 +344,8 @@ export const DashboardTile = React.memo(({ tile, data, columns, onRemove, onUpda
         is3DChart={is3DChart}
         isMaximized={isMaximized}
         onMaximizeToggle={handleMaximizeToggle}
+        isMinimized={isMinimized}
+        onMinimizeToggle={handleMinimizeToggle}
         datasetName={tile.datasetName}
         currentDatasetName={currentDatasetName}
       />

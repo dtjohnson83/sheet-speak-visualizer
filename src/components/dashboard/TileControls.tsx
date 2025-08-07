@@ -13,11 +13,13 @@ interface TileControlsProps {
   is3DChart?: boolean;
   isMaximized?: boolean;
   onMaximizeToggle?: () => void;
+  isMinimized?: boolean;
+  onMinimizeToggle?: () => void;
   datasetName?: string;
   currentDatasetName?: string;
 }
 
-export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3DChart, isMaximized, onMaximizeToggle, datasetName, currentDatasetName }: TileControlsProps) => {
+export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3DChart, isMaximized, onMaximizeToggle, isMinimized, onMinimizeToggle, datasetName, currentDatasetName }: TileControlsProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
 
@@ -91,6 +93,22 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3D
         )}
         
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30 relative">
+          {/* Minimize button for all charts */}
+          {onMinimizeToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMinimizeToggle();
+              }}
+              className="h-6 w-6 p-0 hover:bg-accent/50"
+              title={isMinimized ? "Restore" : "Minimize"}
+            >
+              <Minimize className="h-3 w-3" />
+            </Button>
+          )}
+          
           {/* Show maximize button only for 3D charts */}
           {is3DChart && onMaximizeToggle && (
             <Button
@@ -103,7 +121,7 @@ export const TileControls = ({ title, onRemove, onMouseDown, onTitleChange, is3D
               className="h-6 w-6 p-0 hover:bg-accent/50"
               title={isMaximized ? "Exit fullscreen" : "Maximize for better 3D exploration"}
             >
-              {isMaximized ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
+              <Maximize className="h-3 w-3" />
             </Button>
           )}
           
