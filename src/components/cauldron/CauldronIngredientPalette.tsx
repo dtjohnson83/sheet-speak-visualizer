@@ -131,35 +131,54 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-primary mb-2">🧪 Magical Ingredients</h3>
-          <p className="text-sm text-muted-foreground">
-            Drag powerful essences into the cauldron to brew your visualization
-          </p>
-          
-          {onIngredientTypeChange && (
-            <div className="mt-3 flex justify-center">
-              <Button
-                variant={isEditMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsEditMode(!isEditMode)}
-                className="gap-2"
-              >
-                <Edit3 className="h-4 w-4" />
-                {isEditMode ? "Done Editing" : "Edit Types"}
-              </Button>
-            </div>
-          )}
+      <div className="space-y-6 h-full">
+        {/* Header with magical styling */}
+        <div className="text-center relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10 rounded-lg blur-xl"></div>
+          <div className="relative bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 p-4">
+            <h3 className="text-xl font-bold text-primary mb-2 flex items-center justify-center gap-2">
+              <span className="text-2xl animate-pulse">🧪</span>
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                Magical Ingredients
+              </span>
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Drag powerful essences into the cauldron to brew your visualization
+            </p>
+            
+            {onIngredientTypeChange && (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  variant={isEditMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className="gap-2 hover-scale transition-all duration-200"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  {isEditMode ? "Done Editing" : "Edit Types"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
-      {Object.entries(groupedIngredients).map(([type, typeIngredients]) => (
-        <div key={type} className="space-y-3">
-          <h4 className="text-sm font-medium text-primary capitalize flex items-center gap-2">
-            {getIngredientIcon(type)} {type} Essences
-          </h4>
-          
-          <div className="grid grid-cols-1 gap-2">
+        {/* Ingredient groups with enhanced styling */}
+        <div className="space-y-4 overflow-y-auto flex-1">
+          {Object.entries(groupedIngredients).map(([type, typeIngredients]) => (
+            <div key={type} className="space-y-3 animate-fade-in">
+              {/* Type header with glow effect */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent rounded"></div>
+                <h4 className="relative text-sm font-semibold text-primary capitalize flex items-center gap-2 p-2 rounded border border-border/30 bg-card/50 backdrop-blur-sm">
+                  <span className="text-lg animate-pulse">{getIngredientIcon(type)}</span>
+                  <span className="tracking-wide">{type} Essences</span>
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    {typeIngredients.length}
+                  </Badge>
+                </h4>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
             {typeIngredients.map((ingredient) => {
               const originalIngredient = ingredients.find(ing => ing.column === ingredient.column)!;
               const override = typeOverrides[ingredient.column];
@@ -171,12 +190,16 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
                 <Card
                   key={ingredient.column}
                   className={`
-                    p-3 ${isEditing ? '' : 'cursor-pointer'} transition-all duration-200 
-                    ${!isEditing ? 'hover:scale-105 hover:shadow-lg hover:border-primary/50' : ''}
+                    group relative p-4 ${isEditing ? '' : 'cursor-pointer'} 
+                    transition-all duration-300 ease-out
+                    ${!isEditing ? 'hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/20 hover:border-primary/50 hover:-translate-y-1' : ''}
                     ${getIngredientColor(ingredient.type)}
-                    ${selectedIngredients.includes(ingredient.column) ? 'ring-2 ring-primary bg-primary/10' : ''}
-                    ${isOverridden ? 'border-2 border-yellow-400' : ''}
-                    animate-fade-in group relative
+                    ${selectedIngredients.includes(ingredient.column) ? 
+                      'ring-2 ring-primary bg-primary/10 shadow-lg shadow-primary/20 border-primary/60' : 
+                      'hover:bg-gradient-to-br hover:from-transparent hover:to-primary/5'
+                    }
+                    ${isOverridden ? 'border-2 border-yellow-400 shadow-yellow-400/20 shadow-lg' : ''}
+                    animate-fade-in backdrop-blur-sm
                   `}
                   onClick={() => !isEditing && onIngredientSelect(ingredient.column)}
                 >
@@ -284,12 +307,21 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
                       </div>
                     </div>
                   )}
-                
-                  {/* Magical sparkle effect on hover */}
+                  
+                  {/* Enhanced magical sparkle effects */}
                   {!isEditing && (
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                      <div className="absolute top-1 right-1 text-yellow-400 animate-pulse">✨</div>
-                      <div className="absolute bottom-1 left-1 text-blue-400 animate-pulse delay-150">✨</div>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none overflow-hidden rounded-lg">
+                      <div className="absolute top-2 right-2 text-yellow-400 animate-pulse">✨</div>
+                      <div className="absolute bottom-2 left-2 text-blue-400 animate-pulse delay-150">✨</div>
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-purple-400 animate-pulse delay-300">✨</div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-pulse"></div>
+                    </div>
+                  )}
+                  
+                  {/* Selection indicator */}
+                  {selectedIngredients.includes(ingredient.column) && !isEditing && (
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold animate-scale-in">
+                      ✓
                     </div>
                   )}
                 </Card>
@@ -298,6 +330,7 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
           </div>
         </div>
       ))}
+        </div>
       </div>
     </TooltipProvider>
   );
