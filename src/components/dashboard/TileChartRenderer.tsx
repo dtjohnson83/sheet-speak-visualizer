@@ -76,6 +76,40 @@ export const TileChartRenderer = React.memo(({
     );
   }
 
+  // Handle treemap3d with special column handling for processed data
+  if (chartType === 'treemap3d') {
+    // Check if data is already processed (has name, size, value columns)
+    const sampleRow = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    const isProcessedData = sampleRow && 
+      ('name' in sampleRow && 'size' in sampleRow && 'value' in sampleRow);
+    
+    // For processed data, use the processed column names
+    const effectiveXColumn = isProcessedData ? 'name' : xColumn;
+    const effectiveYColumn = isProcessedData ? 'size' : yColumn;
+    
+    return (
+      <div className="w-full h-full">
+        <ChartRenderers
+          chartType={chartType as any}
+          data={data}
+          columns={columns}
+          xColumn={effectiveXColumn}
+          yColumn={effectiveYColumn}
+          zColumn={zColumn}
+          stackColumn={stackColumn}
+          valueColumn={valueColumn}
+          sortColumn={sortColumn || 'none'}
+          sortDirection={sortDirection || 'desc'}
+          series={effectiveSeries}
+          chartColors={chartColors}
+          showDataLabels={showDataLabels}
+          xAxisLabel={xAxisLabel}
+          yAxisLabel={yAxisLabel}
+        />
+      </div>
+    );
+  }
+
 
   // Use the same ChartRenderers as the main visualization
   return (
