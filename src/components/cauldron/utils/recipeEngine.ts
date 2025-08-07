@@ -1,23 +1,16 @@
 import { ColumnInfo } from '@/pages/Index';
 import { CHART_RECIPES } from './chartRecipes';
 import { 
-  GEOGRAPHIC_PATTERNS, 
   TEMPORAL_PATTERNS, 
-  POSTAL_PATTERN,
   DATE_PATTERN,
   QUARTER_PATTERN,
   CATEGORY_PATTERNS,
   POSTAL_CODE_PATTERN,
-  LATITUDE_PATTERNS,
-  LONGITUDE_PATTERNS,
-  EXPLICIT_GEOGRAPHIC_PATTERNS,
-  COUNTRY_CODE_PATTERN,
-  ISO_COUNTRY_FORMAT,
-  COORDINATE_RANGES,
   YEAR_RANGE,
   UNIX_TIMESTAMP_RANGE,
   CARDINALITY_THRESHOLDS
 } from './recipePatterns';
+import { GeographicDetector } from './geographicDetector';
 import { PieChartHandler } from './pieChartHandler';
 import { 
   RECIPE_CONFIG,
@@ -172,15 +165,13 @@ export class RecipeEngine {
    * Classifies column type with enhanced detection logic
    */
   private static classifyColumnType(column: ColumnInfo): IngredientType {
-    const name = column.name.toLowerCase();
-    
-    // Enhanced Geographic detection with comprehensive patterns
-    if (this.isGeographicColumn(name, column)) {
+    // Enhanced Geographic detection with contextual analysis
+    if (GeographicDetector.isGeographic(column.name, column)) {
       return 'geographic';
     }
 
     // Enhanced Temporal detection with more patterns
-    if (this.isTemporalColumn(name, column)) {
+    if (this.isTemporalColumn(column.name, column)) {
       return 'temporal';
     }
 
@@ -189,7 +180,7 @@ export class RecipeEngine {
       case 'date':
         return 'temporal';
       case 'numeric':
-        return this.analyzeNumericColumn(name, column);
+        return this.analyzeNumericColumn(column.name, column);
       case 'categorical':
         return 'categorical';
       default:
@@ -198,63 +189,13 @@ export class RecipeEngine {
   }
 
   /**
-   * Detects geographic columns using pattern matching
-   */
-  private static isGeographicColumn(name: string, column: ColumnInfo): boolean {
-    // Check name patterns - only exact or very specific matches
-    if (GEOGRAPHIC_PATTERNS.some(pattern => pattern.test(name))) {
-      return true;
-    }
-
-    // Analyze actual values for geographic patterns
-    if (column.values && column.values.length > 0) {
-      const sampleValues = column.values.slice(0, Math.min(RECIPE_CONFIG.valueSampleSize, column.values.length));
-      
-      // Check for coordinate patterns (lat/lng ranges) - only if name suggests geographic
-      if (column.type === 'numeric') {
-        const numValues = sampleValues.map(v => parseFloat(String(v))).filter(v => !isNaN(v));
-        if (numValues.length > 0) {
-          const min = Math.min(...numValues);
-          const max = Math.max(...numValues);
-          
-          // Only check coordinate ranges if column name explicitly suggests coordinates
-          const isExplicitlyGeographic = EXPLICIT_GEOGRAPHIC_PATTERNS.test(name);
-          
-          if (isExplicitlyGeographic) {
-            // Latitude range check
-            if (min >= COORDINATE_RANGES.LATITUDE.min && max <= COORDINATE_RANGES.LATITUDE.max && LATITUDE_PATTERNS.test(name)) {
-              return true;
-            }
-            
-            // Longitude range check
-            if (min >= COORDINATE_RANGES.LONGITUDE.min && max <= COORDINATE_RANGES.LONGITUDE.max && LONGITUDE_PATTERNS.test(name)) {
-              return true;
-            }
-          }
-        }
-      }
-
-      // Check for postal codes patterns
-      if (sampleValues.some(val => POSTAL_PATTERN.test(String(val)))) {
-        return true;
-      }
-
-      // Check for country codes (ISO patterns) - only if name explicitly suggests country codes
-      const isCountryCodeColumn = COUNTRY_CODE_PATTERN.test(name);
-      if (isCountryCodeColumn && sampleValues.every(val => ISO_COUNTRY_FORMAT.test(String(val)))) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
    * Detects temporal columns using pattern matching
    */
   private static isTemporalColumn(name: string, column: ColumnInfo): boolean {
+    const normalizedName = name.toLowerCase();
+    
     // Check name patterns
-    if (TEMPORAL_PATTERNS.some(pattern => pattern.test(name))) {
+    if (TEMPORAL_PATTERNS.some(pattern => pattern.test(normalizedName))) {
       return true;
     }
 
