@@ -180,7 +180,8 @@ export const ChartRenderer = ({
         );
       }
 
-      if (chartType !== 'histogram' && !availableKeys.includes(cleanYColumn)) {
+      // For stacked-bar charts, Y-column gets transformed into stack value columns, so skip Y-column validation
+      if (chartType !== 'histogram' && chartType !== 'stacked-bar' && !availableKeys.includes(cleanYColumn)) {
         return (
           <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
             <div className="text-center p-4">

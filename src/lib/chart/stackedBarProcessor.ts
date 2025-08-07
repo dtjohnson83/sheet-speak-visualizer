@@ -13,9 +13,25 @@ export const prepareStackedBarData = (
   sortColumn: string,
   sortDirection: 'asc' | 'desc'
 ): DataRow[] => {
-  if (!stackColumn) return [];
+  console.log('🏗️ prepareStackedBarData - Input:', {
+    dataLength: data.length,
+    xColumn,
+    yColumn,
+    stackColumn,
+    aggregationMethod,
+    sampleData: data.slice(0, 2)
+  });
+
+  if (!stackColumn) {
+    console.warn('prepareStackedBarData - No stack column provided');
+    return [];
+  }
   
   const sortedData = sortData(data, sortColumn, sortDirection);
+  
+  // Get unique stack values to understand what columns will be created
+  const uniqueStackValues = [...new Set(sortedData.map(row => row[stackColumn]?.toString() || 'Unknown'))];
+  console.log('🏗️ prepareStackedBarData - Stack values:', uniqueStackValues);
   
   const grouped = sortedData.reduce((acc, row) => {
     const xValue = row[xColumn]?.toString() || 'Unknown';
@@ -35,17 +51,25 @@ export const prepareStackedBarData = (
   }, {} as Record<string, any>);
 
   const result = Object.entries(grouped).map(([xValue, stackData]) => {
-    const result: any = { [xColumn]: xValue };
+    const resultRow: any = { [xColumn]: xValue };
     
+    // Process each stack value as a separate column
     Object.entries(stackData).forEach(([stackKey, values]) => {
       if (stackKey !== xColumn && Array.isArray(values)) {
-        result[stackKey] = applyAggregation(values as number[], aggregationMethod);
+        resultRow[stackKey] = applyAggregation(values as number[], aggregationMethod);
       }
     });
     
-    return result;
+    return resultRow;
   });
 
-  console.log('Stacked bar data prepared:', result);
+  console.log('🏗️ prepareStackedBarData - Final result:', {
+    resultLength: result.length,
+    sampleResult: result.slice(0, 2),
+    resultColumns: result.length > 0 ? Object.keys(result[0]) : [],
+    originalYColumn: yColumn,
+    stackColumns: uniqueStackValues
+  });
+
   return result;
 };
