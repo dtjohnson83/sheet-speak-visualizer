@@ -30,6 +30,7 @@ export const AxisConfiguration = ({
   const isHistogram = chartType === 'histogram';
   const isGeoChart = chartType === 'map2d' || chartType === 'map3d';
   const isTreemap = chartType === 'treemap' || chartType === 'treemap3d';
+  const isTimeSeries3D = chartType === 'timeseries3d';
   console.log('AxisConfiguration - Column filtering:', {
     chartType,
     numericCount: numericColumns.length,
@@ -49,6 +50,7 @@ export const AxisConfiguration = ({
           {isHistogram ? 'Column to Analyze' : 
            isGeoChart ? 'Longitude' : 
            isTreemap ? 'Category Column' :
+           isTimeSeries3D ? 'Category/Series' :
            'X-Axis'}
         </label>
         <Select value={xColumn} onValueChange={setXColumn}>
@@ -59,6 +61,7 @@ export const AxisConfiguration = ({
             {(isHistogram ? numericColumns : 
               isGeoChart ? numericColumns :
               isTreemap ? categoricalColumns :
+              isTimeSeries3D ? categoricalColumns :
               chartType === 'scatter' ? [...numericColumns, ...dateColumns] : 
               [...categoricalColumns, ...dateColumns, ...numericColumns]).map((col) => (
               <SelectItem key={col.name} value={col.name}>
@@ -75,6 +78,7 @@ export const AxisConfiguration = ({
             {chartType === 'heatmap' ? 'Y-Axis' : 
              isGeoChart ? 'Latitude' : 
              isTreemap ? 'Value Column' :
+             isTimeSeries3D ? 'Value' :
              'Y-Axis'}
           </label>
           <Select value={yColumn} onValueChange={setYColumn}>
@@ -101,6 +105,7 @@ export const AxisConfiguration = ({
           <label className="block text-sm font-medium mb-2">
             {chartType === 'map3d' ? 'Height/Elevation' : 
              chartType === 'treemap3d' ? 'Height Column' :
+             isTimeSeries3D ? 'Time/Date' :
              'Z-Axis'}
           </label>
           <Select value={zColumn || ''} onValueChange={setZColumn}>
@@ -108,7 +113,7 @@ export const AxisConfiguration = ({
               <SelectValue placeholder="Select Z column" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
-              {numericColumns.map((col) => (
+              {(isTimeSeries3D ? dateColumns : numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
                 </SelectItem>
