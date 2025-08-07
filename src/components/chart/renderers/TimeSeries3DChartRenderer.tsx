@@ -238,7 +238,18 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   };
 
   const { cubes, connections } = useMemo(() => {
-    if (!data || data.length === 0) return { cubes: [], connections: [] };
+    console.log('TimeSeries3DChartRenderer: Processing data', { 
+      dataLength: data?.length || 0, 
+      xColumn, 
+      yColumn, 
+      zColumn,
+      firstDataItem: data?.[0]
+    });
+
+    if (!data || data.length === 0) {
+      console.log('TimeSeries3DChartRenderer: No data provided');
+      return { cubes: [], connections: [] };
+    }
 
     // Ensure we have valid column names and data
     if (!xColumn || !yColumn) {
@@ -246,26 +257,52 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       return { cubes: [], connections: [] };
     }
 
-    // Filter and sort data by time (using zColumn for temporal data)
-    const validData = data.filter(item => 
-      item && 
-      item[xColumn] !== undefined && 
-      item[yColumn] !== undefined &&
-      item[zColumn] !== undefined &&
-      !isNaN(Number(item[yColumn]))
-    ).sort((a, b) => {
-      // Sort by date using zColumn (temporal axis)
-      const aTime = new Date(a[zColumn]).getTime();
-      const bTime = new Date(b[zColumn]).getTime();
-      if (!isNaN(aTime) && !isNaN(bTime)) {
-        return aTime - bTime;
+    // Filter data - only require zColumn if it's provided
+    const validData = data.filter(item => {
+      const isValid = item && 
+        item[xColumn] !== undefined && 
+        item[yColumn] !== undefined &&
+        (!zColumn || item[zColumn] !== undefined) &&
+        !isNaN(Number(item[yColumn]));
+      
+      if (!isValid) {
+        console.log('Filtering out invalid item:', {
+          item,
+          hasX: item?.[xColumn] !== undefined,
+          hasY: item?.[yColumn] !== undefined,
+          hasZ: !zColumn || item?.[zColumn] !== undefined,
+          yIsNumber: !isNaN(Number(item?.[yColumn]))
+        });
       }
-      // Fallback to string comparison
-      return String(a[zColumn]).localeCompare(String(b[zColumn]));
+      
+      return isValid;
     });
 
-    if (validData.length === 0) {
-      console.warn('TimeSeries3DChartRenderer: No valid data after filtering', { data, xColumn, yColumn });
+    console.log('TimeSeries3DChartRenderer: Valid data after filtering', { 
+      originalCount: data.length, 
+      validCount: validData.length,
+      sampleValidItem: validData[0]
+    });
+
+    // Sort data - use zColumn if provided, otherwise use array index for time progression
+    const sortedData = validData.sort((a, b) => {
+      if (zColumn) {
+        // Sort by date using zColumn (temporal axis)
+        const aTime = new Date(a[zColumn]).getTime();
+        const bTime = new Date(b[zColumn]).getTime();
+        if (!isNaN(aTime) && !isNaN(bTime)) {
+          return aTime - bTime;
+        }
+        // Fallback to string comparison
+        return String(a[zColumn]).localeCompare(String(b[zColumn]));
+      } else {
+        // No temporal column, maintain original order or sort by category
+        return String(a[xColumn]).localeCompare(String(b[xColumn]));
+      }
+    });
+
+    if (sortedData.length === 0) {
+      console.warn('TimeSeries3DChartRenderer: No valid data after filtering and sorting');
       return { cubes: [], connections: [] };
     }
 
@@ -288,10 +325,18 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     
     categories.forEach((category, categoryIndex) => {
       const categoryData = categoryGroups[category].sort((a, b) => {
-        // Sort by date within each category
-        const aTime = new Date(a[zColumn]).getTime();
-        const bTime = new Date(b[zColumn]).getTime();
-        return aTime - bTime;
+        if (zColumn) {
+          // Sort by date within each category
+          const aTime = new Date(a[zColumn]).getTime();
+          const bTime = new Date(b[zColumn]).getTime();
+          if (!isNaN(aTime) && !isNaN(bTime)) {
+            return aTime - bTime;
+          }
+          return String(a[zColumn]).localeCompare(String(b[zColumn]));
+        } else {
+          // No temporal sorting, maintain original order
+          return 0;
+        }
       });
       
       categoryData.forEach((item, timeIndex) => {
@@ -314,11 +359,16 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           ? chartColors[categoryIndex % chartColors.length] 
           : `hsl(${(categoryIndex * 60) % 360}, 70%, 60%)`;
         
+        // Generate label based on available data
+        const label = zColumn 
+          ? `${category} - ${new Date(item[zColumn]).toLocaleDateString()}`
+          : `${category} - Point ${timeIndex + 1}`;
+        
         cubeList.push({
           position: [x, y, z] as [number, number, number],
           scale: [cubeSize * 0.8, cubeHeight, cubeSize * 0.8] as [number, number, number],
           color: categoryColor,
-          label: `${category} - ${new Date(item[zColumn]).toLocaleDateString()}`,
+          label: label,
           value: value,
           timeIndex: timeIndex,
           category: category,
