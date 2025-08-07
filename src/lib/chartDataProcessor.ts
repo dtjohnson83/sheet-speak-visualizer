@@ -117,6 +117,12 @@ export const prepareChartData = (
       }
       break;
 
+    case 'scatter3d':
+    case 'surface3d':
+      // 3D charts need all original columns preserved (no aggregation)
+      processedData = prepareScatterData(validData, cleanXColumn, cleanYColumn, xCol, yCol, series, supportsMultipleSeries, sortColumn, sortDirection);
+      break;
+
     case 'pie':
     case 'bar':
     default:
