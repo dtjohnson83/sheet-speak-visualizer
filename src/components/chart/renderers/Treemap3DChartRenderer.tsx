@@ -264,6 +264,7 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
 
     if (hasProcessedStructure) {
       // Data is already processed by treemapProcessor, use it directly
+      console.log('🗺️ Using processed treemap data structure');
       const result = data.filter(item => 
         item && 
         (item.value > 0 || item.size > 0) &&
@@ -272,14 +273,14 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
         name: item.name || 'Unknown',
         value: item.value || item.size || 0,
         size: item.size || item.value || 0,
-        height: zColumn && item[zColumn] ? Number(item[zColumn]) : (item.value || item.size || 1)
+        height: item.height || item.value || item.size || 1 // Use height if available, fallback to value/size
       }));
 
       console.log('🗺️ Treemap3DChartRenderer: Using pre-processed data', {
         originalLength: data.length,
         processedLength: result.length,
         categories: result.map(r => r.name),
-        hasZColumn: !!zColumn
+        sampleData: result.slice(0, 2)
       });
 
       return result;
