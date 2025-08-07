@@ -67,7 +67,7 @@ export const useChartConfiguration = () => {
   };
 
   // Handle AI suggestion application with proper synchronization
-  const handleApplyAISuggestion = useCallback((suggestion: AIChartSuggestion) => {
+  const handleApplyAISuggestion = useCallback((suggestion: AIChartSuggestion, onSaveTile?: (tileData: any) => void) => {
     console.log('🔄 ChartConfiguration - Queueing AI suggestion for synchronous application:', {
       suggestion: suggestion,
       hasUserInteracted,
@@ -85,6 +85,30 @@ export const useChartConfiguration = () => {
 
     // Queue the suggestion for synchronous application via useEffect
     setPendingAISuggestion(suggestion);
+    
+    // Auto-save the chart as a tile if callback provided
+    if (onSaveTile && suggestion.title) {
+      setTimeout(() => {
+        const tileData = {
+          title: suggestion.title || `AI Generated ${suggestion.chartType}`,
+          chartType: suggestion.chartType,
+          xColumn: suggestion.xColumn,
+          yColumn: suggestion.yColumn,
+          stackColumn: suggestion.stackColumn,
+          sortColumn: suggestion.xColumn,
+          sortDirection: 'asc' as const,
+          series: suggestion.series || [],
+          showDataLabels: false,
+          selectedPalette: 'modern',
+          histogramBins: 10,
+          aggregationMethod: suggestion.aggregationMethod || 'sum',
+          customTitle: suggestion.title
+        };
+        
+        console.log('🎯 Auto-saving AI generated chart as tile:', tileData);
+        onSaveTile(tileData);
+      }, 100); // Small delay to ensure chart state is updated
+    }
   }, [hasUserInteracted, pendingAISuggestion]);
 
   // Handle save tile functionality

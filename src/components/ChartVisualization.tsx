@@ -214,7 +214,7 @@ export const ChartVisualization = ({ data, columns, onSaveTile, columnFormats, d
         <AIChartGenerator 
           data={chartData}
           columns={chartColumns}
-          onApplySuggestion={handleApplyAISuggestion}
+          onApplySuggestion={(suggestion) => handleApplyAISuggestion(suggestion, onSaveTile)}
         />
 
         {/* Mapbox Configuration for map charts */}
