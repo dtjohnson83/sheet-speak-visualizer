@@ -248,20 +248,51 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       return [];
     }
 
+    console.log('🗺️ Treemap3DChartRenderer - Raw input data:', {
+      dataLength: data?.length,
+      sampleData: data?.slice(0, 2),
+      allKeys: data?.[0] ? Object.keys(data[0]) : []
+    });
+
+    // Check if data is already processed (has name, size, value structure)
+    const sampleRow = data[0];
+    const hasProcessedStructure = sampleRow && 
+      ('name' in sampleRow || 'size' in sampleRow || 'value' in sampleRow);
+
+    if (hasProcessedStructure) {
+      // Data is already processed by treemapProcessor, use it directly
+      const result = data.filter(item => 
+        item && 
+        (item.value > 0 || item.size > 0) &&
+        typeof (item.value || item.size) === 'number'
+      ).map(item => ({
+        name: item.name || 'Unknown',
+        value: item.value || item.size || 0,
+        size: item.size || item.value || 0
+      }));
+
+      console.log('🗺️ Treemap3DChartRenderer: Using pre-processed data', {
+        originalLength: data.length,
+        processedLength: result.length,
+        categories: result.map(r => r.name)
+      });
+
+      return result;
+    }
+
+    // Fallback: process raw data if needed
     if (!xColumn || !yColumn) {
-      console.warn('Treemap3DChartRenderer: Missing required columns', { 
+      console.warn('Treemap3DChartRenderer: Missing required columns for raw data processing', { 
         xColumn, 
         yColumn 
       });
       return [];
     }
 
-    // Check if columns exist in data
-    const sampleRow = data[0];
     const availableColumns = Object.keys(sampleRow || {});
     
     if (!availableColumns.includes(xColumn) || !availableColumns.includes(yColumn)) {
-      console.error('Treemap3DChartRenderer: Columns not found in data', {
+      console.error('Treemap3DChartRenderer: Columns not found in raw data', {
         xColumn,
         yColumn,
         availableColumns
@@ -269,7 +300,7 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       return [];
     }
 
-    // Process treemap data
+    // Process raw treemap data
     const grouped = data.reduce((acc, row) => {
       const category = row[xColumn]?.toString() || 'Unknown';
       const value = Number(row[yColumn]);
@@ -287,11 +318,11 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       .map(([name, value]) => ({
         name,
         value,
-        size: value // For compatibility
+        size: value
       }))
       .filter(item => typeof item.value === 'number' && item.value > 0);
 
-    console.log('🗺️ Treemap3DChartRenderer: Processed data', {
+    console.log('🗺️ Treemap3DChartRenderer: Processed raw data', {
       originalLength: data.length,
       processedLength: result.length,
       categories: result.map(r => r.name)
