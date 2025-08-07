@@ -166,7 +166,29 @@ export const ChartRenderer = ({
         dataLength: data.length
       });
       
-      if (!availableKeys.includes(cleanXColumn)) {
+      // Special handling for treemap3d with processed data
+      if (chartType === 'treemap3d') {
+        const sampleRow = data?.[0];
+        const isProcessedTreemapData = sampleRow && 
+          ('name' in sampleRow && 'size' in sampleRow && 'value' in sampleRow);
+        
+        if (isProcessedTreemapData) {
+          // Skip column validation for processed treemap data
+          console.log('Skipping column validation for processed treemap3d data');
+        } else if (!availableKeys.includes(cleanXColumn)) {
+          return (
+            <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
+              <div className="text-center p-4">
+                <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  X-column "{cleanXColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
+                  {availableKeys.length > 5 && '...'}
+                </p>
+              </div>
+            </div>
+          );
+        }
+      } else if (!availableKeys.includes(cleanXColumn)) {
         return (
           <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
             <div className="text-center p-4">
@@ -181,7 +203,8 @@ export const ChartRenderer = ({
       }
 
       // For stacked-bar charts, Y-column gets transformed into stack value columns, so skip Y-column validation
-      if (chartType !== 'histogram' && chartType !== 'stacked-bar' && !availableKeys.includes(cleanYColumn)) {
+      // For treemap3d with processed data, also skip Y-column validation
+      if (chartType !== 'histogram' && chartType !== 'stacked-bar' && chartType !== 'treemap3d' && !availableKeys.includes(cleanYColumn)) {
         return (
           <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
             <div className="text-center p-4">
@@ -193,6 +216,27 @@ export const ChartRenderer = ({
             </div>
           </div>
         );
+      }
+      
+      // Special Y-column validation for treemap3d with raw data
+      if (chartType === 'treemap3d') {
+        const sampleRow = data?.[0];
+        const isProcessedTreemapData = sampleRow && 
+          ('name' in sampleRow && 'size' in sampleRow && 'value' in sampleRow);
+        
+        if (!isProcessedTreemapData && !availableKeys.includes(cleanYColumn)) {
+          return (
+            <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-dashed border-red-300 dark:border-red-600">
+              <div className="text-center p-4">
+                <p className="text-lg font-medium text-red-700 dark:text-red-300 mb-2">Column Mismatch</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  Y-column "{cleanYColumn}" not found in data. Available: {availableKeys.slice(0, 5).join(', ')}
+                  {availableKeys.length > 5 && '...'}
+                </p>
+              </div>
+            </div>
+          );
+        }
       }
 
       // Check Z-column for 3D charts
