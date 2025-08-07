@@ -1,20 +1,11 @@
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Edit3, Save, X, AlertTriangle, Brain } from 'lucide-react';
-import { IngredientAnalysis, IngredientType } from './utils/recipeEngine';
-
-interface CauldronIngredientPaletteProps {
-  ingredients: IngredientAnalysis[];
-  selectedIngredients: string[];
-  onIngredientSelect: (columnName: string) => void;
-  onIngredientTypeChange?: (columnName: string, newType: IngredientType, confidence?: number) => void;
-  typeOverrides?: Record<string, { type: IngredientType; confidence?: number; isOverridden?: boolean }>;
-  confidenceScores?: Record<string, number>;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Check, X, Edit, Sparkles } from 'lucide-react';
+import { IngredientAnalysis, IngredientType, CauldronIngredientPaletteProps } from '@/types/ingredient';
 
 export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps> = ({
   ingredients,
@@ -27,36 +18,9 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
   const [editingIngredient, setEditingIngredient] = useState<string | null>(null);
   const [tempType, setTempType] = useState<IngredientType>('numeric');
   const [isEditMode, setIsEditMode] = useState(false);
-  const getIngredientIcon = (type: string): string => {
-    switch (type) {
-      case 'numeric': return '🔢';
-      case 'temporal': return '📅';
-      case 'categorical': return '📝';
-      case 'geographic': return '🌍';
-      case 'textual': return '📄';
-      default: return '🏷️';
-    }
-  };
 
-  const getIngredientTypeOptions = (): IngredientType[] => {
-    return ['numeric', 'temporal', 'categorical', 'geographic', 'textual'];
-  };
-
-  const getEffectiveIngredient = (ingredient: IngredientAnalysis): IngredientAnalysis => {
-    const override = typeOverrides[ingredient.column];
-    if (override) {
-      return {
-        ...ingredient,
-        type: override.type,
-        // Regenerate magical name and properties based on new type
-        magicalName: generateMagicalName(ingredient.column, override.type),
-        properties: getIngredientProperties(ingredient.column, override.type)
-      };
-    }
-    return ingredient;
-  };
-
-  const generateMagicalName = (columnName: string, type: IngredientType): string => {
+  // Move these functions BEFORE they're used
+  const generateMagicalName = useCallback((columnName: string, type: IngredientType): string => {
     const prefixes = {
       'numeric': ['Essence of', 'Numeric Spirit of', 'Quantified'],
       'temporal': ['Chronos\'s', 'Time-bound', 'Temporal'],
@@ -64,11 +28,14 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
       'geographic': ['Worldly', 'Terrestrial', 'Geographic'],
       'textual': ['Scripted', 'Literary', 'Textual']
     };
-    const typePrefix = prefixes[type]?.[Math.floor(Math.random() * prefixes[type].length)] || 'Essence of';
-    return `${typePrefix} ${columnName.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim()}`;
-  };
+    
+    const typePrefix = prefixes[type] || ['Essence of'];
+    // Use stable index based on column name, not Math.random()
+    const index = columnName.charCodeAt(0) % typePrefix.length;
+    return `${typePrefix[index]} ${columnName.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim()}`;
+  }, []);
 
-  const getIngredientProperties = (columnName: string, type: IngredientType): string[] => {
+  const getIngredientProperties = useCallback((columnName: string, type: IngredientType): string[] => {
     const properties = {
       'numeric': ['Measurable', 'Quantifiable', 'Calculable'],
       'temporal': ['Time-sensitive', 'Sequential', 'Chronological'],
@@ -77,37 +44,53 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
       'textual': ['Descriptive', 'Narrative', 'Semantic']
     };
     return properties[type] || ['Mysterious'];
-  };
+  }, []);
 
-  const getIngredientColor = (type: string): string => {
-    switch (type) {
-      case 'numeric': return 'bg-blue-500/20 border-blue-400/50';
-      case 'temporal': return 'bg-purple-500/20 border-purple-400/50';
-      case 'categorical': return 'bg-green-500/20 border-green-400/50';
-      case 'geographic': return 'bg-orange-500/20 border-orange-400/50';
-      case 'textual': return 'bg-pink-500/20 border-pink-400/50';
-      default: return 'bg-gray-500/20 border-gray-400/50';
+  // Now define getEffectiveIngredient using the functions above
+  const getEffectiveIngredient = useCallback((ingredient: IngredientAnalysis): IngredientAnalysis => {
+    const override = typeOverrides[ingredient.column];
+    if (override) {
+      return {
+        ...ingredient,
+        type: override.type,
+        magicalName: generateMagicalName(ingredient.column, override.type),
+        properties: getIngredientProperties(ingredient.column, override.type)
+      };
     }
-  };
+    return ingredient;
+  }, [typeOverrides, generateMagicalName, getIngredientProperties]);
 
-  const getPotencyColor = (potency: number): string => {
-    if (potency >= 80) return 'text-yellow-400';
-    if (potency >= 60) return 'text-orange-400';
-    if (potency >= 40) return 'text-blue-400';
-    return 'text-gray-400';
-  };
+  // Group ingredients with proper memoization
+  const groupedIngredients = useMemo(() => {
+    if (!ingredients || ingredients.length === 0) {
+      return {};
+    }
 
-  const handleEditStart = (e: React.MouseEvent, columnName: string, currentType: IngredientType) => {
-    e.stopPropagation(); // Stop card selection
+    return ingredients.reduce((acc, ingredient) => {
+      try {
+        const effectiveIngredient = getEffectiveIngredient(ingredient);
+        const type = effectiveIngredient.type;
+        
+        if (!acc[type]) {
+          acc[type] = [];
+        }
+        acc[type].push(effectiveIngredient);
+      } catch (error) {
+        console.error('Error processing ingredient:', ingredient, error);
+      }
+      return acc;
+    }, {} as Record<string, IngredientAnalysis[]>);
+  }, [ingredients, getEffectiveIngredient]);
+
+  // Event handlers with proper error handling
+  const handleEditStart = useCallback((e: React.MouseEvent, columnName: string, currentType: IngredientType) => {
+    e.stopPropagation();
     setEditingIngredient(columnName);
     setTempType(currentType);
-  };
+  }, []);
 
-  const handleEditConfirm = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Stop the event from bubbling to the Card
-    e.preventDefault();  // Prevent any default behavior
-    
-    console.log('Saving edit:', editingIngredient, tempType); // Debug log
+  const handleEditConfirm = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
     
     if (!editingIngredient) {
       console.error('No ingredient being edited');
@@ -120,19 +103,47 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
     }
     
     try {
+      console.log('Saving type change:', editingIngredient, tempType);
       onIngredientTypeChange(editingIngredient, tempType, 1.0);
       setEditingIngredient(null);
-      console.log('Edit saved successfully');
     } catch (error) {
-      console.error('Error saving edit:', error);
+      console.error('Error saving type change:', error);
     }
+  }, [editingIngredient, tempType, onIngredientTypeChange]);
+
+  const handleEditCancel = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setEditingIngredient(null);
+  }, []);
+
+  // Icon and color getters
+  const getIngredientIcon = (type: string): string => {
+    const icons: Record<string, string> = {
+      'numeric': '🔢',
+      'temporal': '📅',
+      'categorical': '📝',
+      'geographic': '🌍',
+      'textual': '📄'
+    };
+    return icons[type] || '🏷️';
   };
 
-  const handleEditCancel = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setEditingIngredient(null);
-    setTempType('numeric'); // Reset to default
+  const getIngredientColor = (type: string): string => {
+    const colors: Record<string, string> = {
+      'numeric': 'bg-blue-500/20 border-blue-400/50',
+      'temporal': 'bg-purple-500/20 border-purple-400/50',
+      'categorical': 'bg-green-500/20 border-green-400/50',
+      'geographic': 'bg-orange-500/20 border-orange-400/50',
+      'textual': 'bg-pink-500/20 border-pink-400/50'
+    };
+    return colors[type] || 'bg-gray-500/20 border-gray-400/50';
+  };
+
+  const getPotencyColor = (potency: number): string => {
+    if (potency >= 80) return 'text-yellow-400';
+    if (potency >= 60) return 'text-orange-400';
+    if (potency >= 40) return 'text-blue-400';
+    return 'text-gray-400';
   };
 
   const getConfidenceColor = (confidence?: number): string => {
@@ -142,232 +153,175 @@ export const CauldronIngredientPalette: React.FC<CauldronIngredientPaletteProps>
     return 'text-red-600';
   };
 
-  // Group ingredients by their effective type (after overrides)
-  const groupedIngredients = ingredients.reduce((acc, ingredient) => {
-    const effectiveIngredient = getEffectiveIngredient(ingredient);
-    const type = effectiveIngredient.type;
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(effectiveIngredient);
-    return acc;
-  }, {} as Record<string, IngredientAnalysis[]>);
+  const getIngredientTypeOptions = (): IngredientType[] => {
+    return ['numeric', 'temporal', 'categorical', 'geographic', 'textual'];
+  };
 
   return (
     <TooltipProvider>
-      <div className="space-y-6 h-full">
-        {/* Header with magical styling */}
-        <div className="text-center relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10 rounded-lg blur-xl"></div>
-          <div className="relative bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 p-4">
-            <h3 className="text-xl font-bold text-primary mb-2 flex items-center justify-center gap-2">
-              <span className="text-2xl animate-pulse">🧪</span>
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                Magical Ingredients
-              </span>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+              Ingredient Palette
             </h3>
             <p className="text-sm text-muted-foreground">
-              Drag powerful essences into the cauldron to brew your visualization
+              Magical ingredients detected from your data columns
             </p>
-            
-            {onIngredientTypeChange && (
-              <div className="mt-4 flex justify-center">
-                <Button
-                  variant={isEditMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  className="gap-2 hover-scale transition-all duration-200"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  {isEditMode ? "Done Editing" : "Edit Types"}
-                </Button>
-              </div>
-            )}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditMode(!isEditMode)}
+            className="flex items-center gap-2"
+          >
+            <Edit className="w-4 h-4" />
+            {isEditMode ? 'Done Editing' : 'Edit Types'}
+          </Button>
         </div>
 
-        {/* Ingredient groups with enhanced styling */}
-        <div className="space-y-4 overflow-y-auto flex-1">
-          {Object.entries(groupedIngredients).map(([type, typeIngredients]) => (
-            <div key={type} className="space-y-3 animate-fade-in">
-              {/* Type header with glow effect */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent rounded"></div>
-                <h4 className="relative text-sm font-semibold text-primary capitalize flex items-center gap-2 p-2 rounded border border-border/30 bg-card/50 backdrop-blur-sm">
-                  <span className="text-lg animate-pulse">{getIngredientIcon(type)}</span>
-                  <span className="tracking-wide">{type} Essences</span>
-                  <Badge variant="secondary" className="ml-auto text-xs">
-                    {typeIngredients.length}
-                  </Badge>
-                </h4>
+        {Object.entries(groupedIngredients).map(([type, typeIngredients]) => (
+          <Card key={type} className={`border-2 ${getIngredientColor(type)}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">{getIngredientIcon(type)}</span>
+                <h4 className="font-medium capitalize">{type} Ingredients</h4>
+                <Badge variant="secondary" className="text-xs">
+                  {typeIngredients.length}
+                </Badge>
               </div>
               
-              <div className="grid grid-cols-1 gap-3">
-            {typeIngredients.map((ingredient) => {
-              const originalIngredient = ingredients.find(ing => ing.column === ingredient.column)!;
-              const override = typeOverrides[ingredient.column];
-              const isOverridden = override?.isOverridden;
-              const confidence = override?.confidence ?? confidenceScores[ingredient.column];
-              const isEditing = editingIngredient === ingredient.column;
-              
-              return (
-                <Card
-                  key={ingredient.column}
-                  className={`
-                    group relative p-4 ${isEditing ? '' : 'cursor-pointer'} 
-                    transition-all duration-300 ease-out
-                    ${!isEditing ? 'hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/20 hover:border-primary/50 hover:-translate-y-1' : ''}
-                    ${getIngredientColor(ingredient.type)}
-                    ${selectedIngredients.includes(ingredient.column) ? 
-                      'ring-2 ring-primary bg-primary/10 shadow-lg shadow-primary/20 border-primary/60' : 
-                      'hover:bg-gradient-to-br hover:from-transparent hover:to-primary/5'
-                    }
-                    ${isOverridden ? 'border-2 border-yellow-400 shadow-yellow-400/20 shadow-lg' : ''}
-                    animate-fade-in backdrop-blur-sm
-                  `}
-                  onClick={() => !isEditing && onIngredientSelect(ingredient.column)}
-                >
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">{getIngredientIcon(tempType)}</span>
-                        <span className="font-medium text-sm text-foreground">
-                          Edit: {ingredient.column}
-                        </span>
-                      </div>
-                      
-                      <Select value={tempType} onValueChange={(value: IngredientType) => setTempType(value)}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getIngredientTypeOptions().map((option) => (
-                            <SelectItem key={option} value={option}>
-                              <div className="flex items-center gap-2">
-                                <span>{getIngredientIcon(option)}</span>
-                                <span className="capitalize">{option}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          onClick={(e) => {
-                            e.stopPropagation(); // Critical!
-                            handleEditConfirm(e);
-                          }} 
-                          className="gap-1"
-                        >
-                          <Save className="h-3 w-3" />
-                          Save
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={(e) => {
-                            e.stopPropagation(); // Critical!
-                            handleEditCancel(e);
-                          }} 
-                          className="gap-1"
-                        >
-                          <X className="h-3 w-3" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-lg">{getIngredientIcon(ingredient.type)}</span>
-                          <span className="font-medium text-sm text-foreground truncate">
-                            {ingredient.magicalName}
-                          </span>
-                          {isOverridden && (
+              <div className="grid gap-2">
+                {typeIngredients.map((ingredient) => {
+                  const isSelected = selectedIngredients.includes(ingredient.column);
+                  const isEditing = editingIngredient === ingredient.column;
+                  const confidence = confidenceScores[ingredient.column];
+                  const override = typeOverrides[ingredient.column];
+                  
+                  return (
+                    <div
+                      key={ingredient.column}
+                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                        isSelected 
+                          ? 'bg-primary/10 border-primary ring-2 ring-primary/20' 
+                          : 'bg-background/50 border-border hover:bg-background/80'
+                      }`}
+                      onClick={() => !isEditing && onIngredientSelect(ingredient.column)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
                             <Tooltip>
-                              <TooltipTrigger>
-                                <Brain className="h-3 w-3 text-yellow-600" />
+                              <TooltipTrigger asChild>
+                                <h5 className="font-medium text-sm truncate">
+                                  {ingredient.magicalName}
+                                </h5>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Type manually corrected</p>
+                                <p>Column: {ingredient.column}</p>
                               </TooltipContent>
                             </Tooltip>
+                            
+                            {override?.isOverridden && (
+                              <Badge variant="outline" className="text-xs">
+                                Modified
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {ingredient.properties.map((property) => (
+                              <Badge 
+                                key={property} 
+                                variant="secondary" 
+                                className="text-xs"
+                              >
+                                {property}
+                              </Badge>
+                            ))}
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-xs">
+                            <span className={`flex items-center gap-1 ${getPotencyColor(Math.round(ingredient.potency * 100))}`}>
+                              ⚡ {Math.round(ingredient.potency * 100)}% potency
+                            </span>
+                            <span className="text-muted-foreground">
+                              Unique: {ingredient.uniqueValues}
+                            </span>
+                            {confidence && (
+                              <span className={getConfidenceColor(confidence)}>
+                                Confidence: {Math.round(confidence * 100)}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 ml-2">
+                          {isEditMode && !isEditing && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => handleEditStart(e, ingredient.column, ingredient.type)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          )}
+                          
+                          {isEditing && (
+                            <div className="flex items-center gap-1">
+                              <Select value={tempType} onValueChange={(value) => setTempType(value as IngredientType)}>
+                                <SelectTrigger className="h-6 w-24 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {getIngredientTypeOptions().map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {getIngredientIcon(option)} {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleEditConfirm}
+                                className="h-6 w-6 p-0 text-green-600"
+                              >
+                                <Check className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleEditCancel}
+                                className="h-6 w-6 p-0 text-red-600"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
                           )}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {ingredient.column}
-                        </div>
-                        {ingredient.properties && ingredient.properties.length > 0 && (
-                          <div className="text-xs text-muted-foreground mt-1 truncate">
-                            {ingredient.properties.slice(0, 3).join(', ')}
-                            {ingredient.properties.length > 3 && '...'}
-                          </div>
-                        )}
-                        {confidence !== undefined && confidence < 0.8 && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <div className="flex items-center gap-1 mt-1">
-                                <AlertTriangle className="h-3 w-3 text-yellow-600" />
-                                <span className={`text-xs ${getConfidenceColor(confidence)}`}>
-                                  {Math.round(confidence * 100)}% confidence
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Low confidence in type detection</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          {ingredient.uniqueValues} values
-                        </Badge>
-                        <div className={`text-xs font-medium ${getPotencyColor(ingredient.potency * 100)}`}>
-                          ✨ {Math.round(ingredient.potency * 100)}%
-                        </div>
-                        {isEditMode && onIngredientTypeChange && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Critical!
-                              handleEditStart(e, ingredient.column, ingredient.type);
-                            }}
-                            className="h-6 w-6 p-0 mt-1"
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                        )}
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Enhanced magical sparkle effects */}
-                  {!isEditing && (
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none overflow-hidden rounded-lg">
-                      <div className="absolute top-2 right-2 text-yellow-400 animate-pulse">✨</div>
-                      <div className="absolute bottom-2 left-2 text-blue-400 animate-pulse delay-150">✨</div>
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-purple-400 animate-pulse delay-300">✨</div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-pulse"></div>
-                    </div>
-                  )}
-                  
-                  {/* Selection indicator */}
-                  {selectedIngredients.includes(ingredient.column) && !isEditing && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold animate-scale-in">
-                      ✓
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-        </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        
+        {Object.keys(groupedIngredients).length === 0 && (
+          <Card className="border-dashed">
+            <CardContent className="p-8 text-center">
+              <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h4 className="font-medium mb-2">No Ingredients Detected</h4>
+              <p className="text-sm text-muted-foreground">
+                Upload data to discover magical ingredients for your cauldron
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </TooltipProvider>
   );
