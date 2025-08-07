@@ -1,4 +1,33 @@
 import { ColumnInfo } from '@/pages/Index';
+import { CHART_RECIPES } from './chartRecipes';
+import { 
+  GEOGRAPHIC_PATTERNS, 
+  TEMPORAL_PATTERNS, 
+  POSTAL_PATTERN,
+  DATE_PATTERN,
+  QUARTER_PATTERN,
+  CATEGORY_PATTERNS,
+  POSTAL_CODE_PATTERN,
+  LATITUDE_PATTERNS,
+  LONGITUDE_PATTERNS,
+  EXPLICIT_GEOGRAPHIC_PATTERNS,
+  COUNTRY_CODE_PATTERN,
+  ISO_COUNTRY_FORMAT,
+  COORDINATE_RANGES,
+  YEAR_RANGE,
+  UNIX_TIMESTAMP_RANGE,
+  CARDINALITY_THRESHOLDS
+} from './recipePatterns';
+import { PieChartHandler } from './pieChartHandler';
+import { 
+  RECIPE_CONFIG,
+  SCORING_CONFIG, 
+  CHART_COMPLEXITY,
+  OVERCROWDING_TOLERANCE,
+  DATA_SIZE_PREFERENCES,
+  logDebug,
+  logPerformance
+} from './recipeConfig';
 
 export interface ChartRecipe {
   id: string;
@@ -31,255 +60,22 @@ export interface IngredientAnalysis {
   properties: string[];
 }
 
+/**
+ * Recipe Engine - Enhanced and Refactored
+ * 
+ * Analyzes data ingredients (columns) and suggests optimal chart recipes.
+ * Now with improved modularity, better documentation, and configurable logging.
+ */
 export class RecipeEngine {
-  private static recipes: ChartRecipe[] = [
-    // === TEMPORAL ESSENCE RECIPES ===
-    {
-      id: 'temporal-essence-line',
-      name: 'Temporal Essence Line Potion',
-      chartType: 'line',
-      confidence: 0.95,
-      reasoning: 'Time-based data flows naturally through line visualizations, revealing trends and patterns',
-      requiredIngredients: {
-        primary: ['temporal'],
-        secondary: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows trends over time', 'Reveals seasonal patterns', 'Highlights growth cycles']
-    },
-    {
-      id: 'multi-dimensional-area',
-      name: 'Multi-dimensional Area Brew',
-      chartType: 'area',
-      confidence: 0.8,
-      reasoning: 'Stacked areas show how parts contribute to the whole over time',
-      requiredIngredients: {
-        primary: ['temporal'],
-        secondary: ['numeric'],
-        optional: ['categorical']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows cumulative effects', 'Reveals composition changes', 'Stacks contributions']
-    },
+  private static recipes: ChartRecipe[] = CHART_RECIPES;
 
-    // === CATEGORICAL POWER RECIPES ===
-    {
-      id: 'categorical-power-bar',
-      name: 'Categorical Power Bar Elixir',
-      chartType: 'bar',
-      confidence: 0.9,
-      reasoning: 'Categories naturally separate into distinct bars, perfect for comparisons',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Compares categories clearly', 'Ranks performance', 'Shows distribution']
-    },
-    {
-      id: 'proportional-pie-spell',
-      name: 'Proportional Pie Spell',
-      chartType: 'pie',
-      confidence: 0.85,
-      reasoning: 'When categories form a complete whole, pie charts reveal proportional relationships',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows parts of whole', 'Reveals proportions', 'Highlights dominance']
-    },
-    {
-      id: 'hierarchy-treemap-potion',
-      name: 'Hierarchy Treemap Potion',
-      chartType: 'treemap',
-      confidence: 0.82,
-      reasoning: 'Nested categorical data forms natural hierarchies perfect for treemap visualization',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['numeric'],
-        optional: ['categorical']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows hierarchical structure', 'Reveals size relationships', 'Nested proportions']
-    },
-
-    // === FREQUENCY & DISTRIBUTION RECIPES ===
-    {
-      id: 'histogram-transmutation',
-      name: 'Histogram Transmutation Brew',
-      chartType: 'histogram',
-      confidence: 0.87,
-      reasoning: 'Single numeric column reveals its distribution through frequency binning',
-      requiredIngredients: {
-        primary: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows data distribution', 'Reveals frequency patterns', 'Identifies data clusters']
-    },
-
-    // === CORRELATION & SCATTER RECIPES ===
-    {
-      id: 'correlation-scatter-matrix',
-      name: 'Correlation Scatter Matrix',
-      chartType: 'scatter',
-      confidence: 0.88,
-      reasoning: 'Two numeric dimensions create perfect correlation landscapes',
-      requiredIngredients: {
-        primary: ['numeric'],
-        secondary: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Reveals correlations', 'Shows clusters', 'Identifies outliers']
-    },
-    {
-      id: 'heatmap-intensity-fusion',
-      name: 'Heatmap Intensity Fusion',
-      chartType: 'heatmap',
-      confidence: 0.84,
-      reasoning: 'Two categorical dimensions with numeric intensity create perfect heatmap matrices',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['categorical', 'numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows intensity patterns', 'Reveals correlation matrices', 'Heat distribution']
-    },
-
-    // === GEOGRAPHIC ENCHANTMENTS ===
-    {
-      id: 'geographic-map-enchantment',
-      name: 'Geographic Map Enchantment',
-      chartType: 'map',
-      confidence: 0.92,
-      reasoning: 'Geographic coordinates unlock the power of spatial visualization',
-      requiredIngredients: {
-        primary: ['geographic'],
-        secondary: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows spatial patterns', 'Reveals geographic trends', 'Maps distributions']
-    },
-    {
-      id: 'geographic-3d-elevation',
-      name: 'Geographic 3D Elevation Spell',
-      chartType: 'map3d',
-      confidence: 0.89,
-      reasoning: 'Geographic data with elevation values creates immersive 3D terrain',
-      requiredIngredients: {
-        primary: ['geographic'],
-        secondary: ['numeric'],
-        optional: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['3D spatial visualization', 'Elevation mapping', 'Terrain analysis']
-    },
-
-    // === 3D DIMENSIONAL SPELLS ===
-    {
-      id: 'bar-3d-crystal-formation',
-      name: '3D Bar Crystal Formation',
-      chartType: 'bar3d',
-      confidence: 0.86,
-      reasoning: 'Three-dimensional bar charts add depth and perspective to categorical comparisons',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['numeric'],
-        optional: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['3D categorical comparison', 'Multi-dimensional bars', 'Depth perception']
-    },
-    {
-      id: 'scatter-3d-constellation',
-      name: '3D Scatter Constellation',
-      chartType: 'scatter3d',
-      confidence: 0.91,
-      reasoning: 'Three numeric dimensions create perfect 3D scatter constellation patterns',
-      requiredIngredients: {
-        primary: ['numeric'],
-        secondary: ['numeric', 'numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['3D correlation patterns', 'Multi-dimensional clusters', 'Space visualization']
-    },
-    {
-      id: 'surface-3d-reality-weaving',
-      name: '3D Surface Reality Weaving',
-      chartType: 'surface3d',
-      confidence: 0.85,
-      reasoning: 'Three numeric dimensions weave together to form continuous 3D surfaces',
-      requiredIngredients: {
-        primary: ['numeric'],
-        secondary: ['numeric', 'numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['3D surface modeling', 'Continuous landscapes', 'Mathematical surfaces']
-    },
-
-    // === NETWORK & GRAPH SPELLS ===
-    {
-      id: 'network-connection-elixir',
-      name: 'Network Connection Elixir',
-      chartType: 'network',
-      confidence: 0.83,
-      reasoning: 'Categorical relationships form natural network connections and hierarchies',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['categorical'],
-        optional: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Shows relationships', 'Network topology', 'Connection strength']
-    },
-    {
-      id: 'network-3d-constellation',
-      name: '3D Network Constellation',
-      chartType: 'network3d',
-      confidence: 0.87,
-      reasoning: 'Multi-dimensional categorical relationships create immersive 3D network galaxies',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['categorical'],
-        optional: ['numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['3D network visualization', 'Spatial relationships', 'Network galaxies']
-    },
-
-    // === PERFORMANCE & KPI CRYSTALS ===
-    {
-      id: 'kpi-crystal-formation',
-      name: 'KPI Crystal Formation',
-      chartType: 'kpi',
-      confidence: 0.79,
-      reasoning: 'Key numeric indicators crystallize into powerful performance visualizations',
-      requiredIngredients: {
-        primary: ['numeric'],
-        optional: ['categorical']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Key metric display', 'Performance indicators', 'Status crystals']
-    },
-
-    // === ADVANCED COMBINATIONS ===
-    {
-      id: 'stacked-bar-amplification',
-      name: 'Stacked Bar Amplification',
-      chartType: 'stackedbar',
-      confidence: 0.88,
-      reasoning: 'Multiple categorical dimensions with numeric values create powerful stacked comparisons',
-      requiredIngredients: {
-        primary: ['categorical'],
-        secondary: ['categorical', 'numeric']
-      },
-      optimalColumns: {},
-      magicalEffects: ['Stacked comparisons', 'Multi-dimensional analysis', 'Category breakdowns']
-    }
-  ];
-
+  /**
+   * Analyzes column data and converts them into magical ingredients
+   */
   static analyzeIngredients(columns: ColumnInfo[]): IngredientAnalysis[] {
-    return columns.map(column => {
+    const startTime = Date.now();
+    
+    const ingredients = columns.map(column => {
       const type = this.classifyColumnType(column);
       const potency = this.calculatePotency(column);
       const magicalName = this.generateMagicalName(column.name, type);
@@ -297,9 +93,19 @@ export class RecipeEngine {
         properties
       };
     });
+    
+    logPerformance('analyzeIngredients', startTime);
+    logDebug('Analyzed ingredients', { count: ingredients.length, types: ingredients.map(i => i.type) });
+    
+    return ingredients;
   }
 
+  /**
+   * Finds the best recipe for given ingredients
+   */
   static findBestRecipe(ingredients: IngredientAnalysis[]): ChartRecipe | null {
+    const startTime = Date.now();
+    
     let bestRecipe: ChartRecipe | null = null;
     let highestScore = 0;
 
@@ -311,10 +117,19 @@ export class RecipeEngine {
       }
     }
 
+    logPerformance('findBestRecipe', startTime);
+    logDebug('Best recipe found', { 
+      recipe: bestRecipe?.name, 
+      score: highestScore,
+      ingredientCount: ingredients.length 
+    });
+
     return bestRecipe;
   }
 
-
+  /**
+   * Validates ingredient combination and provides feedback
+   */
   static validateIngredientCombination(ingredients: IngredientAnalysis[]): {
     isValid: boolean;
     issues: string[];
@@ -353,6 +168,9 @@ export class RecipeEngine {
     };
   }
 
+  /**
+   * Classifies column type with enhanced detection logic
+   */
   private static classifyColumnType(column: ColumnInfo): IngredientType {
     const name = column.name.toLowerCase();
     
@@ -379,33 +197,18 @@ export class RecipeEngine {
     }
   }
 
+  /**
+   * Detects geographic columns using pattern matching
+   */
   private static isGeographicColumn(name: string, column: ColumnInfo): boolean {
-    // Very specific geographic patterns to avoid false positives
-    const geoPatterns = [
-      // Coordinate patterns - very specific
-      /^(latitude|longitude|lat|lng|lon)$/i,
-      /_(lat|lng|lon|latitude|longitude)$/i,
-      /(lat|lng|lon)_/i,
-      /^(x_coord|y_coord|coord_x|coord_y)$/i,
-      // Location patterns - only exact matches to avoid business terms
-      /^(location|address|city|state|country)$/i,
-      /^(full_address|street_address|postal_address)$/i,
-      // Postal patterns - very specific
-      /^(postal_code|zip_code|zipcode|postcode)$/i,
-      // Administrative patterns - very specific
-      /^(county|district|municipality|borough|parish)$/i,
-      // Geographic identifiers - very specific
-      /^(fips_code|iso_country|country_iso|geoname_id|place_id)$/i
-    ];
-
     // Check name patterns - only exact or very specific matches
-    if (geoPatterns.some(pattern => pattern.test(name))) {
+    if (GEOGRAPHIC_PATTERNS.some(pattern => pattern.test(name))) {
       return true;
     }
 
     // Analyze actual values for geographic patterns
     if (column.values && column.values.length > 0) {
-      const sampleValues = column.values.slice(0, Math.min(50, column.values.length));
+      const sampleValues = column.values.slice(0, Math.min(RECIPE_CONFIG.valueSampleSize, column.values.length));
       
       // Check for coordinate patterns (lat/lng ranges) - only if name suggests geographic
       if (column.type === 'numeric') {
@@ -415,16 +218,16 @@ export class RecipeEngine {
           const max = Math.max(...numValues);
           
           // Only check coordinate ranges if column name explicitly suggests coordinates
-          const isExplicitlyGeographic = /(lat|lng|longitude|latitude|coord|geo|x_coord|y_coord)/i.test(name);
+          const isExplicitlyGeographic = EXPLICIT_GEOGRAPHIC_PATTERNS.test(name);
           
           if (isExplicitlyGeographic) {
-            // Latitude range check (-90 to 90)
-            if (min >= -90 && max <= 90 && /(lat|latitude|y_coord)/i.test(name)) {
+            // Latitude range check
+            if (min >= COORDINATE_RANGES.LATITUDE.min && max <= COORDINATE_RANGES.LATITUDE.max && LATITUDE_PATTERNS.test(name)) {
               return true;
             }
             
-            // Longitude range check (-180 to 180)  
-            if (min >= -180 && max <= 180 && /(lng|lon|longitude|x_coord)/i.test(name)) {
+            // Longitude range check
+            if (min >= COORDINATE_RANGES.LONGITUDE.min && max <= COORDINATE_RANGES.LONGITUDE.max && LONGITUDE_PATTERNS.test(name)) {
               return true;
             }
           }
@@ -432,14 +235,13 @@ export class RecipeEngine {
       }
 
       // Check for postal codes patterns
-      const postalPattern = /^\d{5}(-\d{4})?$|^[A-Z]\d[A-Z] \d[A-Z]\d$/;
-      if (sampleValues.some(val => postalPattern.test(String(val)))) {
+      if (sampleValues.some(val => POSTAL_PATTERN.test(String(val)))) {
         return true;
       }
 
       // Check for country codes (ISO patterns) - only if name explicitly suggests country codes
-      const isCountryCodeColumn = /^(country_code|nation_code|iso_country|country_iso)$/i.test(name);
-      if (isCountryCodeColumn && sampleValues.every(val => /^[A-Z]{2,3}$/.test(String(val)))) {
+      const isCountryCodeColumn = COUNTRY_CODE_PATTERN.test(name);
+      if (isCountryCodeColumn && sampleValues.every(val => ISO_COUNTRY_FORMAT.test(String(val)))) {
         return true;
       }
     }
@@ -447,21 +249,12 @@ export class RecipeEngine {
     return false;
   }
 
+  /**
+   * Detects temporal columns using pattern matching
+   */
   private static isTemporalColumn(name: string, column: ColumnInfo): boolean {
-    // Extended temporal patterns
-    const temporalPatterns = [
-      // Standard time patterns - make sure "date" pattern is more specific
-      /\b(time|date|year|month|day|hour|minute|second)\b/i,
-      // Business time patterns
-      /(quarter|fiscal|period|semester|season)/i,
-      // Event time patterns
-      /(timestamp|created|updated|modified|published|when|start|end|begin|finish)/i,
-      // Relative time patterns
-      /(ago|since|until|before|after|during)/i
-    ];
-
     // Check name patterns
-    if (temporalPatterns.some(pattern => pattern.test(name))) {
+    if (TEMPORAL_PATTERNS.some(pattern => pattern.test(name))) {
       return true;
     }
 
@@ -469,22 +262,21 @@ export class RecipeEngine {
     if (column.values && column.values.length > 0) {
       const sampleValues = column.values.slice(0, Math.min(20, column.values.length));
       
-      // Check for year patterns (1900-2100)
+      // Check for year patterns
       if (column.type === 'numeric') {
         const numValues = sampleValues.map(v => parseInt(String(v))).filter(v => !isNaN(v));
-        if (numValues.every(val => val >= 1900 && val <= 2100)) {
+        if (numValues.every(val => val >= YEAR_RANGE.min && val <= YEAR_RANGE.max)) {
           return true;
         }
       }
 
       // Check for date-like strings
-      const datePattern = /^\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4}/;
-      if (sampleValues.some(val => datePattern.test(String(val)))) {
+      if (sampleValues.some(val => DATE_PATTERN.test(String(val)))) {
         return true;
       }
 
-      // Check for quarter patterns (Q1, Q2, etc.)
-      if (sampleValues.some(val => /^Q[1-4]|[1-4]Q|\d{4}Q[1-4]/.test(String(val)))) {
+      // Check for quarter patterns
+      if (sampleValues.some(val => QUARTER_PATTERN.test(String(val)))) {
         return true;
       }
     }
@@ -492,12 +284,15 @@ export class RecipeEngine {
     return false;
   }
 
+  /**
+   * Analyzes numeric columns for potential type reclassification
+   */
   private static analyzeNumericColumn(name: string, column: ColumnInfo): IngredientType {
-    // Check if numeric column might be geographic (like postal codes) - be very specific
-    if (/^(postal_code|zip_code|zipcode|postcode|fips_code)$/i.test(name) && column.values) {
+    // Check if numeric column might be geographic (like postal codes)
+    if (POSTAL_CODE_PATTERN.test(name) && column.values) {
       const uniqueValues = new Set(column.values).size;
       // If many unique values, might be geographic identifiers
-      if (uniqueValues > column.values.length * 0.8) {
+      if (uniqueValues > column.values.length * CARDINALITY_THRESHOLDS.HIGH_UNIQUENESS_GEOGRAPHIC) {
         return 'geographic';
       }
     }
@@ -512,12 +307,12 @@ export class RecipeEngine {
         const max = Math.max(...numValues);
         
         // Check for year range
-        if (min >= 1900 && max <= 2100 && numValues.every(v => v % 1 === 0)) {
+        if (min >= YEAR_RANGE.min && max <= YEAR_RANGE.max && numValues.every(v => v % 1 === 0)) {
           return 'temporal';
         }
         
         // Check for timestamp range (Unix timestamps)
-        if (min > 1000000000 && max < 9999999999) {
+        if (min > UNIX_TIMESTAMP_RANGE.min && max < UNIX_TIMESTAMP_RANGE.max) {
           return 'temporal';
         }
       }
@@ -526,6 +321,9 @@ export class RecipeEngine {
     return 'numeric';
   }
 
+  /**
+   * Analyzes textual columns for categorical classification
+   */
   private static analyzeTextualColumn(column: ColumnInfo): IngredientType {
     if (!column.values || column.values.length === 0) {
       return 'textual';
@@ -535,27 +333,17 @@ export class RecipeEngine {
     const totalValues = column.values.length;
     const uniqueRatio = uniqueValues / totalValues;
 
-    // Enhanced categorical detection
-    // Low cardinality suggests categorical
-    if (uniqueValues <= 50 && uniqueRatio < 0.7) {
+    // Enhanced categorical detection - Low cardinality suggests categorical
+    if (uniqueValues <= CARDINALITY_THRESHOLDS.LOW_CATEGORICAL && uniqueRatio < CARDINALITY_THRESHOLDS.LOW_UNIQUENESS_RATIO) {
       return 'categorical';
     }
 
     // Medium cardinality with patterns might still be categorical
-    if (uniqueValues <= 200 && uniqueRatio < 0.5) {
+    if (uniqueValues <= CARDINALITY_THRESHOLDS.MEDIUM_CATEGORICAL && uniqueRatio < CARDINALITY_THRESHOLDS.MEDIUM_UNIQUENESS_RATIO) {
       // Check if values follow categorical patterns
-      const sampleValues = column.values.slice(0, Math.min(50, column.values.length));
+      const sampleValues = column.values.slice(0, Math.min(RECIPE_CONFIG.valueSampleSize, column.values.length));
       
-      // Check for status/category patterns
-      const categoryPatterns = [
-        /^(yes|no|true|false|y|n|t|f)$/i,
-        /^(active|inactive|enabled|disabled|on|off)$/i,
-        /^(high|medium|low|small|large|xl|xxl)$/i,
-        /^(new|old|pending|approved|rejected|cancelled)$/i,
-        /^[A-Z]{1,3}$/  // Short codes like "CA", "NY", "USD"
-      ];
-      
-      if (sampleValues.some(val => categoryPatterns.some(pattern => pattern.test(String(val))))) {
+      if (sampleValues.some(val => CATEGORY_PATTERNS.some(pattern => pattern.test(String(val))))) {
         return 'categorical';
       }
     }
@@ -563,6 +351,9 @@ export class RecipeEngine {
     return 'textual';
   }
 
+  /**
+   * Calculates ingredient potency based on data quality metrics
+   */
   private static calculatePotency(column: ColumnInfo): number {
     let potency = 0.5; // Base potency
 
@@ -582,6 +373,9 @@ export class RecipeEngine {
     return Math.min(potency, 1);
   }
 
+  /**
+   * Generates magical names for ingredients based on type
+   */
   private static generateMagicalName(columnName: string, type: IngredientType): string {
     const prefixes = {
       temporal: ['Temporal Crystals of', 'Chronos Essence of', 'Time Spirits of', 'Eternal Flows of', 'Temporal Vortex of'],
@@ -597,6 +391,9 @@ export class RecipeEngine {
     return `${randomPrefix} ${columnName}`;
   }
 
+  /**
+   * Gets ingredient properties based on type and characteristics
+   */
   private static getIngredientProperties(column: ColumnInfo, type: IngredientType): string[] {
     const properties: string[] = [];
     
@@ -635,6 +432,9 @@ export class RecipeEngine {
     return properties;
   }
 
+  /**
+   * Scores a recipe against given ingredients with enhanced logic
+   */
   private static scoreRecipe(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
     let score = 0;
     const ingredientTypes = ingredients.map(i => i.type);
@@ -649,7 +449,7 @@ export class RecipeEngine {
     );
     if (!hasPrimary) return 0;
 
-    score += 0.4; // Base score for meeting primary requirements
+    score += SCORING_CONFIG.PRIMARY_INGREDIENT_SCORE; // Base score for meeting primary requirements
 
     // Enhanced secondary ingredient scoring - MUST have at least one secondary ingredient
     if (recipe.requiredIngredients.secondary) {
@@ -664,7 +464,7 @@ export class RecipeEngine {
       
       // CRITICAL: Require at least one secondary ingredient match for charts that need them
       if (secondaryMatches === 0) {
-        console.log(`Recipe ${recipe.id} rejected: No secondary ingredients match`, {
+        logDebug(`Recipe ${recipe.id} rejected: No secondary ingredients match`, {
           required: requiredSecondary,
           available: ingredientTypes,
           ingredientCount: ingredients.length
@@ -672,34 +472,21 @@ export class RecipeEngine {
         return 0;
       }
       
-      // For pie charts specifically, enforce strict requirements
+      // Use dedicated pie chart handler for pie chart logic
       if (recipe.chartType === 'pie') {
-        const hasCategorical = ingredientTypes.includes('categorical');
-        const hasNumeric = ingredientTypes.includes('numeric');
-        
-        // Pie charts MUST have exactly 1 categorical (for slices) and 1 numeric (for values)
-        if (!hasCategorical || !hasNumeric) {
-          console.log(`Pie chart rejected: Missing required types`, {
-            hasCategorical,
-            hasNumeric,
-            ingredientTypes
-          });
+        const pieValidation = PieChartHandler.validatePieChartIngredients(ingredients);
+        if (!pieValidation.isValid) {
+          logDebug(`Pie chart rejected`, { issues: pieValidation.issues });
           return 0;
         }
-        
-        // Penalize pie charts if there are too many categorical dimensions
-        const categoricalCount = ingredients.filter(i => i.type === 'categorical').length;
-        if (categoricalCount > 1) {
-          console.log(`Pie chart penalized: Too many categorical dimensions (${categoricalCount})`);
-          score -= 0.3; // Heavy penalty for multiple categorical dimensions
-        }
+        score += pieValidation.score;
       }
       
       // Award points based on how many secondary ingredients match
       const secondaryPercent = secondaryMatches / requiredSecondary.length;
-      score += 0.4 + (secondaryPercent * 0.2); // Base 0.4 + bonus for extra matches
+      score += SCORING_CONFIG.SECONDARY_INGREDIENT_SCORE + (secondaryPercent * 0.2); // Base + bonus for extra matches
     } else {
-      score += 0.4; // No secondary requirements
+      score += SCORING_CONFIG.SECONDARY_INGREDIENT_SCORE; // No secondary requirements
     }
 
     // Apply advanced scoring bonuses
@@ -714,6 +501,9 @@ export class RecipeEngine {
     return Math.max(0, Math.min(1, score));
   }
 
+  /**
+   * Calculates synergy bonus for ingredient combinations
+   */
   private static calculateSynergyBonus(recipe: ChartRecipe, ingredients: IngredientAnalysis[], typeCount: Record<string, number>): number {
     let synergyBonus = 0;
 
@@ -728,27 +518,12 @@ export class RecipeEngine {
 
     // Perfect combinations for specific chart types
     const perfectCombinations: Record<string, () => number> = {
-      histogram: () => typeCount.numeric === 1 && ingredients.length === 1 ? 0.15 : 0,
-      pie: () => {
-        // Pie charts work best with exactly 1 categorical and 1 numeric
-        const categoricalCount = ingredients.filter(i => i.type === 'categorical').length;
-        const numericCount = ingredients.filter(i => i.type === 'numeric').length;
-        
-        if (categoricalCount === 1 && numericCount === 1 && ingredients.length === 2) {
-          return 0.2; // Strong bonus for perfect pie chart setup
-        }
-        if (categoricalCount === 1 && numericCount === 1) {
-          return 0.1; // Decent bonus even with extra ingredients
-        }
-        if (categoricalCount > 1) {
-          return -0.2; // Heavy penalty for multiple categorical dimensions
-        }
-        return 0;
-      },
-      scatter3d: () => typeCount.numeric >= 3 ? 0.12 : 0,
+      histogram: () => typeCount.numeric === 1 && ingredients.length === 1 ? SCORING_CONFIG.HISTOGRAM_PERFECT_BONUS : 0,
+      pie: () => PieChartHandler.calculatePieSynergyBonus(ingredients),
+      scatter3d: () => typeCount.numeric >= 3 ? SCORING_CONFIG.SCATTER3D_BONUS : 0,
       surface3d: () => typeCount.numeric >= 2 && typeCount.categorical >= 1 ? 0.1 : 0,
       bar3d: () => typeCount.categorical >= 1 && typeCount.numeric >= 1 ? 0.08 : 0,
-      network: () => typeCount.categorical >= 2 ? 0.15 : 0,
+      network: () => typeCount.categorical >= 2 ? SCORING_CONFIG.NETWORK_BONUS : 0,
       network3d: () => typeCount.categorical >= 2 && typeCount.numeric >= 1 ? 0.12 : 0,
       treemap: () => typeCount.categorical >= 2 && typeCount.numeric >= 1 ? 0.1 : 0,
       map3d: () => typeCount.geographic >= 1 && typeCount.numeric >= 1 ? 0.12 : 0,
@@ -761,6 +536,7 @@ export class RecipeEngine {
       synergyBonus += perfectBonus();
     }
 
+    // Type-specific synergy bonuses
     // Temporal-numeric synergy (time series magic)
     if (typeCount.temporal >= 1 && typeCount.numeric >= 1) {
       if (['line', 'area', 'scatter'].includes(recipe.chartType)) {
@@ -785,28 +561,20 @@ export class RecipeEngine {
     return synergyBonus;
   }
 
+  /**
+   * Calculates data size bonus based on chart preferences
+   */
   private static calculateDataSizeBonus(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
     let sizeBonus = 0;
     
     // Calculate total data points estimate
     const totalDataPoints = ingredients.reduce((sum, ing) => sum + ing.uniqueValues, 0);
     
-    // Different charts work better with different data sizes
-    const sizePreferences: Record<string, { small: number; medium: number; large: number }> = {
-      pie: { small: 0.1, medium: 0.05, large: -0.1 }, // Pie charts better with fewer categories
-      treemap: { small: 0.0, medium: 0.08, large: 0.1 }, // Treemaps handle more data well
-      network: { small: 0.05, medium: 0.1, large: 0.05 }, // Networks work best with medium complexity
-      heatmap: { small: -0.05, medium: 0.08, large: 0.12 }, // Heatmaps excel with larger datasets
-      histogram: { small: -0.1, medium: 0.05, large: 0.1 }, // Histograms need sufficient data
-      scatter3d: { small: -0.05, medium: 0.05, large: 0.08 }, // 3D scatter needs enough points
-      surface3d: { small: -0.1, medium: 0.0, large: 0.1 } // Surfaces need dense data
-    };
-
-    const preferences = sizePreferences[recipe.chartType];
+    const preferences = DATA_SIZE_PREFERENCES[recipe.chartType];
     if (preferences) {
-      if (totalDataPoints < 50) {
+      if (totalDataPoints < SCORING_CONFIG.DATA_SIZE_SMALL) {
         sizeBonus += preferences.small;
-      } else if (totalDataPoints < 500) {
+      } else if (totalDataPoints < SCORING_CONFIG.DATA_SIZE_MEDIUM) {
         sizeBonus += preferences.medium;
       } else {
         sizeBonus += preferences.large;
@@ -816,6 +584,9 @@ export class RecipeEngine {
     return sizeBonus;
   }
 
+  /**
+   * Calculates complexity bonus based on data-chart matching
+   */
   private static calculateComplexityBonus(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
     let complexityBonus = 0;
     
@@ -825,39 +596,36 @@ export class RecipeEngine {
     const complexityScore = (avgPotency + (typeVariety / 5)) / 2;
 
     // Match complexity with chart sophistication
-    const chartComplexity: Record<string, number> = {
-      // Simple charts (complexity 0.2-0.4)
-      pie: 0.2, bar: 0.3, line: 0.3,
-      // Medium charts (complexity 0.4-0.7)
-      scatter: 0.5, area: 0.5, histogram: 0.4, heatmap: 0.6,
-      // Complex charts (complexity 0.7-1.0)
-      treemap: 0.7, network: 0.8, scatter3d: 0.9, surface3d: 1.0, network3d: 0.95
-    };
-
-    const targetComplexity = chartComplexity[recipe.chartType] || 0.5;
+    const targetComplexity = CHART_COMPLEXITY[recipe.chartType] || 0.5;
     const complexityMatch = 1 - Math.abs(complexityScore - targetComplexity);
     
     // Bonus for good complexity matching
     if (complexityMatch > 0.8) {
-      complexityBonus += 0.08;
+      complexityBonus += SCORING_CONFIG.COMPLEXITY_BONUS_HIGH;
     } else if (complexityMatch > 0.6) {
-      complexityBonus += 0.04;
+      complexityBonus += SCORING_CONFIG.COMPLEXITY_BONUS_MEDIUM;
     }
 
     return complexityBonus;
   }
 
+  /**
+   * Calculates quality bonus based on ingredient potency
+   */
   private static calculateQualityBonus(ingredients: IngredientAnalysis[]): number {
     const avgPotency = ingredients.reduce((sum, ing) => sum + ing.potency, 0) / ingredients.length;
     
     // High-quality ingredients deserve better recipes
-    if (avgPotency > 0.8) return 0.1;
-    if (avgPotency > 0.6) return 0.05;
-    if (avgPotency < 0.3) return -0.05; // Penalty for low-quality ingredients
+    if (avgPotency > 0.8) return SCORING_CONFIG.QUALITY_BONUS_HIGH;
+    if (avgPotency > 0.6) return SCORING_CONFIG.QUALITY_BONUS_MEDIUM;
+    if (avgPotency < 0.3) return SCORING_CONFIG.QUALITY_PENALTY_LOW; // Penalty for low-quality ingredients
     
     return 0;
   }
 
+  /**
+   * Calculates overcrowding penalty for too many ingredients
+   */
   private static calculateOvercrowdingPenalty(recipe: ChartRecipe, ingredients: IngredientAnalysis[]): number {
     const optimalCount = recipe.requiredIngredients.primary.length + 
                         (recipe.requiredIngredients.secondary?.length || 0);
@@ -868,20 +636,16 @@ export class RecipeEngine {
     if (excessIngredients <= 0) return 0;
     
     // Some charts handle extra ingredients better than others
-    const overcrowdingTolerance: Record<string, number> = {
-      network: 0.02,    // Networks can handle many nodes
-      heatmap: 0.03,    // Heatmaps work with many dimensions
-      treemap: 0.025,   // Treemaps accommodate hierarchies
-      scatter3d: 0.035, // 3D scatter can show more dimensions
-      surface3d: 0.04,  // Surfaces can use multiple metrics
-    };
-
-    const basePenalty = overcrowdingTolerance[recipe.chartType] || 0.05;
-    return Math.min(excessIngredients * basePenalty, 0.25); // Cap penalty at 0.25
+    const basePenalty = OVERCROWDING_TOLERANCE[recipe.chartType] || 0.05;
+    return Math.min(excessIngredients * basePenalty, SCORING_CONFIG.OVERCROWDING_PENALTY_MAX); // Cap penalty
   }
 
-  // Enhanced recipe finding with conditional logic
+  /**
+   * Enhanced recipe finding with conditional logic
+   */
   static findCompatibleRecipes(ingredients: IngredientAnalysis[]): ChartRecipe[] {
+    const startTime = Date.now();
+    
     if (ingredients.length === 0) return [];
 
     const allRecipes = this.recipes
@@ -889,13 +653,25 @@ export class RecipeEngine {
         ...recipe,
         confidence: this.scoreRecipe(recipe, ingredients)
       }))
-      .filter(recipe => recipe.confidence > 0)
+      .filter(recipe => recipe.confidence > RECIPE_CONFIG.minConfidenceThreshold)
       .sort((a, b) => b.confidence - a.confidence);
 
     // Apply conditional filtering based on data characteristics
-    return this.applyConditionalFiltering(allRecipes, ingredients);
+    const result = this.applyConditionalFiltering(allRecipes, ingredients);
+    
+    logPerformance('findCompatibleRecipes', startTime);
+    logDebug('Compatible recipes found', { 
+      total: allRecipes.length, 
+      afterFiltering: result.length,
+      top3: result.slice(0, 3).map(r => ({ name: r.name, confidence: r.confidence }))
+    });
+    
+    return result;
   }
 
+  /**
+   * Applies conditional filtering to remove inappropriate recipes
+   */
   private static applyConditionalFiltering(recipes: ChartRecipe[], ingredients: IngredientAnalysis[]): ChartRecipe[] {
     const dataSize = ingredients.reduce((sum, ing) => sum + ing.uniqueValues, 0);
     const typeCount = ingredients.reduce((acc, ing) => {
@@ -904,6 +680,11 @@ export class RecipeEngine {
     }, {} as Record<string, number>);
 
     return recipes.filter(recipe => {
+      // Use dedicated pie chart handler for filtering
+      if (recipe.chartType === 'pie') {
+        return !PieChartHandler.shouldFilterPieChart(ingredients, dataSize);
+      }
+
       // Filter out inappropriate 3D visualizations for small datasets
       if (['scatter3d', 'surface3d', 'bar3d'].includes(recipe.chartType) && dataSize < 100) {
         return recipe.confidence > 0.7; // Higher threshold for 3D with small data
@@ -926,6 +707,6 @@ export class RecipeEngine {
       }
 
       return true;
-    }).slice(0, 12); // Limit to top 12 most relevant recipes
+    }).slice(0, RECIPE_CONFIG.maxRecipeResults); // Limit to configured max results
   }
 }
