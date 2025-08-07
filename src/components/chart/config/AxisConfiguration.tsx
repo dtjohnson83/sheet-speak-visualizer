@@ -96,7 +96,7 @@ export const AxisConfiguration = ({
       )}
 
       {/* Z-Axis for 3D charts */}
-      {(chartType === 'scatter3d' || chartType === 'surface3d' || chartType === 'map3d' || chartType === 'treemap3d') && setZColumn && (
+      {(chartType === 'scatter3d' || chartType === 'surface3d' || chartType === 'map3d' || chartType === 'treemap3d' || chartType === 'timeseries3d') && setZColumn && (
         <div>
           <label className="block text-sm font-medium mb-2">
             {chartType === 'map3d' ? 'Height/Elevation' : 
