@@ -10,6 +10,7 @@ import { useCauldronState } from './hooks/useCauldronState';
 import { useRecipeEngine } from './hooks/useRecipeEngine';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { AIConfiguredChart } from '@/components/unified-ai/AIConfiguredChart';
+import { CauldronChartWrapper } from './CauldronChartWrapper';
 import { AIChartSuggestion } from '@/hooks/useAIChartGeneration';
 
 interface CauldronVisualizationModeProps {
@@ -160,7 +161,7 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
       <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none"></div>
       
-      <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 p-6 h-full min-h-screen">
+      <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 p-6 min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden">
         {/* Left Column - Ingredient Palette */}
         <div className="lg:col-span-1 h-full">
           <CauldronIngredientPalette
@@ -278,17 +279,19 @@ export const CauldronVisualizationMode: React.FC<CauldronVisualizationModeProps>
               </div>
               
               {/* Chart display */}
-              <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0">
                 <div className="h-full bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl p-4">
-                  <AIConfiguredChart
-                    data={data}
-                    columns={columns}
-                    chartSuggestion={createChartSuggestionFromRecipe(selectedRecipe, activeIngredients)}
-                    onSaveTile={onSaveTile}
-                    dataSourceName="Cauldron Creation"
-                    hideSeriesManager={true}
-                    hideConfiguration={true}
-                  />
+                  <CauldronChartWrapper>
+                    <AIConfiguredChart
+                      data={data}
+                      columns={columns}
+                      chartSuggestion={createChartSuggestionFromRecipe(selectedRecipe, activeIngredients)}
+                      onSaveTile={onSaveTile}
+                      dataSourceName="Cauldron Creation"
+                      hideSeriesManager={true}
+                      hideConfiguration={true}
+                    />
+                  </CauldronChartWrapper>
                 </div>
               </div>
             </div>

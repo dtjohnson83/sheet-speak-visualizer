@@ -39,14 +39,16 @@ export const AIConfiguredChart: React.FC<AIConfiguredChartProps> = ({
 
   return (
     <AIChartSuggestionContext.Provider value={chartSuggestion}>
-      <ChartVisualization
-        data={data}
-        columns={columns}
-        onSaveTile={onSaveTile}
-        dataSourceName={dataSourceName}
-        hideSeriesManager={hideSeriesManager}
-        hideConfiguration={hideConfiguration}
-      />
+      <div className="w-full h-full">
+        <ChartVisualization
+          data={data}
+          columns={columns}
+          onSaveTile={onSaveTile}
+          dataSourceName={dataSourceName}
+          hideSeriesManager={hideSeriesManager}
+          hideConfiguration={hideConfiguration}
+        />
+      </div>
     </AIChartSuggestionContext.Provider>
   );
 };
