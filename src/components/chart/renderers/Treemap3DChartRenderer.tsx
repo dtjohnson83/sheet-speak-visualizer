@@ -251,101 +251,68 @@ export const Treemap3DChartRenderer: React.FC<Treemap3DChartRendererProps> = ({
       return [];
     }
 
-    console.log('🗺️ Treemap3DChartRenderer - Raw input data:', {
-      dataLength: data?.length,
-      sampleData: data?.slice(0, 2),
-      allKeys: data?.[0] ? Object.keys(data[0]) : []
-    });
-
-    // Check if data is already processed (has name, size, value structure)
     const sampleRow = data[0];
-    const hasProcessedStructure = sampleRow && 
-      ('name' in sampleRow || 'size' in sampleRow || 'value' in sampleRow);
+    console.log('🗺️ Sample row structure:', sampleRow);
 
-    if (hasProcessedStructure) {
-      // Data is already processed by treemapProcessor, use it directly
-      console.log('🗺️ Using processed treemap data structure');
-      const result = data.filter(item => 
-        item && 
-        (item.value > 0 || item.size > 0) &&
-        typeof (item.value || item.size) === 'number'
-      ).map(item => ({
-        name: item.name || 'Unknown',
+    // Check if data is already in treemap format
+    const hasTreemapStructure = sampleRow && 
+      ('name' in sampleRow || 'label' in sampleRow) && 
+      ('size' in sampleRow || 'value' in sampleRow);
+
+    if (hasTreemapStructure) {
+      console.log('🗺️ Using pre-processed treemap data');
+      return data.filter(item => {
+        const value = item.value || item.size || 0;
+        return value > 0 && typeof value === 'number';
+      }).map(item => ({
+        name: item.name || item.label || item[xColumn] || 'Unknown',
         value: item.value || item.size || 0,
         size: item.size || item.value || 0,
-        height: item.height || item.value || item.size || 1 // Use height if available, fallback to value/size
+        height: item.height || item[zColumn] || item.value || item.size || 1
       }));
-
-      console.log('🗺️ Treemap3DChartRenderer: Using pre-processed data', {
-        originalLength: data.length,
-        processedLength: result.length,
-        categories: result.map(r => r.name),
-        sampleData: result.slice(0, 2)
-      });
-
-      return result;
     }
 
-    // Fallback: process raw data if needed
-    if (!xColumn || !yColumn) {
-      console.warn('Treemap3DChartRenderer: Missing required columns for raw data processing', { 
-        xColumn, 
-        yColumn 
-      });
-      return [];
-    }
-
+    // Auto-detect columns if mismatch
     const availableColumns = Object.keys(sampleRow || {});
-    
-    if (!availableColumns.includes(xColumn) || !availableColumns.includes(yColumn)) {
-      console.error('Treemap3DChartRenderer: Columns not found in raw data', {
-        xColumn,
-        yColumn,
-        availableColumns
-      });
-      return [];
+    const hasXColumn = xColumn && availableColumns.includes(xColumn);
+    const hasYColumn = yColumn && availableColumns.includes(yColumn);
+
+    if (!hasXColumn || !hasYColumn) {
+      console.error('🗺️ Column mismatch - attempting auto-detection');
+      const categoryCol = availableColumns.find(col => typeof sampleRow[col] === 'string') || availableColumns[0];
+      const valueCol = availableColumns.find(col => typeof sampleRow[col] === 'number') || availableColumns[1];
+      return processRawTreemapData(data, categoryCol, valueCol, zColumn);
     }
 
-    // Process raw treemap data
-    const grouped = data.reduce((acc, row) => {
-      const category = row[xColumn]?.toString() || 'Unknown';
-      const value = Number(row[yColumn]);
-      const height = zColumn ? Number(row[zColumn]) : value;
-      
-      if (!isNaN(value) && value > 0) {
-        if (!acc[category]) {
-          acc[category] = { value: 0, height: 0, count: 0 };
-        }
+    return processRawTreemapData(data, xColumn, yColumn, zColumn);
+  }, [data, xColumn, yColumn, zColumn]);
+
+  const processRawTreemapData = (rawData: any[], categoryCol: string, valueCol: string, heightCol?: string) => {
+    const grouped = rawData.reduce((acc, row) => {
+      const category = row[categoryCol]?.toString() || 'Unknown';
+      const value = Number(row[valueCol]) || 0;
+      if (value > 0) {
+        if (!acc[category]) acc[category] = { value: 0, height: 0, count: 0 };
         acc[category].value += value;
-        acc[category].height += height || value;
+        acc[category].height += heightCol ? Number(row[heightCol]) : value;
         acc[category].count += 1;
       }
       return acc;
     }, {} as Record<string, {value: number, height: number, count: number}>);
 
-    const result = Object.entries(grouped)
-      .map(([name, groupData]) => {
-        const typedData = groupData as {value: number, height: number, count: number};
-        return {
-          name,
-          value: typedData.value,
-          size: typedData.value,
-          height: typedData.height / typedData.count // Average height
-        };
-      })
-      .filter(item => typeof item.value === 'number' && item.value > 0);
-
-    console.log('🗺️ Treemap3DChartRenderer: Processed raw data', {
-      originalLength: data.length,
-      processedLength: result.length,
-      categories: result.map(r => r.name)
-    });
-
-    return result;
-  }, [data, xColumn, yColumn]);
+    return Object.entries(grouped).map(([name, data]) => {
+      const typedData = data as {value: number, height: number, count: number};
+      return {
+        name, 
+        value: typedData.value, 
+        size: typedData.value, 
+        height: typedData.height / typedData.count
+      };
+    }).filter(item => item.value > 0);
+  };
 
   const layout = useMemo(() => {
-    return calculateTreemapLayout(processedData, 10, 8); // 10x8 grid
+    return calculateTreemapLayout(processedData, 10, 8);
   }, [processedData]);
 
   const handleItemHover = (hovered: boolean, itemData?: any) => {
