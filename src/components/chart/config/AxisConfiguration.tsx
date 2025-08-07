@@ -29,6 +29,7 @@ export const AxisConfiguration = ({
 }: AxisConfigurationProps) => {
   const isHistogram = chartType === 'histogram';
   const isGeoChart = chartType === 'map2d' || chartType === 'map3d';
+  const isTreemap = chartType === 'treemap' || chartType === 'treemap3d';
   console.log('AxisConfiguration - Column filtering:', {
     chartType,
     numericCount: numericColumns.length,
@@ -47,6 +48,7 @@ export const AxisConfiguration = ({
         <label className="block text-sm font-medium mb-2">
           {isHistogram ? 'Column to Analyze' : 
            isGeoChart ? 'Longitude' : 
+           isTreemap ? 'Category Column' :
            'X-Axis'}
         </label>
         <Select value={xColumn} onValueChange={setXColumn}>
@@ -56,6 +58,7 @@ export const AxisConfiguration = ({
           <SelectContent className="max-h-60 overflow-y-auto">
             {(isHistogram ? numericColumns : 
               isGeoChart ? numericColumns :
+              isTreemap ? categoricalColumns :
               chartType === 'scatter' ? [...numericColumns, ...dateColumns] : 
               [...categoricalColumns, ...dateColumns, ...numericColumns]).map((col) => (
               <SelectItem key={col.name} value={col.name}>
@@ -71,6 +74,7 @@ export const AxisConfiguration = ({
           <label className="block text-sm font-medium mb-2">
             {chartType === 'heatmap' ? 'Y-Axis' : 
              isGeoChart ? 'Latitude' : 
+             isTreemap ? 'Value Column' :
              'Y-Axis'}
           </label>
           <Select value={yColumn} onValueChange={setYColumn}>
@@ -80,6 +84,7 @@ export const AxisConfiguration = ({
             <SelectContent className="max-h-60 overflow-y-auto">
              {(chartType === 'heatmap' ? [...categoricalColumns, ...numericColumns] : 
                isGeoChart ? numericColumns :
+               isTreemap ? numericColumns :
                numericColumns).map((col) => (
                 <SelectItem key={col.name} value={col.name}>
                   {col.name} ({col.type})
