@@ -267,23 +267,28 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     const requireZ = Boolean(zColumn && data.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null));
 
     // Filter data - only require zColumn if it's present in the dataset
-    const validData = data.filter(item => {
-      const isValid = item && 
-        item[xColumn] !== undefined && 
-        item[yColumn] !== undefined &&
-        (!requireZ || item[zColumn] !== undefined) &&
-        !isNaN(Number(item[yColumn]));
-      
-      if (!isValid) {
-        console.log('Filtering out invalid item:', {
-          item,
-          hasX: item?.[xColumn] !== undefined,
-          hasY: item?.[yColumn] !== undefined,
-          hasZ: !requireZ || item?.[zColumn] !== undefined,
-          yIsNumber: !isNaN(Number(item?.[yColumn]))
-        });
+    // Robust numeric parsing for yColumn values (supports strings like "$1,234" or "12.3%")
+    const parseYValue = (val: any): number => {
+      if (typeof val === 'number') return Number.isFinite(val) ? val : NaN;
+      if (typeof val === 'string') {
+        const cleaned = val.replace(/[^0-9.+\-eE]/g, '');
+        const n = parseFloat(cleaned);
+        return Number.isFinite(n) ? n : NaN;
       }
-      
+      return NaN;
+    };
+
+    // Pre-parse y values and filter
+    const preParsed = data.map(item => ({ ...item, __yParsed: parseYValue(item?.[yColumn]) }));
+    const validData = preParsed.filter(item => {
+      const hasX = item && item[xColumn] !== undefined && item[xColumn] !== null;
+      const hasY = item && item[yColumn] !== undefined && item[yColumn] !== null;
+      const hasValidY = Number.isFinite(item.__yParsed);
+      const hasZ = !requireZ || (item && item[zColumn] !== undefined && item[zColumn] !== null);
+      const isValid = hasX && hasY && hasValidY && hasZ;
+      if (!isValid) {
+        console.log('Filtering out invalid item:', { item, hasX, hasY, hasZ, hasValidY });
+      }
       return isValid;
     });
 
@@ -316,8 +321,16 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       return { cubes: [], connections: [] };
     }
 
-    const maxValue = Math.max(...validData.map(d => Number(d[yColumn]) || 0));
-    const minValue = Math.min(...validData.map(d => Number(d[yColumn]) || 0));
+    const getY = (d: any): number => {
+      if (typeof d.__yParsed === 'number') return d.__yParsed;
+      return parseYValue(d?.[yColumn]);
+    };
+    const safeVals = validData.map(d => {
+      const n = getY(d);
+      return Number.isFinite(n) ? n : 0;
+    });
+    const maxValue = Math.max(...safeVals);
+    const minValue = Math.min(...safeVals);
     const valueRange = maxValue - minValue || 1;
     
     // Group data by category (xColumn) and process by time (zColumn)
@@ -350,7 +363,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       });
       
       categoryData.forEach((item, timeIndex) => {
-        const value = Number(item[yColumn]) || 0;
+        const value = getY(item) ?? 0;
         const normalizedValue = (value - minValue) / valueRange;
         const cubeHeight = Math.max(0.3, normalizedValue * 4); // Height based on value
         
