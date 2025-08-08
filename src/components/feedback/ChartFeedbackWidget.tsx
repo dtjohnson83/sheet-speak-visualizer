@@ -9,6 +9,7 @@ import { Settings, Lightbulb } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
  
 interface ChartFeedbackWidgetProps {
   chartSuggestion: any;
@@ -72,12 +73,21 @@ export const ChartFeedbackWidget: React.FC<ChartFeedbackWidgetProps> = ({
         }
         setIsOpen(open);
       }}>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <Settings className="h-4 w-4" />
-            <span className="ml-1">Improve Chart</span>
-          </Button>
-        </DialogTrigger>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" aria-label="Improve chart">
+                  <Settings className="h-4 w-4" />
+                  <span className="ml-1">Improve Chart</span>
+                </Button>
+              </DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              {user ? 'Suggest improvements to this chart' : 'Sign in required to submit feedback'}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

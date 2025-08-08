@@ -172,7 +172,7 @@ export const ChartHeader = ({
             temporalAnimationControls={temporalAnimationControls}
           />
         )}
-        {xColumn && yColumn && (
+        {(chartData?.length ?? 0) > 0 && (
           <ChartFeedbackWidget
             chartSuggestion={aiChartSuggestion}
             chartType={chartType}
