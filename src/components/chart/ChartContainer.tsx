@@ -18,7 +18,6 @@ interface ChartContainerProps {
   yColumn: string;
   zColumn?: string;
   stackColumn?: string;
-  
   valueColumn?: string;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
@@ -215,4 +214,28 @@ export const ChartContainer = React.memo(({
               data={processedDataForChart}
               columns={columns}
               chartType={chartType}
-              xColumn={xColumn
+              xColumn={xColumn?.trim() || ''}
+              yColumn={yColumn?.trim() || ''}
+              zColumn={zColumn}
+              stackColumn={stackColumn}
+              valueColumn={valueColumn}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              series={series}
+              aggregationMethod={aggregationMethod}
+              showDataLabels={showDataLabels}
+              supportsMultipleSeries={supportsMultipleSeries}
+              chartColors={chartColors}
+              columnFormats={columnFormats}
+              topXLimit={topXLimit}
+              histogramBins={histogramBins}
+              mapboxApiKey={mapboxApiKey}
+              xAxisLabel={xAxisLabel}
+              yAxisLabel={yAxisLabel}
+            />
+          );
+        })()}
+      </div>
+    </Card>
+  );
+});
