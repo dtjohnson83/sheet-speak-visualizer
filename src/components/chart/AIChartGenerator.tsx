@@ -384,7 +384,7 @@ export const AIChartGenerator = ({
                 size="sm"
                 onClick={() => setQuery(prompt)}
                 disabled={isGenerating || isApplying}
-                className="text-xs rounded-full hover-scale shrink-0"
+                className="text-xs rounded-full hover-scale hover:bg-primary hover:text-primary-foreground shrink-0"
               >
                 {prompt}
               </Button>
