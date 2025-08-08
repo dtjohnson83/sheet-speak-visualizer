@@ -490,8 +490,8 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
             const cubeHeight = Math.max(0.5, normalizedValue * 6);
             
             // Position calculation - ensure proper grid spacing
-            const timeSpacing = 2.5;
-            const categorySpacing = 2.0;
+            const timeSpacing = Math.max(0.8, Math.min(1.6, 10 / Math.max(1, uniqueTimeValues.length)));
+            const categorySpacing = Math.max(0.8, Math.min(1.4, 8 / Math.max(1, uniqueCategoryValues.length)));
             const totalTimeWidth = (uniqueTimeValues.length - 1) * timeSpacing;
             const totalCategoryDepth = (uniqueCategoryValues.length - 1) * categorySpacing;
             
@@ -526,7 +526,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         const normalizedValue = (avgValue - minValue) / valueRange;
         const cubeHeight = Math.max(0.5, normalizedValue * 6);
         
-        const categorySpacing = 2.5;
+        const categorySpacing = Math.max(0.8, Math.min(1.6, 10 / Math.max(1, uniqueCategoryValues.length)));
         const totalCategoryWidth = (uniqueCategoryValues.length - 1) * categorySpacing;
         
         const x = -totalCategoryWidth / 2 + categoryIndex * categorySpacing;
@@ -651,13 +651,18 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     );
   }
 
+  // Derived flags to satisfy TS when dataQuality properties may be absent
+  const isTimeSeriesFlag = Boolean((dataQuality as any)?.isTimeSeries);
+  const aggregationSuspectedFlag = Boolean((dataQuality as any)?.aggregationSuspected);
+  const dateRangeText = (dataQuality as any)?.dateRange ?? 'N/A';
+
   return (
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel={dataQuality.isTimeSeries ? "Time" : "Index"}
+        xLabel={isTimeSeriesFlag ? "Time" : "Index"}
         yLabel={effYKey || 'Value'}
-        zLabel={dataQuality.isTimeSeries ? "Categories" : "Data Points"} 
+        zLabel={isTimeSeriesFlag ? "Categories" : "Data Points"} 
         axisLength={6}
         showGrid={true}
         showOrigin={true}
@@ -668,11 +673,11 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       <Text
         position={[-5, 6, -5]}
         fontSize={0.2}
-        color={dataQuality.aggregationSuspected ? "#ef4444" : "#10b981"}
+        color={aggregationSuspectedFlag ? "#ef4444" : "#10b981"}
         anchorX="left"
         anchorY="top"
       >
-        {dataQuality.aggregationSuspected 
+        {aggregationSuspectedFlag 
           ? `⚠️ AGGREGATION DETECTED: ${cubes.length} points`
           : `✅ DATA OK: ${cubes.length} cubes`}
       </Text>
@@ -684,12 +689,12 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         anchorX="left"
         anchorY="top"
       >
-        {dataQuality.isTimeSeries 
-          ? `Time series: ${uniqueTimes.length} × ${uniqueCategories.length} (${dataQuality.dateRange})`
+        {isTimeSeriesFlag 
+          ? `Time series: ${uniqueTimes.length} × ${uniqueCategories.length} (${dateRangeText})`
           : `Static data: ${uniqueCategories.length} categories`}
       </Text>
       
-      {dataQuality.aggregationSuspected && (
+      {aggregationSuspectedFlag && (
         <Text
           position={[-5, 5, -5]}
           fontSize={0.12}
@@ -712,7 +717,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       </Text>
       
       {/* Time axis labels (for time series) */}
-      {dataQuality.isTimeSeries && uniqueTimes.map((timeValue, index) => {
+      {isTimeSeriesFlag && uniqueTimes.map((timeValue, index) => {
         if (index % Math.max(1, Math.floor(uniqueTimes.length / 6)) === 0) {
           const cube = cubes.find(c => c.timeIndex === index);
           if (cube) {
