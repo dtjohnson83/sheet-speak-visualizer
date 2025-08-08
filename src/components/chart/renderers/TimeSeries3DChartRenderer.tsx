@@ -4,6 +4,7 @@ import { Text, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { StandardAxes3D } from '../utils/StandardAxes3D';
 import { formatNumber } from '@/lib/numberUtils';
+import { convertValueToDate } from '@/lib/dateConversion';
 
 interface TimeSeries3DChartRendererProps {
   data: any[];
@@ -216,10 +217,43 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   const [hoveredCube, setHoveredCube] = useState<string | null>(null);
   const [selectedCubes, setSelectedCubes] = useState<Set<string>>(new Set());
   
+  // Resolve actual data keys by case-insensitive matching
+  const resolveColumnName = useMemo(() => {
+    const firstRow = data?.find((r: any) => r && typeof r === 'object') || {};
+    const keys: string[] = Object.keys(firstRow);
+    return (col?: string) => {
+      if (!col) return undefined;
+      if (keys.includes(col)) return col;
+      const found = keys.find(k => k.toLowerCase() === String(col).toLowerCase());
+      return found || col;
+    };
+  }, [data]);
+
+  const xKey = useMemo(() => resolveColumnName(xColumn), [resolveColumnName, xColumn]);
+  const yKey = useMemo(() => resolveColumnName(yColumn), [resolveColumnName, yColumn]);
+  const zKey = useMemo(() => resolveColumnName(zColumn), [resolveColumnName, zColumn]);
+
+  // Date/time parsing (supports Date objects, ISO strings, and Excel serials)
+  const parseTime = (val: any): number => {
+    if (val == null) return NaN;
+    if (val instanceof Date) return val.getTime();
+    if (typeof val === 'number') {
+      // Rough detection of Excel date serial range
+      if (val > 20000 && val < 60000) {
+        const iso = convertValueToDate(val);
+        const t = Date.parse(iso);
+        return isNaN(t) ? NaN : t;
+      }
+    }
+    const iso = convertValueToDate(val);
+    const t = Date.parse(iso);
+    return isNaN(t) ? NaN : t;
+  };
+  
   // Determine if the provided zColumn actually exists in the current data
   const hasZData = useMemo(() => {
-    return zColumn ? (data?.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null) || false) : false;
-  }, [data, zColumn]);
+    return zKey ? (data?.some((row: any) => row && row[zKey] !== undefined && row[zKey] !== null) || false) : false;
+  }, [data, zKey]);
   const handleCubeHover = (hovered: boolean, data?: any) => {
     if (hovered && data) {
       setHoveredCube(`${data.label}-${data.timeIndex}`);
@@ -249,6 +283,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       xColumn, 
       yColumn, 
       zColumn,
+      resolved: { xKey, yKey, zKey },
       firstDataItem: data?.[0]
     });
 
@@ -264,7 +299,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     }
 
     // Only require zColumn if at least one row actually has it
-    const requireZ = Boolean(zColumn && data.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null));
+    const requireZ = Boolean(zKey && data.some((row: any) => row && row[zKey] !== undefined && row[zKey] !== null));
 
     // Filter data - only require zColumn if it's present in the dataset
     // Robust numeric parsing for yColumn values (supports strings like "$1,234" or "12.3%")
@@ -279,12 +314,12 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     };
 
     // Pre-parse y values and filter
-    const preParsed = data.map(item => ({ ...item, __yParsed: parseYValue(item?.[yColumn]) }));
+    const preParsed = data.map(item => ({ ...item, __yParsed: parseYValue(item?.[yKey]) }));
     const validData = preParsed.filter(item => {
-      const hasX = item && item[xColumn] !== undefined && item[xColumn] !== null;
-      const hasY = item && item[yColumn] !== undefined && item[yColumn] !== null;
+      const hasX = item && item[xKey] !== undefined && item[xKey] !== null;
+      const hasY = item && item[yKey] !== undefined && item[yKey] !== null;
       const hasValidY = Number.isFinite(item.__yParsed);
-      const hasZ = !requireZ || (item && item[zColumn] !== undefined && item[zColumn] !== null);
+      const hasZ = !requireZ || (item && item[zKey] !== undefined && item[zKey] !== null);
       const isValid = hasX && hasY && hasValidY && hasZ;
       if (!isValid) {
         console.log('Filtering out invalid item:', { item, hasX, hasY, hasZ, hasValidY });
@@ -301,18 +336,18 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
 
     // Sort data - use zColumn if required/present, otherwise sort by category
     const sortedData = validData.sort((a, b) => {
-      if (requireZ) {
-        // Sort by date/time using zColumn (temporal axis)
-        const aTime = new Date(a[zColumn]).getTime();
-        const bTime = new Date(b[zColumn]).getTime();
+      if (requireZ && zKey) {
+        // Sort by date/time using zKey (temporal axis)
+        const aTime = parseTime(a[zKey]);
+        const bTime = parseTime(b[zKey]);
         if (!isNaN(aTime) && !isNaN(bTime)) {
           return aTime - bTime;
         }
         // Fallback to string comparison
-        return String(a[zColumn]).localeCompare(String(b[zColumn]));
+        return String(a[zKey]).localeCompare(String(b[zKey]));
       } else {
         // No temporal column in the data, order by category for stability
-        return String(a[xColumn]).localeCompare(String(b[xColumn]));
+        return String(a[xKey]).localeCompare(String(b[xKey]));
       }
     });
 
@@ -323,7 +358,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
 
     const getY = (d: any): number => {
       if (typeof d.__yParsed === 'number') return d.__yParsed;
-      return parseYValue(d?.[yColumn]);
+      return parseYValue(d?.[yKey]);
     };
     const safeVals = validData.map(d => {
       const n = getY(d);
@@ -335,7 +370,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     
     // Group data by category (xColumn) and process by time (zColumn)
     const categoryGroups = validData.reduce((groups, item) => {
-      const category = String(item[xColumn]);
+      const category = String(item[xKey]);
       if (!groups[category]) groups[category] = [];
       groups[category].push(item);
       return groups;
@@ -348,14 +383,14 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     
     categories.forEach((category, categoryIndex) => {
       const categoryData = categoryGroups[category].sort((a, b) => {
-        if (zColumn && validData.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null)) {
+        if (zKey && validData.some((row: any) => row && row[zKey] !== undefined && row[zKey] !== null)) {
           // Sort by date within each category
-          const aTime = new Date(a[zColumn]).getTime();
-          const bTime = new Date(b[zColumn]).getTime();
+          const aTime = parseTime(a[zKey]);
+          const bTime = parseTime(b[zKey]);
           if (!isNaN(aTime) && !isNaN(bTime)) {
             return aTime - bTime;
           }
-          return String(a[zColumn]).localeCompare(String(b[zColumn]));
+          return String(a[zKey]).localeCompare(String(b[zKey]));
         } else {
           // No temporal sorting, maintain original order
           return 0;
@@ -383,8 +418,10 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           : `hsl(${(categoryIndex * 60) % 360}, 70%, 60%)`;
         
         // Generate label based on available data
-        const label = (zColumn && (item[zColumn] !== undefined && item[zColumn] !== null))
-          ? `${category} - ${new Date(item[zColumn]).toLocaleDateString()}`
+        const timeLabelRaw = zKey && (item[zKey] !== undefined && item[zKey] !== null) ? item[zKey] : undefined;
+        const timeLabel = timeLabelRaw != null ? new Date(convertValueToDate(timeLabelRaw)).toLocaleDateString() : undefined;
+        const label = (zKey && timeLabelRaw != null)
+          ? `${category} - ${timeLabel}`
           : `${category} - Point ${timeIndex + 1}`;
         
         cubeList.push({
@@ -424,9 +461,9 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     return (
       <group>
       <StandardAxes3D 
-        xLabel={hasZData ? (zColumn || 'Index') : 'Index'}
-        yLabel={yColumn || 'Value'}
-        zLabel={seriesColumn || xColumn || 'Series'}
+        xLabel={hasZData ? (zKey || 'Index') : 'Index'}
+        yLabel={yKey || 'Value'}
+        zLabel={seriesColumn || xKey || 'Series'}
         axisLength={4}
         showGrid={true}
         showOrigin={true}
@@ -444,9 +481,9 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel={hasZData ? (zColumn || 'Index') : (xColumn || 'Index')}
-        yLabel={yColumn}
-        zLabel={seriesColumn || xColumn || 'Series'}
+        xLabel={hasZData ? (zKey || 'Index') : (xKey || 'Index')}
+        yLabel={yKey}
+        zLabel={seriesColumn || xKey || 'Series'}
         axisLength={6}
         showGrid={true}
         showOrigin={true}
