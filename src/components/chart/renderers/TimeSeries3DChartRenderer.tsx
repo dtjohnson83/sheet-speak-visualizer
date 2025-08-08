@@ -217,17 +217,27 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   const [hoveredCube, setHoveredCube] = useState<string | null>(null);
   const [selectedCubes, setSelectedCubes] = useState<Set<string>>(new Set());
   
-  // Resolve actual data keys by case-insensitive matching
+  // Build a robust list of all keys across a data sample
+  const allKeys = useMemo(() => {
+    const sample = Array.isArray(data) ? data.slice(0, 200) : [];
+    const set = new Set<string>();
+    sample.forEach((row: any) => {
+      if (row && typeof row === 'object') {
+        Object.keys(row).forEach(k => set.add(k));
+      }
+    });
+    return Array.from(set);
+  }, [data]);
+
+  // Resolve actual data keys by case-insensitive matching against allKeys
   const resolveColumnName = useMemo(() => {
-    const firstRow = data?.find((r: any) => r && typeof r === 'object') || {};
-    const keys: string[] = Object.keys(firstRow);
     return (col?: string) => {
       if (!col) return undefined;
-      if (keys.includes(col)) return col;
-      const found = keys.find(k => k.toLowerCase() === String(col).toLowerCase());
+      if (allKeys.includes(col)) return col;
+      const found = allKeys.find(k => k.toLowerCase() === String(col).toLowerCase());
       return found || col;
     };
-  }, [data]);
+  }, [allKeys]);
 
   const xKey = useMemo(() => resolveColumnName(xColumn), [resolveColumnName, xColumn]);
   const yKey = useMemo(() => resolveColumnName(yColumn), [resolveColumnName, yColumn]);
@@ -249,11 +259,51 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     const t = Date.parse(iso);
     return isNaN(t) ? NaN : t;
   };
+
+  // Infer keys if not provided or mismatched
+  const dataKeys = useMemo(() => {
+    const firstRow = data?.find((r: any) => r && typeof r === 'object') || {};
+    return Object.keys(firstRow);
+  }, [data]);
+
+  const inferred = useMemo(() => {
+    const sample = Array.isArray(data) ? data.slice(0, 50) : [];
+    const stats: Record<string, { numeric: number; date: number; stringish: number; distinct: Set<any> }>= {};
+    dataKeys.forEach(k => (stats[k] = { numeric: 0, date: 0, stringish: 0, distinct: new Set() }));
+    sample.forEach((row: any) => {
+      dataKeys.forEach(k => {
+        const v = row?.[k];
+        if (v !== undefined && v !== null) {
+          stats[k].distinct.add(v);
+          const t = parseTime(v);
+          if (!isNaN(t)) stats[k].date++;
+          let n: number = NaN;
+          if (typeof v === 'number') n = v;
+          else if (typeof v === 'string') {
+            const cleaned = v.replace(/[^0-9.+\-eE]/g, '');
+            const parsed = parseFloat(cleaned);
+            if (Number.isFinite(parsed)) n = parsed;
+          }
+          if (Number.isFinite(n)) stats[k].numeric++;
+          if (typeof v === 'string') stats[k].stringish++;
+        }
+      });
+    });
+    const keys = Object.keys(stats);
+    const infY = keys.sort((a,b)=> stats[b].numeric - stats[a].numeric)[0];
+    const infZ = keys.sort((a,b)=> stats[b].date - stats[a].date)[0];
+    const infX = keys.sort((a,b)=> (stats[b].stringish || 0) - (stats[a].stringish || 0) || (stats[b].distinct.size - stats[a].distinct.size))[0];
+    return { infX, infY, infZ };
+  }, [data, dataKeys]);
+
+  const effXKey = (xKey && dataKeys.includes(xKey)) ? xKey : inferred.infX;
+  const effYKey = (yKey && dataKeys.includes(yKey)) ? yKey : inferred.infY;
+  const effZKey = (zKey && dataKeys.includes(zKey)) ? zKey : inferred.infZ;
   
   // Determine if the provided zColumn actually exists in the current data
   const hasZData = useMemo(() => {
-    return zKey ? (data?.some((row: any) => row && row[zKey] !== undefined && row[zKey] !== null) || false) : false;
-  }, [data, zKey]);
+    return effZKey ? (data?.some((row: any) => row && row[effZKey] !== undefined && row[effZKey] !== null) || false) : false;
+  }, [data, effZKey]);
   const handleCubeHover = (hovered: boolean, data?: any) => {
     if (hovered && data) {
       setHoveredCube(`${data.label}-${data.timeIndex}`);
@@ -284,6 +334,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       yColumn, 
       zColumn,
       resolved: { xKey, yKey, zKey },
+      effective: { effXKey, effYKey, effZKey },
       firstDataItem: data?.[0]
     });
 
@@ -299,7 +350,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     }
 
     // Only require zColumn if at least one row actually has it
-    const requireZ = Boolean(zKey && data.some((row: any) => row && row[zKey] !== undefined && row[zKey] !== null));
+    const requireZ = Boolean(effZKey && data.some((row: any) => row && row[effZKey] !== undefined && row[effZKey] !== null));
 
     // Filter data - only require zColumn if it's present in the dataset
     // Robust numeric parsing for yColumn values (supports strings like "$1,234" or "12.3%")
@@ -314,12 +365,12 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     };
 
     // Pre-parse y values and filter
-    const preParsed = data.map(item => ({ ...item, __yParsed: parseYValue(item?.[yKey]) }));
+    const preParsed = data.map(item => ({ ...item, __yParsed: parseYValue(item?.[effYKey]) }));
     const validData = preParsed.filter(item => {
-      const hasX = item && item[xKey] !== undefined && item[xKey] !== null;
-      const hasY = item && item[yKey] !== undefined && item[yKey] !== null;
+      const hasX = item && item[effXKey] !== undefined && item[effXKey] !== null;
+      const hasY = item && item[effYKey] !== undefined && item[effYKey] !== null;
       const hasValidY = Number.isFinite(item.__yParsed);
-      const hasZ = !requireZ || (item && item[zKey] !== undefined && item[zKey] !== null);
+      const hasZ = !requireZ || (item && item[effZKey] !== undefined && item[effZKey] !== null);
       const isValid = hasX && hasY && hasValidY && hasZ;
       if (!isValid) {
         console.log('Filtering out invalid item:', { item, hasX, hasY, hasZ, hasValidY });
@@ -336,18 +387,18 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
 
     // Sort data - use zColumn if required/present, otherwise sort by category
     const sortedData = validData.sort((a, b) => {
-      if (requireZ && zKey) {
-        // Sort by date/time using zKey (temporal axis)
-        const aTime = parseTime(a[zKey]);
-        const bTime = parseTime(b[zKey]);
+      if (requireZ && effZKey) {
+        // Sort by date/time using effZKey (temporal axis)
+        const aTime = parseTime(a[effZKey]);
+        const bTime = parseTime(b[effZKey]);
         if (!isNaN(aTime) && !isNaN(bTime)) {
           return aTime - bTime;
         }
         // Fallback to string comparison
-        return String(a[zKey]).localeCompare(String(b[zKey]));
+        return String(a[effZKey]).localeCompare(String(b[effZKey]));
       } else {
         // No temporal column in the data, order by category for stability
-        return String(a[xKey]).localeCompare(String(b[xKey]));
+        return String(a[effXKey]).localeCompare(String(b[effXKey]));
       }
     });
 
@@ -358,7 +409,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
 
     const getY = (d: any): number => {
       if (typeof d.__yParsed === 'number') return d.__yParsed;
-      return parseYValue(d?.[yKey]);
+      return parseYValue(d?.[effYKey]);
     };
     const safeVals = validData.map(d => {
       const n = getY(d);
@@ -370,7 +421,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     
     // Group data by category (xColumn) and process by time (zColumn)
     const categoryGroups = validData.reduce((groups, item) => {
-      const category = String(item[xKey]);
+      const category = String(item[effXKey]);
       if (!groups[category]) groups[category] = [];
       groups[category].push(item);
       return groups;
@@ -383,14 +434,14 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     
     categories.forEach((category, categoryIndex) => {
       const categoryData = categoryGroups[category].sort((a, b) => {
-        if (zKey && validData.some((row: any) => row && row[zKey] !== undefined && row[zKey] !== null)) {
+        if (effZKey && validData.some((row: any) => row && row[effZKey] !== undefined && row[effZKey] !== null)) {
           // Sort by date within each category
-          const aTime = parseTime(a[zKey]);
-          const bTime = parseTime(b[zKey]);
+          const aTime = parseTime(a[effZKey]);
+          const bTime = parseTime(b[effZKey]);
           if (!isNaN(aTime) && !isNaN(bTime)) {
             return aTime - bTime;
           }
-          return String(a[zKey]).localeCompare(String(b[zKey]));
+          return String(a[effZKey]).localeCompare(String(b[effZKey]));
         } else {
           // No temporal sorting, maintain original order
           return 0;
@@ -418,9 +469,9 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           : `hsl(${(categoryIndex * 60) % 360}, 70%, 60%)`;
         
         // Generate label based on available data
-        const timeLabelRaw = zKey && (item[zKey] !== undefined && item[zKey] !== null) ? item[zKey] : undefined;
+        const timeLabelRaw = effZKey && (item[effZKey] !== undefined && item[effZKey] !== null) ? item[effZKey] : undefined;
         const timeLabel = timeLabelRaw != null ? new Date(convertValueToDate(timeLabelRaw)).toLocaleDateString() : undefined;
-        const label = (zKey && timeLabelRaw != null)
+        const label = (effZKey && timeLabelRaw != null)
           ? `${category} - ${timeLabel}`
           : `${category} - Point ${timeIndex + 1}`;
         
@@ -461,9 +512,9 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     return (
       <group>
       <StandardAxes3D 
-        xLabel={hasZData ? (zKey || 'Index') : 'Index'}
-        yLabel={yKey || 'Value'}
-        zLabel={seriesColumn || xKey || 'Series'}
+        xLabel={hasZData ? (effZKey || 'Index') : 'Index'}
+        yLabel={effYKey || 'Value'}
+        zLabel={seriesColumn || effXKey || 'Series'}
         axisLength={4}
         showGrid={true}
         showOrigin={true}
@@ -481,9 +532,9 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel={hasZData ? (zKey || 'Index') : (xKey || 'Index')}
-        yLabel={yKey}
-        zLabel={seriesColumn || xKey || 'Series'}
+        xLabel={hasZData ? (effZKey || 'Index') : (effXKey || 'Index')}
+        yLabel={effYKey}
+        zLabel={seriesColumn || effXKey || 'Series'}
         axisLength={6}
         showGrid={true}
         showOrigin={true}
