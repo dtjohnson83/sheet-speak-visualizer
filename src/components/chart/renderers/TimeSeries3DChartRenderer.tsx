@@ -215,7 +215,11 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
 }) => {
   const [hoveredCube, setHoveredCube] = useState<string | null>(null);
   const [selectedCubes, setSelectedCubes] = useState<Set<string>>(new Set());
-
+  
+  // Determine if the provided zColumn actually exists in the current data
+  const hasZData = useMemo(() => {
+    return zColumn ? (data?.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null) || false) : false;
+  }, [data, zColumn]);
   const handleCubeHover = (hovered: boolean, data?: any) => {
     if (hovered && data) {
       setHoveredCube(`${data.label}-${data.timeIndex}`);
@@ -259,12 +263,15 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       return { cubes: [], connections: [] };
     }
 
-    // Filter data - only require zColumn if it's provided
+    // Only require zColumn if at least one row actually has it
+    const requireZ = Boolean(zColumn && data.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null));
+
+    // Filter data - only require zColumn if it's present in the dataset
     const validData = data.filter(item => {
       const isValid = item && 
         item[xColumn] !== undefined && 
         item[yColumn] !== undefined &&
-        (!zColumn || item[zColumn] !== undefined) &&
+        (!requireZ || item[zColumn] !== undefined) &&
         !isNaN(Number(item[yColumn]));
       
       if (!isValid) {
@@ -272,7 +279,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           item,
           hasX: item?.[xColumn] !== undefined,
           hasY: item?.[yColumn] !== undefined,
-          hasZ: !zColumn || item?.[zColumn] !== undefined,
+          hasZ: !requireZ || item?.[zColumn] !== undefined,
           yIsNumber: !isNaN(Number(item?.[yColumn]))
         });
       }
@@ -283,13 +290,14 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     console.log('TimeSeries3DChartRenderer: Valid data after filtering', { 
       originalCount: data.length, 
       validCount: validData.length,
+      requireZ,
       sampleValidItem: validData[0]
     });
 
-    // Sort data - use zColumn if provided, otherwise use array index for time progression
+    // Sort data - use zColumn if required/present, otherwise sort by category
     const sortedData = validData.sort((a, b) => {
-      if (zColumn) {
-        // Sort by date using zColumn (temporal axis)
+      if (requireZ) {
+        // Sort by date/time using zColumn (temporal axis)
         const aTime = new Date(a[zColumn]).getTime();
         const bTime = new Date(b[zColumn]).getTime();
         if (!isNaN(aTime) && !isNaN(bTime)) {
@@ -298,7 +306,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         // Fallback to string comparison
         return String(a[zColumn]).localeCompare(String(b[zColumn]));
       } else {
-        // No temporal column, maintain original order or sort by category
+        // No temporal column in the data, order by category for stability
         return String(a[xColumn]).localeCompare(String(b[xColumn]));
       }
     });
@@ -327,7 +335,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     
     categories.forEach((category, categoryIndex) => {
       const categoryData = categoryGroups[category].sort((a, b) => {
-        if (zColumn) {
+        if (zColumn && validData.some((row: any) => row && row[zColumn] !== undefined && row[zColumn] !== null)) {
           // Sort by date within each category
           const aTime = new Date(a[zColumn]).getTime();
           const bTime = new Date(b[zColumn]).getTime();
@@ -362,7 +370,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           : `hsl(${(categoryIndex * 60) % 360}, 70%, 60%)`;
         
         // Generate label based on available data
-        const label = zColumn 
+        const label = (zColumn && (item[zColumn] !== undefined && item[zColumn] !== null))
           ? `${category} - ${new Date(item[zColumn]).toLocaleDateString()}`
           : `${category} - Point ${timeIndex + 1}`;
         
@@ -396,16 +404,16 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     });
 
     return { cubes: cubeList, connections: connectionsList };
-  }, [data, xColumn, yColumn, chartColors, tileMode]);
+  }, [data, xColumn, yColumn, zColumn, chartColors, tileMode]);
 
   // Early return if no cubes to render
   if (cubes.length === 0) {
     return (
       <group>
       <StandardAxes3D 
-        xLabel={zColumn || "Index"}
-        yLabel={yColumn || "Value"}
-        zLabel={seriesColumn || xColumn || "Series"}
+        xLabel={hasZData ? (zColumn || 'Index') : 'Index'}
+        yLabel={yColumn || 'Value'}
+        zLabel={seriesColumn || xColumn || 'Series'}
         axisLength={4}
         showGrid={true}
         showOrigin={true}
@@ -423,9 +431,9 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     <>
       {/* Standard 3D Axes */}
       <StandardAxes3D 
-        xLabel={zColumn || xColumn || "Index"}
+        xLabel={hasZData ? (zColumn || 'Index') : (xColumn || 'Index')}
         yLabel={yColumn}
-        zLabel={seriesColumn || xColumn || "Series"}
+        zLabel={seriesColumn || xColumn || 'Series'}
         axisLength={6}
         showGrid={true}
         showOrigin={true}

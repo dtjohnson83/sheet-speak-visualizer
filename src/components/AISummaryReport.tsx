@@ -629,9 +629,9 @@ Report Metadata:
       <Card className="p-6">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">Analysis Perspective</label>
+            <label className="text-sm font-medium mb-2 block" htmlFor="analysis-persona">Analysis Perspective</label>
             <Select value={selectedPersona} onValueChange={setSelectedPersona}>
-              <SelectTrigger>
+              <SelectTrigger id="analysis-persona" name="analysisPersona">
                 <SelectValue placeholder="Select analysis perspective" />
               </SelectTrigger>
               <SelectContent>

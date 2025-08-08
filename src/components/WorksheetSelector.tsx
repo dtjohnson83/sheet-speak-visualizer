@@ -39,8 +39,9 @@ export const WorksheetSelector = ({ worksheets, fileName, onWorksheetSelected, o
       </div>
 
       <div className="space-y-4">
+        <label htmlFor="worksheet-select" className="text-sm font-medium">Worksheet</label>
         <Select value={selectedWorksheet} onValueChange={setSelectedWorksheet}>
-          <SelectTrigger>
+          <SelectTrigger id="worksheet-select" name="worksheet">
             <SelectValue placeholder="Choose a worksheet..." />
           </SelectTrigger>
           <SelectContent>

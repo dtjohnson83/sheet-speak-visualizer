@@ -35,7 +35,7 @@ export const TileTimeSeries3DChartRenderer: React.FC<TileTimeSeries3DChartRender
         data={data}
         xColumn={xColumn}
         yColumn={yColumn}
-        zColumn={zColumn || xColumn}
+        zColumn={zColumn}
         seriesColumn={xColumn}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
