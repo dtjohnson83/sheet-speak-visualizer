@@ -57,7 +57,7 @@ export const useChartFeedback = () => {
         .from('chart_feedback')
         .insert({
           user_id: user.id,
-          chart_suggestion: chartSuggestion,
+          chart_suggestion: chartSuggestion ?? {},
           user_correction: userCorrection,
           rating,
           feedback_text: feedbackText,
