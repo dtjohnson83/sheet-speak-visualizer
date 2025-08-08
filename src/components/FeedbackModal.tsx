@@ -85,7 +85,7 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
           <div className="space-y-2">
             <Label htmlFor="feedback-type">Feedback Type</Label>
             <Select value={feedbackType} onValueChange={setFeedbackType}>
-              <SelectTrigger>
+              <SelectTrigger id="feedback-type" name="feedbackType">
                 <SelectValue placeholder="Select feedback type" />
               </SelectTrigger>
               <SelectContent>
@@ -102,6 +102,7 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
             <Label htmlFor="message">Message *</Label>
             <Textarea
               id="message"
+              name="message"
               placeholder="Please describe your feedback in detail..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -115,10 +116,12 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               <Label htmlFor="email">Email (optional)</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </div>
           )}

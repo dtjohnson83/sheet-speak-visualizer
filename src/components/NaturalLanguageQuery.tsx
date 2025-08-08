@@ -284,11 +284,14 @@ export const NaturalLanguageQuery: React.FC<NaturalLanguageQueryProps> = ({
 
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
+            id="query-input"
+            name="naturalLanguageQuery"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ask questions about your data in plain English..."
             disabled={isProcessing}
             className="flex-1"
+            autoComplete="off"
           />
           <Button 
             type="submit" 

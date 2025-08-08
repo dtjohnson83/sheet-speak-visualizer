@@ -401,12 +401,15 @@ Ask me specific questions about patterns, trends, or relationships in your data!
           <div className="flex gap-2">
             <Input
               ref={inputRef}
+              id="chat-input"
+              name="chatMessage"
               placeholder="Ask specific questions about your data..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
               className="flex-1"
+              autoComplete="off"
             />
             <Button 
               onClick={sendMessage} 
