@@ -19,8 +19,15 @@ export const ScatterChartRenderer = ({
   // Always include the base yColumn as the primary series
   const baseSeries = yColumn ? [{ id: 'base', column: yColumn, type: 'scatter' as const }] : [];
   
-  // Combine base series with additional series
-  const allSeries = [...baseSeries, ...series];
+  // Combine base series with additional series and ensure unique columns (no duplicates)
+  const allSeriesRaw = [...baseSeries, ...series];
+  const seen = new Set<string>();
+  const allSeries = allSeriesRaw.filter((s) => {
+    if (!s?.column) return false;
+    if (seen.has(s.column)) return false;
+    seen.add(s.column);
+    return true;
+  });
 
   // Custom label component for data labels
   const renderDataLabel = (props: any) => {
@@ -51,6 +58,7 @@ export const ScatterChartRenderer = ({
           {allSeries.map((s, index) => (
             <Scatter 
               key={s.column} 
+              name={s.column}
               dataKey={s.column} 
               fill={chartColors[index % chartColors.length]}
               shape={showDataLabels ? renderDataLabel : undefined}
