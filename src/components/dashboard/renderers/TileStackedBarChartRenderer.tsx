@@ -2,10 +2,12 @@ import React from 'react';
 import { DataRow, ColumnInfo } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { TileBarChartRenderer } from './TileBarChartRenderer';
-
+import { prepareStackedBarData } from '@/lib/chart/stackedBarProcessor';
+import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
 interface TileStackedBarChartRendererProps {
   data: DataRow[];
   xColumn: string;
+  yColumn: string;
   stackColumn?: string;
   effectiveSeries: SeriesConfig[];
   chartColors: string[];
@@ -17,6 +19,7 @@ interface TileStackedBarChartRendererProps {
 export const TileStackedBarChartRenderer: React.FC<TileStackedBarChartRendererProps> = ({
   data,
   xColumn,
+  yColumn,
   stackColumn,
   effectiveSeries,
   chartColors,
@@ -33,20 +36,44 @@ export const TileStackedBarChartRenderer: React.FC<TileStackedBarChartRendererPr
     dataColumns: data.length > 0 ? Object.keys(data[0]) : []
   });
 
-  // For stacked bar charts, we need to generate series from the actual data columns
-  // (excluding the x-column) since the Y-column gets transformed into stack value columns
-  const stackSeries: SeriesConfig[] = data.length > 0 
-    ? Object.keys(data[0])
-        .filter(key => key !== xColumn) // Exclude the x-axis column
-        .map((column, index) => ({
-          id: `stack-${column}`,
-          column: column,
-          color: chartColors[index % chartColors.length],
-          type: 'bar' as const,
-          aggregationMethod: 'sum' as const,
-          yAxisId: 'left'
-        }))
-    : [];
+  // Prepare data for stacked bar: pivot stack column into separate numeric columns
+  const processedData: DataRow[] = React.useMemo(() => {
+    if (!data || data.length === 0 || !xColumn || !yColumn || !stackColumn) return [];
+    try {
+      return prepareStackedBarData(
+        data,
+        xColumn,
+        yColumn,
+        stackColumn,
+        'sum' as AggregationMethod,
+        'none',
+        'desc'
+      );
+    } catch (e) {
+      console.warn('TileStackedBarChartRenderer - prepareStackedBarData failed', e);
+      return [];
+    }
+  }, [data, xColumn, yColumn, stackColumn]);
+
+  // Generate series from all keys present across processed rows (excluding the x-axis column)
+  const stackKeys = React.useMemo(() => {
+    const keys = new Set<string>();
+    for (const row of processedData) {
+      Object.keys(row).forEach(k => {
+        if (k !== xColumn) keys.add(k);
+      });
+    }
+    return Array.from(keys);
+  }, [processedData, xColumn]);
+
+  const stackSeries: SeriesConfig[] = stackKeys.map((column, index) => ({
+    id: `stack-${column}`,
+    column,
+    color: chartColors[index % chartColors.length],
+    type: 'bar' as const,
+    aggregationMethod: 'sum' as const,
+    yAxisId: 'left'
+  }));
 
   console.log('🏗️ TileStackedBarChartRenderer - Generated stack series:', {
     stackSeriesLength: stackSeries.length,
@@ -55,7 +82,7 @@ export const TileStackedBarChartRenderer: React.FC<TileStackedBarChartRendererPr
 
   return (
     <TileBarChartRenderer
-      data={data}
+      data={processedData}
       xColumn={xColumn}
       stackColumn={stackColumn || 'stack'}
       effectiveSeries={stackSeries}

@@ -66,6 +66,7 @@ export const TileChartRenderer = React.memo(({
         <TileStackedBarChartRenderer
           data={data as DataRow[]}
           xColumn={xColumn}
+          yColumn={yColumn}
           stackColumn={stackColumn}
           effectiveSeries={effectiveSeries}
           chartColors={chartColors}
