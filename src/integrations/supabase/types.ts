@@ -669,6 +669,90 @@ export type Database = {
         }
         Relationships: []
       }
+      chart_feedback: {
+        Row: {
+          chart_suggestion: Json
+          chart_type: string
+          created_at: string
+          data_context: Json | null
+          feedback_text: string | null
+          id: string
+          is_processed: boolean
+          rating: number | null
+          updated_at: string
+          user_correction: Json | null
+          user_id: string
+        }
+        Insert: {
+          chart_suggestion: Json
+          chart_type: string
+          created_at?: string
+          data_context?: Json | null
+          feedback_text?: string | null
+          id?: string
+          is_processed?: boolean
+          rating?: number | null
+          updated_at?: string
+          user_correction?: Json | null
+          user_id: string
+        }
+        Update: {
+          chart_suggestion?: Json
+          chart_type?: string
+          created_at?: string
+          data_context?: Json | null
+          feedback_text?: string | null
+          id?: string
+          is_processed?: boolean
+          rating?: number | null
+          updated_at?: string
+          user_correction?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chart_learning_rules: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          id: string
+          is_active: boolean
+          pattern: Json
+          recommendation: Json
+          rule_name: string
+          rule_type: string
+          success_rate: number | null
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pattern: Json
+          recommendation: Json
+          rule_name: string
+          rule_type: string
+          success_rate?: number | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pattern?: Json
+          recommendation?: Json
+          rule_name?: string
+          rule_type?: string
+          success_rate?: number | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       classification_rules: {
         Row: {
           confidence_score: number
@@ -1152,6 +1236,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feedback_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          type_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          type_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          type_name?: string
+        }
+        Relationships: []
+      }
+      insight_feedback: {
+        Row: {
+          accuracy_rating: number | null
+          created_at: string
+          data_context: Json | null
+          feedback_text: string | null
+          id: string
+          insight_type: string
+          is_processed: boolean
+          original_insight: Json
+          suggested_improvement: string | null
+          updated_at: string
+          usefulness_rating: number | null
+          user_id: string
+          user_rating: number | null
+        }
+        Insert: {
+          accuracy_rating?: number | null
+          created_at?: string
+          data_context?: Json | null
+          feedback_text?: string | null
+          id?: string
+          insight_type: string
+          is_processed?: boolean
+          original_insight: Json
+          suggested_improvement?: string | null
+          updated_at?: string
+          usefulness_rating?: number | null
+          user_id: string
+          user_rating?: number | null
+        }
+        Update: {
+          accuracy_rating?: number | null
+          created_at?: string
+          data_context?: Json | null
+          feedback_text?: string | null
+          id?: string
+          insight_type?: string
+          is_processed?: boolean
+          original_insight?: Json
+          suggested_improvement?: string | null
+          updated_at?: string
+          usefulness_rating?: number | null
+          user_id?: string
+          user_rating?: number | null
+        }
+        Relationships: []
       }
       job_applications: {
         Row: {
@@ -2233,6 +2389,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          feature_context: Json
+          feedback_data: Json
+          feedback_text: string | null
+          feedback_type_id: string
+          id: string
+          is_processed: boolean
+          rating: number | null
+          session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          feature_context: Json
+          feedback_data: Json
+          feedback_text?: string | null
+          feedback_type_id: string
+          id?: string
+          is_processed?: boolean
+          rating?: number | null
+          session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          feature_context?: Json
+          feedback_data?: Json
+          feedback_text?: string | null
+          feedback_type_id?: string
+          id?: string
+          is_processed?: boolean
+          rating?: number | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_feedback_type_id_fkey"
+            columns: ["feedback_type_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_role_audit_log: {
         Row: {
