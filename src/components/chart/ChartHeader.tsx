@@ -7,6 +7,8 @@ import { SeriesConfig } from '@/hooks/useChartState';
 
 import { useState } from 'react';
 import { ChartShareDialog } from './sharing/ChartShareDialog';
+import { ChartFeedbackWidget } from '@/components/feedback/ChartFeedbackWidget';
+import { useAIChartSuggestion } from '@/components/unified-ai/AIConfiguredChart';
 interface ChartHeaderProps {
   chartType: string;
   xColumn: string;
@@ -50,6 +52,7 @@ export const ChartHeader = ({
 }: ChartHeaderProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
+  const aiChartSuggestion = useAIChartSuggestion();
 
   const getDataPointCount = () => {
     return chartData.length;
@@ -167,6 +170,23 @@ export const ChartHeader = ({
             isTemporalAnimation={isTemporalAnimation}
             temporalAnimationState={temporalAnimationState}
             temporalAnimationControls={temporalAnimationControls}
+          />
+        )}
+        {xColumn && yColumn && (
+          <ChartFeedbackWidget
+            chartSuggestion={aiChartSuggestion}
+            chartType={chartType}
+            dataContext={{
+              xColumn,
+              yColumn,
+              series,
+              stackColumn,
+              sortColumn,
+              sortDirection,
+              aggregationMethod,
+              dataPointCount: chartData.length,
+            }}
+            showQuickFeedback={!!aiChartSuggestion}
           />
         )}
         

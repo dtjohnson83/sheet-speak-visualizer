@@ -6,7 +6,10 @@ import { RatingComponent } from './RatingComponent';
 import { QuickFeedbackButton } from './QuickFeedbackButton';
 import { useChartFeedback } from '@/hooks/useChartFeedback';
 import { Settings, Lightbulb } from 'lucide-react';
-
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
+ 
 interface ChartFeedbackWidgetProps {
   chartSuggestion: any;
   chartType: string;
@@ -28,7 +31,9 @@ export const ChartFeedbackWidget: React.FC<ChartFeedbackWidgetProps> = ({
   const [suggestedImprovements, setSuggestedImprovements] = useState('');
 
   const { submitChartFeedback, isSubmitting } = useChartFeedback();
-
+  const { user } = useAuth();
+  const navigate = useNavigate();
+ 
   const handleSubmit = async () => {
     submitChartFeedback({
       chartSuggestion,
@@ -59,7 +64,14 @@ export const ChartFeedbackWidget: React.FC<ChartFeedbackWidgetProps> = ({
         />
       )}
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        if (open && !user) {
+          toast({ title: 'Sign in required', description: 'Please sign in to submit chart feedback.' });
+          navigate('/auth');
+          return;
+        }
+        setIsOpen(open);
+      }}>
         <DialogTrigger asChild>
           <Button variant="ghost" size="sm">
             <Settings className="h-4 w-4" />
