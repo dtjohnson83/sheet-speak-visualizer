@@ -367,6 +367,39 @@ export const useAIChartGeneration = () => {
       zColumn = numericColsList.find(col => col.name !== yColumn)?.name || numericColsList[0]?.name || '';
     }
 
+    // Enforce distinct axes: never reuse the same column on multiple axes
+    const yAxisType: string = (chartInfo && 'requirements' in chartInfo && (chartInfo as any).requirements?.yAxis?.type) || '';
+
+    const pickAlternative = (axisType: string, exclude: string[]): string => {
+      if (axisType.includes('numeric')) {
+        return numericCols.find(c => !exclude.includes(c.name))?.name || '';
+      }
+      if (axisType.includes('date')) {
+        return dateCols.find(c => !exclude.includes(c.name))?.name || '';
+      }
+      if (axisType.includes('categorical')) {
+        return categoricalCols.find(c => !exclude.includes(c.name))?.name || '';
+      }
+      return columns.find(c => !exclude.includes(c.name))?.name || '';
+    };
+
+    // Ensure Y is different from X
+    if (xColumn && yColumn && yColumn === xColumn) {
+      yColumn = pickAlternative(yAxisType || 'numeric', [xColumn]);
+    }
+
+    // For scatter-like charts, enforce numeric distinctness explicitly
+    if ((chartType === 'scatter' || chartType === 'scatter3d' || chartType === 'surface3d') && xColumn === yColumn) {
+      yColumn = numericCols.find(c => c.name !== xColumn)?.name || '';
+    }
+
+    // Ensure Z is different from both X and Y for 3D charts
+    if ((chartType === 'scatter3d' || chartType === 'surface3d' || chartType === 'bar3d' || chartType === 'treemap3d' || chartType === 'map3d')) {
+      if (!zColumn || zColumn === xColumn || zColumn === yColumn) {
+        zColumn = numericCols.find(c => c.name !== xColumn && c.name !== yColumn)?.name || '';
+      }
+    }
+
     // Set value column for specific chart types
     if (['heatmap', 'treemap', 'pie'].includes(chartType)) {
       valueColumn = yColumn;
