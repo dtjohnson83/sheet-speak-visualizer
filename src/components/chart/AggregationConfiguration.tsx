@@ -21,26 +21,41 @@ export const AggregationConfiguration = ({
   chartType,
   numericColumns
 }: AggregationConfigurationProps) => {
-  // Show aggregation for charts that support it - now including KPI but excluding 3D time series
+  // Show aggregation for charts that support it - now including KPI
   const supportsAggregation = ['bar', 'line', 'pie', 'treemap', 'treemap3d', 'stacked-bar', 'heatmap', 'kpi'].includes(chartType);
   
-  // For 3D time series charts, we want to show the component but force/default to 'none'
-  const isTimeSeries = chartType === '3d-time-series-cube' || chartType === 'timeseries3d';
+  // Detect time series charts with multiple possible naming conventions
+  const isTimeSeries = [
+    '3d-time-series-cube', 
+    'timeseries3d', 
+    '3d-timeseries',
+    'Timeseries3d Chart',
+    'timeseries-3d',
+    'time-series-3d'
+  ].includes(chartType) || 
+  chartType.toLowerCase().includes('timeseries') || 
+  chartType.toLowerCase().includes('time-series') ||
+  (chartType.toLowerCase().includes('3d') && chartType.toLowerCase().includes('time'));
   
   // For numeric Y columns or charts that always support aggregation
   const isNumericYColumn = numericColumns.some(col => col.name === yColumn);
-  const shouldShow = (supportsAggregation || isTimeSeries) && (isNumericYColumn || ['heatmap', 'kpi'].includes(chartType) || isTimeSeries);
   
-  if (!shouldShow || (!yColumn && chartType !== 'kpi' && !isTimeSeries)) {
+  // Force show for time series charts regardless of other conditions
+  const shouldShow = (supportsAggregation && (isNumericYColumn || ['heatmap', 'kpi'].includes(chartType))) || 
+                     isTimeSeries ||
+                     (!yColumn && chartType === 'kpi');
+  
+  if (!shouldShow) {
     return null;
   }
 
   // Auto-set to 'none' for time series charts if not already set
   React.useEffect(() => {
     if (isTimeSeries && aggregationMethod !== 'none') {
+      console.log('🔧 Auto-setting aggregation to "none" for time series chart:', chartType);
       setAggregationMethod('none');
     }
-  }, [isTimeSeries, aggregationMethod, setAggregationMethod]);
+  }, [isTimeSeries, aggregationMethod, setAggregationMethod, chartType]);
 
   const getAggregationDescription = () => {
     if (aggregationMethod === 'none') {
@@ -57,10 +72,10 @@ export const AggregationConfiguration = ({
       case 'bar':
       case 'line':
         return `Data points with the same X-axis value will be grouped and ${aggregationMethod} will be applied to ${yColumn} (primary series)`;
-      case '3d-time-series-cube':
-      case 'timeseries3d':
-        return `Time series data should use "None" to preserve individual data points and show temporal progression`;
       default:
+        if (isTimeSeries) {
+          return `Time series data should use "None" to preserve individual data points and show temporal progression`;
+        }
         return `Data will be grouped by X-axis and ${aggregationMethod} will be applied to ${yColumn} (primary series)`;
     }
   };
@@ -90,6 +105,11 @@ export const AggregationConfiguration = ({
         <h4 className="text-sm font-medium">
           {isTimeSeries ? 'Time Series Data Configuration' : 'Primary Series Aggregation'}
         </h4>
+        {isTimeSeries && (
+          <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+            📊 <strong>3D Time Series Detected:</strong> Chart type "{chartType}" - Aggregation options adjusted for time series data.
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-3">
           <div>
             <Label htmlFor="aggregation-method" className="text-sm font-medium">
