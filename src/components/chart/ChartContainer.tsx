@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { ChartHeader } from './ChartHeader';
@@ -79,25 +78,59 @@ export const ChartContainer = React.memo(({
     seriesCount: series.length
   }, 'ChartContainer');
 
-  // Prepare chart data for both header display and chart rendering
-  const chartData = React.useMemo(() => prepareChartData(
-    data,
-    columns,
-    chartType as any,
-    xColumn?.trim() || '',
-    yColumn?.trim() || '',
-    series,
-    sortColumn,
-    sortDirection,
-    stackColumn,
-    supportsMultipleSeries,
-    numericColumns,
-    aggregationMethod,
-    valueColumn,
-    columnFormats,
-    topXLimit,
-    histogramBins
-  ), [data, columns, chartType, xColumn, yColumn, series, sortColumn, sortDirection, stackColumn, supportsMultipleSeries, numericColumns, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins]);
+  // FIXED: Bypass prepareChartData for time series charts with 'none' aggregation
+  const chartData = React.useMemo(() => {
+    // Detect time series charts with multiple possible naming conventions
+    const isTimeSeries = [
+      'timeseries3d',
+      '3d-time-series-cube', 
+      '3d-timeseries',
+      'Timeseries3d Chart',
+      'timeseries-3d',
+      'time-series-3d'
+    ].includes(chartType) || 
+    chartType.toLowerCase().includes('timeseries') || 
+    chartType.toLowerCase().includes('time-series') ||
+    (chartType.toLowerCase().includes('3d') && chartType.toLowerCase().includes('time'));
+    
+    // For time series charts with 'none' aggregation, bypass prepareChartData entirely
+    if (isTimeSeries && aggregationMethod === 'none') {
+      console.log('🔧 BYPASSING prepareChartData for time series with no aggregation', {
+        chartType,
+        aggregationMethod,
+        originalDataLength: data.length,
+        bypassingProcessing: true
+      });
+      return data; // Return raw data directly - all 1,344 records preserved!
+    }
+    
+    // For all other charts, use normal data processing
+    console.log('📊 Using prepareChartData for chart processing', {
+      chartType,
+      aggregationMethod,
+      isTimeSeries,
+      originalDataLength: data.length
+    });
+    
+    return prepareChartData(
+      data,
+      columns,
+      chartType as any,
+      xColumn?.trim() || '',
+      yColumn?.trim() || '',
+      series,
+      sortColumn,
+      sortDirection,
+      stackColumn,
+      supportsMultipleSeries,
+      numericColumns,
+      aggregationMethod,
+      valueColumn,
+      columnFormats,
+      topXLimit,
+      histogramBins
+    );
+  }, [data, columns, chartType, xColumn, yColumn, series, sortColumn, sortDirection, stackColumn, supportsMultipleSeries, numericColumns, aggregationMethod, valueColumn, columnFormats, topXLimit, histogramBins]);
 
   // Handle different data types for different chart types
   const processedDataForChart = React.useMemo(() => {
@@ -110,11 +143,13 @@ export const ChartContainer = React.memo(({
       chartType,
       originalDataLength: data.length,
       processedDataLength: Array.isArray(result) ? result.length : 'structured',
-      isStructuredData: structuredDataChartTypes.includes(chartType)
+      isStructuredData: structuredDataChartTypes.includes(chartType),
+      aggregationMethod,
+      bypassedProcessing: aggregationMethod === 'none' && chartType.toLowerCase().includes('timeseries')
     }, 'ChartContainer');
     
     return result;
-  }, [chartData, chartType, data.length]);
+  }, [chartData, chartType, data.length, aggregationMethod]);
 
   return (
     <Card className="p-6 group chart-container" ref={chartRef}>
@@ -180,29 +215,4 @@ export const ChartContainer = React.memo(({
               data={processedDataForChart}
               columns={columns}
               chartType={chartType}
-              xColumn={xColumn?.trim() || ''}
-              yColumn={yColumn?.trim() || ''}
-              zColumn={zColumn}
-              stackColumn={stackColumn}
-              
-              valueColumn={valueColumn}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              series={series}
-              aggregationMethod={aggregationMethod}
-              showDataLabels={showDataLabels}
-              supportsMultipleSeries={supportsMultipleSeries}
-              chartColors={chartColors}
-              columnFormats={columnFormats}
-              topXLimit={topXLimit}
-              histogramBins={histogramBins}
-              mapboxApiKey={mapboxApiKey}
-              xAxisLabel={xAxisLabel}
-              yAxisLabel={yAxisLabel}
-            />
-          );
-        })()}
-      </div>
-    </Card>
-  );
-});
+              xColumn={xColumn
