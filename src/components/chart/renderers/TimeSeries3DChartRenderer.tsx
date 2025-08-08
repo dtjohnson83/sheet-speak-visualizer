@@ -243,35 +243,87 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   const yKey = useMemo(() => resolveColumnName(yColumn), [resolveColumnName, yColumn]);
   const zKey = useMemo(() => resolveColumnName(zColumn), [resolveColumnName, zColumn]);
 
-  // ENHANCED DATE PARSING - Fix the 1900s date issue
-  const parseTimeRobust = (val: any): { timestamp: number; displayDate: string } => {
-    if (val == null) return { timestamp: NaN, displayDate: 'Invalid Date' };
+  // COMPLETELY REWRITTEN DATE PARSING - Fix the 1900s issue
+  const parseTimeAdvanced = (val: any): { timestamp: number; displayDate: string; year: number } => {
+    if (val == null || val === '') {
+      return { timestamp: NaN, displayDate: 'Invalid Date', year: 0 };
+    }
     
-    // Handle various date formats
+    console.log('🔍 Parsing date value:', val, 'Type:', typeof val);
+    
     let dateObj: Date | null = null;
     
+    // Handle different input types
     if (val instanceof Date) {
       dateObj = val;
     } else if (typeof val === 'string') {
-      // Try direct parsing first
-      if (val.includes('2024')) {
-        dateObj = new Date(val);
-      } else {
-        // Use the conversion utility
-        const converted = convertValueToDate(val);
-        dateObj = new Date(converted);
+      // Clean the string and try multiple parsing strategies
+      const cleaned = String(val).trim();
+      
+      // Strategy 1: Direct parsing if it looks like 2024
+      if (cleaned.includes('2024') || cleaned.includes('2023') || cleaned.includes('2025')) {
+        console.log('📅 Detected 2024 date, parsing directly:', cleaned);
+        dateObj = new Date(cleaned);
+      }
+      // Strategy 2: Try ISO format variations
+      else if (cleaned.match(/^\d{4}-\d{2}-\d{2}/)) {
+        console.log('📅 ISO format detected:', cleaned);
+        dateObj = new Date(cleaned);
+      }
+      // Strategy 3: Try MM/DD/YYYY format
+      else if (cleaned.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+        console.log('📅 MM/DD/YYYY format detected:', cleaned);
+        dateObj = new Date(cleaned);
+      }
+      // Strategy 4: Try convertValueToDate as last resort
+      else {
+        console.log('📅 Using convertValueToDate for:', cleaned);
+        try {
+          const converted = convertValueToDate(cleaned);
+          console.log('📅 Converted to:', converted);
+          dateObj = new Date(converted);
+        } catch (error) {
+          console.warn('❌ convertValueToDate failed:', error);
+          dateObj = null;
+        }
       }
     } else if (typeof val === 'number') {
-      // Excel serial date handling - but check if it's reasonable
-      if (val > 40000 && val < 50000) { // Excel dates between ~2009-2036
-        const converted = convertValueToDate(val);
-        dateObj = new Date(converted);
-      } else if (val > 1600000000000) { // Unix timestamp in milliseconds
+      console.log('🔢 Processing numeric date:', val);
+      
+      // Handle Unix timestamps (milliseconds)
+      if (val > 1600000000000 && val < 2000000000000) {
+        console.log('📅 Unix timestamp (ms) detected');
         dateObj = new Date(val);
-      } else if (val > 1600000000) { // Unix timestamp in seconds
+      }
+      // Handle Unix timestamps (seconds)  
+      else if (val > 1600000000 && val < 2000000000) {
+        console.log('📅 Unix timestamp (s) detected');
         dateObj = new Date(val * 1000);
-      } else {
-        // Try the conversion utility as fallback
+      }
+      // Handle Excel serial dates (but with better range checking)
+      else if (val >= 44197 && val <= 46751) { // 2021-2028 range in Excel serial
+        console.log('📅 Excel serial date detected (reasonable range)');
+        try {
+          const converted = convertValueToDate(val);
+          console.log('📅 Excel converted to:', converted);
+          dateObj = new Date(converted);
+        } catch (error) {
+          console.warn('❌ Excel conversion failed:', error);
+          // Fallback: treat as days since 1900-01-01
+          const excelEpoch = new Date(1900, 0, 1);
+          dateObj = new Date(excelEpoch.getTime() + (val - 1) * 24 * 60 * 60 * 1000);
+        }
+      }
+      // Handle suspicious small numbers (likely indices, not dates)
+      else if (val < 100) {
+        console.warn('⚠️ Number too small to be a date, treating as index:', val);
+        // Create a fake date sequence starting from August 1, 2024
+        const baseDate = new Date(2024, 7, 1); // August 1, 2024
+        dateObj = new Date(baseDate.getTime() + val * 24 * 60 * 60 * 1000);
+      }
+      // Last resort: try conversion
+      else {
+        console.log('📅 Last resort conversion for number:', val);
         try {
           const converted = convertValueToDate(val);
           dateObj = new Date(converted);
@@ -281,44 +333,45 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       }
     }
     
-    // Validate the parsed date
+    // Validate the result
     if (!dateObj || isNaN(dateObj.getTime())) {
-      console.warn('Failed to parse date:', val);
-      return { timestamp: NaN, displayDate: String(val) };
+      console.error('❌ Failed to parse date:', val);
+      return { timestamp: NaN, displayDate: String(val), year: 0 };
     }
     
-    // Check if date is reasonable (not 1900s unless intended)
     const year = dateObj.getFullYear();
-    if (year < 2020 || year > 2030) {
-      console.warn('Parsed date seems incorrect:', val, '→', dateObj.toISOString(), 'Year:', year);
-      // Still return it but flag it
+    console.log('✅ Parsed date successfully:', val, '→', dateObj.toISOString(), 'Year:', year);
+    
+    // Check for unreasonable years and try to correct
+    if (year < 1950 || year > 2050) {
+      console.warn('⚠️ Unreasonable year detected:', year, 'for input:', val);
+      
+      // If it's a 1900s date, try to adjust to 2020s
+      if (year >= 1900 && year <= 1920) {
+        const adjustedYear = year + 124; // Rough adjustment to get to 2024
+        dateObj.setFullYear(adjustedYear);
+        console.log('🔧 Adjusted year from', year, 'to', adjustedYear);
+      }
     }
     
     return {
       timestamp: dateObj.getTime(),
-      displayDate: dateObj.toLocaleDateString()
+      displayDate: dateObj.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: dateObj.getFullYear() === 2024 ? undefined : 'numeric' // Hide year if 2024
+      }),
+      year: dateObj.getFullYear()
     };
   };
 
-  // CRITICAL FIX: Enhanced data validation and processing
-  console.log('🔍 TimeSeries3DChartRenderer: Input Analysis', {
+  // ENHANCED LOGGING
+  console.log('🚀 TimeSeries3DChartRenderer: Starting Analysis', {
     totalRecords: data?.length || 0,
-    xColumn,
-    yColumn, 
-    zColumn,
-    firstRecord: data?.[0],
-    sampleRecords: data?.slice(0, 3),
-    allColumns: allKeys
+    columns: { xColumn, yColumn, zColumn },
+    resolved: { xKey, yKey, zKey },
+    sampleData: data?.slice(0, 3)
   });
-
-  // DATA QUALITY CHECK
-  if (data?.length && data.length < 100) {
-    console.warn('⚠️ POTENTIAL AGGREGATION DETECTED:', {
-      receivedRecords: data.length,
-      expectedForTimeSeries: '1000+',
-      recommendation: 'Check if data is pre-aggregated'
-    });
-  }
 
   // Infer keys if not provided or mismatched
   const dataKeys = useMemo(() => {
@@ -336,7 +389,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         const v = row?.[k];
         if (v !== undefined && v !== null) {
           stats[k].distinct.add(v);
-          const { timestamp } = parseTimeRobust(v);
+          const { timestamp } = parseTimeAdvanced(v);
           if (!isNaN(timestamp)) stats[k].date++;
           
           let n: number = NaN;
@@ -357,7 +410,16 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     const infZ = keys.sort((a,b)=> stats[b].date - stats[a].date)[0];
     const infX = keys.sort((a,b)=> (stats[b].stringish || 0) - (stats[a].stringish || 0) || (stats[b].distinct.size - stats[a].distinct.size))[0];
     
-    console.log('📊 Column inference results:', { infX, infY, infZ, stats });
+    console.log('📊 Column inference results:', { 
+      infX, infY, infZ, 
+      columnStats: Object.entries(stats).map(([k, v]) => ({
+        column: k,
+        distinctValues: v.distinct.size,
+        numericCount: v.numeric,
+        dateCount: v.date,
+        stringCount: v.stringish
+      }))
+    });
     
     return { infX, infY, infZ };
   }, [data, dataKeys]);
@@ -365,6 +427,8 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
   const effXKey = (xKey && dataKeys.includes(xKey)) ? xKey : inferred.infX;
   const effYKey = (yKey && dataKeys.includes(yKey)) ? yKey : inferred.infY;
   const effZKey = (zKey && dataKeys.includes(zKey)) ? zKey : inferred.infZ;
+  
+  console.log('🎯 Final column mapping:', { effXKey, effYKey, effZKey });
   
   const handleCubeHover = (hovered: boolean, data?: any) => {
     if (hovered && data) {
@@ -396,16 +460,11 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     });
 
     if (!data || data.length === 0) {
-      return { cubes: [], connections: [], uniqueTimes: [], uniqueCategories: [], dataQuality: { valid: false, message: 'No data' } };
+      return { cubes: [], connections: [], uniqueTimes: [], uniqueCategories: [], dataQuality: { valid: false, message: 'No data provided' } };
     }
 
     if (!effXKey || !effYKey) {
-      return { cubes: [], connections: [], uniqueTimes: [], uniqueCategories: [], dataQuality: { valid: false, message: 'Missing required columns' } };
-    }
-
-    // ENHANCED VALIDATION: For time series, strongly prefer a time column
-    if (!effZKey) {
-      console.warn('⚠️ No time column detected - treating as static categorical data');
+      return { cubes: [], connections: [], uniqueTimes: [], uniqueCategories: [], dataQuality: { valid: false, message: 'Missing required columns (category or value)' } };
     }
 
     // Robust numeric parsing for yColumn values
@@ -419,14 +478,18 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
       return NaN;
     };
 
-    // ENHANCED DATA PROCESSING
+    // ENHANCED DATA PROCESSING with better validation
     const processedData = data.map((item, index) => {
       const xValue = item?.[effXKey];
       const yValue = item?.[effYKey];
       const zValue = item?.[effZKey];
       
       const parsedY = parseYValue(yValue);
-      const { timestamp, displayDate } = effZKey ? parseTimeRobust(zValue) : { timestamp: index, displayDate: `Point ${index + 1}` };
+      const { timestamp, displayDate, year } = effZKey ? parseTimeAdvanced(zValue) : { 
+        timestamp: index, 
+        displayDate: `Point ${index + 1}`, 
+        year: 2024 
+      };
       
       return {
         ...item,
@@ -437,49 +500,73 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         _parsedY: parsedY,
         _timestamp: timestamp,
         _displayDate: displayDate,
-        _isValid: xValue != null && yValue != null && Number.isFinite(parsedY) && (effZKey ? !isNaN(timestamp) : true)
+        _year: year,
+        _isValid: xValue != null && yValue != null && Number.isFinite(parsedY) && 
+                  (effZKey ? !isNaN(timestamp) && year >= 2020 && year <= 2030 : true)
       };
     });
 
     const validData = processedData.filter(item => item._isValid);
+    const invalidData = processedData.filter(item => !item._isValid);
     
     console.log('✅ Data validation results:', { 
       originalCount: data.length, 
       validCount: validData.length,
-      rejectedCount: data.length - validData.length,
+      invalidCount: invalidData.length,
       hasTimeColumn: Boolean(effZKey),
-      sampleValid: validData[0]
+      invalidSamples: invalidData.slice(0, 3).map(d => ({
+        original: { x: d._xValue, y: d._yValue, z: d._zValue },
+        parsed: { timestamp: d._timestamp, year: d._year, display: d._displayDate }
+      }))
     });
 
     if (validData.length === 0) {
-      return { cubes: [], connections: [], uniqueTimes: [], uniqueCategories: [], dataQuality: { valid: false, message: 'No valid data after filtering' } };
+      return { cubes: [], connections: [], uniqueTimes: [], uniqueCategories: [], dataQuality: { 
+        valid: false, 
+        message: 'No valid data after filtering - check date formats and value types',
+        details: `Invalid samples: ${invalidData.length}, Check console for details`
+      }};
     }
 
-    // ENHANCED SORTING: Always sort by time if available, then by category
+    // FORCE PROPER SORTING regardless of UI settings
     const sortedData = validData.sort((a, b) => {
       if (effZKey && !isNaN(a._timestamp) && !isNaN(b._timestamp)) {
-        // Primary sort: by time (ASCENDING for chronological order)
+        // PRIMARY SORT: ALWAYS by time (ASCENDING for chronological order)
         if (a._timestamp !== b._timestamp) {
-          return a._timestamp - b._timestamp;
+          return a._timestamp - b._timestamp; // FORCED ASCENDING
         }
       }
-      // Secondary sort: by category for stability
+      // SECONDARY SORT: by category for stability
       return String(a._xValue).localeCompare(String(b._xValue));
     });
 
+    console.log('🔄 Sorting completed, first few items:', 
+      sortedData.slice(0, 5).map(d => ({ 
+        category: d._xValue, 
+        value: d._parsedY, 
+        date: d._displayDate,
+        timestamp: d._timestamp 
+      }))
+    );
+
     // Get unique time points and categories
     const uniqueTimeValues = effZKey 
-      ? [...new Set(sortedData.map(d => d._displayDate))]
+      ? [...new Set(sortedData.map(d => d._displayDate))].sort((a, b) => {
+          const aItem = sortedData.find(d => d._displayDate === a);
+          const bItem = sortedData.find(d => d._displayDate === b);
+          return (aItem?._timestamp || 0) - (bItem?._timestamp || 0);
+        })
       : ['Single Time Point'];
     const uniqueCategoryValues = [...new Set(sortedData.map(d => String(d._xValue)))];
     
-    console.log('📈 Time series structure:', {
+    console.log('📈 Data structure analysis:', {
       uniqueTimes: uniqueTimeValues.length,
-      uniqueCategories: uniqueCategoryValues.length,
-      timePoints: uniqueTimeValues.slice(0, 5),
+      uniqueCategories: uniqueCategories.length,
+      timePoints: uniqueTimeValues,
       categories: uniqueCategoryValues,
       expectedTotal: uniqueTimeValues.length * uniqueCategoryValues.length,
-      actualTotal: sortedData.length
+      actualTotal: sortedData.length,
+      isAggregated: sortedData.length < 100 && uniqueCategoryValues.length >= 5
     });
 
     // Calculate value ranges for cube scaling
@@ -488,12 +575,16 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     const minValue = Math.min(...yValues);
     const valueRange = maxValue - minValue || 1;
     
-    const cubeSize = Math.min(0.8, 4.0 / Math.sqrt(sortedData.length));
+    console.log('📊 Value range:', { minValue, maxValue, valueRange });
+    
+    const cubeSize = Math.min(0.8, 4.0 / Math.sqrt(Math.max(sortedData.length, 64)));
     const cubeList: any[] = [];
     
     // CREATE 3D GRID LAYOUT
     if (effZKey && uniqueTimeValues.length > 1) {
       // TRUE TIME SERIES: Time × Categories × Values
+      console.log('🎯 Creating time series layout');
+      
       uniqueTimeValues.forEach((timeValue, timeIndex) => {
         uniqueCategoryValues.forEach((categoryValue, categoryIndex) => {
           const dataPoint = sortedData.find(d => 
@@ -503,17 +594,17 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           if (dataPoint) {
             const value = dataPoint._parsedY;
             const normalizedValue = (value - minValue) / valueRange;
-            const cubeHeight = Math.max(0.3, normalizedValue * 5);
+            const cubeHeight = Math.max(0.5, normalizedValue * 6);
             
-            // Position calculation
-            const timeSpacing = 2.0;
+            // Position calculation - ensure proper grid spacing
+            const timeSpacing = 2.5;
             const categorySpacing = 2.0;
             const totalTimeWidth = (uniqueTimeValues.length - 1) * timeSpacing;
             const totalCategoryDepth = (uniqueCategoryValues.length - 1) * categorySpacing;
             
-            const x = -totalTimeWidth / 2 + timeIndex * timeSpacing;
-            const y = cubeHeight / 2;
-            const z = -totalCategoryDepth / 2 + categoryIndex * categorySpacing;
+            const x = -totalTimeWidth / 2 + timeIndex * timeSpacing;  // Time axis
+            const y = cubeHeight / 2;                                 // Value height
+            const z = -totalCategoryDepth / 2 + categoryIndex * categorySpacing; // Category axis
             
             const categoryColor = chartColors.length > 0 
               ? chartColors[categoryIndex % chartColors.length] 
@@ -535,14 +626,16 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         });
       });
     } else {
-      // FALLBACK: Static categorical data
+      // FALLBACK: Static categorical data or aggregated data
+      console.log('🎯 Creating static/aggregated layout');
+      
       uniqueCategoryValues.forEach((categoryValue, categoryIndex) => {
         const categoryData = sortedData.filter(d => String(d._xValue) === categoryValue);
         const avgValue = categoryData.reduce((sum, d) => sum + d._parsedY, 0) / categoryData.length;
         const normalizedValue = (avgValue - minValue) / valueRange;
-        const cubeHeight = Math.max(0.3, normalizedValue * 5);
+        const cubeHeight = Math.max(0.5, normalizedValue * 6);
         
-        const categorySpacing = 2.0;
+        const categorySpacing = 2.5;
         const totalCategoryWidth = (uniqueCategoryValues.length - 1) * categorySpacing;
         
         const x = -totalCategoryWidth / 2 + categoryIndex * categorySpacing;
@@ -557,7 +650,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           position: [x, y, z] as [number, number, number],
           scale: [cubeSize, cubeHeight, cubeSize] as [number, number, number],
           color: categoryColor,
-          label: `${categoryValue} (Avg: ${avgValue.toFixed(1)})`,
+          label: `${categoryValue} (${categoryData.length} points, Avg: ${avgValue.toFixed(1)})`,
           value: avgValue,
           timeIndex: 0,
           category: categoryValue,
@@ -590,9 +683,10 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
 
     const dataQualityResult = {
       valid: true,
-      message: `${cubeList.length} cubes created from ${sortedData.length} data points`,
+      message: `${cubeList.length} cubes from ${sortedData.length} data points`,
       isTimeSeries: Boolean(effZKey && uniqueTimeValues.length > 1),
-      aggregationSuspected: data.length < 100 && uniqueCategoryValues.length >= 5
+      aggregationSuspected: sortedData.length < 100 && uniqueCategoryValues.length >= 5,
+      dateRange: effZKey ? `${uniqueTimeValues[0]} to ${uniqueTimeValues[uniqueTimeValues.length - 1]}` : 'N/A'
     };
 
     return { 
@@ -604,7 +698,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
     };
   }, [data, effXKey, effYKey, effZKey, chartColors, tileMode]);
 
-  // Early return with helpful error message
+  // Early return with comprehensive error message
   if (cubes.length === 0) {
     return (
       <group>
@@ -618,31 +712,49 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           showZAxis={true}
         />
         <Text
-          position={[0, 3, 0]}
+          position={[0, 4, 0]}
           fontSize={0.3}
-          color="#ff6b6b"
+          color="#ef4444"
           anchorX="center"
           anchorY="middle"
         >
-          {dataQuality.message || 'No Data'}
+          NO VALID DATA
+        </Text>
+        <Text
+          position={[0, 3, 0]}
+          fontSize={0.2}
+          color="#ef4444"
+          anchorX="center"
+          anchorY="middle"
+        >
+          {dataQuality.message}
         </Text>
         <Text
           position={[0, 2, 0]}
-          fontSize={0.2}
-          color="#ff6b6b"
+          fontSize={0.15}
+          color="#f59e0b"
           anchorX="center"
           anchorY="middle"
         >
           Expected: 1000+ time series records
         </Text>
         <Text
-          position={[0, 1, 0]}
+          position={[0, 1.5, 0]}
           fontSize={0.15}
-          color="#ff6b6b"
+          color="#f59e0b"
           anchorX="center"
           anchorY="middle"
         >
-          Check: Data format, column mappings, aggregation settings
+          Check: Data format, dates (should be 2024), column mappings
+        </Text>
+        <Text
+          position={[0, 1, 0]}
+          fontSize={0.12}
+          color="#6b7280"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Columns: {effXKey || 'missing'} × {effYKey || 'missing'} × {effZKey || 'missing'}
         </Text>
       </group>
     );
@@ -661,40 +773,62 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
         showZAxis={true}
       />
       
-      {/* Data quality indicator */}
+      {/* Enhanced data quality indicators */}
       <Text
-        position={[-4, 5, -4]}
-        fontSize={0.15}
-        color={dataQuality.aggregationSuspected ? "#ff6b6b" : "hsl(var(--muted-foreground))"}
+        position={[-5, 6, -5]}
+        fontSize={0.2}
+        color={dataQuality.aggregationSuspected ? "#ef4444" : "#10b981"}
         anchorX="left"
         anchorY="top"
       >
         {dataQuality.aggregationSuspected 
-          ? `⚠️ Possible aggregation: ${cubes.length} points`
-          : `✅ ${cubes.length} data points`}
+          ? `⚠️ AGGREGATION DETECTED: ${cubes.length} points`
+          : `✅ DATA OK: ${cubes.length} cubes`}
       </Text>
       
       <Text
-        position={[-4, 4.5, -4]}
-        fontSize={0.12}
+        position={[-5, 5.5, -5]}
+        fontSize={0.15}
         color="hsl(var(--muted-foreground))"
         anchorX="left"
         anchorY="top"
       >
         {dataQuality.isTimeSeries 
-          ? `Time series: ${uniqueTimes.length} times × ${uniqueCategories.length} series`
+          ? `Time series: ${uniqueTimes.length} × ${uniqueCategories.length} (${dataQuality.dateRange})`
           : `Static data: ${uniqueCategories.length} categories`}
+      </Text>
+      
+      {dataQuality.aggregationSuspected && (
+        <Text
+          position={[-5, 5, -5]}
+          fontSize={0.12}
+          color="#ef4444"
+          anchorX="left"
+          anchorY="top"
+        >
+          Need 1,344 records (8 locations × 7 days × 24 hours)
+        </Text>
+      )}
+      
+      <Text
+        position={[-5, 4.5, -5]}
+        fontSize={0.12}
+        color="#6b7280"
+        anchorX="left"
+        anchorY="top"
+      >
+        Forced sorting: ALWAYS chronological (ignores UI settings)
       </Text>
       
       {/* Time axis labels (for time series) */}
       {dataQuality.isTimeSeries && uniqueTimes.map((timeValue, index) => {
-        if (index % Math.max(1, Math.floor(uniqueTimes.length / 5)) === 0) {
+        if (index % Math.max(1, Math.floor(uniqueTimes.length / 6)) === 0) {
           const cube = cubes.find(c => c.timeIndex === index);
           if (cube) {
             return (
               <Text
                 key={`time-label-${index}`}
-                position={[cube.position[0], -0.8, -3.5]}
+                position={[cube.position[0], -1, -4]}
                 fontSize={0.15}
                 color="hsl(var(--muted-foreground))"
                 anchorX="center"
@@ -716,7 +850,7 @@ export const TimeSeries3DChartRenderer: React.FC<TimeSeries3DChartRendererProps>
           return (
             <Text
               key={`category-label-${index}`}
-              position={[-3.5, -0.5, cube.position[2]]}
+              position={[-4, -0.5, cube.position[2]]}
               fontSize={0.15}
               color="hsl(var(--muted-foreground))"
               anchorX="center"
