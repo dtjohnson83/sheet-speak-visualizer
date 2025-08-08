@@ -28,6 +28,7 @@ export const useChartConfiguration = () => {
       chartState.setChartType(pendingAISuggestion.chartType as any);
       chartState.setXColumn(pendingAISuggestion.xColumn);
       chartState.setYColumn(pendingAISuggestion.yColumn);
+      chartState.setZColumn?.(pendingAISuggestion.zColumn || '');
       setValueColumn(pendingAISuggestion.valueColumn || '');
       chartState.setStackColumn(pendingAISuggestion.stackColumn || '');
       chartState.setAggregationMethod(pendingAISuggestion.aggregationMethod);

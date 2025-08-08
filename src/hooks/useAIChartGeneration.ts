@@ -8,6 +8,7 @@ export interface AIChartSuggestion {
   chartType: string;
   xColumn: string;
   yColumn: string;
+  zColumn?: string;
   stackColumn?: string;
   valueColumn?: string;
   aggregationMethod: AggregationMethod;
@@ -211,7 +212,7 @@ export const useAIChartGeneration = () => {
     columns: ColumnInfo[], 
     data: DataRow[], 
     query?: string
-  ): { xColumn: string; yColumn: string; valueColumn: string } => {
+  ): { xColumn: string; yColumn: string; valueColumn: string; zColumn?: string } => {
     const numericCols = columns.filter(c => c.type === 'numeric');
     const categoricalCols = columns.filter(c => c.type === 'categorical');
     const dateCols = columns.filter(c => c.type === 'date');
@@ -246,6 +247,7 @@ export const useAIChartGeneration = () => {
     let xColumn = '';
     let yColumn = '';
     let valueColumn = '';
+    let zColumn = '';
 
     // Enhanced query-based column selection
     if (query) {
@@ -355,12 +357,22 @@ export const useAIChartGeneration = () => {
       yColumn = numericCols[0]?.name || '';
     }
 
+    // Determine zColumn for 3D chart types
+    if (chartType === 'scatter3d' || chartType === 'surface3d') {
+      const numericColsList = columns.filter(c => c.type === 'numeric');
+      const zCandidate = numericColsList.find(col => col.name !== xColumn && col.name !== yColumn);
+      zColumn = zCandidate?.name || numericColsList[0]?.name || '';
+    } else if (chartType === 'treemap3d' || chartType === 'map3d') {
+      const numericColsList = columns.filter(c => c.type === 'numeric');
+      zColumn = numericColsList.find(col => col.name !== yColumn)?.name || numericColsList[0]?.name || '';
+    }
+
     // Set value column for specific chart types
     if (['heatmap', 'treemap', 'pie'].includes(chartType)) {
       valueColumn = yColumn;
     }
 
-    return { xColumn, yColumn, valueColumn };
+    return { xColumn, yColumn, valueColumn, zColumn };
   };
 
   // Generate AI chart suggestion based on natural language query
@@ -446,7 +458,7 @@ export const useAIChartGeneration = () => {
       }
 
       // Smart column selection
-      const { xColumn, yColumn, valueColumn } = selectBestColumns(suggestedChartType, columns, data, query);
+      const { xColumn, yColumn, valueColumn, zColumn } = selectBestColumns(suggestedChartType, columns, data, query);
 
       // Generate appropriate aggregation method
       let aggregationMethod: AggregationMethod = getDefaultAggregation(suggestedChartType);
@@ -482,6 +494,7 @@ export const useAIChartGeneration = () => {
         chartType: suggestedChartType,
         xColumn,
         yColumn,
+        zColumn,
         valueColumn: valueColumn || yColumn,
         aggregationMethod,
         series,
@@ -530,7 +543,7 @@ export const useAIChartGeneration = () => {
     }
 
     // Smart column selection using the improved logic
-    const { xColumn, yColumn, valueColumn } = selectBestColumns(chartType, columns, data);
+    const { xColumn, yColumn, valueColumn, zColumn } = selectBestColumns(chartType, columns, data);
 
     // Get appropriate aggregation method for chart type
     const aggregationMethod = getDefaultAggregation(chartType);
@@ -554,6 +567,7 @@ export const useAIChartGeneration = () => {
       chartType,
       xColumn,
       yColumn,
+      zColumn,
       valueColumn: valueColumn || yColumn,
       aggregationMethod,
       series,
