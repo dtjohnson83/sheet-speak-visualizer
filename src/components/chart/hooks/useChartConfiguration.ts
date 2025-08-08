@@ -14,7 +14,7 @@ export const useChartConfiguration = () => {
 
   // Apply AI suggestion with proper state synchronization
   useEffect(() => {
-    if (pendingAISuggestion && !hasUserInteracted) {
+    if (pendingAISuggestion) {
       console.log('🎯 useChartConfiguration - Applying pending AI suggestion synchronously:', {
         suggestion: pendingAISuggestion,
         currentState: {
@@ -41,7 +41,7 @@ export const useChartConfiguration = () => {
 
       console.log('✅ useChartConfiguration - AI suggestion applied successfully');
     }
-  }, [pendingAISuggestion, hasUserInteracted, chartState]);
+  }, [pendingAISuggestion, chartState]);
 
   // Wrapper to track user interactions with chart type
   const handleChartTypeChange = (newChartType: any) => {
@@ -70,15 +70,13 @@ export const useChartConfiguration = () => {
   const handleApplyAISuggestion = useCallback((suggestion: AIChartSuggestion, onSaveTile?: (tileData: any) => void) => {
     console.log('🔄 ChartConfiguration - Queueing AI suggestion for synchronous application:', {
       suggestion: suggestion,
-      hasUserInteracted,
       currentPending: !!pendingAISuggestion
     });
 
-    // Don't apply if user has already interacted or if suggestion is already applied
-    if (hasUserInteracted || appliedSuggestionRef.current === suggestion) {
+    // Don't apply if the exact same suggestion object was already applied
+    if (appliedSuggestionRef.current === suggestion) {
       console.log('🚫 ChartConfiguration - Skipping AI suggestion application:', {
-        hasUserInteracted,
-        alreadyApplied: appliedSuggestionRef.current === suggestion
+        alreadyApplied: true
       });
       return;
     }
@@ -109,7 +107,7 @@ export const useChartConfiguration = () => {
         onSaveTile(tileData);
       }, 100); // Small delay to ensure chart state is updated
     }
-  }, [hasUserInteracted, pendingAISuggestion]);
+  }, [pendingAISuggestion]);
 
   // Handle save tile functionality
   const handleSaveTile = (
