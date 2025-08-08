@@ -6,7 +6,7 @@ export const CTASection = () => {
   const { user } = useAuth();
 
   return (
-    <section className="px-4 py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+    <section className="px-4 py-20 bg-gradient-to-r from-primary to-accent text-primary-foreground">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-4xl font-bold text-white mb-6">
           Ready to Transform Your Data?

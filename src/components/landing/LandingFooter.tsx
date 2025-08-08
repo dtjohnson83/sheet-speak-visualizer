@@ -1,6 +1,6 @@
 export const LandingFooter = () => {
   return (
-    <footer className="px-4 py-12 bg-gray-900 dark:bg-gray-950">
+    <footer className="px-4 py-12 bg-card">
       <div className="max-w-6xl mx-auto text-center">
         <div className="flex items-center justify-center mb-4">
           <img 
@@ -9,10 +9,10 @@ export const LandingFooter = () => {
             className="h-12 w-auto md:h-14"
           />
         </div>
-        <p className="text-gray-400 mb-4">
+        <p className="text-muted-foreground mb-4">
           Making data visualization accessible to everyone.
         </p>
-        <p className="text-gray-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           © 2024 Chartuvo. Built with ❤️ for data enthusiasts.
         </p>
       </div>

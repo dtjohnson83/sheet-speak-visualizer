@@ -9,7 +9,7 @@ import { LandingFooter } from '@/components/landing/LandingFooter';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-background bg-gradient-to-br from-primary/5 via-background to-accent/5 dark:from-primary/10 dark:via-background dark:to-accent/10">
       <LandingHeader />
       <HeroSection />
       <FeaturesSection />

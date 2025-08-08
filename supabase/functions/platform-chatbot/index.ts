@@ -177,6 +177,10 @@ CAPABILITIES:
 - Data: Upload CSV/Excel/JSON, connect databases/APIs, preview/validate
 - AI: Natural language data chat, auto-chart generation, quality monitoring agents
 - Dashboard: Drag-drop builder, global filters, real-time updates, export/sharing
+- Learning Dashboard: Feedback analytics and job scheduler to improve AI over time
+- Auto-Scheduled Agents: Background tasks for monitoring and recurring insights
+- Alert Notifications: Email and webhook alerts for anomalies and key events
+- Session Monitoring: Track usage and guide users through onboarding
 
 COMMON ISSUES:
 - Empty charts: Check column selection, data types, filter empty rows
