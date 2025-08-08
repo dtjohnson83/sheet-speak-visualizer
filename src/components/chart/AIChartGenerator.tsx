@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
   Sparkles, 
@@ -331,18 +331,18 @@ export const AIChartGenerator = ({
         {/* Natural Language Input */}
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            Describe the chart you want to create:
+            Describe your chart:
           </label>
           <div className="flex gap-2">
-            <Textarea
+            <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., 'Show me sales trends over time' or 'Compare revenue by region'"
-              className="flex-1"
-              rows={2}
+              placeholder="Describe your chart…"
+              className="flex-1 focus-visible:ring-accent focus-visible:ring-2 focus-visible:ring-offset-0 transition-shadow"
               disabled={!validation.isValid || isGenerating || isApplying}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
                   handleGenerateFromQuery();
                 }
               }}
@@ -350,7 +350,7 @@ export const AIChartGenerator = ({
             <Button 
               onClick={handleGenerateFromQuery}
               disabled={!query.trim() || isGenerating || isApplying || !validation.isValid}
-              className="px-6"
+              className="px-5 hover-scale"
             >
               {isGenerating ? (
                 <>
@@ -370,27 +370,21 @@ export const AIChartGenerator = ({
               )}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Press Ctrl+Enter to generate
-          </p>
+          <p className="text-xs text-muted-foreground">Press Enter to generate</p>
         </div>
 
         {/* Quick Prompts */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Quick suggestions:</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto whitespace-nowrap py-1 -mx-1 px-1 scrollbar-thin">
             {quickPrompts.map((prompt, index) => (
               <Button
                 key={index}
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setQuery(prompt);
-                  // Optionally auto-generate
-                  // handleGenerateFromQuery();
-                }}
+                onClick={() => setQuery(prompt)}
                 disabled={isGenerating || isApplying}
-                className="text-xs hover:scale-105 transition-transform"
+                className="text-xs rounded-full hover-scale shrink-0"
               >
                 {prompt}
               </Button>
@@ -402,12 +396,13 @@ export const AIChartGenerator = ({
         <div className="flex items-center gap-2">
           <Button 
             onClick={handleSuggestOptimal}
-            variant="secondary"
+            variant="default"
+            size="sm"
             disabled={isGenerating || isApplying || !validation.isValid}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover-scale"
           >
             <TrendingUp className="h-4 w-4" />
-            Auto-Generate Best Chart
+            Generate Insight
           </Button>
           <span className="text-sm text-muted-foreground">
             AI will analyze your data and create the optimal visualization
