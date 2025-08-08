@@ -383,12 +383,34 @@ export const ChartRenderers = ({
   }
 
   if (chartType === 'stacked-bar') {
+    // Build series dynamically from processed stacked data columns (exclude x-axis key)
+    const stackKeys = Array.isArray(data)
+      ? Array.from(
+          data.reduce((set: Set<string>, row: any) => {
+            Object.keys(row || {}).forEach((k) => {
+              if (k !== xColumn) set.add(k);
+            });
+            return set;
+          }, new Set<string>())
+        )
+      : [];
+
+    const stackSeries = stackKeys.map((column, index) => ({
+      id: `stack-${column}`,
+      column,
+      color: chartColors[index % chartColors.length],
+      type: 'bar' as const,
+      aggregationMethod: 'sum' as const,
+      yAxisId: 'left' as const,
+    }));
+
     return (
       <BarChartRenderer
         data={data as DataRow[]}
         xColumn={xColumn}
-        yColumn={yColumn}
-        series={series}
+        // Intentionally omit base y-series so we only render stack columns
+        yColumn={'' as any}
+        series={stackSeries as any}
         stackColumn={stackColumn || 'stack'}
         chartColors={chartColors}
         showDataLabels={showDataLabels}
