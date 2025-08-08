@@ -276,22 +276,22 @@ export const AIChartGenerator = ({
   const quickPrompts = getQuickPrompts();
 
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 bg-card border border-border rounded-md">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-500" />
-          AI Chart Generation
-          {hasContext && (
-            <Badge variant="outline" className="text-xs">
-              {domainContext?.domain}
-            </Badge>
-          )}
-          {currentChartType && (
-            <Badge variant="secondary" className="text-xs ml-auto">
-              Current: {currentChartType}
-            </Badge>
-          )}
-        </CardTitle>
+      <CardTitle className="flex items-center gap-2 text-foreground text-xl font-medium">
+        <Sparkles className="h-5 w-5 text-primary" />
+        AI Chart Generation
+        {hasContext && (
+          <Badge variant="outline" className="text-xs">
+            {domainContext?.domain}
+          </Badge>
+        )}
+        {currentChartType && (
+          <Badge variant="secondary" className="text-xs ml-auto">
+            Current: {currentChartType}
+          </Badge>
+        )}
+      </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Validation Warnings */}
@@ -330,7 +330,7 @@ export const AIChartGenerator = ({
 
         {/* Natural Language Input */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-foreground">
             Describe your chart:
           </label>
           <div className="flex gap-2">
@@ -392,8 +392,7 @@ export const AIChartGenerator = ({
           </div>
         </div>
 
-        {/* One-click optimal chart */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button 
             onClick={handleSuggestOptimal}
             variant="default"
