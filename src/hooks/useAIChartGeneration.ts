@@ -249,9 +249,35 @@ export const useAIChartGeneration = () => {
     let valueColumn = '';
     let zColumn = '';
 
-    // Enhanced query-based column selection
+    // Enhanced query-based column selection with intent keywords and "X vs Y" parsing
     if (query) {
       const lowerQuery = query.toLowerCase();
+
+      const USER_TERMS = ['user', 'users', 'customer', 'customers', 'signup', 'signups', 'registrations', 'accounts', 'visitors', 'traffic', 'sessions', 'installs'];
+      const REVENUE_TERMS = ['revenue', 'sales', 'income', 'turnover', 'gmv', 'arr', 'mrr', 'earnings'];
+
+      const includesAny = (text: string, terms: string[]) => terms.some(t => text.includes(t));
+      const findByKeywords = (terms: string[], preferredTypes: Array<ColumnInfo['type']> = ['numeric','categorical','date','text']) => {
+        return columns.find(c => preferredTypes.includes(c.type) && includesAny(c.name.toLowerCase(), terms))?.name || '';
+      };
+
+      // Parse "A vs B" order if present
+      const vsMatch = lowerQuery.match(/(.+?)\s*(vs\.?|versus|against)\s*(.+)/);
+      if (vsMatch) {
+        const left = vsMatch[1].trim();
+        const right = vsMatch[3].trim();
+
+        if (!xColumn) {
+          if (includesAny(left, USER_TERMS)) xColumn = findByKeywords(USER_TERMS, ['numeric','categorical']);
+          else if (includesAny(left, REVENUE_TERMS)) xColumn = findByKeywords(REVENUE_TERMS, ['numeric']);
+        }
+        if (!yColumn) {
+          if (includesAny(right, REVENUE_TERMS)) yColumn = findByKeywords(REVENUE_TERMS, ['numeric']);
+          else if (includesAny(right, USER_TERMS)) yColumn = findByKeywords(USER_TERMS, ['numeric','categorical']);
+        }
+      }
+
+      // Fallback: match explicit column names mentioned in the query
       columns.forEach(col => {
         const colNameLower = col.name.toLowerCase();
         if (lowerQuery.includes(colNameLower)) {
@@ -262,6 +288,14 @@ export const useAIChartGeneration = () => {
           }
         }
       });
+
+      // If the query clearly asks for "users vs revenue" without explicit column names
+      if (!xColumn && includesAny(lowerQuery, USER_TERMS)) {
+        xColumn = findByKeywords(USER_TERMS, ['numeric','categorical']) || xColumn;
+      }
+      if (!yColumn && includesAny(lowerQuery, REVENUE_TERMS)) {
+        yColumn = findByKeywords(REVENUE_TERMS, ['numeric']) || yColumn;
+      }
     }
 
     // Chart-specific intelligent defaults
@@ -305,7 +339,11 @@ export const useAIChartGeneration = () => {
         }
         // Standard selection for non-trend charts
         else {
-          if (axisType.includes('date') && dateCols.length > 0) {
+          // Prefer numeric X for scatter-style charts unless the query implies a trend
+          const isScatterLike = (chartType === 'scatter' || chartType === 'scatter3d');
+          if (isScatterLike && axisType.includes('date') && axisType.includes('numeric')) {
+            xColumn = numericCols[0]?.name || dateCols[0]?.name || '';
+          } else if (axisType.includes('date') && dateCols.length > 0) {
             xColumn = dateCols[0].name;
           } else if (axisType.includes('categorical') && categoricalCols.length > 0) {
             // Pick categorical column with reasonable number of categories
@@ -348,8 +386,13 @@ export const useAIChartGeneration = () => {
                   categoricalCols[0]?.name || 
                   columns[0]?.name || '';
       } else {
-        // Standard fallback priority
-        xColumn = dateCols[0]?.name || categoricalCols[0]?.name || columns[0]?.name || '';
+        // Standard fallback priority; for scatter-like charts prefer numeric first
+        const isScatterLike = (chartType === 'scatter' || chartType === 'scatter3d');
+        if (isScatterLike) {
+          xColumn = numericCols[0]?.name || dateCols[0]?.name || categoricalCols[0]?.name || columns[0]?.name || '';
+        } else {
+          xColumn = dateCols[0]?.name || categoricalCols[0]?.name || columns[0]?.name || '';
+        }
       }
     }
     
