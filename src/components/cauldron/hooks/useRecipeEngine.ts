@@ -46,6 +46,29 @@ export const useRecipeEngine = ({ columns, datasetName }: UseRecipeEngineProps) 
     }
   }, [columns]);
 
+  // Helper function to map ingredient types to column types
+  const mapIngredientTypeToColumnType = (ingredientType: IngredientType): 'numeric' | 'date' | 'categorical' | 'text' => {
+    switch (ingredientType) {
+      case 'numeric': return 'numeric';
+      case 'temporal': return 'date';
+      case 'categorical': return 'categorical';
+      case 'geographic': return 'categorical'; // Geographic data is often categorical for visualization
+      case 'textual': return 'text';
+      default: return 'text';
+    }
+  };
+
+  // Helper function to map column types to ingredient types
+  const mapColumnTypeToIngredientType = (columnType: 'numeric' | 'date' | 'categorical' | 'text'): IngredientType => {
+    switch (columnType) {
+      case 'numeric': return 'numeric';
+      case 'date': return 'temporal';
+      case 'categorical': return 'categorical';
+      case 'text': return 'textual';
+      default: return 'textual';
+    }
+  };
+
   // Analyze all available ingredients with improved type detection
   const availableIngredients = useMemo(() => {
     // Create enhanced columns with improved type detection
@@ -69,29 +92,6 @@ export const useRecipeEngine = ({ columns, datasetName }: UseRecipeEngineProps) 
     
     return RecipeEngine.analyzeIngredients(enhancedColumns);
   }, [columns, typeOverrides]);
-
-  // Helper function to map ingredient types to column types
-  const mapIngredientTypeToColumnType = (ingredientType: IngredientType): 'numeric' | 'date' | 'categorical' | 'text' => {
-    switch (ingredientType) {
-      case 'numeric': return 'numeric';
-      case 'temporal': return 'date';
-      case 'categorical': return 'categorical';
-      case 'geographic': return 'categorical'; // Geographic data is often categorical for visualization
-      case 'textual': return 'text';
-      default: return 'text';
-    }
-  };
-
-  // Helper function to map column types to ingredient types
-  const mapColumnTypeToIngredientType = (columnType: 'numeric' | 'date' | 'categorical' | 'text'): IngredientType => {
-    switch (columnType) {
-      case 'numeric': return 'numeric';
-      case 'date': return 'temporal';
-      case 'categorical': return 'categorical';
-      case 'text': return 'textual';
-      default: return 'textual';
-    }
-  };
 
   // Get active ingredients based on selection
   const activeIngredients = useMemo(() => {
