@@ -11,7 +11,12 @@ interface DataManagementSectionProps {
   columns: ColumnInfo[];
   fileName: string;
   worksheetName: string;
-  onDataLoaded: (loadedData: DataRow[], detectedColumns: ColumnInfo[], name: string, worksheet?: string) => void;
+  onDataLoaded: (
+    loadedData: DataRow[],
+    detectedColumns: ColumnInfo[],
+    name: string,
+    worksheet?: string
+  ) => void;
   onLoadDataset: (dataset: SavedDataset) => void;
 }
 
@@ -27,18 +32,21 @@ export const DataManagementSection = ({
     <>
       <Card className="p-6 space-y-6">
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* File Upload + Clean & Score */}
+          {/* Left column: Upload + Clean & Score */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Upload Data</h3>
+            {/* Upload Data */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Upload Data</h3>
+              </div>
+              <SimpleFileUpload onDataLoaded={onDataLoaded} />
             </div>
-            <SimpleFileUpload onDataLoaded={onDataLoaded} />
 
-            {/* NEW: Clean & Score Panel */}
+            {/* NEW: Clean & Score Dataset (no external deps) */}
             <CleanAndScorePanel />
           </div>
 
-          {/* Dataset Management Section */}
+          {/* Right column: Saved Datasets */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Saved Datasets</h3>
             <DatasetManager
