@@ -1,6 +1,4 @@
-// src/components/data/CleanAndScorePanel.tsx
 import React, { useMemo, useRef, useState } from "react";
-import JSZip from "jszip";
 
 type QualityColumn = {
   column: string;
@@ -57,7 +55,6 @@ export default function CleanAndScorePanel() {
       setCleanedCsv(data.cleanedCsv);
       setMarkdown(data.markdown);
 
-      // Draw mini-thumbnails after render
       setTimeout(() => drawThumbs(data.report, c1.current, c2.current, c3.current), 50);
     } catch (err: any) {
       setError(err.message || String(err));
@@ -69,33 +66,20 @@ export default function CleanAndScorePanel() {
   function downloadCleaned() {
     if (!cleanedCsv) return;
     const blob = new Blob([cleanedCsv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const base = file?.name?.replace(/\.(csv|xlsx|xls)$/i, "") || "dataset";
-    a.href = url;
-    a.download = `${base}__cleaned.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, file?.name?.replace(/\.(csv|xlsx|xls)$/i, "") + "__cleaned.csv");
   }
 
-  async function downloadZip() {
-    if (!cleanedCsv || !report) return;
-    const base = file?.name?.replace(/\.(csv|xlsx|xls)$/i, "") || "dataset";
-    const zip = new JSZip();
+  function downloadReport() {
+    if (!markdown) return;
+    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    triggerDownload(blob, file?.name?.replace(/\.(csv|xlsx|xls)$/i, "") + "__quality-report.md");
+  }
 
-    zip.file(`${base}__cleaned.csv`, cleanedCsv, { binary: false });
-    if (markdown) zip.file(`${base}__quality-report.md`, markdown, { binary: false });
-
-    const [b1, b2, b3] = await Promise.all([toBlob(c1.current), toBlob(c2.current), toBlob(c3.current)]);
-    if (b1) zip.file(`${base}__thumb-score.png`, b1);
-    if (b2) zip.file(`${base}__thumb-missingness.png`, b2);
-    if (b3) zip.file(`${base}__thumb-types.png`, b3);
-
-    const blob = await zip.generateAsync({ type: "blob" });
+  function triggerDownload(blob: Blob, filename?: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${base}__cleaned_bundle.zip`;
+    a.download = filename || "download";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -136,10 +120,10 @@ export default function CleanAndScorePanel() {
                 </button>
                 <button
                   type="button"
-                  onClick={downloadZip}
+                  onClick={downloadReport}
                   className="inline-flex items-center justify-center rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white"
                 >
-                  Download ZIP
+                  Download Report
                 </button>
               </>
             )}
@@ -292,11 +276,4 @@ function drawThumbs(report: Report, a?: HTMLCanvasElement | null, b?: HTMLCanvas
       ctx.fillStyle = "#6366F1"; ctx.fillRect(x, y - hn, bw - 12, hn);
     });
   }
-}
-
-function toBlob(canvas?: HTMLCanvasElement | null): Promise<Blob | null> {
-  return new Promise((resolve) => {
-    if (!canvas) return resolve(null);
-    canvas.toBlob((b) => resolve(b), "image/png");
-  });
 }
