@@ -1,4 +1,5 @@
-import React, { useMemo, useRef, useState } from "react";
+// src/components/data/CleanAndScorePanel.tsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 type QualityColumn = {
   column: string;
@@ -21,6 +22,22 @@ type Report = {
 };
 
 export default function CleanAndScorePanel() {
+  const envBase = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+
+  const [baseUrl, setBaseUrl] = useState<string>(() => {
+    // prefer .env, else try localStorage fallback
+    return (envBase ?? localStorage.getItem("SUPABASE_URL") ?? "").replace(/\/+$/, "");
+  });
+
+  // persist user-entered URL if no .env is present
+  useEffect(() => {
+    if (!envBase && baseUrl) localStorage.setItem("SUPABASE_URL", baseUrl);
+  }, [baseUrl, envBase]);
+
+  const supabaseFuncUrl = useMemo(() => {
+    return baseUrl ? `${baseUrl}/functions/v1/clean-and-score` : "";
+  }, [baseUrl]);
+
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,16 +49,11 @@ export default function CleanAndScorePanel() {
   const c2 = useRef<HTMLCanvasElement>(null);
   const c3 = useRef<HTMLCanvasElement>(null);
 
-  const supabaseFuncUrl = useMemo(() => {
-    const base = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, "");
-    return base ? `${base}/functions/v1/clean-and-score` : "";
-  }, []);
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!file) return setError("Choose a CSV or XLSX file.");
-    if (!supabaseFuncUrl) return setError("VITE_SUPABASE_URL is not set.");
+    if (!supabaseFuncUrl) return setError("SUPABASE base URL is not set.");
 
     setLoading(true);
     try {
@@ -55,7 +67,7 @@ export default function CleanAndScorePanel() {
       setCleanedCsv(data.cleanedCsv);
       setMarkdown(data.markdown);
 
-      setTimeout(() => drawThumbs(data.report, c1.current, c2.current, c3.current), 50);
+      setTimeout(() => drawThumbs(data.report, c1.current, c2.current, c3.current), 30);
     } catch (err: any) {
       setError(err.message || String(err));
     } finally {
@@ -66,13 +78,13 @@ export default function CleanAndScorePanel() {
   function downloadCleaned() {
     if (!cleanedCsv) return;
     const blob = new Blob([cleanedCsv], { type: "text/csv;charset=utf-8" });
-    triggerDownload(blob, file?.name?.replace(/\.(csv|xlsx|xls)$/i, "") + "__cleaned.csv");
+    triggerDownload(blob, (file?.name || "dataset").replace(/\.(csv|xlsx|xls)$/i, "") + "__cleaned.csv");
   }
 
   function downloadReport() {
     if (!markdown) return;
     const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-    triggerDownload(blob, file?.name?.replace(/\.(csv|xlsx|xls)$/i, "") + "__quality-report.md");
+    triggerDownload(blob, (file?.name || "dataset").replace(/\.(csv|xlsx|xls)$/i, "") + "__quality-report.md");
   }
 
   function triggerDownload(blob: Blob, filename?: string) {
@@ -86,13 +98,36 @@ export default function CleanAndScorePanel() {
 
   return (
     <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
-      <div className="p-4 md:p-6">
-        <div className="mb-4">
+      <div className="p-4 md:p-6 space-y-4">
+        <div>
           <h4 className="text-base md:text-lg font-semibold">Clean &amp; Score Dataset</h4>
           <p className="text-sm text-muted-foreground">
             Upload a CSV or Excel file. We’ll standardize formats, remove duplicates, score quality, and let you export results.
           </p>
         </div>
+
+        {/* If .env isn't set, allow inline config (stored in localStorage) */}
+        {!envBase && (
+          <div className="rounded-md border p-3 bg-muted/40">
+            <label className="text-xs font-medium text-muted-foreground block mb-1">
+              Supabase Project URL (e.g. https://xxxx.supabase.co)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="https://YOUR-PROJECT.supabase.co"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value.trim())}
+                className="w-full rounded-md border px-3 py-2 bg-background"
+              />
+            </div>
+            {!baseUrl && (
+              <div className="mt-2 text-sm text-destructive">
+                VITE_SUPABASE_URL is not set. Enter your Supabase URL above or add it to your .env and restart.
+              </div>
+            )}
+          </div>
+        )}
 
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -103,7 +138,7 @@ export default function CleanAndScorePanel() {
               className="block w-full text-sm file:mr-3 file:rounded-lg file:border file:border-input file:bg-secondary file:px-3 file:py-2 file:text-foreground"
             />
             <button
-              disabled={!file || loading}
+              disabled={!file || loading || !baseUrl}
               className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               {loading ? "Cleaning..." : "Run Clean & Score"}
@@ -131,13 +166,13 @@ export default function CleanAndScorePanel() {
         </form>
 
         {error && (
-          <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
         {report && (
-          <div className="mt-6 space-y-5">
+          <div className="space-y-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Stat label="Quality Score" value={`${report.score}/100`} />
               <Stat label="Original Rows" value={report.originalRows} />
@@ -217,7 +252,6 @@ function Thumb({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function drawThumbs(report: Report, a?: HTMLCanvasElement | null, b?: HTMLCanvasElement | null, c?: HTMLCanvasElement | null) {
-  // 1) score sparkline
   if (a) {
     const ctx = a.getContext("2d")!;
     const W = a.width, H = a.height;
@@ -238,8 +272,6 @@ function drawThumbs(report: Report, a?: HTMLCanvasElement | null, b?: HTMLCanvas
     });
     ctx.stroke();
   }
-
-  // 2) missingness bars
   if (b) {
     const ctx = b.getContext("2d")!;
     const W = b.width, H = b.height;
@@ -253,8 +285,6 @@ function drawThumbs(report: Report, a?: HTMLCanvasElement | null, b?: HTMLCanvas
       ctx.fillRect(x, H - 15 - h, bw - 8, h);
     });
   }
-
-  // 3) stacked type bars
   if (c) {
     const ctx = c.getContext("2d")!;
     const W = c.width, H = c.height;
@@ -265,13 +295,10 @@ function drawThumbs(report: Report, a?: HTMLCanvasElement | null, b?: HTMLCanvas
       const total = Math.max(1, col.rows);
       const x = 20 + i * bw + 6;
       let y = H - 15;
-      // strings
       const hs = (col.stringCount / total) * (H - 30);
       ctx.fillStyle = "#A1A1AA"; ctx.fillRect(x, y - hs, bw - 12, hs); y -= hs;
-      // dates
       const hd = (col.dateCount / total) * (H - 30);
       ctx.fillStyle = "#22C55E"; ctx.fillRect(x, y - hd, bw - 12, hd); y -= hd;
-      // numbers
       const hn = (col.numericCount / total) * (H - 30);
       ctx.fillStyle = "#6366F1"; ctx.fillRect(x, y - hn, bw - 12, hn);
     });
