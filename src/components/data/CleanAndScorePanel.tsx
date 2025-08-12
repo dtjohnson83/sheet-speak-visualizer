@@ -1,5 +1,5 @@
 // src/components/data/CleanAndScorePanel.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 type QualityColumn = {
   column: string;
@@ -22,21 +22,10 @@ type Report = {
 };
 
 export default function CleanAndScorePanel() {
-  const envBase = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
-
-  const [baseUrl, setBaseUrl] = useState<string>(() => {
-    // prefer .env, else try localStorage fallback
-    return (envBase ?? localStorage.getItem("SUPABASE_URL") ?? "").replace(/\/+$/, "");
-  });
-
-  // persist user-entered URL if no .env is present
-  useEffect(() => {
-    if (!envBase && baseUrl) localStorage.setItem("SUPABASE_URL", baseUrl);
-  }, [baseUrl, envBase]);
-
-  const supabaseFuncUrl = useMemo(() => {
-    return baseUrl ? `${baseUrl}/functions/v1/clean-and-score` : "";
-  }, [baseUrl]);
+  // Supabase function endpoint (no env vars; use project URL directly)
+  const SUPABASE_URL = "https://jkgqjeadviqmxwmwwkma.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprZ3FqZWFkdmlxbXh3bXd3a21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMzAyMjQsImV4cCI6MjA2NjYwNjIyNH0.WAa8MGjgDaxA8Wx27nE-wR6pEdYTdJjb6vW_93CCgOQ";
+  const supabaseFuncUrl = `${SUPABASE_URL}/functions/v1/clean-and-score`;
 
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -53,15 +42,21 @@ export default function CleanAndScorePanel() {
     e.preventDefault();
     setError(null);
     if (!file) return setError("Choose a CSV or XLSX file.");
-    if (!supabaseFuncUrl) return setError("SUPABASE base URL is not set.");
 
     setLoading(true);
     try {
       const fd = new FormData();
       fd.append("file", file, file.name);
-      const res = await fetch(supabaseFuncUrl, { method: "POST", body: fd });
+      const res = await fetch(supabaseFuncUrl, {
+        method: "POST",
+        body: fd,
+        headers: {
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Clean & Score failed.");
+      if (!res.ok) throw new Error(data?.error || (data?.message ?? "Clean & Score failed."));
 
       setReport(data.report);
       setCleanedCsv(data.cleanedCsv);
@@ -106,28 +101,6 @@ export default function CleanAndScorePanel() {
           </p>
         </div>
 
-        {/* If .env isn't set, allow inline config (stored in localStorage) */}
-        {!envBase && (
-          <div className="rounded-md border p-3 bg-muted/40">
-            <label className="text-xs font-medium text-muted-foreground block mb-1">
-              Supabase Project URL (e.g. https://xxxx.supabase.co)
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                placeholder="https://YOUR-PROJECT.supabase.co"
-                value={baseUrl}
-                onChange={(e) => setBaseUrl(e.target.value.trim())}
-                className="w-full rounded-md border px-3 py-2 bg-background"
-              />
-            </div>
-            {!baseUrl && (
-              <div className="mt-2 text-sm text-destructive">
-                VITE_SUPABASE_URL is not set. Enter your Supabase URL above or add it to your .env and restart.
-              </div>
-            )}
-          </div>
-        )}
 
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -138,7 +111,7 @@ export default function CleanAndScorePanel() {
               className="block w-full text-sm file:mr-3 file:rounded-lg file:border file:border-input file:bg-secondary file:px-3 file:py-2 file:text-foreground"
             />
             <button
-              disabled={!file || loading || !baseUrl}
+              disabled={!file || loading}
               className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               {loading ? "Cleaning..." : "Run Clean & Score"}
@@ -237,10 +210,12 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   );
 }
 function Th({ children, align }: { children: React.ReactNode; align?: "left" | "right" }) {
-  return <th className={`px-3 py-2 text-${align ?? "left"} font-medium`}>{children}</th>;
+  const alignClass = align === "right" ? "text-right" : "text-left";
+  return <th className={`px-3 py-2 ${alignClass} font-medium`}>{children}</th>;
 }
 function Td({ children, align }: { children: React.ReactNode; align?: "left" | "right" }) {
-  return <td className={`px-3 py-2 text-${align ?? "left"}`}>{children}</td>;
+  const alignClass = align === "right" ? "text-right" : "text-left";
+  return <td className={`px-3 py-2 ${alignClass}`}>{children}</td>;
 }
 function Thumb({ title, children }: { title: string; children: React.ReactNode }) {
   return (
