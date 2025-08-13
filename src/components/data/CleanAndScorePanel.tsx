@@ -1,5 +1,6 @@
 // src/components/data/CleanAndScorePanel.tsx
 import React, { useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type QualityColumn = {
   column: string;
@@ -22,11 +23,7 @@ type Report = {
 };
 
 export default function CleanAndScorePanel() {
-  // Supabase function endpoint (no env vars; use project URL directly)
-  const SUPABASE_URL = "https://jkgqjeadviqmxwmwwkma.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprZ3FqZWFkdmlxbXh3bXd3a21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMzAyMjQsImV4cCI6MjA2NjYwNjIyNH0.WAa8MGjgDaxA8Wx27nE-wR6pEdYTdJjb6vW_93CCgOQ";
-  const supabaseFuncUrl = `${SUPABASE_URL}/functions/v1/clean-and-score`;
-
+  // Using Supabase client to invoke 'clean-and-score'
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,24 +42,31 @@ export default function CleanAndScorePanel() {
 
     setLoading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      const res = await fetch(supabaseFuncUrl, {
-        method: "POST",
-        body: fd,
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          apikey: SUPABASE_ANON_KEY,
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const res = String(reader.result || "");
+          resolve(res.split(",").pop() || "");
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke("clean-and-score", {
+        body: {
+          filename: file.name,
+          contentType: file.type || "",
+          fileBase64: base64,
         },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || (data?.message ?? "Clean & Score failed."));
 
-      setReport(data.report);
-      setCleanedCsv(data.cleanedCsv);
-      setMarkdown(data.markdown);
+      if (error) throw new Error(error.message || "Clean & Score failed.");
 
-      setTimeout(() => drawThumbs(data.report, c1.current, c2.current, c3.current), 30);
+      setReport((data as any).report);
+      setCleanedCsv((data as any).cleanedCsv);
+      setMarkdown((data as any).markdown);
+
+      setTimeout(() => drawThumbs((data as any).report, c1.current, c2.current, c3.current), 30);
     } catch (err: any) {
       setError(err.message || String(err));
     } finally {

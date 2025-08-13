@@ -91,6 +91,14 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function base64ToBytes(b64: string): Uint8Array {
+  const normalized = b64.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(normalized);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
 /** CSV -> array of objects */
 async function csvToRows(csvText: string): Promise<Row[]> {
   const records: Row[] = [];
