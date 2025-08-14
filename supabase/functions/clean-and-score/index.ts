@@ -5,7 +5,7 @@
 
 import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { readCSV } from "https://deno.land/std@0.224.0/csv/mod.ts";
+import { parse } from "https://deno.land/std@0.224.0/csv/mod.ts";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 type Row = Record<string, unknown>;
@@ -99,46 +99,21 @@ function base64ToBytes(b64: string): Uint8Array {
 
 /** CSV -> array of objects */
 async function csvToRows(csvText: string): Promise<Row[]> {
-  const records: Row[] = [];
-  const reader = await readCSV(new StringReader(csvText), { skipFirstRow: false });
-  // First row must be header
-  const it = reader[Symbol.asyncIterator]();
-  const first = await it.next();
-  if (first.done) return [];
-  const headers = first.value.map((h: string) => (h ?? "").trim());
-
-  records.push(...(await collectRows(it, headers)));
-  return records;
+  const rows = parse(csvText, { skipFirstRow: false });
+  if (rows.length === 0) return [];
+  
+  const headers = rows[0].map((h: string) => (h ?? "").trim());
+  const dataRows = rows.slice(1);
+  
+  return dataRows.map((row) => {
+    const obj: Row = {};
+    headers.forEach((header, index) => {
+      obj[header || `col_${index + 1}`] = row[index] ?? "";
+    });
+    return obj;
+  });
 }
 
-// Helper since std/csv doesn't export a simple string reader
-class StringReader implements Deno.Reader {
-  private buf: Uint8Array;
-  private offset = 0;
-  constructor(text: string) {
-    this.buf = new TextEncoder().encode(text);
-  }
-  read(p: Uint8Array): Promise<number | null> {
-    if (this.offset >= this.buf.length) return Promise.resolve(null);
-    const n = Math.min(p.length, this.buf.length - this.offset);
-    p.set(this.buf.subarray(this.offset, this.offset + n));
-    this.offset += n;
-    return Promise.resolve(n);
-  }
-}
-
-async function collectRows(
-  it: AsyncIterator<string[]>,
-  headers: string[],
-): Promise<Row[]> {
-  const out: Row[] = [];
-  for await (const arr of { [Symbol.asyncIterator]: () => it } as any) {
-    const row: Row = {};
-    headers.forEach((h, i) => (row[h || `col_${i + 1}`] = arr[i] ?? ""));
-    out.push(row);
-  }
-  return out;
-}
 
 /** XLSX -> array of objects (from first sheet) */
 function xlsxToRows(bytes: Uint8Array): Row[] {
