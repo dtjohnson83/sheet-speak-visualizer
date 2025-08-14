@@ -5,7 +5,6 @@
 
 import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { MultipartReader } from "https://deno.land/std@0.224.0/mime/multipart.ts";
 import { readCSV } from "https://deno.land/std@0.224.0/csv/mod.ts";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
@@ -23,25 +22,24 @@ serve(async (req) => {
   }
 
   try {
-    const contentType = req.headers.get("content-type") || "";
-    if (!contentType.includes("multipart/form-data")) {
+    console.log("Clean & Score function called");
+    
+    // Parse JSON body
+    const body = await req.json();
+    const { filename, fileBase64 } = body;
+    
+    if (!filename || !fileBase64) {
       return json(
-        { error: "Send multipart/form-data with a 'file' field." },
+        { error: "Missing 'filename' or 'fileBase64' in request body." },
         400,
       );
     }
 
-    // ---- Parse multipart ----
-    const boundary = contentType.split("boundary=")[1];
-    if (!boundary) return json({ error: "Bad multipart boundary." }, 400);
-
-    const mr = new MultipartReader(req.body!, boundary);
-    const form = await mr.readForm({ maxFileSize: 50_000_000 }); // 50MB
-    const file = form.file("file");
-    if (!file) return json({ error: "Missing 'file' field." }, 400);
-
-    const bytes = await Deno.readFile(file.filename!);
-    const ext = (file.filename || "").toLowerCase();
+    console.log(`Processing file: ${filename}`);
+    
+    // Convert base64 to bytes
+    const bytes = base64ToBytes(fileBase64);
+    const ext = filename.toLowerCase();
 
     // ---- Load rows ----
     let rows: Row[] = [];
