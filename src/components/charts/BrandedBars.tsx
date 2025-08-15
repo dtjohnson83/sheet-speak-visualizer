@@ -72,16 +72,17 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
     series: series.length
   });
   
-  const chartColors = getThemeAwareChartColors();
+  // Use passed colors first, fall back to theme-aware colors
+  const effectiveColors = colors || getThemeAwareChartColors();
   const chartId = `bar-${Math.random().toString(36).substr(2, 9)}`;
   
   // Prepare series data - only add base series if dataKey is truthy (avoids invalid series for stacked charts)
-  const baseSeries = dataKey ? [{ dataKey, name: dataKey, color: chartColors[0] }] : [];
+  const baseSeries = dataKey ? [{ dataKey, name: dataKey, color: effectiveColors[0] }] : [];
   const allSeries = [
     ...baseSeries,
     ...series.map((s, index) => ({
       ...s,
-      color: s.color || chartColors[(baseSeries.length + index) % chartColors.length]
+      color: s.color || effectiveColors[(baseSeries.length + index) % effectiveColors.length]
     }))
   ];
 
@@ -140,7 +141,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
           margin={{ top: showDataLabels ? 40 : 20, right: 30, left: 20, bottom: 20 }}
           barCategoryGap="20%"
         >
-          <BrandedPrimitives colors={chartColors} id={chartId} />
+          <BrandedPrimitives colors={effectiveColors} id={chartId} />
           
           {showGrid && (
             <CartesianGrid 
