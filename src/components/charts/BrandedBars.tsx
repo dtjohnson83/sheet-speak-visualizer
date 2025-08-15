@@ -118,7 +118,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
       <text 
         x={x + width / 2} 
         y={y - 8} 
-        fill="hsl(var(--chart-text))" 
+        fill="var(--chart-text)" 
         textAnchor="middle" 
         fontSize="12"
         fontWeight="500"
@@ -142,7 +142,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
           {showGrid && (
             <CartesianGrid 
               strokeDasharray="2 2" 
-              stroke="hsl(var(--chart-grid))"
+              stroke="var(--chart-grid)"
               strokeOpacity={0.3}
               className="chart-grid-line"
               vertical={false}
@@ -154,7 +154,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
             axisLine={false}
             tickLine={false}
             tick={{ 
-              fill: 'hsl(var(--chart-tick))', 
+              fill: 'var(--chart-tick)', 
               fontSize: 12,
               fontWeight: 400
             }}
@@ -163,7 +163,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
               value: xAxisLabel, 
               position: 'insideBottom', 
               offset: -10,
-              style: { textAnchor: 'middle', fill: 'hsl(var(--chart-text-muted))' }
+              style: { textAnchor: 'middle', fill: 'var(--chart-text-muted)' }
             } : undefined}
           />
           
@@ -171,7 +171,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
             axisLine={false}
             tickLine={false}
             tick={{ 
-              fill: 'hsl(var(--chart-tick))', 
+              fill: 'var(--chart-tick)', 
               fontSize: 12,
               fontWeight: 400
             }}
@@ -180,7 +180,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
               value: yAxisLabel, 
               angle: -90, 
               position: 'insideLeft',
-              style: { textAnchor: 'middle', fill: 'hsl(var(--chart-text-muted))' }
+              style: { textAnchor: 'middle', fill: 'var(--chart-text-muted)' }
             } : undefined}
           />
           
