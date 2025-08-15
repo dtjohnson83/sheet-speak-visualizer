@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ZAxis } from 'recharts';
+import { BrandedScatter } from '@/components/charts/BrandedScatter';
 import { formatTooltipValue } from '@/lib/numberUtils';
-import { getChartTextColor } from '@/lib/chartTheme';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
 
@@ -22,19 +21,30 @@ export const TileScatterChartRenderer = ({
   effectiveSeries, 
   chartColors 
 }: TileScatterChartRendererProps) => {
+  // Prepare series for BrandedScatter
+  const scatterSeries = effectiveSeries.map((s, index) => ({
+    dataKey: s.column,
+    name: s.column,
+    color: chartColors[index % chartColors.length]
+  }));
+
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ScatterChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={xColumn} type="number" domain={['dataMin', 'dataMax']} />
-        <YAxis dataKey={valueColumn} type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatTooltipValue} />
-        <ZAxis dataKey={valueColumn} range={[64, 144]} />
-        <Tooltip formatter={(value: any) => formatTooltipValue(value)} />
-        <Legend />
-        {effectiveSeries.map((s, index) => (
-          <Scatter key={s.column} data={data} dataKey={s.column} fill={chartColors[index % chartColors.length]} />
-        ))}
-      </ScatterChart>
-    </ResponsiveContainer>
+    <BrandedScatter
+      data={data}
+      dataKey={valueColumn || 'value'}
+      xAxisKey={xColumn}
+      series={scatterSeries}
+      colors={chartColors}
+      sizeKey={valueColumn}
+      height={400}
+      formatXAxis={formatTooltipValue}
+      formatYAxis={formatTooltipValue}
+      formatTooltip={formatTooltipValue}
+      domain={{
+        x: ['dataMin', 'dataMax'],
+        y: ['dataMin', 'dataMax']
+      }}
+      sizeRange={[64, 144]}
+    />
   );
 };
