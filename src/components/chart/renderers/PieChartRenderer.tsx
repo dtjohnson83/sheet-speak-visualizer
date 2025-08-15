@@ -38,9 +38,8 @@ export const PieChartRenderer = ({
       nameKey={nameKey}
       height={384}
       colors={chartColors}
-      showDataLabels={showDataLabels}
+      showLabels={showDataLabels}
       animated={isTemporalAnimated}
-      animationDuration={isTemporalAnimated ? animationSpeed : 1500}
       formatTooltip={formatTooltipValue}
     />
   );

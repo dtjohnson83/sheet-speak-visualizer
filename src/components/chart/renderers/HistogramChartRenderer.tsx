@@ -26,7 +26,6 @@ export const HistogramChartRenderer = ({
       colors={chartColors}
       showDataLabels={showDataLabels}
       animated={isTemporalAnimated}
-      animationSpeed={animationSpeed}
       formatYAxis={formatTooltipValue}
       formatTooltip={formatTooltipValue}
       xAxisLabel="Range"
