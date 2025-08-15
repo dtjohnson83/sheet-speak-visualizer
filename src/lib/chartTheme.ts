@@ -82,6 +82,21 @@ export const getChartColors = (paletteName: keyof typeof chartColorPalettes = 'm
 };
 
 /**
+ * Get theme-aware chart colors that adapt to light/dark mode
+ * @returns Array of CSS custom property references
+ */
+export const getThemeAwareChartColors = (): string[] => {
+  return [
+    'hsl(var(--chart-primary))',
+    'hsl(var(--chart-secondary))', 
+    'hsl(var(--chart-accent))',
+    'hsl(var(--destructive))',
+    'hsl(var(--warning))',
+    'hsl(var(--success))',
+  ];
+};
+
+/**
  * Generate gradient definitions for chart colors
  * @param colors - Array of color strings
  * @param direction - Gradient direction (vertical, horizontal, radial)

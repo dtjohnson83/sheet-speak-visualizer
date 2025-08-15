@@ -70,7 +70,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
     series: series.length
   });
   
-  const chartColors = colors || getChartColors('modern');
+  const chartColors = colors || ['hsl(var(--chart-primary))', 'hsl(var(--chart-secondary))', 'hsl(var(--chart-accent))'];
   const chartId = `bar-${Math.random().toString(36).substr(2, 9)}`;
   
   // Prepare series data

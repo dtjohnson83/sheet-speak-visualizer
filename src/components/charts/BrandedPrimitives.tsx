@@ -18,54 +18,54 @@ export const BrandedPrimitives: React.FC<BrandedPrimitivesProps> = ({
     <defs>
       {/* Primary Gradients */}
       <linearGradient id={`${id}-gradient-primary`} x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={colors[0]} stopOpacity={0.8} />
-        <stop offset="100%" stopColor={colors[0]} stopOpacity={0.3} />
+        <stop offset="0%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.8} />
+        <stop offset="100%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.3} />
       </linearGradient>
 
       <linearGradient id={`${id}-gradient-secondary`} x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={colors[1] || colors[0]} stopOpacity={0.8} />
-        <stop offset="100%" stopColor={colors[1] || colors[0]} stopOpacity={0.3} />
+        <stop offset="0%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.8} />
+        <stop offset="100%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.3} />
       </linearGradient>
 
       <linearGradient id={`${id}-gradient-tertiary`} x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={colors[2] || colors[0]} stopOpacity={0.8} />
-        <stop offset="100%" stopColor={colors[2] || colors[0]} stopOpacity={0.3} />
+        <stop offset="0%" stopColor="hsl(var(--chart-accent))" stopOpacity={0.8} />
+        <stop offset="100%" stopColor="hsl(var(--chart-accent))" stopOpacity={0.3} />
       </linearGradient>
 
       {/* Bar Gradients */}
       <linearGradient id={`${id}-bar-gradient-primary`} x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={colors[0]} stopOpacity={1} />
-        <stop offset="100%" stopColor={colors[0]} stopOpacity={0.8} />
+        <stop offset="0%" stopColor="hsl(var(--chart-primary))" stopOpacity={1} />
+        <stop offset="100%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.8} />
       </linearGradient>
 
       <linearGradient id={`${id}-bar-gradient-secondary`} x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={colors[1] || colors[0]} stopOpacity={1} />
-        <stop offset="100%" stopColor={colors[1] || colors[0]} stopOpacity={0.8} />
+        <stop offset="0%" stopColor="hsl(var(--chart-secondary))" stopOpacity={1} />
+        <stop offset="100%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.8} />
       </linearGradient>
 
       {/* Radial Gradients for Points */}
       <radialGradient id={`${id}-point-glow`} cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor={colors[0]} stopOpacity={1} />
-        <stop offset="70%" stopColor={colors[0]} stopOpacity={0.8} />
-        <stop offset="100%" stopColor={colors[0]} stopOpacity={0} />
+        <stop offset="0%" stopColor="hsl(var(--chart-primary))" stopOpacity={1} />
+        <stop offset="70%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.8} />
+        <stop offset="100%" stopColor="hsl(var(--chart-primary))" stopOpacity={0} />
       </radialGradient>
 
       {/* Shadow Filters */}
       <filter id={`${id}-drop-shadow`} x="-50%" y="-50%" width="200%" height="200%">
-        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor={colors[0]} floodOpacity="0.2" />
+        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="hsl(var(--chart-primary))" floodOpacity="0.2" />
       </filter>
 
       <filter id={`${id}-glow-shadow`} x="-50%" y="-50%" width="200%" height="200%">
-        <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor={colors[0]} floodOpacity="0.4" />
+        <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="hsl(var(--chart-primary))" floodOpacity="0.4" />
       </filter>
 
       <filter id={`${id}-bar-shadow`} x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor={colors[0]} floodOpacity="0.3" />
+        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="hsl(var(--chart-primary))" floodOpacity="0.3" />
       </filter>
 
       {/* Hatch Patterns for Highlighting */}
       <pattern id={`${id}-hatch-pattern`} patternUnits="userSpaceOnUse" width="4" height="4">
-        <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" stroke={colors[0]} strokeOpacity="0.3" strokeWidth="1" />
+        <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" stroke="hsl(var(--chart-primary))" strokeOpacity="0.3" strokeWidth="1" />
       </pattern>
 
       {/* Grid Pattern */}
@@ -75,13 +75,13 @@ export const BrandedPrimitives: React.FC<BrandedPrimitivesProps> = ({
 
       {/* Animated Gradient for Loading States */}
       <linearGradient id={`${id}-shimmer`} x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor={colors[0]} stopOpacity={0.1}>
+        <stop offset="0%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.1}>
           <animate attributeName="stop-opacity" values="0.1;0.3;0.1" dur="2s" repeatCount="indefinite" />
         </stop>
-        <stop offset="50%" stopColor={colors[0]} stopOpacity={0.3}>
+        <stop offset="50%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.3}>
           <animate attributeName="stop-opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite" />
         </stop>
-        <stop offset="100%" stopColor={colors[0]} stopOpacity={0.1}>
+        <stop offset="100%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.1}>
           <animate attributeName="stop-opacity" values="0.1;0.3;0.1" dur="2s" repeatCount="indefinite" />
         </stop>
       </linearGradient>

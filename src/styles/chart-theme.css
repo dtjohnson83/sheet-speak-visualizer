@@ -58,30 +58,31 @@
 
 /* Dark mode optimizations */
 .dark {
-  /* Enhanced dark mode colors */
-  --chart-primary: 220 98% 71%;
+  /* Enhanced dark mode colors - using theme-aware colors */
+  --chart-primary: var(--primary);
   --chart-primary-light: 220 98% 81%;
   --chart-primary-dark: 220 98% 61%;
-  --chart-secondary: 262 83% 68%;
+  --chart-secondary: var(--secondary);
   --chart-secondary-light: 262 83% 78%;
+  --chart-accent: var(--accent);
   
   /* Dark mode grid and axes */
-  --chart-grid: hsl(var(--border) / 0.2);
-  --chart-axis: hsl(var(--muted-foreground) / 0.4);
-  --chart-tick: hsl(var(--muted-foreground) / 0.8);
+  --chart-grid: var(--border);
+  --chart-axis: var(--muted-foreground);
+  --chart-tick: var(--muted-foreground);
   
   /* Dark mode backgrounds */
-  --chart-tooltip-bg: hsl(20 14% 4% / 0.95);
-  --chart-surface: hsl(var(--card));
+  --chart-tooltip-bg: var(--popover);
+  --chart-surface: var(--card);
   
   /* Enhanced dark mode effects */
   --chart-shadow-glow: 0 0 24px hsl(var(--primary) / 0.4);
   --chart-bar-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
   
   /* Dark mode text colors */
-  --chart-text: hsl(var(--foreground));
-  --chart-text-muted: hsl(var(--muted-foreground));
-  --chart-text-contrast: hsl(var(--background));
+  --chart-text: var(--foreground);
+  --chart-text-muted: var(--muted-foreground);
+  --chart-text-contrast: var(--background);
 }
 
 /* Chart Container Styles */
