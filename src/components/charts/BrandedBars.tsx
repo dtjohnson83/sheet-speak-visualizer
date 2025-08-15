@@ -62,6 +62,14 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
   barRadius = 6,
   maxBarSize = 60,
 }) => {
+  console.log('🔵 BrandedBars - Rendering with:', { 
+    dataLength: data?.length, 
+    dataKey, 
+    xAxisKey, 
+    sampleData: data?.slice(0, 2),
+    series: series.length
+  });
+  
   const chartColors = colors || getChartColors('modern');
   const chartId = `bar-${Math.random().toString(36).substr(2, 9)}`;
   
