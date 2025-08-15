@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './styles/chart-theme.css';
+
 /* Custom scrollbar styles for chart containers */
 .scrollbar-thin {
   scrollbar-width: thin;
