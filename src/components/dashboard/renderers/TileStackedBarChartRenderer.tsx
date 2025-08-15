@@ -4,6 +4,7 @@ import { SeriesConfig } from '@/hooks/useChartState';
 import { TileBarChartRenderer } from './TileBarChartRenderer';
 import { prepareStackedBarData } from '@/lib/chart/stackedBarProcessor';
 import { AggregationMethod } from '@/components/chart/AggregationConfiguration';
+import { getThemeAwareChartColors } from '@/lib/chartTheme';
 interface TileStackedBarChartRendererProps {
   data: DataRow[];
   xColumn: string;
@@ -66,10 +67,13 @@ export const TileStackedBarChartRenderer: React.FC<TileStackedBarChartRendererPr
     return Array.from(keys);
   }, [processedData, xColumn]);
 
+  // Use theme-aware colors for consistent dark mode support
+  const themeColors = getThemeAwareChartColors();
+
   const stackSeries: SeriesConfig[] = stackKeys.map((column, index) => ({
     id: `stack-${column}`,
     column,
-    color: chartColors[index % chartColors.length],
+    color: themeColors[index % themeColors.length],
     type: 'bar' as const,
     aggregationMethod: 'sum' as const,
     yAxisId: 'left'
@@ -86,7 +90,7 @@ export const TileStackedBarChartRenderer: React.FC<TileStackedBarChartRendererPr
       xColumn={xColumn}
       stackColumn={stackColumn || 'stack'}
       effectiveSeries={stackSeries}
-      chartColors={chartColors}
+      chartColors={themeColors}
       showDataLabels={showDataLabels}
       xAxisLabel={xAxisLabel}
       yAxisLabel={yAxisLabel}

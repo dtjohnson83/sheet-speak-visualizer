@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { DataRow } from '@/pages/Index';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { formatTooltipValue } from '@/lib/numberUtils';
-import { getChartTextColor } from '@/lib/chartTheme';
+import { getChartTextColor, getThemeAwareChartColors } from '@/lib/chartTheme';
 
 interface TileHistogramChartRendererProps {
   data: DataRow[];
@@ -19,6 +19,9 @@ export const TileHistogramChartRenderer = ({
   chartColors,
   showDataLabels
 }: TileHistogramChartRendererProps) => {
+  // Use theme-aware colors for consistent dark mode support
+  const themeColors = getThemeAwareChartColors();
+  
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm">
@@ -65,7 +68,7 @@ export const TileHistogramChartRenderer = ({
           />
           <Bar 
             dataKey="frequency" 
-            fill={chartColors[0]} 
+            fill={themeColors[0]} 
             label={showDataLabels ? renderDataLabel : false}
           />
         </BarChart>

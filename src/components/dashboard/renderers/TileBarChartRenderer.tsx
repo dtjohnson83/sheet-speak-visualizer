@@ -2,7 +2,7 @@
 import React from 'react';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatTooltipValue } from '@/lib/numberUtils';
-import { getChartTextColor } from '@/lib/chartTheme';
+import { getChartTextColor, getThemeAwareChartColors } from '@/lib/chartTheme';
 import { SeriesConfig } from '@/hooks/useChartState';
 import { DataRow } from '@/pages/Index';
 
@@ -28,6 +28,9 @@ export const TileBarChartRenderer = ({
   xAxisLabel,
   yAxisLabel
 }: TileBarChartRendererProps) => {
+  // Use theme-aware colors for consistent dark mode support
+  const themeColors = getThemeAwareChartColors();
+
   // Check if we need a right Y-axis
   const needsRightYAxis = effectiveSeries.some(s => s.yAxisId === 'right');
 
@@ -83,7 +86,7 @@ export const TileBarChartRenderer = ({
                   key={s.column} 
                   type="monotone"
                   dataKey={s.column} 
-                  stroke={chartColors[index % chartColors.length]}
+                  stroke={themeColors[index % themeColors.length]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   yAxisId={s.yAxisId || 'left'}
@@ -95,7 +98,7 @@ export const TileBarChartRenderer = ({
                 <Bar 
                   key={s.column} 
                   dataKey={s.column} 
-                  fill={chartColors[index % chartColors.length]} 
+                  fill={themeColors[index % themeColors.length]} 
                   stackId={stackColumn ? 'stack' : undefined}
                   yAxisId={s.yAxisId || 'left'}
                   label={showDataLabels ? renderDataLabel : false}
