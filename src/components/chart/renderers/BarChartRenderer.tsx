@@ -55,6 +55,7 @@ export const BarChartRenderer = ({
       series={brandedSeries}
       showDataLabels={showDataLabels}
       animated={isTemporalAnimated}
+      stacked={brandedSeries.length > 0}
       xAxisLabel={xAxisLabel}
       yAxisLabel={yAxisLabel}
       formatYAxis={formatTooltipValue}

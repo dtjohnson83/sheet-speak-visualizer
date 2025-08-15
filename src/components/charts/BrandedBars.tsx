@@ -25,6 +25,7 @@ interface BrandedBarsProps {
   showDataLabels?: boolean;
   stacked?: boolean;
   animated?: boolean;
+  useGradients?: boolean;
   series?: Array<{
     dataKey: string;
     name?: string;
@@ -53,6 +54,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
   showDataLabels = false,
   stacked = false,
   animated = true,
+  useGradients = false,
   series = [],
   xAxisLabel,
   yAxisLabel,
@@ -73,12 +75,13 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
   const chartColors = getThemeAwareChartColors();
   const chartId = `bar-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Prepare series data
+  // Prepare series data - only add base series if dataKey is truthy (avoids invalid series for stacked charts)
+  const baseSeries = dataKey ? [{ dataKey, name: dataKey, color: chartColors[0] }] : [];
   const allSeries = [
-    { dataKey, name: dataKey, color: chartColors[0] },
+    ...baseSeries,
     ...series.map((s, index) => ({
       ...s,
-      color: s.color || chartColors[(index + 1) % chartColors.length]
+      color: s.color || chartColors[(baseSeries.length + index) % chartColors.length]
     }))
   ];
 
@@ -203,7 +206,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
             <Bar
               key={seriesItem.dataKey}
               dataKey={seriesItem.dataKey}
-              fill={`url(#${chartId}-bar-gradient-${index === 0 ? 'primary' : 'secondary'})`}
+              fill={useGradients ? `url(#${chartId}-bar-gradient-${index === 0 ? 'primary' : 'secondary'})` : seriesItem.color}
               radius={[barRadius, barRadius, 2, 2]}
               maxBarSize={maxBarSize}
               label={showDataLabels ? renderDataLabel : false}
@@ -216,7 +219,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
               {!stacked && data.map((entry, cellIndex) => (
                 <Cell 
                   key={`cell-${cellIndex}`}
-                  fill={`url(#${chartId}-bar-gradient-${index === 0 ? 'primary' : 'secondary'})`}
+                  fill={useGradients ? `url(#${chartId}-bar-gradient-${index === 0 ? 'primary' : 'secondary'})` : seriesItem.color}
                 />
               ))}
             </Bar>
