@@ -90,9 +90,9 @@ export const getThemeAwareChartColors = (): string[] => {
     'hsl(var(--chart-primary))',
     'hsl(var(--chart-secondary))', 
     'hsl(var(--chart-accent))',
-    'hsl(var(--destructive))',
-    'hsl(var(--warning))',
-    'hsl(var(--success))',
+    'hsl(var(--chart-destructive))',
+    'hsl(var(--chart-warning))',
+    'hsl(var(--chart-success))',
   ];
 };
 

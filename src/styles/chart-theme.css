@@ -13,6 +13,11 @@
   --chart-accent: 291 47% 71%;
   --chart-accent-light: 291 47% 81%;
   
+  /* Additional Chart Colors */
+  --chart-success: 142 71% 45%;
+  --chart-warning: 43 74% 66%;
+  --chart-destructive: 339 82% 62%;
+  
   /* Chart Gradients */
   --chart-gradient-primary: linear-gradient(135deg, hsl(var(--chart-primary-light)) 0%, hsl(var(--chart-primary-dark)) 100%);
   --chart-gradient-secondary: linear-gradient(135deg, hsl(var(--chart-secondary-light)) 0%, hsl(var(--chart-secondary)) 100%);
@@ -58,13 +63,18 @@
 
 /* Dark mode optimizations */
 .dark {
-  /* Enhanced dark mode colors - using theme-aware colors */
-  --chart-primary: var(--primary);
+  /* Enhanced dark mode colors - proper chart colors for visibility */
+  --chart-primary: 220 98% 71%;
   --chart-primary-light: 220 98% 81%;
   --chart-primary-dark: 220 98% 61%;
-  --chart-secondary: var(--secondary);
+  --chart-secondary: 262 83% 68%;
   --chart-secondary-light: 262 83% 78%;
-  --chart-accent: var(--accent);
+  --chart-accent: 291 47% 81%;
+  
+  /* Additional Chart Colors - Dark Mode */
+  --chart-success: 142 71% 55%;
+  --chart-warning: 43 74% 76%;
+  --chart-destructive: 339 82% 72%;
   
   /* Dark mode grid and axes */
   --chart-grid: var(--border);
