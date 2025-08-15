@@ -23,7 +23,15 @@ export const BarChartRenderer = ({
   xAxisLabel,
   yAxisLabel
 }: BarChartRendererProps) => {
-  console.log('BarChartRenderer - Rendering with data length:', data?.length, 'series:', series.length);
+  console.log('🔴 BarChartRenderer - Rendering with:', { 
+    dataLength: data?.length, 
+    seriesLength: series.length,
+    xColumn,
+    yColumn,
+    chartColors,
+    showDataLabels,
+    sampleData: data?.slice(0, 2)
+  });
   
   // Filter out yColumn from the provided series to avoid duplication
   const filteredSeries = series.filter(s => s.column !== yColumn);

@@ -284,6 +284,14 @@ export const ChartRenderer = ({
     }
   }
 
+  console.log('🟡 ChartRenderer - About to render ChartRenderers with:', { 
+    chartType, 
+    dataLength: data?.length,
+    xColumn: cleanXColumn,
+    yColumn: cleanYColumn,
+    hasData: !!data
+  });
+
   return (
     <ChartRenderers
       chartType={chartType as any}

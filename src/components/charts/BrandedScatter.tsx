@@ -3,13 +3,16 @@ import {
   ScatterChart, 
   Scatter, 
   ResponsiveContainer, 
+  XAxis,
+  YAxis,
   ZAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   Cell
 } from 'recharts';
 import { 
-  BrandedXAxis, 
-  BrandedYAxis, 
-  BrandedGrid, 
+  BrandedPrimitives,
   BrandedTooltip, 
   BrandedLegend 
 } from './BrandedPrimitives';
@@ -83,56 +86,80 @@ export const BrandedScatter = ({
           data={data}
           className="chart-surface"
         >
-          <defs>
-            {effectiveColors.map((color, index) => (
-              <linearGradient
-                key={`scatter-gradient-${chartId}-${index}`}
-                id={`scatter-gradient-${chartId}-${index}`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop offset="0%" stopColor={color} stopOpacity={0.8} />
-                <stop offset="100%" stopColor={color} stopOpacity={0.3} />
-              </linearGradient>
-            ))}
-          </defs>
+          <BrandedPrimitives colors={effectiveColors} id={chartId} />
           
-          {showGrid && <BrandedGrid />}
+          {showGrid && (
+            <CartesianGrid 
+              strokeDasharray="2 2" 
+              stroke="hsl(var(--chart-grid))"
+              strokeOpacity={0.3}
+              className="chart-grid-line"
+            />
+          )}
           
-          <BrandedXAxis
+          <XAxis
             dataKey={xAxisKey}
             type="number"
             domain={domain?.x || ['dataMin', 'dataMax']}
-            label={xAxisLabel}
+            axisLine={false}
+            tickLine={false}
+            tick={{ 
+              fill: 'hsl(var(--chart-tick))', 
+              fontSize: 12,
+              fontWeight: 400
+            }}
             tickFormatter={formatXAxis}
+            label={xAxisLabel ? { 
+              value: xAxisLabel, 
+              position: 'insideBottom', 
+              offset: -10,
+              style: { textAnchor: 'middle', fill: 'hsl(var(--chart-text-muted))' }
+            } : undefined}
           />
           
-          <BrandedYAxis
+          <YAxis
             dataKey={dataKey}
             type="number"
             domain={domain?.y || ['dataMin', 'dataMax']}
-            label={yAxisLabel}
+            axisLine={false}
+            tickLine={false}
+            tick={{ 
+              fill: 'hsl(var(--chart-tick))', 
+              fontSize: 12,
+              fontWeight: 400
+            }}
             tickFormatter={formatYAxis}
+            label={yAxisLabel ? { 
+              value: yAxisLabel, 
+              angle: -90, 
+              position: 'insideLeft',
+              style: { textAnchor: 'middle', fill: 'hsl(var(--chart-text-muted))' }
+            } : undefined}
           />
           
           {sizeKey && (
             <ZAxis 
               dataKey={sizeKey} 
-              range={sizeRange} 
-              className="chart-z-axis"
+              range={sizeRange}
             />
           )}
           
           {showTooltip && (
-            <BrandedTooltip
-              formatter={formatTooltip}
-              labelFormatter={formatXAxis}
+            <Tooltip 
+              content={<BrandedTooltip valueFormatter={formatTooltip} labelFormatter={formatXAxis} />}
+              cursor={{
+                fill: 'hsl(var(--chart-primary) / 0.1)',
+                radius: 4
+              }}
             />
           )}
           
-          {showLegend && <BrandedLegend />}
+          {showLegend && (
+            <Legend 
+              content={<BrandedLegend />}
+              wrapperStyle={{ paddingTop: '20px' }}
+            />
+          )}
           
           {effectiveSeries.map((s, index) => (
             <Scatter

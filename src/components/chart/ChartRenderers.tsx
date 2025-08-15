@@ -54,6 +54,8 @@ export const ChartRenderers = ({
   xAxisLabel,
   yAxisLabel
 }: ExtendedChartRenderersProps) => {
+  console.log('🟠 ChartRenderers - Called with chartType:', chartType, 'data length:', data?.length);
+  
   if (chartType === 'bar') {
     return (
       <BarChartRenderer
