@@ -2,6 +2,7 @@ import React from 'react';
 import { BrandedBars } from '@/components/charts/BrandedBars';
 import { formatTooltipValue } from '@/lib/numberUtils';
 import { ChartRenderersProps } from '@/types';
+import { getThemeAwareChartColors } from '@/lib/chartTheme';
 
 
 interface BarChartRendererProps extends Pick<ChartRenderersProps, 'data' | 'xColumn' | 'yColumn' | 'series' | 'stackColumn' | 'chartColors' | 'showDataLabels'> {
@@ -36,11 +37,14 @@ export const BarChartRenderer = ({
   // Filter out yColumn from the provided series to avoid duplication
   const filteredSeries = series.filter(s => s.column !== yColumn);
   
+  // Get theme-aware colors for consistent styling
+  const themeColors = getThemeAwareChartColors();
+  
   // Prepare series for BrandedBars component
   const brandedSeries = filteredSeries.map((s, index) => ({
     dataKey: s.column,
     name: s.column,
-    color: s.color || chartColors[(index + 1) % chartColors.length]
+    color: s.color || themeColors[(index + 1) % themeColors.length]
   }));
 
   return (
@@ -48,7 +52,6 @@ export const BarChartRenderer = ({
       data={data}
       dataKey={yColumn}
       xAxisKey={xColumn}
-      colors={chartColors}
       series={brandedSeries}
       showDataLabels={showDataLabels}
       animated={isTemporalAnimated}

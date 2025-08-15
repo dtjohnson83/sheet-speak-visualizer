@@ -11,7 +11,7 @@ import {
   Cell
 } from 'recharts';
 import { BrandedPrimitives, BrandedTooltip, BrandedLegend } from './BrandedPrimitives';
-import { getChartColors } from '@/lib/chartTheme';
+import { getThemeAwareChartColors } from '@/lib/chartTheme';
 import { formatTooltipValue } from '@/lib/numberUtils';
 
 interface BrandedBarsProps {
@@ -70,7 +70,7 @@ export const BrandedBars: React.FC<BrandedBarsProps> = ({
     series: series.length
   });
   
-  const chartColors = colors || ['hsl(var(--chart-primary))', 'hsl(var(--chart-secondary))', 'hsl(var(--chart-accent))'];
+  const chartColors = getThemeAwareChartColors();
   const chartId = `bar-${Math.random().toString(36).substr(2, 9)}`;
   
   // Prepare series data
