@@ -12,7 +12,7 @@ export const LandingHeader = () => {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center flex-shrink-0">
           <img 
-            src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
+            src="/lovable-uploads/357840ee-e978-4965-bfd8-d436ceab607e.png" 
             alt="Chartuvo Logo" 
             className="h-12 w-auto min-w-0 sm:h-16 md:h-20 lg:h-24"
           />

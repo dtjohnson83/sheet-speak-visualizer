@@ -16,7 +16,7 @@ export const AppHeader = ({ isAdmin, usesRemaining }: AppHeaderProps) => {
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img 
-              src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
+              src="/lovable-uploads/357840ee-e978-4965-bfd8-d436ceab607e.png" 
               alt="Chartuvo Logo" 
               className="h-8 w-auto"
             />
@@ -54,7 +54,7 @@ export const AppHeader = ({ isAdmin, usesRemaining }: AppHeaderProps) => {
         <div className="flex justify-center mb-4">
           <Link to="/">
             <img 
-              src="/lovable-uploads/65be9d2d-b287-4742-bf85-d1ce0ab36d06.png" 
+              src="/lovable-uploads/357840ee-e978-4965-bfd8-d436ceab607e.png" 
               alt="Chartuvo Logo" 
               className="h-16 w-auto md:h-20 lg:h-24 hover:opacity-80 transition-opacity cursor-pointer"
             />
