@@ -1,12 +1,12 @@
 # Sheet Speak Visualizer
 
-Natural-language spreadsheet and visualization prototype for turning tabular data into explainable insights.
+Natural-language spreadsheet and visualization interface for turning tabular data into explainable insights.
 
 This project explores the same problem space as enterprise Text2SQL and natural-language analytics: users should be able to ask practical questions of messy business data, inspect the answer path, and move from raw rows to a decision-ready visualization.
 
 ## What It Demonstrates
 
-- React and TypeScript product prototyping
+- React and TypeScript product implementation
 - Natural-language data exploration patterns
 - Spreadsheet ingestion and visualization workflow thinking
 - Analyst-facing UI design for data-to-insight use cases
@@ -31,4 +31,4 @@ Create a local `.env` from `.env.example` if you need Supabase-backed features. 
 
 ## Status
 
-Prototype. Kept public because it supports the AI solutions/data strategy story: natural-language analytics, visualization, and practical user workflows.
+Portfolio-ready implementation artifact. Kept public because it supports the AI solutions/data strategy story: natural-language analytics, visualization, and practical user workflows.
